@@ -1,0 +1,56 @@
+services:
+  server:
+    build: 
+      context: ./server
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - app_network
+    volumes:
+      - postgres_data:/app/staticfiles
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=hcl_data
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=hcl_data
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - app_network
+
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
+    networks:
+      - app_network
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL= http://server:8000/api
+    networks:
+      - app_network
+    depends_on:
+      - server
+
+volumes:
+  postgres_data:
+
+networks:
+  app_network:
+    driver: bridge
