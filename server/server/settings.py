@@ -28,17 +28,6 @@ DEBUG = True
 # ALLOWED_HOSTS = ['172.31.81.48']
 ALLOWED_HOSTS = ["*"]
 
-# CSRF and Security Settings for Production
-CSRF_TRUSTED_ORIGINS = [
-    'https://a19hu.prometeo.in',
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-]
-
-# For production behind proxy (nginx)
-USE_X_FORWARDED_HOST = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
 # Disable automatic slash appending for API endpoints
 APPEND_SLASH = False
 

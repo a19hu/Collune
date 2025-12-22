@@ -47,7 +47,7 @@ export function DailyLimitCard({ token, className }: DailyLimitCardProps) {
     <div
       className={`space-y-4 rounded-2xl border border-amber-100 bg-white/90 p-6 shadow-lg ${className ?? ""}`}
     >
-      <div className="flex items-center justify-between gap-2 flex-wrap">
+      {/* <div className="flex items-center justify-between gap-2 flex-wrap">
         <div>
           <p className="text-xs font-medium text-amber-600">Limits</p>
           <h3 className="text-lg font-semibold text-gray-900">
@@ -63,7 +63,7 @@ export function DailyLimitCard({ token, className }: DailyLimitCardProps) {
         >
           {loading ? "Checking..." : "Check"}
         </Button>
-      </div>
+      </div> */}
 
       {error && (
         <p className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-600">
