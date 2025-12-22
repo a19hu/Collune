@@ -10,12 +10,33 @@ services:
     networks:
       - app_network
     volumes:
-      - postgres_data:/app/staticfiles
+      - ./server:/app
+      - static_data:/app/staticfiles
     environment:
       - POSTGRES_HOST=db
       - POSTGRES_DB=hcl_data
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+      - REDIS_URL=redis://redis:6379/0
+
+  celery_worker:
+    build: 
+      context: ./server
+    command: celery -A server worker -l info
+    depends_on:
+      - db
+      - redis
+      - server
+    networks:
+      - app_network
+    volumes:
+      - ./server:/app
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=hcl_data
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - REDIS_URL=redis://redis:6379/0
 
   db:
     image: postgres:13
@@ -42,7 +63,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_BASE_URL= http://server:8000/api
+      - VITE_API_BASE_URL=http://localhost:8000
     networks:
       - app_network
     depends_on:
@@ -50,6 +71,7 @@ services:
 
 volumes:
   postgres_data:
+  static_data:
 
 networks:
   app_network:

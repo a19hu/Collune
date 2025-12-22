@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0003_alter_account_account_number'),
+        ('api', '0002_account_kyc_transaction_delete_note'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

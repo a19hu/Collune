@@ -76,8 +76,8 @@ class KYCSerializer(serializers.ModelSerializer):
         model = KYC
         fields = ['id', 'user', 'name', 'phone_number', 'date_of_birth', 
                   'address', 'aadhaar_number', 'pan_number', 'status', 
-                  'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+                  'created_at']
+        read_only_fields = ['id', 'created_at']
 
 
 class AccountSerializer(serializers.ModelSerializer):

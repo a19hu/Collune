@@ -99,15 +99,23 @@ def transfer_money(request):
     from .audit import get_client_ip
     ip_address = get_client_ip(request)
     
-    # Enqueue transaction with account IDs and IP address
-    process_transaction.delay(sender_account.id, receiver_account.id, amount, ip_address)
-    
-    # Log successful transaction initiation
-    audit_log(request, f"Transaction initiated: ₹{amount} from {sender_account_number} to {receiver_account_number}")
+    # Process transaction immediately (synchronous for debugging)
+    try:
+        from .tasks import process_transaction
+        result = process_transaction(sender_account.id, receiver_account.id, amount, ip_address)
+        
+        # Log successful transaction initiation
+        audit_log(request, f"Transaction completed: ₹{amount} from {sender_account_number} to {receiver_account_number}")
 
-    return Response({
-        "message": "Transaction is being processed"
-    }, status=status.HTTP_202_ACCEPTED)
+        return Response({
+            "message": "Transaction completed successfully",
+            "result": result
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        audit_log(request, f"Transaction failed: {str(e)}")
+        return Response({
+            "error": f"Transaction failed: {str(e)}"
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
@@ -274,6 +282,59 @@ def get_profile(request):
             'total_balance': total_balance,
             'active_loans': active_loans
         }
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def get_all_customers(request):
+    """
+    Admin endpoint to fetch all customers with their complete banking details.
+    """
+    from django.contrib.auth.models import User
+    
+    users = User.objects.all()
+    customers_data = []
+    
+    for user in users:
+        # Get KYC data
+        try:
+            kyc = KYC.objects.get(user=user)
+            kyc_data = KYCSerializer(kyc).data
+        except KYC.DoesNotExist:
+            kyc_data = None
+        
+        # Get all accounts
+        accounts = Account.objects.filter(user=user)
+        accounts_data = AccountSerializer(accounts, many=True).data
+        
+        # Get loans
+        loans = Loan.objects.filter(user=user)
+        loans_data = LoanSerializer(loans, many=True).data
+        
+        # Calculate stats
+        total_balance = sum(account.balance for account in accounts)
+        total_transactions = Transaction.objects.filter(
+            Q(sender_account__user=user) | Q(receiver_account__user=user)
+        ).count()
+        
+        customers_data.append({
+            'user': UserSerializer(user).data,
+            'kyc': kyc_data,
+            'accounts': accounts_data,
+            'loans': loans_data,
+            'stats': {
+                'total_accounts': accounts.count(),
+                'total_balance': total_balance,
+                'total_transactions': total_transactions,
+                'total_loans': loans.count(),
+                'active_loans': loans.filter(status='APPROVED').count()
+            }
+        })
+    
+    return Response({
+        'total_customers': users.count(),
+        'customers': customers_data
     })
 
 

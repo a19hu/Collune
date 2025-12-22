@@ -1,7 +1,8 @@
 from django.urls import path
 from .views import (SignUp, manage_accounts, 
                     account_detail, transfer_money, transaction_history, 
-                    transaction_detail, apply_loan, approve_loan, audit_logs, get_profile)
+                    transaction_detail, apply_loan, approve_loan, audit_logs, 
+                    get_profile, get_all_customers)
 
 urlpatterns = [
     path('signup/', SignUp, name='signup'),
@@ -17,5 +18,6 @@ urlpatterns = [
     
     # User and audit endpoints
     path('profile/', get_profile, name='profile'),
+    path('admin/customers/', get_all_customers, name='all_customers'),
     path('audit-logs/', audit_logs, name='audit_logs'),
 ]
