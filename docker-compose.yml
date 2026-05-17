@@ -2,6 +2,7 @@ services:
   server:
     build: 
       context: ./server
+      dockerfile: dockerfile
     ports:
       - "8000:8000"
     depends_on:
@@ -14,7 +15,7 @@ services:
       - static_data:/app/staticfiles
     environment:
       - POSTGRES_HOST=db
-      - POSTGRES_DB=hcl_data
+      - POSTGRES_DB=data
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - REDIS_URL=redis://redis:6379/0
@@ -22,6 +23,7 @@ services:
   celery_worker:
     build: 
       context: ./server
+      dockerfile: dockerfile
     command: celery -A server worker -l info
     depends_on:
       - db
@@ -33,7 +35,7 @@ services:
       - ./server:/app
     environment:
       - POSTGRES_HOST=db
-      - POSTGRES_DB=hcl_data
+      - POSTGRES_DB=data
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - REDIS_URL=redis://redis:6379/0
@@ -43,7 +45,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      - POSTGRES_DB=hcl_data
+      - POSTGRES_DB=data
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     networks:
@@ -56,18 +58,18 @@ services:
     networks:
       - app_network
 
-  client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    ports:
-      - "5173:5173"
-    environment:
-      - VITE_API_BASE_URL=http://localhost:8000
-    networks:
-      - app_network
-    depends_on:
-      - server
+  # client:
+  #   build:
+  #     context: ./client
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "5173:5173"
+  #   environment:
+  #     - VITE_API_BASE_URL=http://localhost:8000
+  #   networks:
+  #     - app_network
+  #   depends_on:
+  #     - server
 
 volumes:
   postgres_data:

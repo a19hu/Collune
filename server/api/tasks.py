@@ -1,56 +1,37 @@
 from celery import shared_task
-from django.db import transaction
-from django.db.models import Sum
 from django.utils import timezone
-from .models import Account, Transaction
-from .fraud_detection import simple_fraud_check
+from .models import Campaign, CreatorPlatform, AnalyticsSnapshot, Notification, User
+from .services import MatchingService
 
-DAILY_LIMIT = 50000
 
 @shared_task
-@transaction.atomic
-def process_transaction(sender_id, receiver_id, amount, ip_address='127.0.0.1'):
-    sender = Account.objects.select_for_update().get(id=sender_id)
-    receiver = Account.objects.select_for_update().get(id=receiver_id)
+def run_campaign_matching(campaign_id):
+    campaign = Campaign.objects.get(id=campaign_id, is_deleted=False)
+    ranked = MatchingService.rank_creators_for_campaign(campaign)
+    return [{"creator_id": item.creator_id, "score": item.score} for item in ranked]
 
-    # 1️⃣ Balance check
-    if sender.balance < amount:
-        raise Exception("Insufficient funds")
 
-    # 2️⃣ Daily limit check
-    today_total = Transaction.objects.filter(
-        sender_account=sender,
-        created_at__date=timezone.now().date()
-    ).aggregate(Sum('amount'))['amount__sum'] or 0
-
-    if today_total + amount > DAILY_LIMIT:
-        raise Exception("Daily limit exceeded")
-
-    # 3️⃣ Update balances
-    sender.balance -= amount
-    receiver.balance += amount
-
-    sender.save()
-    receiver.save()
-
-    # 4️⃣ Log transaction
-    tx = Transaction.objects.create(
-        sender_account=sender,
-        receiver_account=receiver,
-        amount=amount,
-        transaction_type='DEBIT'
+@shared_task
+def aggregate_creator_analytics(creator_platform_id):
+    cp = CreatorPlatform.objects.get(id=creator_platform_id, is_deleted=False)
+    AnalyticsSnapshot.objects.update_or_create(
+        creator_platform=cp,
+        snapshot_date=timezone.now().date(),
+        defaults={
+            "followers": cp.followers,
+            "engagement": cp.engagement_rate,
+            "reach": int(cp.followers * 0.6),
+            "impressions": int(cp.followers * 1.2),
+            "saves": int(cp.followers * 0.03),
+            "shares": int(cp.followers * 0.02),
+            "ctr": round(cp.engagement_rate * 0.1, 2),
+            "sentiment_score": 70,
+            "fake_follower_score": max(0, 100 - cp.audience_quality_score),
+        },
     )
 
-    # 5️⃣ Fraud detection check
-    fraud_result = simple_fraud_check(ip_address, amount)
-    
-    if fraud_result['is_fraud']:
-        tx.is_fraud = True
-        tx.save()
-        # Optionally: Could reverse transaction here
-    
-    return {
-        'status': 'success',
-        'transaction_id': tx.id,
-        'fraud_check': fraud_result
-    }
+
+@shared_task
+def send_in_app_notification(user_id, title, message):
+    user = User.objects.get(id=user_id)
+    Notification.objects.create(user=user, title=title, message=message, notification_type="IN_APP")

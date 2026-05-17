@@ -1,355 +1,286 @@
-from django.contrib.auth import authenticate
-from django.utils import timezone
-from django.db import models
-from django.db.models import Q
+from django.contrib.auth.models import User
+from datetime import datetime, timezone as dt_timezone
+from rest_framework import viewsets, status
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated,IsAdminUser
-from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import KYC, Account, Transaction, Loan, AuditLog
-from .serializers import ( SignupSerializer, KYCSerializer, UserSerializer, 
-                          AccountSerializer, TransactionSerializer, 
-                          CreateTransactionSerializer, LoanSerializer, 
-                          )
-from .tasks import process_transaction
-from .audit import audit_log
-import math
+from django.db import transaction
+
+from .models import (
+    Role,
+    Brand,
+    BrandMember,
+    Creator,
+    CreatorPlatform,
+    Campaign,
+    CampaignBrief,
+    CampaignCreator,
+    Deliverable,
+    AnalyticsSnapshot,
+    Report,
+    Invoice,
+    Payout,
+    Notification,
+    ChatRoom,
+    ChatMessage,
+    Category,
+    Tag,
+    AIInteraction,
+    BrandOnboarding
+)
+from .permissions import IsAdminLike, IsBrandUser, IsCreatorUser
+from .serializers import (
+    UserSerializer,
+    SignUpSerializer,
+    RoleSerializer,
+    BrandSerializer,
+    CreatorSerializer,
+    CreatorPlatformSerializer,
+    CampaignSerializer,
+    CampaignBriefSerializer,
+    CampaignCreatorSerializer,
+    DeliverableSerializer,
+    AnalyticsSnapshotSerializer,
+    ReportSerializer,
+    InvoiceSerializer,
+    PayoutSerializer,
+    NotificationSerializer,
+    ChatRoomSerializer,
+    ChatMessageSerializer,
+    CategorySerializer,
+    TagSerializer,
+    AIInteractionSerializer,
+    BrandSignUpSerializer,
+    BrandOnboardingSerializer
+)
+from .tasks import run_campaign_matching
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
-def SignUp(request):
-    serializer = SignupSerializer(data=request.data)
+def brands_signup(request):
+    serializer = BrandSignUpSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
 
-    if serializer.is_valid():
-        serializer.save()
-        return Response(
-            {"message": "Signup and KYC completed successfully"},
-            status=status.HTTP_201_CREATED
-        )
+    data = serializer.save()
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-def manage_accounts(request):
-    if request.method == 'GET':
-        # Get all accounts for the logged-in user
-        accounts = Account.objects.filter(user=request.user)
-        serializer = AccountSerializer(accounts, many=True)
-        return Response(serializer.data)
-    
-    elif request.method == 'POST':
-        # Create a new account for the logged-in user
-        serializer = AccountSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def account_detail(request, account_id):
-    try:
-        account = Account.objects.get(id=account_id, user=request.user)
-        serializer = AccountSerializer(account)
-        return Response(serializer.data)
-    except Account.DoesNotExist:
-        return Response({
-            'error': 'Account not found'
-        }, status=status.HTTP_404_NOT_FOUND)
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def transfer_money(request):
-    serializer = CreateTransactionSerializer(data=request.data)
-
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    sender_account_number = serializer.validated_data['sender_account_id']
-    receiver_account_number = serializer.validated_data['receiver_account_id']
-    amount = serializer.validated_data['amount']
-
-    # Get sender account by account_number and verify it belongs to user
-    try:
-        sender_account = Account.objects.get(account_number=sender_account_number, user=request.user)
-    except Account.DoesNotExist:
-        audit_log(request, f"Failed transaction attempt - Unauthorized sender account: {sender_account_number}")
-        return Response(
-            {"error": "Unauthorized sender account"},
-            status=status.HTTP_403_FORBIDDEN
-        )
-
-    # Get receiver account by account_number
-    try:
-        receiver_account = Account.objects.get(account_number=receiver_account_number)
-    except Account.DoesNotExist:
-        audit_log(request, f"Failed transaction attempt - Receiver account not found: {receiver_account_number}")
-        return Response(
-            {"error": "Receiver account not found"},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    # Get client IP address
-    from .audit import get_client_ip
-    ip_address = get_client_ip(request)
-    
-    # Process transaction immediately (synchronous for debugging)
-    try:
-        from .tasks import process_transaction
-        result = process_transaction(sender_account.id, receiver_account.id, amount, ip_address)
-        
-        # Log successful transaction initiation
-        audit_log(request, f"Transaction completed: ₹{amount} from {sender_account_number} to {receiver_account_number}")
-
-        return Response({
-            "message": "Transaction completed successfully",
-            "result": result
-        }, status=status.HTTP_200_OK)
-    except Exception as e:
-        audit_log(request, f"Transaction failed: {str(e)}")
-        return Response({
-            "error": f"Transaction failed: {str(e)}"
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def transaction_history(request):
-    accounts = Account.objects.filter(user=request.user)
-
-    transactions = Transaction.objects.filter(
-        sender_account__in=accounts
-    ) | Transaction.objects.filter(
-        receiver_account__in=accounts
-    )
-
-    transactions = transactions.order_by('-created_at')
-
-    return Response([
+    return Response(
         {
-            "id": tx.id,
-            "sender": tx.sender_account.id,
-            "receiver": tx.receiver_account.id,
-            "amount": tx.amount,
-            "created_at": tx.created_at
-        }
-        for tx in transactions
-    ])
-
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def transaction_detail(request, transaction_id):
-    """
-    Get details of a specific transaction.
-    """
-    try:
-        user_accounts = Account.objects.filter(user=request.user)
-        transaction_obj = Transaction.objects.get(
-            id=transaction_id
-        )
-        
-        # Verify user has access to this transaction
-        if transaction_obj.sender_account not in user_accounts and \
-           transaction_obj.receiver_account not in user_accounts:
-            return Response({
-                'error': 'Unauthorized'
-            }, status=status.HTTP_403_FORBIDDEN)
-        
-        serializer = TransactionSerializer(transaction_obj)
-        return Response(serializer.data)
-        
-    except Transaction.DoesNotExist:
-        return Response({
-            'error': 'Transaction not found'
-        }, status=status.HTTP_404_NOT_FOUND)
-
-
-def calculate_emi(principal, annual_rate, tenure_months):
-    r = annual_rate / (12 * 100)
-    n = tenure_months
-
-    emi = (principal * r * math.pow(1 + r, n)) / \
-          (math.pow(1 + r, n) - 1)
-
-    return round(emi, 2)
-
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def apply_loan(request):
-    loan_type = request.data.get('loan_type')
-    amount = float(request.data.get('amount'))
-    tenure = int(request.data.get('tenure_months'))
-
-    interest_rate = 12  # fixed for hackathon
-
-    emi = calculate_emi(amount, interest_rate, tenure)
-
-    loan = Loan.objects.create(
-        user=request.user,
-        loan_type=loan_type,
-        amount=amount,
-        tenure_months=tenure,
-        interest_rate=interest_rate,
-        emi=emi,
-        status='PENDING'
+            "message": "Brand signup successful",
+            "brand_name": data["brand"].brand_name,
+        },
+        status=status.HTTP_201_CREATED
     )
-    
-    # Log loan application
-    audit_log(request, f"Loan applied: {loan_type} - ₹{amount} for {tenure} months (Loan ID: {loan.id})")
-
-    return Response({
-        "message": "Loan applied successfully",
-        "emi": emi,
-        "loan": LoanSerializer(loan).data
-    }, status=status.HTTP_201_CREATED)
 
 
-@api_view(['POST'])
-@permission_classes([IsAdminUser])
-def approve_loan(request, loan_id):
-    action = request.data.get('action')  # APPROVED or REJECTED
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def brand_onboarding(request):
 
-    try:
-        loan = Loan.objects.get(id=loan_id)
-        loan.status = action
-        loan.save()
-        
-        # Log loan approval/rejection
-        audit_log(request, f"Loan {action}: Loan ID {loan_id} - {loan.loan_type} ₹{loan.amount} for user {loan.user.username}")
+    brand = Brand.objects.filter(created_by=request.user).first()
 
-        return Response({
-            "message": f"Loan {action.lower()} successfully"
-        })
-    except Loan.DoesNotExist:
-        audit_log(request, f"Failed loan approval attempt - Loan ID {loan_id} not found")
+    if not brand:
         return Response(
-            {"error": "Loan not found"},
+            {"error": "Brand not found"},
             status=status.HTTP_404_NOT_FOUND
         )
-    
 
-@api_view(['GET'])
+    profile, _ = BrandOnboarding.objects.get_or_create(
+        brand=brand
+    )
+
+    serializer = BrandOnboardingSerializer(
+        profile,
+        data=request.data,
+        partial=True
+    )
+
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+
+    profile.is_onboarding_completed = True
+    profile.save()
+
+    return Response(
+        serializer.data,
+        status=status.HTTP_200_OK
+    )
+
+@api_view(["GET", "POST", "PUT"])
 @permission_classes([IsAuthenticated])
-def get_profile(request):
-    """
-    Get comprehensive user profile including KYC, accounts, transactions, loans, and stats.
-    """
+def brand_account(request):
+    brand = Brand.objects.filter(created_by=request.user).first()
+
+    if not brand:
+        return Response(
+            {"error": "Brand not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    if request.method == "GET":
+        serializer = BrandSerializer(brand)
+        return Response(serializer.data)
+
+    elif request.method == "POST":
+        serializer = BrandSerializer(brand, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def signup(request):
+    serializer = SignUpSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = serializer.save()
+    return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def me(request):
+    return Response(UserSerializer(request.user).data)
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_account(request):
     user = request.user
-    
-    # Get KYC data
-    try:
-        kyc = KYC.objects.get(user=user)
-        kyc_data = KYCSerializer(kyc).data
-    except KYC.DoesNotExist:
-        kyc_data = None
-    
-    # Get all accounts
-    accounts = Account.objects.filter(user=user)
-    accounts_data = AccountSerializer(accounts, many=True).data
-    
-    # Get recent transactions (last 10)
-    recent_transactions = Transaction.objects.filter(
-        Q(sender_account__user=user) | Q(receiver_account__user=user)
-    ).order_by('-created_at')[:10]
-    transactions_data = TransactionSerializer(recent_transactions, many=True).data
-    
-    # Get all loans
-    loans = Loan.objects.filter(user=user)
-    loans_data = LoanSerializer(loans, many=True).data
-    
-    # Calculate stats
-    total_balance = sum(account.balance for account in accounts)
-    active_loans = loans.filter(status='APPROVED').count()
-    
-    return Response({
-        'user': UserSerializer(user).data,
-        'kyc': kyc_data,
-        'accounts': accounts_data,
-        'recent_transactions': transactions_data,
-        'loans': loans_data,
-        'stats': {
-            'total_accounts': accounts.count(),
-            'total_balance': total_balance,
-            'active_loans': active_loans
-        }
-    })
+    with transaction.atomic():
+        # `created_by` is PROTECT on Brand, so remove user-owned brand graph first.
+        Brand.objects.filter(created_by=user).delete()
+
+        # Remove creator-owned graph (platforms, campaign links, payouts, etc. cascade).
+        Creator.objects.filter(user=user).delete()
+
+        # Remove direct links to the user.
+        BrandMember.objects.filter(user=user).delete()
+        Notification.objects.filter(user=user).delete()
+        AIInteraction.objects.filter(actor=user).delete()
+
+        # Clear many-to-many membership references.
+        user.chat_rooms.clear()
+
+        # Finally remove the auth user row.
+        user.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@api_view(['GET'])
-@permission_classes([IsAdminUser])
-def get_all_customers(request):
-    """
-    Admin endpoint to fetch all customers with their complete banking details.
-    """
-    from django.contrib.auth.models import User
-    
-    users = User.objects.all()
-    customers_data = []
-    
-    for user in users:
-        # Get KYC data
-        try:
-            kyc = KYC.objects.get(user=user)
-            kyc_data = KYCSerializer(kyc).data
-        except KYC.DoesNotExist:
-            kyc_data = None
-        
-        # Get all accounts
-        accounts = Account.objects.filter(user=user)
-        accounts_data = AccountSerializer(accounts, many=True).data
-        
-        # Get loans
-        loans = Loan.objects.filter(user=user)
-        loans_data = LoanSerializer(loans, many=True).data
-        
-        # Calculate stats
-        total_balance = sum(account.balance for account in accounts)
-        total_transactions = Transaction.objects.filter(
-            Q(sender_account__user=user) | Q(receiver_account__user=user)
-        ).count()
-        
-        customers_data.append({
-            'user': UserSerializer(user).data,
-            'kyc': kyc_data,
-            'accounts': accounts_data,
-            'loans': loans_data,
-            'stats': {
-                'total_accounts': accounts.count(),
-                'total_balance': total_balance,
-                'total_transactions': total_transactions,
-                'total_loans': loans.count(),
-                'active_loans': loans.filter(status='APPROVED').count()
-            }
-        })
-    
-    return Response({
-        'total_customers': users.count(),
-        'customers': customers_data
-    })
+
+class BaseModelViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(is_deleted=False)
 
 
-@api_view(['GET'])
-@permission_classes([IsAdminUser])
-def audit_logs(request):
-    logs = AuditLog.objects.all().order_by('-created_at')
+class RoleViewSet(BaseModelViewSet):
+    queryset = Role.objects.all()
+    serializer_class = RoleSerializer
+    permission_classes = [IsAuthenticated, IsAdminLike]
 
-    data = [{
-        "user": log.user.username if log.user else None,
-        "action": log.action,
-        "file": log.file_name,
-        "function": log.function_name,
-        "ip": log.ip_address,
-        "time": log.created_at
-    } for log in logs]
 
-    return Response(data)
+class CategoryViewSet(BaseModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated, IsAdminLike]
+
+
+class TagViewSet(BaseModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = [IsAuthenticated, IsAdminLike]
+
+
+class BrandViewSet(BaseModelViewSet):
+    queryset = Brand.objects.all()
+    serializer_class = BrandSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+class CreatorViewSet(BaseModelViewSet):
+    queryset = Creator.objects.select_related("user")
+    serializer_class = CreatorSerializer
+
+
+class CreatorPlatformViewSet(BaseModelViewSet):
+    queryset = CreatorPlatform.objects.select_related("creator")
+    serializer_class = CreatorPlatformSerializer
+
+
+class CampaignViewSet(BaseModelViewSet):
+    queryset = Campaign.objects.select_related("brand")
+    serializer_class = CampaignSerializer
+
+    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsAdminLike])
+    def trigger_matching(self, request, pk=None):
+        task = run_campaign_matching.delay(pk)
+        return Response({"task_id": task.id, "status": "queued"}, status=status.HTTP_202_ACCEPTED)
+
+
+class CampaignBriefViewSet(BaseModelViewSet):
+    queryset = CampaignBrief.objects.select_related("campaign")
+    serializer_class = CampaignBriefSerializer
+
+
+class CampaignCreatorViewSet(BaseModelViewSet):
+    queryset = CampaignCreator.objects.select_related("campaign", "creator")
+    serializer_class = CampaignCreatorSerializer
+
+
+class DeliverableViewSet(BaseModelViewSet):
+    queryset = Deliverable.objects.select_related("campaign_creator")
+    serializer_class = DeliverableSerializer
+
+
+class AnalyticsSnapshotViewSet(BaseModelViewSet):
+    queryset = AnalyticsSnapshot.objects.select_related("creator_platform")
+    serializer_class = AnalyticsSnapshotSerializer
+    permission_classes = [IsAuthenticated, IsAdminLike]
+
+
+class ReportViewSet(BaseModelViewSet):
+    queryset = Report.objects.select_related("campaign")
+    serializer_class = ReportSerializer
+
+
+class InvoiceViewSet(BaseModelViewSet):
+    queryset = Invoice.objects.select_related("brand", "campaign")
+    serializer_class = InvoiceSerializer
+
+
+class PayoutViewSet(BaseModelViewSet):
+    queryset = Payout.objects.select_related("creator", "campaign_creator")
+    serializer_class = PayoutSerializer
+
+
+class NotificationViewSet(BaseModelViewSet):
+    queryset = Notification.objects.select_related("user")
+    serializer_class = NotificationSerializer
+
+
+class ChatRoomViewSet(BaseModelViewSet):
+    queryset = ChatRoom.objects.all()
+    serializer_class = ChatRoomSerializer
+
+
+class ChatMessageViewSet(BaseModelViewSet):
+    queryset = ChatMessage.objects.select_related("room", "sender")
+    serializer_class = ChatMessageSerializer
+
+
+
+class AIInteractionViewSet(BaseModelViewSet):
+    queryset = AIInteraction.objects.select_related("actor")
+    serializer_class = AIInteractionSerializer
+    permission_classes = [IsAuthenticated, IsAdminLike]
+
+
+
+
+
+

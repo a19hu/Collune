@@ -1,242 +1,216 @@
-from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import KYC, Account, Transaction, Loan
-import math
+from rest_framework import serializers
+from .models import (
+    Role,
+    Brand,
+    BrandOnboarding,
+    Creator,
+    CreatorPlatform,
+    Campaign,
+    CampaignBrief,
+    CampaignCreator,
+    Deliverable,
+    AnalyticsSnapshot,
+    Report,
+    Invoice,
+    Payout,
+    Notification,
+    ChatRoom,
+    ChatMessage,
+    Category,
+    Tag,
+    AIInteraction,
+)
+
 
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
-    
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name']
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
-    
-    def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data.get('email', ''),
-            password=validated_data['password'],
-            first_name=validated_data.get('first_name', ''),
-            last_name=validated_data.get('last_name', '')
-        )
-        return user
+        fields = ["id", "username", "email", "first_name", "last_name"]
 
-
-
-class SignupSerializer(serializers.ModelSerializer):
-    # User fields (not in KYC model)
-    username = serializers.CharField(write_only=True)
-    email = serializers.EmailField(write_only=True)
+class BrandSignUpSerializer(serializers.Serializer):
+    # User fields
+    username = serializers.CharField()
+    email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
 
-    class Meta:
-        model = KYC
-        fields = [
-            # User fields
-            'username',
-            'email',
-            'password',
-
-            # KYC fields
-            'name',
-            'phone_number',
-            'date_of_birth',
-            'address',
-            'aadhaar_number',
-            'pan_number',
-        ]
+    # Brand fields
+    brand_name = serializers.CharField()
+    website = serializers.URLField(required=False, allow_blank=True)
+    contact_phone = serializers.CharField(required=False, allow_blank=True)
 
     def create(self, validated_data):
-        # extract user data
-        username = validated_data.pop('username')
-        email = validated_data.pop('email')
-        password = validated_data.pop('password')
+        # Extract brand data
+        brand_name = validated_data.pop("brand_name")
+        website = validated_data.pop("website", "")
+        contact_phone = validated_data.pop("contact_phone", "")
 
-        # create user
+        password = validated_data.pop("password")
+
+        # Create user
         user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password
-        )
-
-        # create kyc (auto-approved for hackathon)
-        kyc = KYC.objects.create(
-            user=user,
-            status='APPROVED',
+            password=password,
             **validated_data
         )
 
-        return kyc
-    
+        # Create brand
+        brand = Brand.objects.create(
+            created_by=user,
+            brand_name=brand_name,
+            website=website,
+            contact_phone=contact_phone,
+        )
 
-class KYCSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = KYC
-        fields = ['id', 'user', 'name', 'phone_number', 'date_of_birth', 
-                  'address', 'aadhaar_number', 'pan_number', 'status', 
-                  'created_at']
-        read_only_fields = ['id', 'created_at']
-
-
-class AccountSerializer(serializers.ModelSerializer):
-    user_details = UserSerializer(source='user', read_only=True)
-    account_number = serializers.IntegerField(read_only=True)
-    
-    class Meta:
-        model = Account
-        fields = ['id', 'user', 'user_details', 'account_number', 'account_type', 
-                  'balance', 'is_active', 'created_at']
-        read_only_fields = ['id', 'account_number', 'balance', 'created_at', 'user_details', 'user']
-        extra_kwargs = {
-            'account_type': {'required': True}
+        return {
+            "user": user,
+            "brand": brand
         }
-
-
-class TransactionSerializer(serializers.ModelSerializer):
-    sender_account_details = AccountSerializer(source='sender_account', read_only=True)
-    receiver_account_details = AccountSerializer(source='receiver_account', read_only=True)
     
+class BrandOnboardingSerializer(serializers.ModelSerializer):
+
     class Meta:
-        model = Transaction
-        fields = ['id', 'sender_account', 'sender_account_details', 'receiver_account', 
-                  'receiver_account_details', 'amount', 'transaction_type', 'is_fraud', 'created_at']
-        read_only_fields = ['id', 'transaction_type', 'is_fraud', 'created_at', 
-                           'sender_account_details', 'receiver_account_details']
-
-
-class CreateTransactionSerializer(serializers.Serializer):
-    sender_account_id = serializers.IntegerField()
-    receiver_account_id = serializers.IntegerField()
-    amount = serializers.FloatField(min_value=1)
-
-    def validate(self, data):
-        if data['sender_account_id'] == data['receiver_account_id']:
-            raise serializers.ValidationError("Sender and receiver must be different")
-        return data
-
-class LoanSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Loan
+        model = BrandOnboarding
         fields = [
-            'id',
-            'loan_type',
-            'amount',
-            'tenure_months',
-            'interest_rate',
-            'emi',
-            'status',
-            'created_at'
+            "company_size",
+            "annual_marketing_budget",
+            "social_media_content_focus",
+            "company_type",
+            "what_brings_you_to_collune",
         ]
-        read_only_fields = ['emi', 'status', 'created_at']
+
+class BrandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Brand
+        fields = [
+            "brand_name",
+            "website",
+            "contact_phone",
+            "created_by",
+        ]
+        read_only_fields = ["created_by"]
+
+class SignUpSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    role_code = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ["username", "email", "password", "first_name", "last_name", "role_code"]
+
+    def create(self, validated_data):
+        role_code = validated_data.pop("role_code")
+        password = validated_data.pop("password")
+        user = User.objects.create_user(password=password, **validated_data)
+        role = Role.objects.get(code=role_code)
+        return user
 
 
-# class LoanRepaymentSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = LoanRepayment
-#         fields = ['id', 'loan', 'emi_number', 'emi_amount', 'due_date', 'paid_on', 'status', 'transaction', 'created_at']
-#         read_only_fields = ['id', 'created_at']
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = "__all__"
 
 
-# class LoanSerializer(serializers.ModelSerializer):
-#     user_details = UserSerializer(source='user', read_only=True)
-#     account_details = AccountSerializer(source='account', read_only=True)
-#     approved_by_details = UserSerializer(source='approved_by', read_only=True)
-#     repayments = LoanRepaymentSerializer(many=True, read_only=True)
-    
-#     class Meta:
-#         model = Loan
-#         fields = ['id', 'user', 'user_details', 'account', 'account_details', 'loan_type', 
-#                   'principal_amount', 'interest_rate', 'tenure_months', 'emi', 'total_payable',
-#                   'status', 'approved_by', 'approved_by_details', 'approved_at', 'rejection_reason',
-#                   'repayments', 'created_at', 'updated_at']
-#         read_only_fields = ['id', 'user', 'emi', 'total_payable', 'status', 'approved_by', 
-#                            'approved_at', 'created_at', 'updated_at', 'user_details', 
-#                            'account_details', 'approved_by_details', 'repayments']
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = "__all__"
 
 
-# class LoanApplicationSerializer(serializers.Serializer):
-#     loan_type = serializers.ChoiceField(choices=Loan.LOAN_TYPES)
-#     principal_amount = serializers.FloatField(min_value=1000)
-#     interest_rate = serializers.FloatField(min_value=0.1, max_value=50)
-#     tenure_months = serializers.IntegerField(min_value=1, max_value=360)
-#     account_id = serializers.IntegerField(required=False)
-    
-#     def validate_principal_amount(self, value):
-#         if value < 1000:
-#             raise serializers.ValidationError("Minimum loan amount is ₹1,000")
-#         if value > 10000000:
-#             raise serializers.ValidationError("Maximum loan amount is ₹1,00,00,000")
-#         return value
-    
-#     def validate_tenure_months(self, value):
-#         if value < 1:
-#             raise serializers.ValidationError("Minimum tenure is 1 month")
-#         if value > 360:
-#             raise serializers.ValidationError("Maximum tenure is 360 months (30 years)")
-#         return value
-    
-#     def calculate_emi(self, principal, rate, tenure):
-#         """
-#         Calculate EMI using formula: EMI = [P x r x (1+r)^n] / [(1+r)^n - 1]
-#         where:
-#         P = Principal loan amount
-#         r = Monthly interest rate (annual rate / 12 / 100)
-#         n = Loan tenure in months
-#         """
-#         # Convert annual rate to monthly rate
-#         monthly_rate = rate / 12 / 100
-        
-#         # Calculate EMI
-#         if monthly_rate == 0:
-#             emi = principal / tenure
-#         else:
-#             emi = (principal * monthly_rate * math.pow(1 + monthly_rate, tenure)) / \
-#                   (math.pow(1 + monthly_rate, tenure) - 1)
-        
-#         return round(emi, 2)
-    
-#     def create(self, validated_data):
-#         user = self.context['request'].user
-        
-#         # Calculate EMI
-#         principal = validated_data['principal_amount']
-#         rate = validated_data['interest_rate']
-#         tenure = validated_data['tenure_months']
-        
-#         emi = self.calculate_emi(principal, rate, tenure)
-#         total_payable = round(emi * tenure, 2)
-        
-#         # Get account if provided
-#         account = None
-#         if 'account_id' in validated_data:
-#             try:
-#                 account = Account.objects.get(id=validated_data['account_id'], user=user)
-#             except Account.DoesNotExist:
-#                 raise serializers.ValidationError("Invalid account")
-        
-#         # Create loan
-#         loan = Loan.objects.create(
-#             user=user,
-#             account=account,
-#             loan_type=validated_data['loan_type'],
-#             principal_amount=principal,
-#             interest_rate=rate,
-#             tenure_months=tenure,
-#             emi=emi,
-#             total_payable=total_payable,
-#             status='PENDING'
-#         )
-        
-#         return loan
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = "__all__"
 
 
-# class LoanApprovalSerializer(serializers.Serializer):
-#     action = serializers.ChoiceField(choices=['approve', 'reject'])
-#     rejection_reason = serializers.CharField(required=False, allow_blank=True)
-    
-#     def validate(self, data):
-#         if data['action'] == 'reject' and not data.get('rejection_reason'):
-#             raise serializers.ValidationError("Rejection reason is required when rejecting a loan")
-#         return data
+
+
+
+class CreatorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Creator
+        fields = "__all__"
+
+
+class CreatorPlatformSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CreatorPlatform
+        fields = "__all__"
+
+
+class CampaignBriefSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CampaignBrief
+        fields = "__all__"
+
+
+class CampaignSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Campaign
+        fields = "__all__"
+
+
+class CampaignCreatorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CampaignCreator
+        fields = "__all__"
+
+
+class DeliverableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Deliverable
+        fields = "__all__"
+
+
+class AnalyticsSnapshotSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnalyticsSnapshot
+        fields = "__all__"
+
+
+class ReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = "__all__"
+
+
+class InvoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invoice
+        fields = "__all__"
+
+
+class PayoutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payout
+        fields = "__all__"
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = "__all__"
+
+
+class ChatRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatRoom
+        fields = "__all__"
+
+
+class ChatMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatMessage
+        fields = "__all__"
+
+
+
+class AIInteractionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AIInteraction
+        fields = "__all__"
+
+
