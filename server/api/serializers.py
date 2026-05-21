@@ -1,22 +1,14 @@
 # from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import (
-    Role,
     User,
-    Brand,
     BrandOnboarding,
-    Creator,
-    CreatorPlatform,
-    Campaign,
-    CampaignBrief,
-    CampaignCreator,
-    Deliverable,
-    Report,
-    Invoice,
     Category,
-    Tag,
     BrandProfile,
-    Address,
+    CreatorProfile,
+    CreatorRating,
+    SavedCreator,
+    CreatorCartItem,
     SocialMediaPlatform,
 )
 
@@ -28,7 +20,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 class BrandSignUpSerializer(serializers.Serializer):
     # User fields
-    username = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     first_name = serializers.CharField()
@@ -41,42 +32,36 @@ class BrandSignUpSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         # Extract brand data
-        username = validated_data.pop("username", "")
         brand_name = validated_data.pop("brand_name")
         website = validated_data.pop("website", "")
         phone_number = validated_data.pop("phone_number", "")
-
         password = validated_data.pop("password")
+        email = validated_data["email"].strip().lower()
+        validated_data["email"] = email
 
-        if not username:
-            base = (validated_data["email"].split("@")[0] or "brand").strip().lower()
-            candidate = base
-            idx = 1
-            while User.objects.filter(username=candidate).exists():
-                idx += 1
-                candidate = f"{base}{idx}"
-            username = candidate
+        if User.objects.filter(username=email).exists():
+            raise serializers.ValidationError({"email": "User with this email already exists"})
 
         # Create user
         user = User.objects.create_user(
-            username=username,
+            username=email,
             password=password,
             role="BRAND",
             phone_number=phone_number or None,
             **validated_data
         )
 
-        # Create brand
-        brand = Brand.objects.create(
-            created_by=user,
-            brand_name=brand_name,
-            website=website,
-            contact_phone=phone_number,
-        )
+        # # Create brand
+        # brand = Brand.objects.create(
+        #     created_by=user,
+        #     brand_name=brand_name,
+        #     website=website,
+        #     contact_phone=phone_number,
+        # )
 
         return {
             "user": user,
-            "brand": brand
+            # "brand": brand
         }
     
 class BrandOnboardingSerializer(serializers.ModelSerializer):
@@ -93,7 +78,7 @@ class BrandOnboardingSerializer(serializers.ModelSerializer):
 
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Brand
+        model = BrandProfile
         fields = [
             "brand_name",
             "website",
@@ -170,15 +155,9 @@ class SignUpCreatorSerializer(serializers.Serializer):
             **validated_data
         )
 
-        # Create creator
-        creator = Creator.objects.create(
-            user=user,
-            display_name=f"{validated_data['first_name']} {validated_data['last_name']}".strip(),
-        )
 
         return {
             "user": user,
-            "creator": creator
         }
 class SignUpSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -192,75 +171,30 @@ class SignUpSerializer(serializers.ModelSerializer):
         role_code = validated_data.pop("role_code")
         password = validated_data.pop("password")
         user = User.objects.create_user(password=password, **validated_data)
-        role = Role.objects.get(code=role_code)
         return user
 
 
-class RoleSerializer(serializers.ModelSerializer):
+class CreatorRatingSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Role
+        model = CreatorRating
         fields = "__all__"
+        read_only_fields = ["brand", "created_at"]
+
+    def validate_rating(self, value):
+        if value < 1 or value > 5:
+            raise serializers.ValidationError("rating must be between 1 and 5")
+        return value
 
 
-
-class CategorySerializer(serializers.ModelSerializer):
+class SavedCreatorSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Category
+        model = SavedCreator
         fields = "__all__"
+        read_only_fields = ["brand", "created_at"]
 
 
-class TagSerializer(serializers.ModelSerializer):
+class CreatorCartItemSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Tag
+        model = CreatorCartItem
         fields = "__all__"
-
-
-
-
-
-class CreatorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Creator
-        fields = "__all__"
-
-
-class CreatorPlatformSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CreatorPlatform
-        fields = "__all__"
-
-
-class CampaignBriefSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CampaignBrief
-        fields = "__all__"
-
-
-class CampaignSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Campaign
-        fields = "__all__"
-
-
-class CampaignCreatorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CampaignCreator
-        fields = "__all__"
-
-
-class DeliverableSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Deliverable
-        fields = "__all__"
-
-
-class ReportSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Report
-        fields = "__all__"
-
-
-class InvoiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Invoice
-        fields = "__all__"
+        read_only_fields = ["brand", "created_at"]

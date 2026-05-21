@@ -3,16 +3,13 @@ from . import models
 
 
 REGISTER_MODELS = [
-    models.Brand,
     models.User,
     models.BrandMember,
     models.BrandOnboarding,
-    models.Address,
     models.BrandProfile,
-    models.Category,
-    models.Tag,
-    models.OTPVerification,
-    models.SocialMediaPlatform,
+    models.BrandSocialMedia,
+    models.CreatorProfile,
+    models.CreatorSocialMedia,
 ]
 
 for m in REGISTER_MODELS:

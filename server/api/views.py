@@ -8,50 +8,26 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import transaction
 
 from .models import (
-    Role,
     User,
-    Brand,
+    BrandProfile,
     BrandMember,
     BrandProfile,
-    Creator,
-    CreatorPlatform,
-    Campaign,
-    CampaignBrief,
-    CampaignCreator,
-    Deliverable,
-    Report,
-    Invoice,
-    Category,
-    Tag,
     BrandOnboarding,
-    Address,
     SocialMediaPlatform,
     OTPVerification,
 )
 from .permissions import IsAdminLike, IsBrandUser, IsCreatorUser
 from .serializers import (
     UserSerializer,
-    SignUpSerializer,
-    RoleSerializer,
     BrandSerializer,
     BrandProfileSerializer,
-    CreatorSerializer,
-    CreatorPlatformSerializer,
-    CampaignSerializer,
-    CampaignBriefSerializer,
-    CampaignCreatorSerializer,
-    DeliverableSerializer,
-    ReportSerializer,
-    InvoiceSerializer,
-    CategorySerializer,
-    TagSerializer,
     BrandSignUpSerializer,
     BrandOnboardingSerializer,
     BrandProfileDetailsSerializer,
     BrandProfileSocialSerializer,
     BrandProfileImagesSerializer,
 )
-from .tasks import run_campaign_matching
+# from .tasks import run_campaign_matching
 
 
 @api_view(["POST"])
@@ -91,7 +67,7 @@ def signup(request,role):
             )
             user.set_unusable_password()
             user.save(update_fields=["password"])
-            Creator.objects.create(user=user, display_name=full_name)
+            # Creator.objects.create(user=user, display_name=full_name)
             otp = f"{random.randint(100000, 999999)}"
             OTPVerification.objects.create(user=user, otp=otp, is_verified=False)
 
@@ -170,12 +146,12 @@ def creator_verify_otp(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def brand_login(request):
-    email = request.data.get("email")
+    email = (request.data.get("email") or "").strip().lower()
     password = request.data.get("password")
     if not email or not password:
         return Response({"error": "email and password are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = User.objects.filter(email=email, role="BRAND").first()
+    user = User.objects.filter(username=email, role="BRAND").first()
     if not user or not user.check_password(password):
         return Response({"error": "Invalid email or password"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -189,7 +165,7 @@ def brand_login(request):
 @permission_classes([IsAuthenticated])
 def brand_onboarding(request):
 
-    brand = Brand.objects.filter(created_by=request.user).first()
+    brand = BrandProfile.objects.filter(created_by=request.user).first()
 
     if not brand:
         return Response(
@@ -221,7 +197,7 @@ def brand_onboarding(request):
 @api_view(["GET", "POST", "PUT"])
 @permission_classes([IsAuthenticated])
 def brand_account(request):
-    brand = Brand.objects.filter(created_by=request.user).first()
+    brand = BrandProfile.objects.filter(created_by=request.user).first()
 
     if not brand:
         return Response(
@@ -242,7 +218,7 @@ def brand_account(request):
 
 
 def brand_profile(request):
-    brand = Brand.objects.filter(created_by=request.user).first()
+    brand = BrandProfile.objects.filter(created_by=request.user).first()
 
     if not brand:
         return Response(
@@ -264,7 +240,7 @@ def brand_profile(request):
 
 
 def _get_user_brand(request):
-    return Brand.objects.filter(created_by=request.user).first()
+    return BrandProfile.objects.filter(created_by=request.user).first()
 
 
 @api_view(["GET", "PUT"])
@@ -275,26 +251,11 @@ def brand_profile_details(request):
         return Response({"error": "Brand not found"}, status=status.HTTP_404_NOT_FOUND)
 
     profile, _ = BrandProfile.objects.get_or_create(brand=brand)
-    address, _ = Address.objects.get_or_create(
-        brand=brand,
-        defaults={
-            "street": "",
-            "city": "",
-            "state": "",
-            "postal_code": "",
-            "country": "",
-        },
-    )
 
     if request.method == "GET":
         data = {
             "company_discription": profile.company_discription,
             "company_category": list(profile.company_category.values_list("id", flat=True)),
-            "street": address.street,
-            "city": address.city,
-            "state": address.state,
-            "postal_code": address.postal_code,
-            "country": address.country,
         }
         serializer = BrandProfileDetailsSerializer(profile, data=data)
         serializer.is_valid(raise_exception=True)
@@ -311,19 +272,10 @@ def brand_profile_details(request):
     if "company_category" in validated_data:
         profile.company_category.set(validated_data["company_category"])
 
-    for field in ["street", "city", "state", "postal_code", "country"]:
-        if field in validated_data:
-            setattr(address, field, validated_data[field])
-    address.save()
 
     response_data = {
         "company_discription": profile.company_discription,
         "company_category": list(profile.company_category.values_list("id", flat=True)),
-        "street": address.street,
-        "city": address.city,
-        "state": address.state,
-        "postal_code": address.postal_code,
-        "country": address.country,
     }
     return Response(response_data, status=status.HTTP_200_OK)
 
@@ -416,11 +368,6 @@ def me(request):
 def delete_account(request):
     user = request.user
     with transaction.atomic():
-        # `created_by` is PROTECT on Brand, so remove user-owned brand graph first.
-        Brand.objects.filter(created_by=user).delete()
-
-        Creator.objects.filter(user=user).delete()
-
         # Remove direct links to the user.
         BrandMember.objects.filter(user=user).delete()
 
@@ -431,81 +378,3 @@ def delete_account(request):
         user.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
-
-
-class BaseModelViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return self.queryset.filter(is_deleted=False)
-
-
-class RoleViewSet(BaseModelViewSet):
-    queryset = Role.objects.all()
-    serializer_class = RoleSerializer
-    permission_classes = [IsAuthenticated, IsAdminLike]
-
-
-class CategoryViewSet(BaseModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    permission_classes = [IsAuthenticated, IsAdminLike]
-
-
-class TagViewSet(BaseModelViewSet):
-    queryset = Tag.objects.all()
-    serializer_class = TagSerializer
-    permission_classes = [IsAuthenticated, IsAdminLike]
-
-
-class BrandViewSet(BaseModelViewSet):
-    queryset = Brand.objects.all()
-    serializer_class = BrandSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
-
-
-class CreatorViewSet(BaseModelViewSet):
-    queryset = Creator.objects.select_related("user")
-    serializer_class = CreatorSerializer
-
-
-class CreatorPlatformViewSet(BaseModelViewSet):
-    queryset = CreatorPlatform.objects.select_related("creator")
-    serializer_class = CreatorPlatformSerializer
-
-
-class CampaignViewSet(BaseModelViewSet):
-    queryset = Campaign.objects.select_related("brand")
-    serializer_class = CampaignSerializer
-
-    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsAdminLike])
-    def trigger_matching(self, request, pk=None):
-        task = run_campaign_matching.delay(pk)
-        return Response({"task_id": task.id, "status": "queued"}, status=status.HTTP_202_ACCEPTED)
-
-
-class CampaignBriefViewSet(BaseModelViewSet):
-    queryset = CampaignBrief.objects.select_related("campaign")
-    serializer_class = CampaignBriefSerializer
-
-
-class CampaignCreatorViewSet(BaseModelViewSet):
-    queryset = CampaignCreator.objects.select_related("campaign", "creator")
-    serializer_class = CampaignCreatorSerializer
-
-
-class DeliverableViewSet(BaseModelViewSet):
-    queryset = Deliverable.objects.select_related("campaign_creator")
-    serializer_class = DeliverableSerializer
-
-
-class ReportViewSet(BaseModelViewSet):
-    queryset = Report.objects.select_related("campaign")
-    serializer_class = ReportSerializer
-
-
-class InvoiceViewSet(BaseModelViewSet):
-    queryset = Invoice.objects.select_related("brand", "campaign")
-    serializer_class = InvoiceSerializer

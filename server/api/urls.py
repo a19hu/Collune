@@ -14,33 +14,21 @@ from .views import (
     brand_profile_details,
     brand_profile_social,
     brand_profile_images,
-    RoleViewSet,
-    CategoryViewSet,
-    TagViewSet,
-    BrandViewSet,
-    CreatorViewSet,
-    CreatorPlatformViewSet,
-    CampaignViewSet,
-    CampaignBriefViewSet,
-    CampaignCreatorViewSet,
-    DeliverableViewSet,
-    ReportViewSet,
-    InvoiceViewSet,
 )
 
 router = DefaultRouter()
-router.register("roles", RoleViewSet, basename="role")
-router.register("categories", CategoryViewSet, basename="category")
-router.register("tags", TagViewSet, basename="tag")
-router.register("brands", BrandViewSet, basename="brand")
-router.register("creators", CreatorViewSet, basename="creator")
-router.register("creator-platforms", CreatorPlatformViewSet, basename="creator-platform")
-router.register("campaigns", CampaignViewSet, basename="campaign")
-router.register("briefs", CampaignBriefViewSet, basename="brief")
-router.register("campaign-creators", CampaignCreatorViewSet, basename="campaign-creator")
-router.register("deliverables", DeliverableViewSet, basename="deliverable")
-router.register("reports", ReportViewSet, basename="report")
-router.register("invoices", InvoiceViewSet, basename="invoice")
+# router.register("roles", RoleViewSet, basename="role")
+# router.register("categories", CategoryViewSet, basename="category")
+# router.register("tags", TagViewSet, basename="tag")
+# router.register("brands", BrandViewSet, basename="brand")
+# router.register("creators", CreatorViewSet, basename="creator")
+# router.register("creator-platforms", CreatorPlatformViewSet, basename="creator-platform")
+# router.register("campaigns", CampaignViewSet, basename="campaign")
+# router.register("briefs", CampaignBriefViewSet, basename="brief")
+# router.register("campaign-creators", CampaignCreatorViewSet, basename="campaign-creator")
+# router.register("deliverables", DeliverableViewSet, basename="deliverable")
+# router.register("reports", ReportViewSet, basename="report")
+# router.register("invoices", InvoiceViewSet, basename="invoice")
 
 
 
