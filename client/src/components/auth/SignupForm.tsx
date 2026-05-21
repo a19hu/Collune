@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { signup, type SignupPayload } from "@/lib/api";
+import { signup, type SignupRole } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -8,19 +8,18 @@ interface SignupFormProps {
   className?: string;
 }
 
-const todayISO = new Date().toISOString().slice(0, 10);
-
 export function SignupForm({ onSuccess, className }: SignupFormProps) {
-  const [form, setForm] = useState<SignupPayload>({
+  const [role, setRole] = useState<SignupRole>("CREATOR");
+  const [form, setForm] = useState({
     username: "",
     email: "",
     password: "",
-    name: "",
+    full_name: "",
+    first_name: "",
+    last_name: "",
+    brand_name: "",
+    website: "",
     phone_number: "",
-    date_of_birth: "",
-    address: "",
-    aadhaar_number: "",
-    pan_number: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,8 +39,25 @@ export function SignupForm({ onSuccess, className }: SignupFormProps) {
     setSuccess(null);
 
     try {
-      console.log(form);
-      await signup(form);
+      if (role === "CREATOR") {
+        await signup("CREATOR", {
+          username: form.username || undefined,
+          email: form.email || undefined,
+          full_name: form.full_name,
+          phone_number: form.phone_number,
+        });
+      } else {
+        await signup("BRAND", {
+          username: form.username,
+          email: form.email,
+          password: form.password,
+          first_name: form.first_name,
+          last_name: form.last_name,
+          brand_name: form.brand_name,
+          website: form.website || undefined,
+          phone_number: form.phone_number || undefined,
+        });
+      }
 
       setSuccess("Signup successful! You can now login.");
       onSuccess?.();
@@ -57,6 +73,19 @@ export function SignupForm({ onSuccess, className }: SignupFormProps) {
       onSubmit={handleSubmit}
       className={cn("space-y-3", className)}
     >
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+        <select
+          name="role"
+          value={role}
+          onChange={(e) => setRole(e.target.value as SignupRole)}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+        >
+          <option value="CREATOR">Creator</option>
+          <option value="BRAND">Brand</option>
+        </select>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -68,7 +97,7 @@ export function SignupForm({ onSuccess, className }: SignupFormProps) {
             value={form.username}
             onChange={handleChange}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-            required
+            required={role === "BRAND"}
           />
         </div>
 
@@ -82,37 +111,70 @@ export function SignupForm({ onSuccess, className }: SignupFormProps) {
             value={form.email}
             onChange={handleChange}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-            required
+            required={role === "BRAND"}
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Password
-          </label>
-          <input
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-            required
-          />
-        </div>
+        {role === "BRAND" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              required
+            />
+          </div>
+        )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Full Name
-          </label>
-          <input
-            type="text"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-            required
-          />
-        </div>
+        {role === "CREATOR" ? (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Full Name
+            </label>
+            <input
+              type="text"
+              name="full_name"
+              value={form.full_name}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              required
+            />
+          </div>
+        ) : (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                First Name
+              </label>
+              <input
+                type="text"
+                name="first_name"
+                value={form.first_name}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Last Name
+              </label>
+              <input
+                type="text"
+                name="last_name"
+                value={form.last_name}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                required
+              />
+            </div>
+          </>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -128,68 +190,37 @@ export function SignupForm({ onSuccess, className }: SignupFormProps) {
             required
           />
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Date of Birth
-          </label>
-          <input
-            type="date"
-            name="date_of_birth"
-            value={form.date_of_birth}
-            max={todayISO}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-            required
-          />
-        </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Address
-        </label>
-        <textarea
-          name="address"
-          value={form.address}
-          onChange={handleChange}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-          rows={2}
-          required
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Aadhaar Number
-          </label>
-          <input
-            type="text"
-            name="aadhaar_number"
-            value={form.aadhaar_number}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-            placeholder="12-digit Aadhaar"
-            required
-          />
+      {role === "BRAND" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Brand Name
+            </label>
+            <input
+              type="text"
+              name="brand_name"
+              value={form.brand_name}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Website (Optional)
+            </label>
+            <input
+              type="url"
+              name="website"
+              value={form.website}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+          </div>
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            PAN Number
-          </label>
-          <input
-            type="text"
-            name="pan_number"
-            value={form.pan_number}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-            placeholder="ABCDE1234F"
-            required
-          />
-        </div>
-      </div>
+      )}
 
       {error && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
@@ -213,5 +244,3 @@ export function SignupForm({ onSuccess, className }: SignupFormProps) {
     </form>
   );
 }
-
-

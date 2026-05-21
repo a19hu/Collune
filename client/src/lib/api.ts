@@ -60,26 +60,40 @@ async function request<T>(
   return data as T;
 }
 
-export interface SignupPayload {
+export type SignupRole = "CREATOR" | "BRAND";
+
+export interface CreatorSignupPayload {
+  username?: string;
+  email?: string;
+  full_name: string;
+  phone_number: string;
+}
+
+export interface BrandSignupPayload {
   username: string;
   email: string;
   password: string;
-  name: string;
-  phone_number: string;
-  date_of_birth: string;
-  address: string;
-  aadhaar_number: string;
-  pan_number: string;
+  first_name: string;
+  last_name: string;
+  brand_name: string;
+  website?: string;
+  phone_number?: string;
 }
 
 export interface LoginPayload {
-  username: string;
+  email: string;
   password: string;
 }
 
 export interface LoginResponse {
   refresh: string;
   access: string;
+  message?: string;
+}
+
+export interface CreatorOtpVerifyPayload {
+  phone_number: string;
+  otp: string;
 }
 
 export interface Account {
@@ -245,15 +259,29 @@ export interface AuditLog {
   time: string;
 }
 
-export async function signup(payload: SignupPayload) {
-  return request<{ message: string }>("/signup/", {
+export async function signup(role: SignupRole, payload: CreatorSignupPayload | BrandSignupPayload) {
+  return request<{ message: string }>(`/api/v1/auth/signup/${role}/`, {
     method: "POST",
     body: payload,
   });
 }
 
 export async function login(payload: LoginPayload) {
-  return request<LoginResponse>("/token", {
+  return request<LoginResponse>("/api/v1/auth/login/brand/", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function requestCreatorOtp(phoneNumber: string) {
+  return request<{ message: string; otp?: string }>("/api/v1/auth/creator/request-otp/", {
+    method: "POST",
+    body: { phone_number: phoneNumber },
+  });
+}
+
+export async function verifyCreatorOtp(payload: CreatorOtpVerifyPayload) {
+  return request<LoginResponse>("/api/v1/auth/creator/verify-otp/", {
     method: "POST",
     body: payload,
   });
@@ -349,5 +377,3 @@ export async function getMe(token: string) {
     token,
   });
 }
-
-

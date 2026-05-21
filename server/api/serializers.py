@@ -1,7 +1,8 @@
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import (
     Role,
+    User,
     Brand,
     BrandOnboarding,
     Creator,
@@ -10,16 +11,13 @@ from .models import (
     CampaignBrief,
     CampaignCreator,
     Deliverable,
-    AnalyticsSnapshot,
     Report,
     Invoice,
-    Payout,
-    Notification,
-    ChatRoom,
-    ChatMessage,
     Category,
     Tag,
-    AIInteraction,
+    BrandProfile,
+    Address,
+    SocialMediaPlatform,
 )
 
 
@@ -30,7 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class BrandSignUpSerializer(serializers.Serializer):
     # User fields
-    username = serializers.CharField()
+    username = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     first_name = serializers.CharField()
@@ -39,19 +37,32 @@ class BrandSignUpSerializer(serializers.Serializer):
     # Brand fields
     brand_name = serializers.CharField()
     website = serializers.URLField(required=False, allow_blank=True)
-    contact_phone = serializers.CharField(required=False, allow_blank=True)
+    phone_number = serializers.CharField(required=False, allow_blank=True)
 
     def create(self, validated_data):
         # Extract brand data
+        username = validated_data.pop("username", "")
         brand_name = validated_data.pop("brand_name")
         website = validated_data.pop("website", "")
-        contact_phone = validated_data.pop("contact_phone", "")
+        phone_number = validated_data.pop("phone_number", "")
 
         password = validated_data.pop("password")
 
+        if not username:
+            base = (validated_data["email"].split("@")[0] or "brand").strip().lower()
+            candidate = base
+            idx = 1
+            while User.objects.filter(username=candidate).exists():
+                idx += 1
+                candidate = f"{base}{idx}"
+            username = candidate
+
         # Create user
         user = User.objects.create_user(
+            username=username,
             password=password,
+            role="BRAND",
+            phone_number=phone_number or None,
             **validated_data
         )
 
@@ -60,7 +71,7 @@ class BrandSignUpSerializer(serializers.Serializer):
             created_by=user,
             brand_name=brand_name,
             website=website,
-            contact_phone=contact_phone,
+            contact_phone=phone_number,
         )
 
         return {
@@ -91,6 +102,84 @@ class BrandSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["created_by"]
 
+
+class BrandProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BrandProfile
+        fields = "__all__"
+
+
+class BrandProfileDetailsSerializer(serializers.ModelSerializer):
+    street = serializers.CharField(required=False, allow_blank=True)
+    city = serializers.CharField(required=False, allow_blank=True)
+    state = serializers.CharField(required=False, allow_blank=True)
+    postal_code = serializers.CharField(required=False, allow_blank=True)
+    country = serializers.CharField(required=False, allow_blank=True)
+    company_category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(), many=True, required=False
+    )
+
+    class Meta:
+        model = BrandProfile
+        fields = [
+            "company_discription",
+            "company_category",
+            "street",
+            "city",
+            "state",
+            "postal_code",
+            "country",
+        ]
+
+
+class BrandProfileSocialSerializer(serializers.Serializer):
+    website = serializers.URLField(required=False, allow_blank=True)
+    youtube = serializers.URLField(required=False, allow_blank=True)
+    instagram = serializers.URLField(required=False, allow_blank=True)
+    facebook = serializers.URLField(required=False, allow_blank=True)
+    x = serializers.URLField(required=False, allow_blank=True)
+
+
+class BrandProfileImagesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BrandProfile
+        fields = ["logo", "cover_photo"]
+
+class SignUpCreatorSerializer(serializers.Serializer):
+    # User fields
+    username = serializers.CharField()
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+
+    # Creator fields
+    phone_number = serializers.CharField()
+
+    def create(self, validated_data):
+        # Extract creator data
+        phone_number = validated_data.pop("phone_number")
+
+        password = validated_data.pop("password")
+
+        # Create user
+        user = User.objects.create_user(
+            password=password,
+            role="CREATOR",
+            phone_number=phone_number,
+            **validated_data
+        )
+
+        # Create creator
+        creator = Creator.objects.create(
+            user=user,
+            display_name=f"{validated_data['first_name']} {validated_data['last_name']}".strip(),
+        )
+
+        return {
+            "user": user,
+            "creator": creator
+        }
 class SignUpSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     role_code = serializers.CharField(write_only=True)
@@ -165,12 +254,6 @@ class DeliverableSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class AnalyticsSnapshotSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AnalyticsSnapshot
-        fields = "__all__"
-
-
 class ReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
@@ -181,36 +264,3 @@ class InvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = "__all__"
-
-
-class PayoutSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Payout
-        fields = "__all__"
-
-
-class NotificationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Notification
-        fields = "__all__"
-
-
-class ChatRoomSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ChatRoom
-        fields = "__all__"
-
-
-class ChatMessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ChatMessage
-        fields = "__all__"
-
-
-
-class AIInteractionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AIInteraction
-        fields = "__all__"
-
-
