@@ -1,5 +1,5 @@
 {
-  "name": "EduCore ERP",
+  "name": "Collune",
   "description": "A modern, multi-school SaaS ERP platform featuring portals for Super Admin, School Admins, Teachers, Staff, Students, and Parents.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

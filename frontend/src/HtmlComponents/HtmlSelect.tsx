@@ -1,5 +1,4 @@
 import type { ChangeEventHandler, ReactNode } from "react";
-import { useSchoolClassOptions } from "../hooks/useSchoolClassOptions";
 import { ChevronDown } from "lucide-react";
 
 type HtmlSelectProps = {
@@ -44,45 +43,6 @@ const HtmlSelect = ({
 
 export default HtmlSelect;
 
-type ClassFilter = {
-    value: string;
-    onChange: ChangeEventHandler<HTMLSelectElement>;
-    id: string;
-    selectClassName: string;
-    label?:string
-}
-
-export const ClassFilter = (
-    {
-        value,
-        onChange,
-        id,
-        selectClassName,
-        label
-    }: ClassFilter) => {
-    const { classOptions } = useSchoolClassOptions();
-
-    return (
-        <>
-            <div className="space-y-0.5">
-                <label className="space-y-1 block">
-                    <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">{label}</span>
-                </label>
-                <select
-                    id={id}
-                    value={value}
-                    onChange={onChange}
-                    className={selectClassName}
-                >
-                    <option value="All">All Class</option>
-                    {classOptions.map((className) => (
-                        <option key={className} value={className}>{className}</option>
-                    ))}
-                </select>
-            </div>
-        </>
-    )
-}
 
 
 export const BrandSelect =({
