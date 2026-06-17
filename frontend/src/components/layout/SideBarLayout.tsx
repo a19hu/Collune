@@ -5,7 +5,7 @@ import type { SidebarMode } from "./SideBar";
 
 function useDashboardState() {
   const location = useLocation();
-  const mode: SidebarMode = location.pathname.startsWith("/brand-dashboard") ? "brand" : "creator";
+  const mode: SidebarMode = location.pathname.startsWith("/brand") ? "brand" : "creator";
   const isVerified = location.pathname.includes("verified") || location.search.includes("verified=true");
 
   return { mode, isVerified };

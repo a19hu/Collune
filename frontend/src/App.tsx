@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import './index.css';
 import CreatorRegister from './pages/CreatorRegister.tsx';
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
@@ -14,7 +14,20 @@ import CreatorDashBoard from './components/Creator/CreatorDashBoard.tsx';
 import BrandDashBoard from './components/Brand/BrandDashBoard.tsx';
 import { BrandSettings } from './components/Brand/BrandSettings.tsx';
 import { BrandCampaigns } from './components/Brand/BrandCampaigns.tsx';
+import LoadingPage from './components/layout/LoadingPage.tsx';
+import type { UserAccount } from './types.ts';
 
+function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
+    const { currentUser, isAuthLoading } = useAuth();
+
+    if (isAuthLoading) return <LoadingPage />;
+    if (!currentUser) return <Navigate to="/login" replace />;
+    if (currentUser.role !== allowedRole) {
+        return <Navigate to={currentUser.role === 'Brand' ? '/brand' : currentUser.role === 'Creator' ? '/creator' : '/'} replace />;
+    }
+
+    return <Outlet />;
+}
 
 const App: React.FC = () => {
 
@@ -33,20 +46,24 @@ const App: React.FC = () => {
 
                     </Route>
                     
-                    <Route path="/creator/*" element={<SideBarLayout />}>
-                        <Route index element={<CreatorDashBoard />} />
-                        <Route path="verified" element={<CreatorDashBoard />} />
-                        <Route path="profile" element={<CreatorDashBoard />} />
-                        <Route path="marketplace" element={<CreatorDashBoard />} />
-                        <Route path="settings" element={<CreatorDashBoard />} />
+                    <Route element={<RequireAuth allowedRole="Creator" />}>
+                        <Route path="/creator/*" element={<SideBarLayout />}>
+                            <Route index element={<CreatorDashBoard />} />
+                            <Route path="verified" element={<CreatorDashBoard />} />
+                            <Route path="profile" element={<CreatorDashBoard />} />
+                            <Route path="marketplace" element={<CreatorDashBoard />} />
+                            <Route path="settings" element={<CreatorDashBoard />} />
+                        </Route>
                     </Route>
-                    <Route path="/brand/*" element={<SideBarLayout />}>
-                        <Route index element={<BrandDashBoard />} />
-                        <Route path="verified" element={<BrandDashBoard />} />
-                        <Route path="Shortlists" element={<BrandDashBoard />} />
-                        <Route path="creators" element={<BrandDashBoard />} />
-                        <Route path="campaigns" element={<BrandCampaigns />} />
-                        <Route path="settings" element={<BrandSettings />} />
+                    <Route element={<RequireAuth allowedRole="Brand" />}>
+                        <Route path="/brand/*" element={<SideBarLayout />}>
+                            <Route index element={<BrandDashBoard />} />
+                            <Route path="verified" element={<BrandDashBoard />} />
+                            <Route path="Shortlists" element={<BrandDashBoard />} />
+                            <Route path="creators" element={<BrandDashBoard />} />
+                            <Route path="campaigns" element={<BrandCampaigns />} />
+                            <Route path="settings" element={<BrandSettings />} />
+                        </Route>
                     </Route>
                     <Route path="/creator-register" element={<CreatorRegister />} />
                     <Route path="/brand-register" element={<BrandRegister />} />
