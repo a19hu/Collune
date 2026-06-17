@@ -317,7 +317,7 @@ const Register = ({ children, step, totalSteps = 3 }: RegisterProps) => {
 
     return (
         <main className="min-h-screen bg-[#f4f6fb] p-4 text-[#202337] md:p-[30px]">
-            <section className="mx-auto grid min-h-[calc(100vh-60px)] max-w-[1296px] overflow-hidden rounded-[20px] bg-white lg:grid-cols-[1fr_1fr]">
+            <section className={`mx-auto grid min-h-[calc(100vh-60px)] max-w-[1296px] overflow-hidden rounded-[20px] bg-white ${isBrandFlow ? "lg:grid-cols-[0.85fr_1.15fr]" : "lg:grid-cols-[1fr_1fr]"}`}>
                 <aside className="flex flex-col px-10 py-11 md:px-14">
                     <a href="/" aria-label="Collune home" className="inline-flex w-max">
                         <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />

@@ -23,6 +23,20 @@ export type CreatorRegisterForm = {
   bio: string;
 };
 
+export type BrandRegisterForm = {
+  name: string;
+  email: string;
+  phone_no: string;
+  password: string;
+  confirmPassword: string;
+  acceptedTerms: boolean;
+  company_name: string;
+  industry: string;
+  website: string;
+  company_size: string;
+  linkedin_url: string;
+};
+
 export type SocialAccountForm = {
   platform: CreatorSocialPlatform;
   title: string;

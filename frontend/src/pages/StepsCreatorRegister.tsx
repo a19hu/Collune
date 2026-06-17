@@ -1,5 +1,6 @@
-import { CalendarDays, Check, CheckCircle, ChevronDown, CloudUpload, Eye, EyeClosed, Globe, Grid2X2, Instagram, Linkedin, Lock, Mail, MapPin, Megaphone, Phone, Plane, Play, Plus, Rocket, User, Users, X, Youtube } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, CloudUpload, Eye, EyeClosed, Globe, Grid2X2, Instagram, Linkedin, Lock, Mail, MapPin, Megaphone, Phone, Plane, Play, Rocket, User, Users, X, Youtube } from "lucide-react";
 import HtmlInput from "../HtmlComponents/HtmlInput";
+import { RegisterError, RegisterStepHeader, SelectablePill, VerificationBlock } from "../HtmlComponents/RegisterFormParts";
 import { CreatorRegisterForm, SocialAccountForm, VerificationState } from "../types";
 import type { ChangeEvent, ReactNode } from "react";
 
@@ -20,19 +21,6 @@ const collaborationOptions = [
   { title: "Events", copy: "Participate in brand events and meetups", icon: <CalendarDays className="h-7 w-7" /> },
   { title: "Webinars", copy: "Join or host webinars and live sessions", icon: <Globe className="h-7 w-7" /> },
 ];
-
-function OtpBoxes({ code, onChange }: { code?: string; onChange: (event: ChangeEvent<HTMLInputElement>) => void }) {
-  return (
-    <input
-      value={code}
-      onChange={onChange}
-      inputMode="numeric"
-      maxLength={6}
-      placeholder="000000"
-      className="h-14 w-full max-w-[220px] rounded-xl border border-[#dfe4ed] bg-white text-center text-xl font-black tracking-[0.35em] text-[#202337] outline-none focus:border-[#7082f9] focus:ring-4 focus:ring-[#7082f9]/10"
-    />
-  );
-}
 
 function SocialCard({
   icon,
@@ -91,94 +79,6 @@ function PreferenceTile({
       <strong className="mt-3 block text-sm font-black text-[#202337]">{title}</strong>
       <span className="mt-2 block text-[11px] font-medium leading-snug text-[#707b91]">{copy}</span>
     </button>
-  );
-}
-
-function StepHeader({ title, copy, centered = false }: { title: string; copy: string; centered?: boolean }) {
-  return (
-    <div className={centered ? "text-center" : undefined}>
-      <h1 className="text-[28px] font-black tracking-normal text-[#202337]">{title}</h1>
-      <p className="mt-3 text-[15px] font-medium text-[#707b91]">{copy}</p>
-    </div>
-  );
-}
-
-function SelectablePill({
-  active,
-  children,
-  onClick,
-  showIcon = false,
-}: {
-  key?: string;
-  active: boolean;
-  children: ReactNode;
-  onClick: () => void;
-  showIcon?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex h-8 items-center gap-2 rounded-md px-3 text-sm font-medium ${active ? "bg-[#eee9ff] text-[#584cff]" : "border border-dashed border-[#c8ced9] text-[#4c566b]"}`}
-    >
-      {children}
-      {showIcon ? active ? <X className="h-3.5 w-3.5" /> : <Plus className="h-4 w-4" /> : null}
-    </button>
-  );
-}
-
-function VerificationBlock({
-  icon,
-  title,
-  target,
-  otp,
-  otpSent,
-  verified,
-  isVerifying,
-  onOtpChange,
-  onVerify,
-}: {
-  icon: ReactNode;
-  title: string;
-  target: string;
-  otp: string;
-  otpSent: boolean;
-  verified: boolean;
-  isVerifying: boolean;
-  onOtpChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  onVerify: () => void;
-}) {
-  return (
-    <div>
-      <div className="mb-4 flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#dce7ff] text-[#2345b9]">
-          {icon}
-        </span>
-        <div>
-          <h2 className="font-black text-[#202337]">{title}</h2>
-          <p className="text-sm font-medium text-[#707b91]">{target}</p>
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <OtpBoxes code={otp} onChange={onOtpChange} />
-
-        {verified ? (
-          <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#04b981]">
-            <CheckCircle className="h-6 w-6" />
-            Verified
-          </span>
-        ) : (
-          <button
-            type="button"
-            onClick={onVerify}
-            disabled={!otpSent || isVerifying}
-            className="h-11 rounded-lg border border-[#2447bd] px-5 text-sm font-black text-[#2447bd] disabled:opacity-60"
-          >
-            {isVerifying ? "Verifying..." : "Verify OTP"}
-          </button>
-        )}
-      </div>
-    </div>
   );
 }
 
@@ -242,7 +142,7 @@ export const StepsCreatorRegister=({
     if (step === 1) {
     return (
       <>
-        <StepHeader title="Create your account" copy="Let's get started with a few details." />
+        <RegisterStepHeader title="Create your account" copy="Let's get started with a few details." />
         <div className="mt-8 grid gap-4">
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Full Name" icon={<User className="h-5 w-5" />} value={form.name} onChange={onFieldChange("name")} placeholder="Aakrit Gupta" required />
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Email Address" icon={<Mail className="h-5 w-5" />} value={form.email} onChange={onFieldChange("email")} placeholder="aakrit.gupta@gmail.com" type="email" required />
@@ -274,10 +174,8 @@ export const StepsCreatorRegister=({
   if (step === 2) {
     return (
       <>
-        <StepHeader title="Verify your contact" copy="Enter the verification codes sent to your email and phone." />
-        {verification.error ? (
-          <div className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{verification.error}</div>
-        ) : null}
+        <RegisterStepHeader title="Verify your contact" copy="Enter the verification codes sent to your email and phone." />
+        <RegisterError message={verification.error} className="mt-6" />
         <div className="mt-8 grid gap-7">
           <VerificationBlock
             icon={<Mail className="h-5 w-5" />}
@@ -309,7 +207,7 @@ export const StepsCreatorRegister=({
   if (step === 3) {
     return (
       <>
-        <StepHeader title="Connect your social accounts" copy="We'll only import public profile information and performance metrics." />
+        <RegisterStepHeader title="Connect your social accounts" copy="We'll only import public profile information and performance metrics." />
         <div className="mx-auto mt-9 grid max-w-[430px] gap-3.5">
           {socialAccounts.map((account, index) => (
             <SocialCard
@@ -328,7 +226,7 @@ export const StepsCreatorRegister=({
   if (step === 4) {
     return (
       <>
-        <StepHeader title="Tell us about yourself" copy="Help brands understand your audience and content." />
+        <RegisterStepHeader title="Tell us about yourself" copy="Help brands understand your audience and content." />
         <div className="mt-8 grid gap-5">
           <label className="block">
             <span className="mb-2 block text-xs font-semibold text-[#202337]">Creator Category</span>
@@ -374,7 +272,7 @@ export const StepsCreatorRegister=({
   if (step === 5) {
     return (
       <>
-        <StepHeader title="Collaboration preferences" copy="Select the opportunities you'd like to receive." />
+        <RegisterStepHeader title="Collaboration preferences" copy="Select the opportunities you'd like to receive." />
         <div className="mt-5">
           <span className="mb-3 block text-sm font-black text-[#4c5880]">I'm interested in</span>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -431,7 +329,7 @@ export const StepsCreatorRegister=({
 
   return (
     <>
-      <StepHeader centered title="Add your Portfolio" copy="Upload examples of your best work. You can always add more later." />
+      <RegisterStepHeader centered title="Add your Portfolio" copy="Upload examples of your best work. You can always add more later." />
       <div className="mt-8 grid min-h-[400px] place-items-center rounded-[24px] border-2 border-dashed border-[#d7e2ff] px-6 text-center">
         <div>
           <CloudUpload className="mx-auto h-16 w-16 text-[#7788ff]" />

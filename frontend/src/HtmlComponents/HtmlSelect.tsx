@@ -51,6 +51,9 @@ export const BrandSelect =({
   placeholder,
   labelClass,
   inputClass,
+  value,
+  onChange,
+  required = false,
   children
 }: {
   label: string;
@@ -58,6 +61,9 @@ export const BrandSelect =({
   placeholder: string;
   labelClass:string;
   inputClass:string;
+  value?: string;
+  onChange?: ChangeEventHandler<HTMLSelectElement>;
+  required?: boolean;
   children:ReactNode;
 })=>{
 
@@ -66,7 +72,12 @@ export const BrandSelect =({
       <span className={labelClass}>{label}</span>
       <span className="relative block">
         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#71809a]">{icon}</span>
-        <select className={`${inputClass} appearance-none text-[#95a3ba]`} defaultValue="">
+        <select
+          className={`${inputClass} appearance-none ${value ? "" : "text-[#95a3ba]"}`}
+          value={value}
+          onChange={onChange}
+          required={required}
+        >
           <option value="" disabled>{placeholder}</option>
             {children}
         </select>

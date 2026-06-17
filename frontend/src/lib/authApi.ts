@@ -75,6 +75,34 @@ export type CreatorRegisterResponse = LoginResponse & {
   };
 };
 
+export type BrandRegisterPayload = {
+  user: {
+    name: string;
+    email: string;
+    phone_no?: string;
+    password: string;
+  };
+  company_name: string;
+  industry?: string;
+  website?: string;
+  company_size?: string;
+  linkedin_url?: string;
+};
+
+export type BrandRegisterResponse = LoginResponse & {
+  brand: {
+    brand_id: string;
+    company_name: string;
+    industry: string;
+    website: string;
+    company_size: string;
+    linkedin_url: string;
+    logo_url: string;
+    verification_status: string;
+    profile_completion: number;
+  };
+};
+
 
 export type CreatorSocialAccountPayload = {
   platform: CreatorSocialPlatform;
@@ -211,6 +239,10 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
 
 export async function registerCreator(payload: CreatorRegisterPayload) {
   return apiPost<CreatorRegisterResponse>("/auth/creators/register/", payload);
+}
+
+export async function registerBrand(payload: BrandRegisterPayload) {
+  return apiPost<BrandRegisterResponse>("/auth/brands/register/", payload);
 }
 
 export async function sendOtp(channel: OtpChannel, target: string) {

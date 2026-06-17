@@ -1,9 +1,9 @@
 import type { ChangeEvent } from "react";
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { HtmlProgess } from "../HtmlComponents/HtmlProgress";
+import { AuthSwitchLink, RegisterError, RegisterSubmitButtons } from "../HtmlComponents/RegisterFormParts";
 import Register from "../components/layout/Register";
 import { useAuth } from "../contexts/AuthContext";
 import { registerCreator, verifyOtp } from "../lib/authApi";
@@ -51,40 +51,6 @@ const initialVerification: VerificationState = {
   error: "",
 };
 
-function SubmitButtons({
-  isFinalStep,
-  isSubmitting,
-  onSkip,
-}: {
-  isFinalStep: boolean;
-  isSubmitting: boolean;
-  onSkip: () => void;
-}) {
-  return (
-    <div className={isFinalStep ? "mt-6 grid gap-3" : "mt-6 flex"}>
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="inline-flex h-[52px] flex-1 items-center justify-center gap-3 rounded-xl bg-[#2447bd] text-[15px] font-black text-white shadow-[0_12px_24px_rgba(36,71,189,0.18)] transition hover:bg-[#183aa8] disabled:cursor-not-allowed disabled:opacity-70"
-      >
-        {isFinalStep && isSubmitting ? "Creating account..." : isFinalStep ? "Continue to Dashboard" : "Continue"}
-        <ArrowRight className="h-5 w-5" />
-      </button>
-
-      {isFinalStep ? (
-        <button
-          type="button"
-          onClick={onSkip}
-          disabled={isSubmitting}
-          className="w-full text-center text-sm font-black text-[#64738e] disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          Skip for now
-        </button>
-      ) : null}
-    </div>
-  );
-}
-
 const CreatorRegister = () => {
   const navigate = useNavigate();
   const { setSessionUser } = useAuth();
@@ -131,7 +97,7 @@ const CreatorRegister = () => {
     setVerificationStatus({ isCheckingEmail: true, error: "", message: "" });
     try {
       const email = form.email.trim();
-      // await verifyOtp("EMAIL", email, form.emailOtp);
+      await verifyOtp("EMAIL", email, form.emailOtp);
       setVerificationStatus({
         emailVerified: true,
         message: "Email verified.",
@@ -147,7 +113,7 @@ const CreatorRegister = () => {
     setVerificationStatus({ isVerifyingPhone: true, error: "", message: "" });
     try {
       const phoneNumber = normalizePhoneNumber(form.phone_no);
-      // await verifyOtp("PHONE", phoneNumber, phoneOtp);
+      await verifyOtp("PHONE", phoneNumber, phoneOtp);
       setVerificationStatus({ phoneVerified: true, message: "Phone number verified." });
     } catch (error) {
       setVerificationStatus({ error: error instanceof Error ? error.message : "Invalid phone OTP." });
@@ -159,47 +125,45 @@ const CreatorRegister = () => {
   const submitCreatorRegistration = async () => {
     setSubmitError("");
     setIsSubmitting(true);
-    console.log(form)
-    console.log(socialAccounts)
 
     try {
-      // const response = await registerCreator({
-      //   user: {
-      //     name: form.name.trim(),
-      //     email: form.email.trim(),
-      //     phone_no: normalizePhoneNumber(form.phone_no),
-      //     password: form.password,
-      //   },
-      //   display_name: form.name.trim(),
-      //   category: form.category,
-      //   location: form.location.trim(),
-      //   languages: form.languages,
-      //   collaboration_preferences: form.collaboration_preferences,
-      //   preferred_response_time: form.preferred_response_time,
-      //   open_to_travel: form.open_to_travel,
-      //   bio: form.bio.trim(),
-      //   social_accounts: socialAccounts
-      //     .filter((account) => account.handle.trim())
-      //     .map((account) => ({
-      //       platform: account.platform,
-      //       handle: account.handle.trim(),
-      //       is_connected: true,
-      //     })),
-      // });
+      const response = await registerCreator({
+        user: {
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone_no: normalizePhoneNumber(form.phone_no),
+          password: form.password,
+        },
+        display_name: form.name.trim(),
+        category: form.category,
+        location: form.location.trim(),
+        languages: form.languages,
+        collaboration_preferences: form.collaboration_preferences,
+        preferred_response_time: form.preferred_response_time,
+        open_to_travel: form.open_to_travel,
+        bio: form.bio.trim(),
+        social_accounts: socialAccounts
+          .filter((account) => account.handle.trim())
+          .map((account) => ({
+            platform: account.platform,
+            handle: account.handle.trim(),
+            is_connected: true,
+          })),
+      });
 
-      // localStorage.setItem("saaserp_access_token", response.access);
-      // localStorage.setItem("saaserp_refresh_token", response.refresh);
-      // localStorage.setItem("saaserp_drf_token", response.token);
-      // localStorage.setItem("saaserp_last_login_username", response.user.username);
+      localStorage.setItem("saaserp_access_token", response.access);
+      localStorage.setItem("saaserp_refresh_token", response.refresh);
+      localStorage.setItem("saaserp_drf_token", response.token);
+      localStorage.setItem("saaserp_last_login_username", response.user.username);
 
-      // setSessionUser({
-      //   id: response.user.user_id,
-      //   phone: response.user.phone_no || "",
-      //   name: response.user.name || response.user.username,
-      //   email: response.user.email,
-      //   role: "Creator",
-      //   schoolCode: response.creator.creator_id,
-      // });
+      setSessionUser({
+        id: response.user.user_id,
+        phone: response.user.phone_no || "",
+        name: response.user.name || response.user.username,
+        email: response.user.email,
+        role: "Creator",
+        schoolCode: response.creator.creator_id,
+      });
       navigate("/creator", { replace: true });
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Could not create your creator account.");
@@ -247,23 +211,15 @@ const CreatorRegister = () => {
           />
         </div>
 
-        {submitError ? (
-          <div className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
-            {submitError}
-          </div>
-        ) : null}
+        <RegisterError message={submitError} />
 
-        <SubmitButtons
+        <RegisterSubmitButtons
           isFinalStep={step === totalSteps}
           isSubmitting={isSubmitting}
           onSkip={() => void submitCreatorRegistration()}
         />
 
-        {step === 1 ? (
-          <p className="mt-8 text-center text-xs font-medium text-[#738098]">
-            Already have an account? <a className="font-black text-[#1438a8]" href="#login">Log in</a>
-          </p>
-        ) : null}
+        <AuthSwitchLink show={step === 1} href="/login" />
       </form>
     </Register>
   );
