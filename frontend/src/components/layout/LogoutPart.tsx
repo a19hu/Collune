@@ -17,7 +17,7 @@ const LogoutPart: React.FC = ({currentUser}: { currentUser: any }) => {
             </div>
           </button>
           <button 
-            id="school-logout"
+            id="logout"
             onClick={logout}
             className="w-full py-1.5 bg-red-950/20 hover:bg-red-900/30 border border-red-500/10 text-red-400 rounded-lg text-[9px] font-bold font-mono tracking-wider flex items-center justify-center gap-2.5 cursor-pointer"
           >

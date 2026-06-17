@@ -18,6 +18,7 @@ type HtmlInputProps = {
     accept?: string;
     trailing?: ReactNode;
     icon?:ReactNode;
+    minLength?:number
 };
 
 const HtmlInput = ({
@@ -37,7 +38,8 @@ const HtmlInput = ({
     pattern,
     accept,
     trailing,
-    icon
+    icon,
+    minLength
 }: HtmlInputProps) => {
     return (
         <label className={divClass}>
@@ -56,6 +58,7 @@ const HtmlInput = ({
                     maxLength={maxLength}
                     pattern={pattern}
                     accept={accept}
+                    minLength={minLength}
                 />
                 {trailing ? (
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#71809a]">{trailing}</span>

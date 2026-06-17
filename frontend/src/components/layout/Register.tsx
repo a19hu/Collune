@@ -308,16 +308,19 @@ const Register = ({ children, step, totalSteps = 3 }: RegisterProps) => {
                         <div className="flex-1">
                             {
                                 totalSteps == 3 ?
-                                    <LeftPane step={step} />
+                                    <>
+                                        <LeftPane step={step} />
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <BottomBenefit icon={<Users className="h-8 w-8" />} label="Access top creators" />
+                                            <BottomBenefit icon={<MessageCircle className="h-8 w-8" />} label="Run impactful campaigns" />
+                                            <BottomBenefit icon={<TrendingUp className="h-8 w-8" />} label="Build long-term collaborations" />
+                                        </div>
+                                    </>
                                     : <SideArtwork step={step} />
                             }
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4">
-                            <BottomBenefit icon={<Users className="h-8 w-8" />} label="Access top creators" />
-                            <BottomBenefit icon={<MessageCircle className="h-8 w-8" />} label="Run impactful campaigns" />
-                            <BottomBenefit icon={<TrendingUp className="h-8 w-8" />} label="Build long-term collaborations" />
-                        </div>
+
                     </aside>
                     {children}
 

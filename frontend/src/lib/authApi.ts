@@ -1,6 +1,6 @@
-const DEFAULT_API_BASE_URL = import.meta.env.PROD
-  ? "http://localhost:8000/api/v1"
-  : "/api/v1";
+import { CreatorSocialPlatform } from "../types";
+
+const DEFAULT_API_BASE_URL = "http://localhost:8000/api/v1";
 
 const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL ||
@@ -31,6 +31,72 @@ export type LoginResponse = {
   refresh: string;
   access: string;
   user: LoginApiUser;
+};
+
+export type CreatorRegisterPayload = {
+  user: {
+    name: string;
+    email: string;
+    phone_no?: string;
+    password: string;
+  };
+  display_name?: string;
+  category?: string;
+  location?: string;
+  languages?: string[];
+  collaboration_preferences?: string[];
+  preferred_response_time?: string;
+  open_to_travel?: boolean;
+  social_accounts?: CreatorSocialAccountPayload[];
+  bio?: string;
+  portfolio_url?: string;
+  audience_size?: number;
+  rate_min?: number | string;
+  rate_max?: number | string;
+};
+
+export type CreatorRegisterResponse = LoginResponse & {
+  creator: {
+    creator_id: string;
+    display_name: string;
+    category: string;
+    location: string;
+    languages: string[];
+    collaboration_preferences: string[];
+    preferred_response_time: string;
+    open_to_travel: boolean;
+    bio: string;
+    portfolio_url: string;
+    audience_size: number;
+    rate_min: string;
+    rate_max: string;
+    verification_status: string;
+    profile_completion: number;
+  };
+};
+
+
+export type CreatorSocialAccountPayload = {
+  platform: CreatorSocialPlatform;
+  handle: string;
+  url?: string;
+  followers?: number;
+  is_connected?: boolean;
+};
+
+export type CreatorSocialAccountApi = CreatorSocialAccountPayload & {
+  account_id: string;
+  creator: string;
+  created_at: string;
+};
+
+export type OtpChannel = "EMAIL" | "PHONE";
+
+export type OtpResponse = {
+  message: string;
+  channel: OtpChannel;
+  target: string;
+  expires_in?: number;
 };
 
 export type SchoolRegisterPayload = {
@@ -143,6 +209,18 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
   );
 }
 
+export async function registerCreator(payload: CreatorRegisterPayload) {
+  return apiPost<CreatorRegisterResponse>("/auth/creators/register/", payload);
+}
+
+export async function sendOtp(channel: OtpChannel, target: string) {
+  return apiPost<OtpResponse>("/auth/otp/send/", { channel, target });
+}
+
+export async function verifyOtp(channel: OtpChannel, target: string, code: string) {
+  return apiPost<OtpResponse>("/auth/otp/verify/", { channel, target, code });
+}
+
 function resolvePublicAssetUrl(url: string | null | undefined) {
   if (!url) return "";
 
@@ -191,6 +269,10 @@ async function apiAuthed<T>(
     },
     true,
   );
+}
+
+export async function createCreatorSocialAccount(payload: CreatorSocialAccountPayload) {
+  return apiAuthed<CreatorSocialAccountApi>("/creator-social-accounts/", "POST", payload);
 }
 
 export async function registerSchool(payload: SchoolRegisterPayload) {

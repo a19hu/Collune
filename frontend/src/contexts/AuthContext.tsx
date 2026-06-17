@@ -15,13 +15,11 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const mapApiRoleToUiRole = (role?: string | null): UserAccount['role'] => {
   const normalized = (role || '').toUpperCase();
-  if (normalized === 'SCHOOL_ADMIN') return 'School Admin';
-  if (normalized === 'SCHOOL_TEACHER') return 'Teacher';
-  if (normalized === 'SCHOOL_STUDENT') return 'Student';
-  if (normalized === 'SCHOOL_STAFF') return 'Staff';
-  if (normalized === 'SCHOOL_PARENT') return 'Parent';
   if (normalized === 'SUPER_ADMIN') return 'Super Admin';
-  return 'School Admin';
+  if (normalized === 'CREATOR') return 'Creator';
+  if (normalized === 'BRAND') return 'Brand';
+  if (normalized === 'ADMIN') return 'Super Admin';
+  return 'Super Admin';
 };
 
 const mapApiUserToUiUser = (user: LoginApiUser): UserAccount => ({
