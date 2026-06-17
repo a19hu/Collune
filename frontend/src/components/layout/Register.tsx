@@ -299,6 +299,22 @@ const Register = ({ children, step, totalSteps = 3 }: RegisterProps) => {
 
     return (
         <>
+        {
+            step == 6 ? 
+            <>
+            <main className="min-h-screen bg-[#f4f6fb] p-4 text-[#202337] md:p-10">
+        <section className="relative mx-auto min-h-[calc(100vh-80px)] max-w-[1342px] overflow-hidden rounded-xl bg-white px-7 py-8 md:px-12">
+          <a href="/" aria-label="Collune home" className="absolute left-7 top-8 inline-flex w-max md:left-12">
+            <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
+          </a>
+
+          <div className="flex min-h-[calc(100vh-144px)] items-center justify-center pt-20">
+            {children}
+             </div>
+        </section>
+      </main>
+            </>:
+
             <main className="min-h-screen bg-[#f4f6fb] p-4 text-[#202337] md:p-[30px]">
                 <section className="mx-auto grid min-h-[calc(100vh-60px)] max-w-[1296px] overflow-hidden rounded-[20px] bg-white lg:grid-cols-[1fr_1fr]">
                     <aside className="flex flex-col px-10 py-11 md:px-14">
@@ -322,11 +338,16 @@ const Register = ({ children, step, totalSteps = 3 }: RegisterProps) => {
 
 
                     </aside>
+          <section className="flex items-center justify-center px-5 py-10 md:px-10">
+{/* <section className="border-l border-[#d7e0f2] px-10 py-14 md:px-[70px]"></section> */}
                     {children}
+          </section>
 
                 </section>
             </main>
+        }
         </>
+
     )
 };
 

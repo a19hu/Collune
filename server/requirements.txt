@@ -36,3 +36,5 @@ pyyaml
 uritemplate
 inflection
 pillow
+twilio==9.3.6
+python-dotenv

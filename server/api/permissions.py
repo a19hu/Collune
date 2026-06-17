@@ -1,28 +1,23 @@
 from rest_framework.permissions import BasePermission
 
+from .models import UserRole
 
-class RoleRequired(BasePermission):
-    allowed_roles = set()
+
+class HasRole(BasePermission):
+    allowed_roles = ()
+    message = "You do not have permission to perform this action."
 
     def has_permission(self, request, view):
-        user = request.user
-        if not user or not user.is_authenticated:
-            return False
-        if user.is_superuser:
-            return True
-        profile = getattr(user, "profile", None)
-        if not profile or not profile.role_id:
-            return False
-        return profile.role.code in self.allowed_roles
+        return bool(request.user and request.user.is_authenticated and request.user.role in self.allowed_roles)
 
 
-class IsAdminLike(RoleRequired):
-    allowed_roles = {"SUPER_ADMIN", "INTERNAL_ADMIN", "ANALYST", "MODERATOR"}
+class IsAdminUserRole(HasRole):
+    allowed_roles = (UserRole.ADMIN,)
 
 
-class IsBrandUser(RoleRequired):
-    allowed_roles = {"BRAND_USER"}
+class IsBrand(HasRole):
+    allowed_roles = (UserRole.BRAND,)
 
 
-class IsCreatorUser(RoleRequired):
-    allowed_roles = {"CREATOR_USER"}
+class IsCreator(HasRole):
+    allowed_roles = (UserRole.CREATOR,)

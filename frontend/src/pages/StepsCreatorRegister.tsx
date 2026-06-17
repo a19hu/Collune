@@ -1,4 +1,4 @@
-import { CalendarDays, Check, CheckCircle, ChevronDown, CloudUpload, Eye, EyeClosed, Globe, Grid2X2, Instagram, Linkedin, Mail, MapPin, Megaphone, Phone, Plane, Play, Plus, Rocket, User, Users, X, Youtube } from "lucide-react";
+import { CalendarDays, Check, CheckCircle, ChevronDown, CloudUpload, Eye, EyeClosed, Globe, Grid2X2, Instagram, Linkedin, Lock, Mail, MapPin, Megaphone, Phone, Plane, Play, Plus, Rocket, User, Users, X, Youtube } from "lucide-react";
 import HtmlInput from "../HtmlComponents/HtmlInput";
 import { CreatorRegisterForm, SocialAccountForm, VerificationState } from "../types";
 import type { ChangeEvent, ReactNode } from "react";

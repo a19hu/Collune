@@ -143,7 +143,7 @@ const BrandRegister = () => {
 
     <Register
       step={step}
-      children={<section className="border-l border-[#d7e0f2] px-10 py-14 md:px-[70px]">
+      children={
         <form
           className="mx-auto max-w-[505px]"
           onSubmit={(event) => {
@@ -172,7 +172,7 @@ const BrandRegister = () => {
             </p>
           ) : null}
         </form>
-      </section>}
+     }
     />
 
 
