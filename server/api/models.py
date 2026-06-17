@@ -41,9 +41,6 @@ class SocialPlatform(models.TextChoices):
     FACEBOOK = "FACEBOOK", "Facebook"
     TIKTOK = "TIKTOK", "TikTok"
     SNAPCHAT = "SNAPCHAT", "Snapchat"
-    PINTEREST = "PINTEREST", "Pinterest"
-    THREADS = "THREADS", "Threads"
-    WEBSITE = "WEBSITE", "Website"
 
 
 class OtpChannel(models.TextChoices):
@@ -144,8 +141,6 @@ class CreatorSocialAccount(models.Model):
     creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="social_accounts")
     platform = models.CharField(max_length=24, choices=SocialPlatform.choices)
     handle = models.CharField(max_length=120)
-    url = models.URLField(blank=True, default="")
-    followers = models.PositiveIntegerField(default=0)
     is_connected = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
 

@@ -7,6 +7,7 @@ type FormButtonOptions = {
     form: CreatorRegisterForm;
     setStep: (updater: (current: number) => number) => void;
     setVerificationStatus: (patch: Partial<VerificationState>) => void;
+    submitCreatorRegistration: () => Promise<void>;
 };
 
 export const formButton = async ({
@@ -15,7 +16,7 @@ export const formButton = async ({
     form,
     setStep,
     setVerificationStatus,
-    submitCreatorRegistration
+    submitCreatorRegistration,
 }: FormButtonOptions) => {
     const goNext = () => {
         setStep((current) => Math.min(totalSteps, current + 1));
@@ -75,7 +76,7 @@ export const formButton = async ({
             break;
 
         case 6:
-            submitCreatorRegistration();
+            await submitCreatorRegistration();
             break;
 
         default:

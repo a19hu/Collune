@@ -29,7 +29,7 @@ export type SocialAccountForm = {
   handle: string;
 };
 
-export type CreatorSocialPlatform = "INSTAGRAM" | "YOUTUBE" | "LINKEDIN" | "X" | "FACEBOOK" | "TIKTOK" | "SNAPCHAT" | "PINTEREST" | "THREADS" | "WEBSITE";
+export type CreatorSocialPlatform = "INSTAGRAM" | "YOUTUBE" | "LINKEDIN" | "X" | "FACEBOOK" | "TIKTOK" | "SNAPCHAT";
 
 
 export type VerificationState = {

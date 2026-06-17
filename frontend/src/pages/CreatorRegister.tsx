@@ -23,12 +23,7 @@ const initialSocialAccounts: SocialAccountForm[] = [
   { platform: "FACEBOOK", title: "Facebook", handle: "" },
   { platform: "TIKTOK", title: "TikTok", handle: "" },
   { platform: "SNAPCHAT", title: "Snapchat", handle: "" },
-  { platform: "PINTEREST", title: "Pinterest", handle: "" },
-  { platform: "THREADS", title: "Threads", handle: "" },
-  { platform: "WEBSITE", title: "Website", handle: "" },
 ];
-
-
 
 const initialVerification: VerificationState = {
   emailSent: false,
@@ -133,47 +128,50 @@ const CreatorRegister = () => {
 
 
   const submitCreatorRegistration = async () => {
+    console.log(form)
+    console.log(socialAccounts)
     setSubmitError("");
     setIsSubmitting(true);
 
+
     try {
-      const response = await registerCreator({
-        user: {
-          name: form.name.trim(),
-          email: form.email.trim(),
-          phone_no: form.phone_no,
-          password: form.password,
-        },
-        display_name: form.name.trim(),
-        category: form.category,
-        location: form.location.trim(),
-        languages: form.languages,
-        collaboration_preferences: form.collaboration_preferences,
-        preferred_response_time: form.preferred_response_time,
-        open_to_travel: form.open_to_travel,
-        bio: form.bio.trim(),
-        social_accounts: socialAccounts
-          .filter((account) => account.handle.trim())
-          .map((account) => ({
-            platform: account.platform,
-            handle: account.handle.trim(),
-            is_connected: true,
-          })),
-      });
+      // const response = await registerCreator({
+      //   user: {
+      //     name: form.name.trim(),
+      //     email: form.email.trim(),
+      //     phone_no: form.phone_no,
+      //     password: form.password,
+      //   },
+      //   display_name: form.name.trim(),
+      //   category: form.category,
+      //   location: form.location.trim(),
+      //   languages: form.languages,
+      //   collaboration_preferences: form.collaboration_preferences,
+      //   preferred_response_time: form.preferred_response_time,
+      //   open_to_travel: form.open_to_travel,
+      //   bio: form.bio.trim(),
+      //   social_accounts: socialAccounts
+      //     .filter((account) => account.handle.trim())
+      //     .map((account) => ({
+      //       platform: account.platform,
+      //       handle: account.handle.trim(),
+      //       is_connected: true,
+      //     })),
+      // });
 
-      localStorage.setItem("saaserp_access_token", response.access);
-      localStorage.setItem("saaserp_refresh_token", response.refresh);
-      localStorage.setItem("saaserp_drf_token", response.token);
-      localStorage.setItem("saaserp_last_login_username", response.user.username);
+      // localStorage.setItem("saaserp_access_token", response.access);
+      // localStorage.setItem("saaserp_refresh_token", response.refresh);
+      // localStorage.setItem("saaserp_drf_token", response.token);
+      // localStorage.setItem("saaserp_last_login_username", response.user.username);
 
-      setSessionUser({
-        id: response.user.user_id,
-        phone: response.user.phone_no || "",
-        name: response.user.name || response.user.username,
-        email: response.user.email,
-        role: "Creator",
-        schoolCode: response.creator.creator_id,
-      });
+      // setSessionUser({
+      //   id: response.user.user_id,
+      //   phone: response.user.phone_no || "",
+      //   name: response.user.name || response.user.username,
+      //   email: response.user.email,
+      //   role: "Creator",
+      //   schoolCode: response.creator.creator_id,
+      // });
       navigate("/creator", { replace: true });
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Could not create your creator account.");
