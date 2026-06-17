@@ -41,7 +41,7 @@ class CreatorProfileAdmin(admin.ModelAdmin):
 
 @admin.register(CreatorSocialAccount)
 class CreatorSocialAccountAdmin(admin.ModelAdmin):
-    list_display = ("creator", "platform", "handle", "followers", "is_connected")
+    list_display = ("creator", "platform", "handle", "is_connected")
     search_fields = ("creator__display_name", "platform", "handle")
     list_filter = ("platform", "is_connected")
 
