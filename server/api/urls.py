@@ -12,6 +12,7 @@ from .views import (
     CreatorRegisterView,
     CreatorSocialAccountViewSet,
     DashboardSummaryView,
+    EmailAvailabilityView,
     LoginView,
     OtpSendView,
     OtpVerifyView,
@@ -31,6 +32,7 @@ router.register("brand-shortlists", BrandShortlistViewSet, basename="brand_short
 urlpatterns = [
     path("auth/brands/register/", BrandRegisterView.as_view(), name="brand_register"),
     path("auth/creators/register/", CreatorRegisterView.as_view(), name="creator_register"),
+    path("auth/email-availability/", EmailAvailabilityView.as_view(), name="email_availability"),
     path("auth/login/", LoginView.as_view(), name="login"),
     path("auth/otp/send/", OtpSendView.as_view(), name="otp_send"),
     path("auth/otp/verify/", OtpVerifyView.as_view(), name="otp_verify"),

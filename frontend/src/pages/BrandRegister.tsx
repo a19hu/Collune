@@ -22,7 +22,7 @@ import { BrandSelect } from "../HtmlComponents/HtmlSelect";
 import { AuthSwitchLink, RegisterError, RegisterStepHeader, RegisterSubmitButtons } from "../HtmlComponents/RegisterFormParts";
 import Register from "../components/layout/Register";
 import { useAuth } from "../contexts/AuthContext";
-import { registerBrand } from "../lib/authApi";
+import { checkEmailAvailability, registerBrand } from "../lib/authApi";
 import { normalizePhoneNumber } from "../lib/function";
 import type { BrandRegisterForm } from "../types";
 
@@ -218,9 +218,20 @@ const BrandRegister = () => {
     setForm((current) => ({ ...current, [field]: event.target.value }));
   };
 
-  const validateAccountStep = () => {
+  const validateAccountStep = async () => {
     if (form.password !== form.confirmPassword) {
       setSubmitError("Passwords do not match.");
+      return false;
+    }
+
+    try {
+      const response = await checkEmailAvailability(form.email);
+      if (!response.available) {
+        setSubmitError("This email is already registered.");
+        return false;
+      }
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Could not check email availability.");
       return false;
     }
 
@@ -277,13 +288,13 @@ const BrandRegister = () => {
     <Register step={step} totalSteps={totalSteps}>
       <form
         className="mx-auto w-full max-w-[580px]"
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault();
           if (step === totalSteps) {
             void submitBrandRegistration();
             return;
           }
-          if (step === 1 && !validateAccountStep()) return;
+          if (step === 1 && !(await validateAccountStep())) return;
           setStep((current) => Math.min(totalSteps, current + 1));
         }}
       >

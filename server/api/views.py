@@ -43,6 +43,7 @@ from .serializers import (
     CreatorProfileSerializer,
     CreatorRegisterSerializer,
     CreatorSocialAccountSerializer,
+    EmailAvailabilitySerializer,
     LoginSerializer,
     OtpSendSerializer,
     OtpVerifySerializer,
@@ -198,6 +199,19 @@ class LoginView(APIView):
         user.last_login_at = timezone.now()
         user.save(update_fields=["last_login_at"])
         return Response(auth_response(user))
+
+
+class EmailAvailabilityView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        serializer = EmailAvailabilitySerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        return Response({
+            "email": email,
+            "available": not User.objects.filter(email__iexact=email).exists(),
+        })
 
 
 class ProfileView(APIView):

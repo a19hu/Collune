@@ -6,7 +6,7 @@ import { HtmlProgess } from "../HtmlComponents/HtmlProgress";
 import { AuthSwitchLink, RegisterError, RegisterSubmitButtons } from "../HtmlComponents/RegisterFormParts";
 import Register from "../components/layout/Register";
 import { useAuth } from "../contexts/AuthContext";
-import { registerCreator, verifyOtp } from "../lib/authApi";
+import { checkEmailAvailability, registerCreator, verifyOtp } from "../lib/authApi";
 import { CreatorRegisterForm, SocialAccountForm, VerificationState } from "../types";
 import { StepsCreatorRegister } from "./StepsCreatorRegister";
 import { formButton, normalizePhoneNumber } from "../lib/function";
@@ -91,6 +91,21 @@ const CreatorRegister = () => {
 
   const setVerificationStatus = (patch: Partial<VerificationState>) => {
     setVerification((current) => ({ ...current, ...patch }));
+  };
+
+  const validateAccountStep = async () => {
+    setSubmitError("");
+    try {
+      const response = await checkEmailAvailability(form.email);
+      if (!response.available) {
+        setSubmitError("This email is already registered.");
+        return false;
+      }
+      return true;
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Could not check email availability.");
+      return false;
+    }
   };
 
   const verifyEmailOtp = async () => {
@@ -178,6 +193,7 @@ const CreatorRegister = () => {
         className="w-full max-w-[622px] rounded-2xl border border-[#e0e7fb] bg-white px-7 py-10 shadow-[0_0_0_1px_rgba(95,119,190,0.04),0_12px_34px_rgba(46,64,120,0.08)] md:px-10"
         onSubmit={async (event) => {
           event.preventDefault();
+          if (step === 1 && !(await validateAccountStep())) return;
           await formButton({
             step,
             totalSteps,

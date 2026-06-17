@@ -117,6 +117,11 @@ export type OtpResponse = {
   expires_in?: number;
 };
 
+export type EmailAvailabilityResponse = {
+  email: string;
+  available: boolean;
+};
+
 function getAuthHeader() {
   const access = localStorage.getItem("saaserp_access_token");
   const drfToken = localStorage.getItem("saaserp_drf_token");
@@ -202,6 +207,11 @@ export async function getMe() {
 
 export async function signOutApi() {
   return apiPost<{ message: string }>("/auth/signout/", {}, true);
+}
+
+export async function checkEmailAvailability(email: string) {
+  const query = encodeURIComponent(email.trim());
+  return apiRequest<EmailAvailabilityResponse>(`/auth/email-availability/?email=${query}`);
 }
 
 export async function registerCreator(payload: CreatorRegisterPayload) {
