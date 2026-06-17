@@ -1,19 +1,32 @@
-import type { ChangeEvent, ReactNode } from "react";
+import type { ChangeEvent } from "react";
 import { useState } from "react";
-import {
-  ArrowRight,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { HtmlProgess } from "../HtmlComponents/HtmlProgress";
 import Register from "../components/layout/Register";
 import { useAuth } from "../contexts/AuthContext";
-import { registerCreator, sendOtp, verifyOtp, } from "../lib/authApi";
+import { registerCreator, verifyOtp } from "../lib/authApi";
 import { CreatorRegisterForm, SocialAccountForm, VerificationState } from "../types";
 import { StepsCreatorRegister } from "./StepsCreatorRegister";
-import { formButton } from "../lib/function";
+import { formButton, normalizePhoneNumber } from "../lib/function";
 
 const totalSteps = 6;
+
+const initialCreatorForm: CreatorRegisterForm = {
+  name: "",
+  email: "",
+  emailOtp: "",
+  phone_no: "",
+  password: "",
+  category: "Political Commentary",
+  location: "",
+  languages: ["Hindi", "English"],
+  collaboration_preferences: ["Sponsored Posts", "Long-Term Partnerships", "Product Launches", "UGC Content"],
+  preferred_response_time: "Within 24 Hours",
+  open_to_travel: true,
+  bio: "",
+};
 
 const initialSocialAccounts: SocialAccountForm[] = [
   { platform: "INSTAGRAM", title: "Instagram", handle: "" },
@@ -38,24 +51,45 @@ const initialVerification: VerificationState = {
   error: "",
 };
 
+function SubmitButtons({
+  isFinalStep,
+  isSubmitting,
+  onSkip,
+}: {
+  isFinalStep: boolean;
+  isSubmitting: boolean;
+  onSkip: () => void;
+}) {
+  return (
+    <div className={isFinalStep ? "mt-6 grid gap-3" : "mt-6 flex"}>
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="inline-flex h-[52px] flex-1 items-center justify-center gap-3 rounded-xl bg-[#2447bd] text-[15px] font-black text-white shadow-[0_12px_24px_rgba(36,71,189,0.18)] transition hover:bg-[#183aa8] disabled:cursor-not-allowed disabled:opacity-70"
+      >
+        {isFinalStep && isSubmitting ? "Creating account..." : isFinalStep ? "Continue to Dashboard" : "Continue"}
+        <ArrowRight className="h-5 w-5" />
+      </button>
+
+      {isFinalStep ? (
+        <button
+          type="button"
+          onClick={onSkip}
+          disabled={isSubmitting}
+          className="w-full text-center text-sm font-black text-[#64738e] disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          Skip for now
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 const CreatorRegister = () => {
   const navigate = useNavigate();
   const { setSessionUser } = useAuth();
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState<CreatorRegisterForm>({
-    name: "",
-    email: "",
-    emailOtp: "",
-    phone_no: "",
-    password: "",
-    category: "Political Commentary",
-    location: "",
-    languages: ["Hindi", "English"],
-    collaboration_preferences: ["Sponsored Posts", "Long-Term Partnerships", "Product Launches", "UGC Content"],
-    preferred_response_time: "Within 24 Hours",
-    open_to_travel: true,
-    bio: "",
-  });
+  const [form, setForm] = useState<CreatorRegisterForm>(initialCreatorForm);
   const [showPassword, setShowPassword] = useState(false);
   const [phoneOtp, setPhoneOtp] = useState("");
   const [socialAccounts, setSocialAccounts] = useState<SocialAccountForm[]>(initialSocialAccounts);
@@ -93,10 +127,7 @@ const CreatorRegister = () => {
     setVerification((current) => ({ ...current, ...patch }));
   };
 
-
-
   const verifyEmailOtp = async () => {
-
     setVerificationStatus({ isCheckingEmail: true, error: "", message: "" });
     try {
       const email = form.email.trim();
@@ -115,7 +146,7 @@ const CreatorRegister = () => {
   const verifyPhoneOtp = async () => {
     setVerificationStatus({ isVerifyingPhone: true, error: "", message: "" });
     try {
-      const phoneNumber = form.phone_no;
+      const phoneNumber = normalizePhoneNumber(form.phone_no);
       // await verifyOtp("PHONE", phoneNumber, phoneOtp);
       setVerificationStatus({ phoneVerified: true, message: "Phone number verified." });
     } catch (error) {
@@ -125,21 +156,18 @@ const CreatorRegister = () => {
     }
   };
 
-
-
   const submitCreatorRegistration = async () => {
-    console.log(form)
-    console.log(socialAccounts)
     setSubmitError("");
     setIsSubmitting(true);
-
+    console.log(form)
+    console.log(socialAccounts)
 
     try {
       // const response = await registerCreator({
       //   user: {
       //     name: form.name.trim(),
       //     email: form.email.trim(),
-      //     phone_no: form.phone_no,
+      //     phone_no: normalizePhoneNumber(form.phone_no),
       //     password: form.password,
       //   },
       //   display_name: form.name.trim(),
@@ -181,92 +209,63 @@ const CreatorRegister = () => {
   };
 
   return (
-    <>
-      <Register
-        totalSteps={totalSteps}
-        step={step}
-        children={
-          <form
-            className="w-full max-w-[622px] rounded-2xl border border-[#e0e7fb] bg-white px-7 py-10 shadow-[0_0_0_1px_rgba(95,119,190,0.04),0_12px_34px_rgba(46,64,120,0.08)] md:px-10"
-            onSubmit={async (event) => {
-              event.preventDefault();
-              await formButton({
-                step,
-                totalSteps,
-                form,
-                setStep,
-                setVerificationStatus,
-                submitCreatorRegistration
-              });
-            }}
+    <Register totalSteps={totalSteps} step={step}>
+      <form
+        className="w-full max-w-[622px] rounded-2xl border border-[#e0e7fb] bg-white px-7 py-10 shadow-[0_0_0_1px_rgba(95,119,190,0.04),0_12px_34px_rgba(46,64,120,0.08)] md:px-10"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          await formButton({
+            step,
+            totalSteps,
+            form,
+            setStep,
+            setVerificationStatus,
+            submitCreatorRegistration,
+          });
+        }}
+      >
+        <HtmlProgess step={step} totalSteps={totalSteps} divClassName="text-center" />
 
-          >
-            <HtmlProgess step={step} totalSteps={totalSteps} divClassName="text-center" />
+        <div className="mt-10">
+          <StepsCreatorRegister
+            step={step}
+            form={form}
+            showPassword={showPassword}
+            phoneOtp={phoneOtp}
+            socialAccounts={socialAccounts}
+            verification={verification}
+            onFieldChange={onFieldChange}
+            onEmailOtpChange={(event) => setForm((current) => ({ ...current, emailOtp: event.target.value.replace(/\D/g, "").slice(0, 6) }))}
+            onPhoneOtpChange={(event) => setPhoneOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
+            onSocialAccountChange={onSocialAccountChange}
+            onToggleFormArrayValue={onToggleFormArrayValue}
+            onResponseTimeChange={(value) => setForm((current) => ({ ...current, preferred_response_time: value }))}
+            onTravelToggle={() => setForm((current) => ({ ...current, open_to_travel: !current.open_to_travel }))}
+            onTogglePassword={() => setShowPassword((current) => !current)}
+            onVerifyEmailOtp={() => void verifyEmailOtp()}
+            onVerifyPhoneOtp={() => void verifyPhoneOtp()}
+          />
+        </div>
 
-            <div className="mt-10">
-              <StepsCreatorRegister
-                step={step}
-                form={form}
-                showPassword={showPassword}
-                phoneOtp={phoneOtp}
-                socialAccounts={socialAccounts}
-                verification={verification}
-                onFieldChange={onFieldChange}
-                onEmailOtpChange={(event) => setForm((current) => ({ ...current, emailOtp: event.target.value.replace(/\D/g, "").slice(0, 6) }))}
-                onPhoneOtpChange={(event) => setPhoneOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
-                onSocialAccountChange={onSocialAccountChange}
-                onToggleFormArrayValue={onToggleFormArrayValue}
-                onResponseTimeChange={(value) => setForm((current) => ({ ...current, preferred_response_time: value }))}
-                onTravelToggle={() => setForm((current) => ({ ...current, open_to_travel: !current.open_to_travel }))}
-                onTogglePassword={() => setShowPassword((current) => !current)}
-                onVerifyEmailOtp={() => void verifyEmailOtp()}
-                onVerifyPhoneOtp={() => void verifyPhoneOtp()}
-              />
-            </div>
+        {submitError ? (
+          <div className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+            {submitError}
+          </div>
+        ) : null}
 
-            {submitError ? (
-              <div className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
-                {submitError}
-              </div>
-            ) : null}
+        <SubmitButtons
+          isFinalStep={step === totalSteps}
+          isSubmitting={isSubmitting}
+          onSkip={() => void submitCreatorRegistration()}
+        />
 
-            <div className="mt-6 flex">
-              {
-                step === 6 ?
-                  <>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="inline-flex h-[52px] w-full items-center justify-center gap-3 rounded-xl bg-[#2447bd] text-[15px] font-black text-white shadow-[0_12px_24px_rgba(36,71,189,0.18)] transition hover:bg-[#183aa8]"
-                    >
-                      {isSubmitting ? "Creating account..." : "Continue to Dashboard"}
-                      <ArrowRight className="h-5 w-5" />
-                    </button>
-                    <button type="button" onClick={() => void submitCreatorRegistration()} disabled={isSubmitting} className="mt-3 w-full text-center text-sm font-black text-[#64738e]">
-                      Skip for now
-                    </button>
-                  </>
-                  : <button
-                    type="submit"
-                    className="inline-flex h-[50px] flex-1 items-center justify-center gap-3 rounded-xl bg-[#2447bd] text-[15px] font-black text-white shadow-[0_12px_24px_rgba(36,71,189,0.18)] transition hover:bg-[#183aa8]"
-                  >
-                    Continue
-                    <ArrowRight className="h-5 w-5" />
-                  </button>
-              }
-            </div>
-
-            {step === 1 ? (
-              <p className="mt-8 text-center text-xs font-medium text-[#738098]">
-                Already have an account? <a className="font-black text-[#1438a8]" href="#login">Log in</a>
-              </p>
-            ) : null}
-          </form>
-
-        }
-      />
-
-    </>
+        {step === 1 ? (
+          <p className="mt-8 text-center text-xs font-medium text-[#738098]">
+            Already have an account? <a className="font-black text-[#1438a8]" href="#login">Log in</a>
+          </p>
+        ) : null}
+      </form>
+    </Register>
   );
 };
 export default CreatorRegister;

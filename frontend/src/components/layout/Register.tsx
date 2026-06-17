@@ -288,7 +288,7 @@ function SideArtwork({ step }: { step: number }) {
 
     return (
         <>
-            <img src={heroCreator} alt="Creator smiling" className="h-[280px] w-[280px] rounded-full object-cover md:h-[350px] md:w-[350px]" />
+            <img src={heroCreator} alt="Creator smiling" className="mx-auto h-[280px] w-[280px] rounded-full object-cover md:h-[350px] md:w-[350px]" />
             <h2 className="mt-10 text-[26px] font-black tracking-normal text-[#1438a8]">Welcome to Collune!</h2>
             <p className="mt-4 max-w-sm text-[15px] font-medium leading-snug text-[#70809d]">Join thousands of creators and brand building meaningful collaborations.</p>
         </>
@@ -296,59 +296,55 @@ function SideArtwork({ step }: { step: number }) {
 }
 
 const Register = ({ children, step, totalSteps = 3 }: RegisterProps) => {
+    const isBrandFlow = totalSteps === 3;
+    const isFinalStep = step === totalSteps;
 
-    return (
-        <>
-        {
-            step == 6 ? 
-            <>
+    if (isFinalStep && !isBrandFlow) {
+        return (
             <main className="min-h-screen bg-[#f4f6fb] p-4 text-[#202337] md:p-10">
-        <section className="relative mx-auto min-h-[calc(100vh-80px)] max-w-[1342px] overflow-hidden rounded-xl bg-white px-7 py-8 md:px-12">
-          <a href="/" aria-label="Collune home" className="absolute left-7 top-8 inline-flex w-max md:left-12">
-            <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
-          </a>
+                <section className="relative mx-auto min-h-[calc(100vh-80px)] max-w-[1342px] overflow-hidden rounded-xl bg-white px-7 py-8 md:px-12">
+                    <a href="/" aria-label="Collune home" className="absolute left-7 top-8 inline-flex w-max md:left-12">
+                        <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
+                    </a>
 
-          <div className="flex min-h-[calc(100vh-144px)] items-center justify-center pt-20">
-            {children}
-             </div>
-        </section>
-      </main>
-            </>:
-
-            <main className="min-h-screen bg-[#f4f6fb] p-4 text-[#202337] md:p-[30px]">
-                <section className="mx-auto grid min-h-[calc(100vh-60px)] max-w-[1296px] overflow-hidden rounded-[20px] bg-white lg:grid-cols-[1fr_1fr]">
-                    <aside className="flex flex-col px-10 py-11 md:px-14">
-                        <a href="/" aria-label="Collune home" className="inline-flex w-max">
-                            <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
-                        </a>
-                        <div className="flex-1">
-                            {
-                                totalSteps == 3 ?
-                                    <>
-                                        <LeftPane step={step} />
-                                        <div className="grid grid-cols-3 gap-4">
-                                            <BottomBenefit icon={<Users className="h-8 w-8" />} label="Access top creators" />
-                                            <BottomBenefit icon={<MessageCircle className="h-8 w-8" />} label="Run impactful campaigns" />
-                                            <BottomBenefit icon={<TrendingUp className="h-8 w-8" />} label="Build long-term collaborations" />
-                                        </div>
-                                    </>
-                                    : <SideArtwork step={step} />
-                            }
-                        </div>
-
-
-                    </aside>
-          <section className="flex items-center justify-center px-5 py-10 md:px-10">
-{/* <section className="border-l border-[#d7e0f2] px-10 py-14 md:px-[70px]"></section> */}
-                    {children}
-          </section>
-
+                    <div className="flex min-h-[calc(100vh-144px)] items-center justify-center pt-20">
+                        {children}
+                    </div>
                 </section>
             </main>
-        }
-        </>
+        );
+    }
 
-    )
+    return (
+        <main className="min-h-screen bg-[#f4f6fb] p-4 text-[#202337] md:p-[30px]">
+            <section className="mx-auto grid min-h-[calc(100vh-60px)] max-w-[1296px] overflow-hidden rounded-[20px] bg-white lg:grid-cols-[1fr_1fr]">
+                <aside className="flex flex-col px-10 py-11 md:px-14">
+                    <a href="/" aria-label="Collune home" className="inline-flex w-max">
+                        <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
+                    </a>
+
+                    {isBrandFlow ? (
+                        <div className="flex-1">
+                            <LeftPane step={step} />
+                            <div className="grid grid-cols-3 gap-4">
+                                <BottomBenefit icon={<Users className="h-8 w-8" />} label="Access top creators" />
+                                <BottomBenefit icon={<MessageCircle className="h-8 w-8" />} label="Run impactful campaigns" />
+                                <BottomBenefit icon={<TrendingUp className="h-8 w-8" />} label="Build long-term collaborations" />
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex flex-1 flex-col items-center justify-center text-center">
+                            <SideArtwork step={step} />
+                        </div>
+                    )}
+                </aside>
+
+                <section className="flex items-center justify-center px-5 py-10 md:px-10">
+                    {children}
+                </section>
+            </section>
+        </main>
+    );
 };
 
 export default Register;

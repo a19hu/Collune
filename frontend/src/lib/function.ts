@@ -10,6 +10,10 @@ type FormButtonOptions = {
     submitCreatorRegistration: () => Promise<void>;
 };
 
+export function normalizePhoneNumber(phone: string) {
+    return phone.replace(/[\s()-]/g, "");
+}
+
 export const formButton = async ({
     step,
     totalSteps,
@@ -22,64 +26,47 @@ export const formButton = async ({
         setStep((current) => Math.min(totalSteps, current + 1));
     };
 
-    const sendEmailOtp = async () => {
-        setVerificationStatus({ isSendingEmail: true, error: "", message: "" });
+    const sendContactOtp = async (
+        channel: "EMAIL" | "PHONE",
+        target: string,
+        loadingKey: "isSendingEmail" | "isSendingPhone",
+        successPatch: Partial<VerificationState>,
+        fallbackError: string,
+    ) => {
+        setVerificationStatus({ [loadingKey]: true, error: "", message: "" });
         try {
-            const email = form.email.trim();
-            // await sendOtp("EMAIL", email);
-            setVerificationStatus({
-                emailSent: true,
-                emailVerified: false,
-                message: "Email OTP sent.",
-            });
+            // await sendOtp(channel, target);
+            setVerificationStatus(successPatch);
         } catch (error) {
-            setVerificationStatus({ error: error instanceof Error ? error.message : "Could not send email OTP." });
+            setVerificationStatus({ error: error instanceof Error ? error.message : fallbackError });
         } finally {
-            setVerificationStatus({ isSendingEmail: false });
+            setVerificationStatus({ [loadingKey]: false });
         }
     };
 
-    const sendPhoneOtp = async () => {
-        setVerificationStatus({ isSendingPhone: true, error: "", message: "" });
-        try {
-            const phoneNumber = form.phone_no;
-            // await sendOtp("PHONE", phoneNumber);
-            setVerificationStatus({ phoneOtpSent: true, phoneVerified: false, message: "Phone OTP sent." });
-        } catch (error) {
-            setVerificationStatus({ error: error instanceof Error ? error.message : "Could not send phone OTP." });
-        } finally {
-            setVerificationStatus({ isSendingPhone: false });
-        }
-    };
-
-    switch (step) {
-        case 1:
-            await sendEmailOtp();
-            await sendPhoneOtp();
-            goNext();
-            break;
-
-        case 2:
-            goNext();
-            break;
-
-        case 3:
-            goNext();
-            break;
-
-        case 4:
-            goNext();
-            break;
-
-        case 5:
-            goNext();
-            break;
-
-        case 6:
-            await submitCreatorRegistration();
-            break;
-
-        default:
-            break;
+    if (step === 1) {
+        await sendContactOtp(
+            "EMAIL",
+            form.email.trim(),
+            "isSendingEmail",
+            { emailSent: true, emailVerified: false, message: "Email OTP sent." },
+            "Could not send email OTP.",
+        );
+        await sendContactOtp(
+            "PHONE",
+            normalizePhoneNumber(form.phone_no),
+            "isSendingPhone",
+            { phoneOtpSent: true, phoneVerified: false, message: "Phone OTP sent." },
+            "Could not send phone OTP.",
+        );
+        goNext();
+        return;
     }
+
+    if (step >= totalSteps) {
+        await submitCreatorRegistration();
+        return;
+    }
+
+    goNext();
 };
