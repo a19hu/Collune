@@ -324,8 +324,10 @@ const Register = ({ children, step, totalSteps = 3 }: RegisterProps) => {
                     </a>
 
                     {isBrandFlow ? (
-                        <div className="flex-1">
-                            <LeftPane step={step} />
+                        <div className="flex flex-1 flex-col">
+                            <div className="flex-1">
+                                <LeftPane step={step} />
+                            </div>
                             <div className="grid grid-cols-3 gap-4">
                                 <BottomBenefit icon={<Users className="h-8 w-8" />} label="Access top creators" />
                                 <BottomBenefit icon={<MessageCircle className="h-8 w-8" />} label="Run impactful campaigns" />

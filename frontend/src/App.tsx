@@ -8,6 +8,7 @@ import ColluneInfoPage from "./pages/ColluneInfoPage.tsx";
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
 import MainLayout from './components/layout/MainLayout.tsx';
 import BrandRegister from './pages/BrandRegister.tsx';
+import LoginPage from './pages/LoginPage.tsx';
 import { SideBarLayout } from './components/layout/SideBarLayout.tsx';
 import CreatorDashBoard from './components/Creator/CreatorDashBoard.tsx';
 import BrandDashBoard from './components/Brand/BrandDashBoard.tsx';
@@ -49,7 +50,7 @@ const App: React.FC = () => {
                     </Route>
                     <Route path="/creator-register" element={<CreatorRegister />} />
                     <Route path="/brand-register" element={<BrandRegister />} />
-                    <Route path="/login" element={<NotFoundPage />} />
+                    <Route path="/login" element={<LoginPage />} />
                     <Route path="*" element={<NotFoundPage />} />
 
                 </Routes>

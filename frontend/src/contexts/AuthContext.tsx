@@ -1,12 +1,12 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMe, loginWithUsername, signOutApi, type LoginApiUser } from '../lib/authApi';
+import { getMe, loginWithEmail, signOutApi, type LoginApiUser } from '../lib/authApi';
 import type { UserAccount } from '../types';
 
 type AuthContextValue = {
   currentUser: UserAccount | null;
   isAuthLoading: boolean;
-  login: (username: string, password: string, schoolDomain: string) => Promise<UserAccount>;
+  login: (email: string, password: string) => Promise<UserAccount>;
   logout: () => Promise<void>;
   setSessionUser: (user: UserAccount) => void;
 };
@@ -87,13 +87,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [navigate]);
 
-  const login = useCallback(async (username: string, password: string, schoolDomain: string) => {
-    const response = await loginWithUsername(username, password, schoolDomain);
+  const login = useCallback(async (email: string, password: string) => {
+    const response = await loginWithEmail(email, password);
     const user = mapApiUserToUiUser(response.user);
     localStorage.setItem('saaserp_access_token', response.access);
     localStorage.setItem('saaserp_refresh_token', response.refresh);
     localStorage.setItem('saaserp_drf_token', response.token);
-    localStorage.setItem('saaserp_last_school_domain', schoolDomain);
+    localStorage.setItem('saaserp_last_login_username', response.user.email || email);
     setSessionUser(user);
     return user;
   }, [setSessionUser]);

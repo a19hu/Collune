@@ -1,255 +1,146 @@
-import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Building2,
-  LogIn,
-  Key,
-  UserCircle2,
-  Info,
-  Mail,
-  MapPin,
-  ShieldCheck,
-  Phone,
-  GraduationCap,
-} from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { type PublicSchoolLookupResponse } from '../lib/authApi';
-import HtmlInput from '../HtmlComponents/HtmlInput';
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeClosed, Lock, Mail, ShieldCheck, Sparkles } from "lucide-react";
 
-type SchoolLoginPageProps = {
-  schoolDomain: string;
-  schoolInfo: PublicSchoolLookupResponse;
-};
+import logo from "../assets/Logo.svg";
+import HtmlInput from "../HtmlComponents/HtmlInput";
+import { RegisterError } from "../HtmlComponents/RegisterFormParts";
+import { useAuth } from "../contexts/AuthContext";
 
+const inputClass =
+  "h-[52px] w-full rounded-xl border border-[#d8e2fb] bg-white px-12 text-[15px] font-semibold text-[#173ca8] outline-none transition placeholder:text-[#9aa7bf] focus:border-[#6d7eff] focus:ring-4 focus:ring-[#6d7eff]/10";
+const labelClass = "mb-2 block text-xs font-semibold text-[#6e7d99]";
 
-export const LoginPage = ({ schoolDomain, schoolInfo }: SchoolLoginPageProps) => {
+export const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [username, setUsername] = useState(() => localStorage.getItem('saaserp_last_login_username') || '');
-  const [password, setPassword] = useState('');
-  const [authError, setAuthError] = useState('');
-  const [logoLoadFailed, setLogoLoadFailed] = useState(false);
+  const [email, setEmail] = useState(() => localStorage.getItem("saaserp_last_login_username") || "");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const schoolAddress = schoolInfo?.address;
-  const schoolLocation = schoolAddress
-    ? [schoolAddress.city, schoolAddress.state, schoolAddress.country].filter(Boolean).join(', ')
-    : '';
-  const schoolLogoUrl = schoolInfo?.school.logo_url || '';
-
-  const handleLoginSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setAuthError('');
-
-    if (!username || !password) {
-      setAuthError('Please enter username and password.');
-      return;
-    }
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    setAuthError("");
+    setIsSubmitting(true);
 
     try {
-      const mapped = await login(username, password, schoolDomain);
-      window.alert(`Welcome back, ${mapped.name}! Opening ${mapped.role} dashboard.`);
-      switch (mapped.role) {
-        case 'SchoolAdmin':
-          navigate('/admin');
-          break;
-        case 'Teacher':
-          navigate('/teacher');
-          break;
-        case 'Student':
-          navigate('/student');
-          break;
-        default:
-          navigate('/admin');
-      }
-    } catch (error: any) {
-      setAuthError(error.message || 'Invalid username or password.');
+      const user = await login(email.trim(), password);
+      navigate(user.role === "Brand" ? "/brand" : user.role === "Creator" ? "/creator" : "/", { replace: true });
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : "Invalid email or password.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <main className="flex min-h-screen flex-col bg-gradient-to-br from-[#fff9e6] via-[#f5f7ff] to-[#e8eeff] font-sans text-slate-900 selection:bg-orange-500 selection:text-white">
-      <div className="bg-gradient-to-r from-[#001133] via-[#003399] to-[#001133] border-b-2 border-[#ffbb00] text-white">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2 text-xs md:text-sm">
-          <span className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-[#ffd700]" />
-            Verified School Mate ERP Workspace
-          </span>
-          {schoolInfo?.school.email && (
-            <a href={`mailto:${schoolInfo.school.email}`} className="flex items-center gap-2 font-bold text-[#ffd700]">
-              <Mail className="h-4 w-4" />
-              {schoolInfo.school.email}
+    <main className="min-h-screen bg-[#f4f6fb] p-4 text-[#202337] md:p-10">
+      <section className="relative mx-auto grid min-h-[calc(100vh-80px)] max-w-[1180px] overflow-hidden rounded-xl bg-white lg:grid-cols-[0.9fr_1.1fr]">
+        <aside className="relative hidden flex-col justify-between overflow-hidden bg-[#f0edff] px-12 py-11 lg:flex">
+          <a href="/" aria-label="Collune home" className="inline-flex w-max">
+            <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
+          </a>
+
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-black text-[#2447bd] shadow-sm">
+              <ShieldCheck className="h-4 w-4" />
+              Secure Collune workspace
+            </div>
+            <h1 className="mt-8 max-w-md text-[44px] font-black leading-tight tracking-normal text-[#202337]">
+              Sign in to manage creator partnerships
+            </h1>
+            <p className="mt-5 max-w-md text-base font-medium leading-relaxed text-[#65758f]">
+              Access your brand dashboard or creator workspace with your registered email and password.
+            </p>
+          </div>
+
+          <div className="relative h-[250px]">
+            <div className="absolute left-8 top-6 h-36 w-56 rounded-2xl bg-white p-5 shadow-xl">
+              <Sparkles className="h-9 w-9 text-[#7463e9]" />
+              <div className="mt-7 h-2 rounded-full bg-[#dfe4ed]" />
+              <div className="mt-3 h-2 w-28 rounded-full bg-[#dfe4ed]" />
+            </div>
+            <div className="absolute bottom-7 right-6 w-56 rounded-2xl bg-[#2447bd] p-5 text-white shadow-xl">
+              <p className="text-sm font-black">Campaigns, shortlists, profiles</p>
+              <div className="mt-5 grid grid-cols-3 gap-2">
+                {[0, 1, 2].map((item) => <span key={item} className="h-12 rounded-lg bg-white/20" />)}
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <section className="flex items-center justify-center px-6 py-10 md:px-12">
+          <form className="w-full max-w-[460px]" onSubmit={handleSubmit}>
+            <a href="/" aria-label="Collune home" className="mb-10 inline-flex w-max lg:hidden">
+              <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
             </a>
-          )}
-        </div>
-      </div>
 
-      <header className="border-b-4 border-[#ffbb00] bg-gradient-to-br from-[#001133] via-[#003399] to-[#001133] shadow-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-14 w-14 items-center justify-center rounded-lg border-2 border-white/20 bg-gradient-to-br from-[#ffbb00] via-[#ff8c00] to-[#ff6600] text-xl font-black text-white shadow-lg shadow-orange-500/30">
-              SM
-            </div>
             <div>
-              <div className="text-2xl font-black tracking-wide text-white">SCHOOL MATE</div>
-              <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#ffd700]">Secure ERP Login</div>
+              <h2 className="text-[32px] font-black tracking-normal text-[#202337]">Welcome back</h2>
+              <p className="mt-3 text-[15px] font-medium text-[#707b91]">Login with your email and password.</p>
             </div>
-          </div>
 
-          <div className="hidden items-center gap-3 text-right text-[#ffd700] sm:flex">
-            <Phone className="h-5 w-5" />
-            <div>
-              <div className="text-xs text-white/70">Support</div>
-              <div className="font-black">+91 99318 XXXXX</div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="relative flex flex-1 flex-col overflow-hidden bg-gradient-to-br from-[#000d26] via-[#003399] to-[#000d26] px-4 py-8 text-white md:py-12">
-        <img
-          src="https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1400&q=80"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-15 mix-blend-screen"
-        />
-        <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_40px,rgba(255,255,255,0.04)_40px,rgba(255,255,255,0.04)_80px)]" />
-
-        <div className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col">
-          <div className="grid w-full grid-cols-1 items-stretch overflow-hidden rounded-lg border-2 border-white/15 bg-[#001133]/80 shadow-2xl shadow-black/40 backdrop-blur lg:grid-cols-12">
-            <section className="relative flex flex-col justify-between overflow-hidden border-b-4 border-[#ffbb00] bg-gradient-to-br from-[#001133] via-[#003399] to-[#001133] p-6 text-left md:p-8 lg:col-span-5 lg:border-b-0 lg:border-r-4">
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,187,0,0.16),transparent_35%,rgba(255,102,0,0.14)_70%,transparent)]" />
-              <div className="relative space-y-7">
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#ffd700]/70 bg-gradient-to-r from-[#ff6600] to-[#ff8c00] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  Verified School Workspace
-                </div>
-
-                <div className="space-y-5">
-                  {schoolLogoUrl && !logoLoadFailed ? (
-                    <img
-                      referrerPolicy="no-referrer"
-                      src={schoolLogoUrl}
-                      alt={schoolInfo?.school.school_name}
-                      onError={() => setLogoLoadFailed(true)}
-                      className="h-24 w-24 rounded-lg border-2 border-[#ffd700] bg-white object-contain p-2 shadow-xl shadow-black/30"
-                    />
-                  ) : (
-                    <div className="flex h-24 w-24 items-center justify-center rounded-lg border-2 border-[#ffd700] bg-white/10 text-[#ffd700] shadow-xl shadow-black/30">
-                      <Building2 className="h-11 w-11" />
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <h1 className="text-3xl font-black leading-tight tracking-normal text-white md:text-4xl">
-                      {schoolInfo?.school.school_name}
-                    </h1>
-                    {schoolLocation && (
-                      <p className="flex items-start gap-2 text-sm font-semibold leading-6 text-slate-200">
-                        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#ffd700]" />
-                        <span>{schoolLocation}</span>
-                      </p>
-                    )}
-                    {schoolAddress?.full_address && (
-                      <p className="max-w-md text-xs font-medium leading-5 text-slate-300">
-                        {schoolAddress.full_address}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3 text-xs font-semibold text-slate-100">
-                  {schoolInfo?.school.email && (
-                    <div className="flex items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 py-2.5 backdrop-blur">
-                      <Mail className="h-4 w-4 shrink-0 text-[#ffd700]" />
-                      <span className="truncate">{schoolInfo?.school.email}</span>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-lg border border-[#ffd700]/30 bg-[#ffd700]/10 p-3">
-                      <GraduationCap className="mb-2 h-5 w-5 text-[#ffd700]" />
-                      <div className="font-black text-[#ffd700]">ERP Ready</div>
-                      <div className="mt-1 text-[10px] text-slate-300">Role-based access</div>
-                    </div>
-                    <div className="rounded-lg border border-emerald-400/30 bg-emerald-500/10 p-3">
-                      <ShieldCheck className="mb-2 h-5 w-5 text-emerald-300" />
-                      <div className="font-black text-emerald-300">Secure</div>
-                      <div className="mt-1 text-[10px] text-slate-300">School domain login</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <p className="relative mt-8 text-[10px] font-bold uppercase tracking-[0.18em] text-[#ffd700]">
-                School Mate by SP Systems
-              </p>
-            </section>
-
-            <section className="flex items-center justify-center bg-white p-5 text-slate-900 md:p-8 lg:col-span-7">
-              <div className="w-full max-w-md space-y-6">
-                <div className="space-y-2 text-left">
-                  <div className="flex items-center gap-2 text-[#ff6600]">
-                    <Building2 className="h-5 w-5" />
-                    <span className="text-xs font-black uppercase tracking-[0.2em]">Institution Core</span>
-                  </div>
-                  <h2 className="text-3xl font-black leading-tight tracking-normal text-[#001133]">Sign In to Dashboard</h2>
-                  <p className="text-sm leading-6 text-slate-600">
-                    Use your school-issued username and password to continue.
-                  </p>
-                </div>
-
-                {authError && (
-                  <div className="rounded-lg border border-red-500/30 bg-red-50 p-3.5 text-left text-xs font-semibold text-red-700">
-                    {authError}
-                  </div>
-                )}
-
-                <form id="erp-login-action-form" onSubmit={handleLoginSubmit} className="space-y-4 text-left">
-                  <HtmlInput
-                    divClass='space-y-1'
-                    labelClass="text-[11px] font-black uppercase tracking-wide text-[#001133]"
-                    inputClass="w-full rounded-lg border-2 border-slate-200 bg-[#f8fbff] py-3 pl-10 pr-4 text-sm text-slate-900 shadow-sm outline-none transition focus:border-[#003399] focus:ring-4 focus:ring-blue-100"
-                    label='Username'
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    type='text'
-                    ID='login-phone-control'
-                    placeholder="Enter username"
-                    required
-                  />
-                  <HtmlInput
-                    divClass='space-y-1'
-                    labelClass="text-[11px] font-black uppercase tracking-wide text-[#001133]"
-                    inputClass="w-full rounded-lg border-2 border-slate-200 bg-[#f8fbff] py-3 pl-10 pr-4 text-sm text-slate-900 shadow-sm outline-none transition focus:border-[#003399] focus:ring-4 focus:ring-blue-100"
-                    label='Password'
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    type='password'
-                    ID='login-otp-control'
-                    placeholder="Enter password"
-                    required
-                  />
-                  <button
-                    id="login-submit-trigger"
-                    type="submit"
-                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-[#ffd700] bg-gradient-to-r from-[#ff6600] to-[#ffaa00] py-3.5 text-sm font-black text-white shadow-lg shadow-orange-500/30 transition-all hover:from-[#ff7a1a] hover:to-[#ffbb00]"
-                  >
-                    <LogIn className="h-4 w-4" />
-                    Login to ERP
+            <div className="mt-9 grid gap-5">
+              <HtmlInput
+                labelClass={labelClass}
+                inputClass={inputClass}
+                label="Email Address"
+                icon={<Mail className="h-5 w-5" />}
+                value={email}
+                onChange={(event) => {
+                  setAuthError("");
+                  setEmail(event.target.value);
+                }}
+                placeholder="you@company.com"
+                type="email"
+                required
+              />
+              <HtmlInput
+                labelClass={labelClass}
+                inputClass={inputClass}
+                label="Password"
+                icon={<Lock className="h-5 w-5" />}
+                value={password}
+                onChange={(event) => {
+                  setAuthError("");
+                  setPassword(event.target.value);
+                }}
+                placeholder="Enter password"
+                type={showPassword ? "text" : "password"}
+                trailing={
+                  <button type="button" onClick={() => setShowPassword((current) => !current)} className="grid h-8 w-8 place-items-center rounded-md text-[#71809a] hover:bg-[#eef3ff]" aria-label={showPassword ? "Hide password" : "Show password"}>
+                    {showPassword ? <Eye className="h-5 w-5" /> : <EyeClosed className="h-5 w-5" />}
                   </button>
-                </form>
+                }
+                required
+              />
+            </div>
 
-                <div className="flex gap-2 rounded-lg border-l-4 border-[#ff6600] bg-[#fff9e6] p-3 text-left">
-                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#ff6600]" />
-                  <span className="text-[11px] leading-relaxed text-slate-700">
-                    Use the auto-generated username from school registration with your chosen password.
-                  </span>
-                </div>
-              </div>
-            </section>
-          </div>
+            <RegisterError message={authError} />
 
-        </div>
-      </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="mt-7 inline-flex h-[52px] w-full items-center justify-center rounded-xl bg-[#2447bd] text-[15px] font-black text-white shadow-[0_12px_24px_rgba(36,71,189,0.18)] transition hover:bg-[#183aa8] disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isSubmitting ? "Signing in..." : "Login"}
+            </button>
 
+            <div className="mt-7 grid gap-2 text-center text-sm font-medium text-[#65758f]">
+              <p>
+                New creator? <Link to="/creator-register" className="font-black text-[#2447bd]">Apply as Creator</Link>
+              </p>
+              <p>
+                New brand? <Link to="/brand-register" className="font-black text-[#2447bd]">Create Brand Account</Link>
+              </p>
+            </div>
+          </form>
+        </section>
+      </section>
     </main>
   );
 };
+
+export default LoginPage;
