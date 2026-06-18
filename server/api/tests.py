@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.urls import reverse
 from django.utils import timezone
@@ -84,3 +85,39 @@ class ColluneAuthTests(APITestCase):
         self.assertEqual(campaign.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Campaign.objects.count(), 1)
         self.assertEqual(BrandProfile.objects.get().campaigns.count(), 1)
+
+    @patch.dict(
+        "os.environ",
+        {
+            "BREVO_API_KEY": "test-api-key",
+            "BREVO_EMAIL_SENDER": "noreply@example.com",
+        },
+    )
+    @patch("api.views.requests.post")
+    def test_email_otp_send_and_verify_for_iitj_email(self, mock_post):
+        mock_post.return_value.raise_for_status.return_value = None
+        target = "b22cs015@iitj.ac.in"
+
+        send_response = self.client.post(
+            reverse("otp_send"),
+            {"channel": OtpChannel.EMAIL, "target": target},
+            format="json",
+        )
+
+        self.assertEqual(send_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(send_response.data["target"], target)
+        otp = OtpVerification.objects.get(channel=OtpChannel.EMAIL, target=target)
+        self.assertFalse(otp.is_verified)
+        payload = mock_post.call_args.kwargs["json"]
+        self.assertEqual(payload["to"][0]["email"], target)
+        self.assertIn(otp.code, payload["textContent"])
+
+        verify_response = self.client.post(
+            reverse("otp_verify"),
+            {"channel": OtpChannel.EMAIL, "target": target, "code": otp.code},
+            format="json",
+        )
+
+        self.assertEqual(verify_response.status_code, status.HTTP_200_OK)
+        otp.refresh_from_db()
+        self.assertTrue(otp.is_verified)

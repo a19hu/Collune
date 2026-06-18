@@ -35,7 +35,7 @@ export const formButton = async ({
     ) => {
         setVerificationStatus({ [loadingKey]: true, error: "", message: "" });
         try {
-            // await sendOtp(channel, target);
+            await sendOtp(channel, target);
             setVerificationStatus(successPatch);
         } catch (error) {
             setVerificationStatus({ error: error instanceof Error ? error.message : fallbackError });
@@ -52,13 +52,13 @@ export const formButton = async ({
             { emailSent: true, emailVerified: false, message: "Email OTP sent." },
             "Could not send email OTP.",
         );
-        await sendContactOtp(
-            "PHONE",
-            normalizePhoneNumber(form.phone_no),
-            "isSendingPhone",
-            { phoneOtpSent: true, phoneVerified: false, message: "Phone OTP sent." },
-            "Could not send phone OTP.",
-        );
+        // await sendContactOtp(
+        //     "PHONE",
+        //     normalizePhoneNumber(form.phone_no),
+        //     "isSendingPhone",
+        //     { phoneOtpSent: true, phoneVerified: false, message: "Phone OTP sent." },
+        //     "Could not send phone OTP.",
+        // );
         goNext();
         return;
     }

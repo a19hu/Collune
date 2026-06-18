@@ -18,6 +18,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.core.mail import send_mail
 
 from .models import (
     ApplicationStatus,
@@ -69,10 +70,6 @@ def generate_username(email):
         candidate = f"{base}{counter}"
     return candidate
 
-
-def generate_password(length=10):
-    alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
-    return "".join(secrets.choice(alphabet) for _ in range(length))
 
 
 def parse_payload(request):
@@ -153,15 +150,15 @@ def send_brevo_email_otp(target, code):
     sender_email = os.getenv("BREVO_EMAIL_SENDER") or os.getenv("DEFAULT_FROM_EMAIL")
     if not sender_email:
         raise RuntimeError("BREVO_EMAIL_SENDER or DEFAULT_FROM_EMAIL is not configured.")
-    payload = {
-        "sender": {"name": os.getenv("BREVO_EMAIL_SENDER_NAME", "Collune"), "email": sender_email},
-        "to": [{"email": target}],
-        "subject": "Your Collune verification code",
-        "htmlContent": f"<p>Your Collune verification code is <strong>{code}</strong>.</p><p>This code expires in {OTP_EXPIRY_MINUTES} minutes.</p>",
-        "textContent": f"Your Collune verification code is {code}. This code expires in {OTP_EXPIRY_MINUTES} minutes.",
-    }
-    response = requests.post(f"{BREVO_API_BASE}/smtp/email", json=payload, headers=brevo_headers(), timeout=15)
-    response.raise_for_status()
+    
+    send_mail(
+                subject="Your Collune verification code",
+                message=f"Your Collune verification code is {code}. This code expires in {OTP_EXPIRY_MINUTES} minutes.",
+                from_email=sender_email,
+                recipient_list=[target],
+                fail_silently=False,
+            )
+    
 
 
 def send_brevo_sms_otp(target, code):

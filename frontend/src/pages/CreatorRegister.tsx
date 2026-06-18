@@ -33,9 +33,6 @@ const initialSocialAccounts: SocialAccountForm[] = [
   { platform: "YOUTUBE", title: "YouTube", handle: "" },
   { platform: "LINKEDIN", title: "LinkedIn", handle: "" },
   { platform: "X", title: "X (Twitter)", handle: "" },
-  { platform: "FACEBOOK", title: "Facebook", handle: "" },
-  { platform: "TIKTOK", title: "TikTok", handle: "" },
-  { platform: "SNAPCHAT", title: "Snapchat", handle: "" },
 ];
 
 const initialVerification: VerificationState = {
@@ -112,7 +109,7 @@ const CreatorRegister = () => {
     setVerificationStatus({ isCheckingEmail: true, error: "", message: "" });
     try {
       const email = form.email.trim();
-      // await verifyOtp("EMAIL", email, form.emailOtp);
+      await verifyOtp("EMAIL", email, form.emailOtp);
       setVerificationStatus({
         emailVerified: true,
         message: "Email verified.",
@@ -128,7 +125,7 @@ const CreatorRegister = () => {
     setVerificationStatus({ isVerifyingPhone: true, error: "", message: "" });
     try {
       const phoneNumber = normalizePhoneNumber(form.phone_no);
-      // await verifyOtp("PHONE", phoneNumber, phoneOtp);
+      await verifyOtp("PHONE", phoneNumber, phoneOtp);
       setVerificationStatus({ phoneVerified: true, message: "Phone number verified." });
     } catch (error) {
       setVerificationStatus({ error: error instanceof Error ? error.message : "Invalid phone OTP." });
