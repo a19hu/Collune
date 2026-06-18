@@ -446,7 +446,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
         if self.request.user.role == UserRole.BRAND:
             return queryset.filter(brand__user=self.request.user)
         if self.request.user.role == UserRole.CREATOR:
-            return queryset.filter(status=CampaignStatus.ACTIVE, brand__verification_status=VerificationStatus.VERIFIED)
+            return queryset.filter(status=CampaignStatus.ACTIVE)
         return queryset.all()
 
     def perform_create(self, serializer):
@@ -475,18 +475,26 @@ class CampaignViewSet(viewsets.ModelViewSet):
 
 class CampaignStatusSummaryViewSet(viewsets.ModelViewSet):
     serializer_class = CampaignStatusSummarySerializer
-    permission_classes = [IsAuthenticated, IsBrand]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return CampaignStatusSummary.objects.select_related("campaign", "campaign__brand").filter(
-            campaign__brand__user=self.request.user
-        )
+        queryset = CampaignStatusSummary.objects.select_related("campaign", "campaign__brand", "campaign__brand__user")
+        if self.request.user.role == UserRole.BRAND:
+            return queryset.filter(campaign__brand__user=self.request.user)
+        if self.request.user.role == UserRole.CREATOR:
+            return queryset.filter(campaign__status=CampaignStatus.ACTIVE)
+        return queryset
 
     def perform_create(self, serializer):
         campaign = serializer.validated_data["campaign"]
         if campaign.brand.user != self.request.user:
             raise PermissionDenied("You can only update status summaries for your own campaigns.")
         serializer.save()
+
+    def get_permissions(self):
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            return [IsAuthenticated(), IsBrand()]
+        return super().get_permissions()
 
 
 class CampaignProgressViewSet(viewsets.ModelViewSet):

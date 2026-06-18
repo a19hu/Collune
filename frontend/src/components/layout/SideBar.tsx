@@ -1,6 +1,9 @@
-import { Building2, CircleHelp, FileText, Home, Settings, ShoppingBag, Star, UserRound, Users } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Building2, ChevronDown, CircleHelp, FileText, Home, LogOut, Settings, ShoppingBag, Star, UserRound, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import logo from "../../assets/Logo.svg";
+import { useAuth } from "../../contexts/AuthContext";
+import { getBrandMe, type BrandProfileApi } from "../../lib/authApi";
 
 export type SidebarMode = "creator" | "brand";
 
@@ -22,12 +25,85 @@ const navByMode = {
 
 export function SideBar({ isVerified = false, mode = "creator" }: { isVerified?: boolean; mode?: SidebarMode }) {
   const navItems = navByMode[mode];
+  const { currentUser, logout } = useAuth();
+  const [brandProfile, setBrandProfile] = useState<BrandProfileApi | null>(null);
+  const [isBrandMenuOpen, setIsBrandMenuOpen] = useState(false);
+  const brandMenuRef = useRef<HTMLDivElement | null>(null);
+  const isBrand = mode === "brand";
+  const brandName = brandProfile?.company_name || currentUser?.name || "Acme Labs";
+  const brandInitials = useMemo(() => {
+    const words = brandName.trim().split(/\s+/).filter(Boolean);
+    return (words.length > 1 ? `${words[0][0]}${words[1][0]}` : words[0]?.slice(0, 2) || "AL").toUpperCase();
+  }, [brandName]);
+
+  useEffect(() => {
+    if (!isBrand) return;
+    let mounted = true;
+    getBrandMe()
+      .then((brand) => {
+        if (mounted) setBrandProfile(brand);
+      })
+      .catch(() => undefined);
+    return () => {
+      mounted = false;
+    };
+  }, [isBrand]);
+
+  useEffect(() => {
+    if (!isBrandMenuOpen) return;
+
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!brandMenuRef.current?.contains(event.target as Node)) {
+        setIsBrandMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, [isBrandMenuOpen]);
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-[270px] flex-col border-r border-[#eef1f6] bg-[#f5f7ff] lg:flex">
-      <div className="px-16 pb-10 pt-6">
+      <div className="px-16 pb-6 pt-6">
         <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
       </div>
+
+      {isBrand ? (
+        <div ref={brandMenuRef} className="relative px-4 pb-5">
+          <button
+            type="button"
+            onClick={() => setIsBrandMenuOpen((open) => !open)}
+            className="flex h-[58px] w-full items-center gap-3 rounded-lg border border-[#e1e6ef] bg-white px-3 text-left shadow-sm"
+          >
+            {brandProfile?.logo_url ? (
+              <img src={brandProfile.logo_url} alt={brandName} className="h-9 w-9 rounded-md object-cover" />
+            ) : (
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#4b22ff] text-sm font-black text-white">
+                {brandInitials}
+              </span>
+            )}
+            <span className="min-w-0 flex-1 truncate text-sm font-black text-black">{brandName}</span>
+            <ChevronDown className={`h-5 w-5 text-[#657084] transition ${isBrandMenuOpen ? "rotate-180" : ""}`} />
+          </button>
+
+          {isBrandMenuOpen ? (
+            <div className="absolute left-4 right-4 top-[68px] z-40 rounded-lg border border-[#e1e6ef] bg-white p-2 shadow-[0_12px_30px_rgba(20,30,60,0.14)]">
+              <div className="border-b border-[#eef1f6] px-3 py-3">
+                <p className="truncate text-sm font-black text-[#1d203a]">{brandName}</p>
+                <p className="mt-1 truncate text-xs font-medium text-[#657084]">{currentUser?.email || "Brand account"}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void logout()}
+                className="mt-2 flex h-10 w-full items-center gap-3 rounded-md px-3 text-sm font-black text-[#d23b3b] hover:bg-[#fff1f1]"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <nav className="grid gap-2 px-4">
         {navItems.map((item) => {

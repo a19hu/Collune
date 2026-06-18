@@ -1,0 +1,85 @@
+import { useEffect, useMemo, useState } from "react";
+
+import { useAuth } from "../../../contexts/AuthContext";
+import { getCampaign, getCampaigns, getCampaignStatusSummaries, type CampaignStatusSummaryApi } from "../../../lib/authApi";
+import { CampaignMarketplaceDetail } from "./CampaignMarketplaceDetail";
+import { CampaignMarketplaceList } from "./CampaignMarketplaceList";
+import { MarketplaceHeader } from "./MarketplaceUi";
+import { applyStatusSummaries, mapCampaignToMarketplace, type MarketplaceCampaign } from "./marketplaceData";
+
+type View = "list" | "detail";
+
+export function CreatorCampaignMarketplace() {
+  const { currentUser } = useAuth();
+  const [view, setView] = useState<View>("list");
+  const [campaigns, setCampaigns] = useState<MarketplaceCampaign[]>([]);
+  const [selectedId, setSelectedId] = useState("");
+  const [appliedIds, setAppliedIds] = useState<string[]>([]);
+  const [statusSummaries, setStatusSummaries] = useState<CampaignStatusSummaryApi[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let mounted = true;
+    setIsLoading(true);
+    setError("");
+    Promise.all([getCampaigns(), getCampaignStatusSummaries().catch(() => [])])
+      .then(([items, summaries]) => {
+        if (!mounted) return;
+        setStatusSummaries(summaries);
+        const mapped = applyStatusSummaries(items, summaries).map(mapCampaignToMarketplace);
+        setCampaigns(mapped);
+        if (mapped[0]) setSelectedId(mapped[0].id);
+      })
+      .catch((err) => {
+        if (!mounted) return;
+        setCampaigns([]);
+        setError(err instanceof Error ? err.message : "Unable to load campaigns.");
+      })
+      .finally(() => {
+        if (mounted) setIsLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const selectedCampaign = useMemo(
+    () => campaigns.find((campaign) => campaign.id === selectedId) || campaigns[0],
+    [campaigns, selectedId],
+  );
+
+  const openCampaign = async (campaign: MarketplaceCampaign) => {
+    setSelectedId(campaign.id);
+    setView("detail");
+    try {
+      const detail = await getCampaign(campaign.id);
+      const [withSummary] = applyStatusSummaries([detail], statusSummaries);
+      const mapped = mapCampaignToMarketplace(withSummary);
+      setCampaigns((items) => items.map((item) => item.id === mapped.id ? mapped : item));
+    } catch {
+      // Keep the list payload if the detail request is unavailable.
+    }
+  };
+
+  const applyToCampaign = () => {
+    setAppliedIds((ids) => ids.includes(selectedCampaign.id) ? ids : [...ids, selectedCampaign.id]);
+  };
+
+  return (
+    <div className="min-h-screen bg-white">
+      <MarketplaceHeader title="Campaign Marketplace" userName={currentUser?.name || "Aakrit Gupta"} />
+
+      {view === "detail" && selectedCampaign ? (
+        <CampaignMarketplaceDetail
+          campaign={selectedCampaign}
+          hasApplied={appliedIds.includes(selectedCampaign.id)}
+          onApply={applyToCampaign}
+        />
+      ) : (
+        <CampaignMarketplaceList campaigns={campaigns} isLoading={isLoading} error={error} onOpen={openCampaign} />
+      )}
+    </div>
+  );
+}

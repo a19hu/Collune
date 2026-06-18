@@ -11,12 +11,14 @@ import BrandRegister from './pages/BrandRegister.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import { SideBarLayout } from './components/layout/SideBarLayout.tsx';
 import CreatorDashBoard from './components/Creator/CreatorDashBoard.tsx';
+import { CreatorCampaignMarketplace } from './components/Creator/CampaignMarketplace/CreatorCampaignMarketplace.tsx';
 import BrandDashBoard from './components/Brand/BrandDashBoard.tsx';
 import { BrandSettings } from './components/Brand/BrandSettings.tsx';
 import { BrandCampaigns } from './components/Brand/BrandCampaigns.tsx';
 import { BrandShortlists } from './components/Brand/BrandShortlists.tsx';
 import LoadingPage from './components/layout/LoadingPage.tsx';
 import type { UserAccount } from './types.ts';
+import { CreatorSetting } from './components/Creator/CreatorSetting.tsx';
 
 function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
     const { currentUser, isAuthLoading } = useAuth();
@@ -52,8 +54,8 @@ const App: React.FC = () => {
                             <Route index element={<CreatorDashBoard />} />
                             <Route path="verified" element={<CreatorDashBoard />} />
                             <Route path="profile" element={<CreatorDashBoard />} />
-                            <Route path="marketplace" element={<CreatorDashBoard />} />
-                            <Route path="settings" element={<CreatorDashBoard />} />
+                            <Route path="marketplace" element={<CreatorCampaignMarketplace />} />
+                            <Route path="settings" element={<CreatorSetting />} />
                         </Route>
                     </Route>
                     <Route element={<RequireAuth allowedRole="Brand" />}>
@@ -61,7 +63,7 @@ const App: React.FC = () => {
                             <Route index element={<BrandDashBoard />} />
                             <Route path="verified" element={<BrandDashBoard />} />
                             <Route path="shortlists" element={<BrandShortlists />} />
-                            <Route path="creators" element={<BrandDashBoard />} />
+                            <Route path="creators" element={<ColluneInfoPage page="discover-creators" />} />
                             <Route path="campaigns" element={<BrandCampaigns />} />
                             <Route path="settings" element={<BrandSettings />} />
                         </Route>

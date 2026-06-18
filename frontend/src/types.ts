@@ -35,6 +35,7 @@ export type BrandRegisterForm = {
   website: string;
   company_size: string;
   linkedin_url: string;
+  logo: File | null;
 };
 
 export type SocialAccountForm = {

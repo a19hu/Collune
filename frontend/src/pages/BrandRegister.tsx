@@ -22,7 +22,7 @@ import { BrandSelect } from "../HtmlComponents/HtmlSelect";
 import { AuthSwitchLink, RegisterError, RegisterStepHeader, RegisterSubmitButtons } from "../HtmlComponents/RegisterFormParts";
 import Register from "../components/layout/Register";
 import { useAuth } from "../contexts/AuthContext";
-import { checkEmailAvailability, registerBrand } from "../lib/authApi";
+import { checkEmailAvailability, registerBrandFormData } from "../lib/authApi";
 import { normalizePhoneNumber } from "../lib/function";
 import type { BrandRegisterForm } from "../types";
 
@@ -44,6 +44,7 @@ const initialBrandForm: BrandRegisterForm = {
   website: "",
   company_size: "",
   linkedin_url: "",
+  logo: null,
 };
 
 const industryOptions = ["Technology", "Consumer Brand", "Finance", "Education"];
@@ -77,6 +78,7 @@ type BrandStepsProps = {
   showPassword: boolean;
   onFieldChange: (field: keyof BrandRegisterForm) => (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   onTermsChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onLogoChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onTogglePassword: () => void;
 };
 
@@ -86,6 +88,7 @@ function BrandRegisterSteps({
   showPassword,
   onFieldChange,
   onTermsChange,
+  onLogoChange,
   onTogglePassword,
 }: BrandStepsProps) {
   if (step === 1) {
@@ -164,10 +167,17 @@ function BrandRegisterSteps({
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="LinkedIn Company Page (Optional)" icon={<Linkedin className="h-5 w-5" />} value={form.linkedin_url} onChange={onFieldChange("linkedin_url")} placeholder="https://linkedin.com/company/acme-labs" type="url" />
           <label className="block">
             <span className={labelClass}>Company Logo <span className="text-[#95a3ba]">(Optional)</span></span>
-            <span className="grid h-[148px] place-items-center rounded-lg border-2 border-dashed border-[#d9e2f2] text-center">
+            <span className="relative grid h-[148px] place-items-center rounded-lg border-2 border-dashed border-[#d9e2f2] text-center transition hover:border-[#5068f2]">
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/svg+xml"
+                onChange={onLogoChange}
+                className="absolute inset-0 cursor-pointer opacity-0"
+                aria-label="Upload company logo"
+              />
               <span>
                 <UploadCloud className="mx-auto h-10 w-10 text-[#95a3ba]" />
-                <strong className="mt-3 block text-sm font-black text-[#202337]">Upload your logo</strong>
+                <strong className="mt-3 block text-sm font-black text-[#202337]">{form.logo ? form.logo.name : "Upload your logo"}</strong>
                 <span className="mt-2 block text-xs font-medium text-[#95a3ba]">PNG, JPG or SVG - Max size 2MB</span>
               </span>
             </span>
@@ -249,7 +259,7 @@ const BrandRegister = () => {
 
     setIsSubmitting(true);
     try {
-      const response = await registerBrand({
+      const payload = {
         user: {
           name: form.name.trim(),
           email: form.email.trim(),
@@ -261,7 +271,8 @@ const BrandRegister = () => {
         website: form.website.trim(),
         company_size: form.company_size,
         linkedin_url: form.linkedin_url.trim(),
-      });
+      };
+      const response = await registerBrandFormData(payload, form.logo);
 
       localStorage.setItem("saaserp_access_token", response.access);
       localStorage.setItem("saaserp_refresh_token", response.refresh);
@@ -306,6 +317,16 @@ const BrandRegister = () => {
           showPassword={showPassword}
           onFieldChange={onFieldChange}
           onTermsChange={(event) => setForm((current) => ({ ...current, acceptedTerms: event.target.checked }))}
+          onLogoChange={(event) => {
+            const file = event.target.files?.[0] || null;
+            if (file && file.size > 2 * 1024 * 1024) {
+              setSubmitError("Company logo must be 2MB or smaller.");
+              event.target.value = "";
+              return;
+            }
+            setSubmitError("");
+            setForm((current) => ({ ...current, logo: file }));
+          }}
           onTogglePassword={() => setShowPassword((current) => !current)}
         />
 

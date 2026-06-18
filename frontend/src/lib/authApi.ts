@@ -44,10 +44,12 @@ export type CampaignPayload = {
 export type CampaignApi = CampaignPayload & {
   campaign_id: string;
   brand: string;
+  brand_detail?: BrandProfileApi;
   brand_guidelines_url: string;
   applications_count: number;
   status_summary?: {
     summary_id: string;
+    campaign?: string;
     applications_received: number;
     recommended_creators: number;
     collaborations_started: number;
@@ -64,6 +66,16 @@ export type CampaignApi = CampaignPayload & {
     created_at: string;
     updated_at: string;
   }>;
+  created_at: string;
+  updated_at: string;
+};
+export type CampaignStatusSummaryApi = {
+  summary_id: string;
+  campaign: string;
+  applications_received: number;
+  recommended_creators: number;
+  collaborations_started: number;
+  applications_close_in_days: number;
   created_at: string;
   updated_at: string;
 };
@@ -154,17 +166,19 @@ export type BrandRegisterPayload = {
 };
 
 export type BrandRegisterResponse = LoginResponse & {
-  brand: {
-    brand_id: string;
-    company_name: string;
-    industry: string;
-    website: string;
-    company_size: string;
-    linkedin_url: string;
-    logo_url: string;
-    verification_status: string;
-    profile_completion: number;
-  };
+  brand: BrandProfileApi;
+};
+
+export type BrandProfileApi = {
+  brand_id: string;
+  company_name: string;
+  industry: string;
+  website: string;
+  company_size: string;
+  linkedin_url: string;
+  logo_url: string;
+  verification_status: string;
+  profile_completion: number;
 };
 
 export type OtpChannel = "EMAIL" | "PHONE";
@@ -212,10 +226,11 @@ function formatApiError(data: unknown): string {
 
 async function apiRequest<T>(path: string, init: RequestInit = {}, authed = false): Promise<T> {
   const authHeader = authed ? getAuthHeader() : "";
+  const isFormData = init.body instanceof FormData;
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...API_EXTRA_HEADERS,
       ...(init.headers || {}),
       ...(authHeader ? { Authorization: authHeader } : {}),
@@ -253,6 +268,17 @@ function apiPost<T>(path: string, body: unknown, authed = false) {
   );
 }
 
+function apiPostForm<T>(path: string, body: FormData, authed = false) {
+  return apiRequest<T>(
+    path,
+    {
+      method: "POST",
+      body,
+    },
+    authed,
+  );
+}
+
 export async function loginWithEmail(email: string, password: string) {
   return apiPost<LoginResponse>("/auth/login/", {
     username: email,
@@ -281,6 +307,18 @@ export async function registerBrand(payload: BrandRegisterPayload) {
   return apiPost<BrandRegisterResponse>("/auth/brands/register/", payload);
 }
 
+export async function registerBrandFormData(payload: BrandRegisterPayload, logo?: File | null) {
+  const body = new FormData();
+  body.append("payload", JSON.stringify(payload));
+  if (logo) body.append("logo", logo);
+  return apiPostForm<BrandRegisterResponse>("/auth/brands/register/", body);
+}
+
+export async function getBrandMe() {
+  const data = await apiRequest<{ brand: BrandProfileApi }>("/brands/me/", {}, true);
+  return data.brand;
+}
+
 export async function sendOtp(channel: OtpChannel, target: string) {
   return apiPost<OtpResponse>("/auth/otp/send/", { channel, target });
 }
@@ -300,4 +338,13 @@ export async function getCampaigns() {
 
 export function getCampaign(campaignId: string) {
   return apiRequest<CampaignApi>(`/campaigns/${campaignId}/`, {}, true);
+}
+
+export async function getCampaignStatusSummaries() {
+  const data = await apiRequest<CampaignStatusSummaryApi[] | PaginatedResponse<CampaignStatusSummaryApi>>(
+    "/campaign-status-summaries/",
+    {},
+    true,
+  );
+  return Array.isArray(data) ? data : data.results;
 }
