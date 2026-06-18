@@ -147,17 +147,21 @@ def brevo_headers():
 
 
 def send_brevo_email_otp(target, code):
-    sender_email = os.getenv("BREVO_EMAIL_SENDER") or os.getenv("DEFAULT_FROM_EMAIL")
+
+    sender_email = os.getenv("DEFAULT_FROM_EMAIL")
     if not sender_email:
-        raise RuntimeError("BREVO_EMAIL_SENDER or DEFAULT_FROM_EMAIL is not configured.")
-    
-    send_mail(
-                subject="Your Collune verification code",
-                message=f"Your Collune verification code is {code}. This code expires in {OTP_EXPIRY_MINUTES} minutes.",
-                from_email=sender_email,
-                recipient_list=[target],
-                fail_silently=False,
-            )
+        raise RuntimeError("DEFAULT_FROM_EMAIL is not configured.")
+    try:
+        send_mail(
+                    subject="Your Collune verification code",
+                    message=f"Your Collune verification code is {code}. This code expires in {OTP_EXPIRY_MINUTES} minutes.",
+                    from_email=sender_email,
+                    recipient_list=[target],
+                    fail_silently=False,
+                )
+    except RuntimeError as error:
+        print("sending error",error)
+
     
 
 
@@ -176,6 +180,7 @@ def send_brevo_sms_otp(target, code):
 
 def send_otp_message(otp):
     if otp.channel == OtpChannel.EMAIL:
+
         send_brevo_email_otp(otp.target, otp.code)
         return
     send_brevo_sms_otp(otp.target, otp.code)
