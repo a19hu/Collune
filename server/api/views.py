@@ -12,6 +12,7 @@ import requests
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -24,6 +25,8 @@ from .models import (
     BrandShortlist,
     Campaign,
     CampaignApplication,
+    CampaignProgress,
+    CampaignStatusSummary,
     CampaignStatus,
     CreatorProfile,
     CreatorSocialAccount,
@@ -39,7 +42,9 @@ from .serializers import (
     BrandRegisterSerializer,
     BrandShortlistSerializer,
     CampaignApplicationSerializer,
+    CampaignProgressSerializer,
     CampaignSerializer,
+    CampaignStatusSummarySerializer,
     CreatorProfileSerializer,
     CreatorRegisterSerializer,
     CreatorSocialAccountSerializer,
@@ -437,7 +442,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_queryset(self):
-        queryset = Campaign.objects.select_related("brand", "brand__user")
+        queryset = Campaign.objects.select_related("brand", "brand__user", "status_summary").prefetch_related("progress_steps")
         if self.request.user.role == UserRole.BRAND:
             return queryset.filter(brand__user=self.request.user)
         if self.request.user.role == UserRole.CREATOR:
@@ -466,6 +471,38 @@ class CampaignViewSet(viewsets.ModelViewSet):
         )
         serializer = CampaignApplicationSerializer(application, context={"request": request})
         return Response({"application": serializer.data}, status=status.HTTP_201_CREATED)
+
+
+class CampaignStatusSummaryViewSet(viewsets.ModelViewSet):
+    serializer_class = CampaignStatusSummarySerializer
+    permission_classes = [IsAuthenticated, IsBrand]
+
+    def get_queryset(self):
+        return CampaignStatusSummary.objects.select_related("campaign", "campaign__brand").filter(
+            campaign__brand__user=self.request.user
+        )
+
+    def perform_create(self, serializer):
+        campaign = serializer.validated_data["campaign"]
+        if campaign.brand.user != self.request.user:
+            raise PermissionDenied("You can only update status summaries for your own campaigns.")
+        serializer.save()
+
+
+class CampaignProgressViewSet(viewsets.ModelViewSet):
+    serializer_class = CampaignProgressSerializer
+    permission_classes = [IsAuthenticated, IsBrand]
+
+    def get_queryset(self):
+        return CampaignProgress.objects.select_related("campaign", "campaign__brand").filter(
+            campaign__brand__user=self.request.user
+        )
+
+    def perform_create(self, serializer):
+        campaign = serializer.validated_data["campaign"]
+        if campaign.brand.user != self.request.user:
+            raise PermissionDenied("You can only update progress for your own campaigns.")
+        serializer.save()
 
 
 class CampaignApplicationViewSet(viewsets.ModelViewSet):

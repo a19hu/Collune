@@ -1,17 +1,16 @@
 import {
   BadgeDollarSign,
   Boxes,
-  CircuitBoard,
   Heart,
   Megaphone,
   Plane,
-  ShoppingBag,
   Sparkles,
-  Utensils,
   type LucideIcon,
 } from "lucide-react";
 
-export type CampaignStatus = "Active" | "Draft" | "Paused";
+import type { CampaignApi } from "../../../lib/authApi";
+
+export type CampaignStatus = "Active" | "Draft" | "Paused" | "Reviewing" | "Completed";
 
 export type CampaignCardItem = {
   id: string;
@@ -30,152 +29,83 @@ export type CampaignCardItem = {
   iconClassName: string;
 };
 
-export const campaigns: CampaignCardItem[] = [
-  {
-    id: "financial-literacy",
-    title: "Financial Literacy Campaign",
-    status: "Active",
-    applications: 23,
-    recommended: 12,
-    updatedAt: "Updated today",
-    updatedRank: 1,
-    budget: "$25K - $50K",
-    objective: "Help young audiences understand saving, credit, and investment basics through practical creator-led explainers.",
-    timeline: "Jun 20, 2025 - Jul 20, 2025",
-    platforms: ["Instagram", "YouTube"],
-    category: "Finance",
-    icon: Boxes,
-    iconClassName: "bg-[#dbeafe] text-[#2563eb]",
-  },
-  {
-    id: "summer-product",
-    title: "Summer Product Launch",
-    status: "Active",
-    applications: 15,
-    recommended: 8,
-    updatedAt: "Updated 2 days ago",
-    updatedRank: 2,
-    budget: "$10K - $30K",
-    objective: "Introduce the new summer product range with bright launch content and creator demos.",
-    timeline: "Jun 10, 2025 - Jul 05, 2025",
-    platforms: ["Instagram", "LinkedIn"],
-    category: "Lifestyle",
-    icon: Boxes,
-    iconClassName: "bg-[#d1fadf] text-[#08a85f]",
-  },
-  {
-    id: "fintech-awareness",
-    title: "Fintech Awareness Drive",
-    status: "Active",
-    applications: 31,
-    recommended: 14,
-    updatedAt: "Updated 3 days ago",
-    updatedRank: 3,
-    budget: "$30K - $60K",
-    objective: "Drive awareness for a fintech app using short, clear creator content for first-time users.",
-    timeline: "Jun 15, 2025 - Aug 01, 2025",
-    platforms: ["Instagram", "YouTube", "LinkedIn"],
-    category: "Fintech",
-    icon: Megaphone,
-    iconClassName: "bg-[#f1d9ff] text-[#7c3cff]",
-  },
-  {
-    id: "health-wellness",
-    title: "Health & Wellness Campaign",
-    status: "Active",
-    applications: 18,
-    recommended: 9,
-    updatedAt: "Updated 5 days ago",
-    updatedRank: 5,
-    budget: "$15K - $35K",
-    objective: "Promote approachable wellness habits and daily product routines with trusted lifestyle creators.",
-    timeline: "Jul 01, 2025 - Jul 30, 2025",
-    platforms: ["Instagram", "YouTube"],
-    category: "Health",
-    icon: Heart,
-    iconClassName: "bg-[#ffe1f1] text-[#df2f75]",
-  },
-  {
-    id: "travel-collune",
-    title: "Travel With Collune",
-    status: "Active",
-    applications: 12,
-    recommended: 6,
-    updatedAt: "Updated 1 week ago",
-    updatedRank: 7,
-    budget: "$8K - $20K",
-    objective: "Tell compact travel stories that position Collune as a partner for destination-led campaigns.",
-    timeline: "Aug 05, 2025 - Sep 05, 2025",
-    platforms: ["Instagram"],
-    category: "Travel",
-    icon: Plane,
-    iconClassName: "bg-[#fff5b8] text-[#d58c00]",
-  },
-  {
-    id: "beauty-drop",
-    title: "Beauty Drop Campaign",
-    status: "Draft",
-    applications: 6,
-    recommended: 11,
-    updatedAt: "Updated 2 weeks ago",
-    updatedRank: 14,
-    budget: "$12K - $28K",
-    objective: "Build excitement for a new skincare drop with honest routine videos and before-after stories.",
-    timeline: "Sep 01, 2025 - Sep 28, 2025",
-    platforms: ["Instagram", "YouTube"],
-    category: "Beauty",
-    icon: Sparkles,
-    iconClassName: "bg-[#fff0f7] text-[#d72f86]",
-  },
-  {
-    id: "food-festival",
-    title: "Food Festival Push",
-    status: "Active",
-    applications: 27,
-    recommended: 18,
-    updatedAt: "Updated 4 days ago",
-    updatedRank: 4,
-    budget: "$18K - $42K",
-    objective: "Bring regional food creators into a short campaign around festival offers and family dining.",
-    timeline: "Oct 01, 2025 - Oct 20, 2025",
-    platforms: ["Instagram"],
-    category: "Food",
-    icon: Utensils,
-    iconClassName: "bg-[#fff0dd] text-[#ef8a00]",
-  },
-  {
-    id: "saas-growth",
-    title: "SaaS Growth Stories",
-    status: "Paused",
-    applications: 9,
-    recommended: 7,
-    updatedAt: "Updated 10 days ago",
-    updatedRank: 10,
-    budget: "$20K - $45K",
-    objective: "Collect B2B creator stories explaining practical productivity wins for small teams.",
-    timeline: "Nov 01, 2025 - Dec 01, 2025",
-    platforms: ["LinkedIn", "YouTube"],
-    category: "Technology",
-    icon: CircuitBoard,
-    iconClassName: "bg-[#e9f2ff] text-[#2463d8]",
-  },
-  {
-    id: "holiday-sale",
-    title: "Holiday Sale Blast",
-    status: "Draft",
-    applications: 4,
-    recommended: 10,
-    updatedAt: "Updated 3 weeks ago",
-    updatedRank: 21,
-    budget: "$35K - $70K",
-    objective: "Prepare a high-visibility creator campaign for holiday gifting and limited-time bundles.",
-    timeline: "Dec 01, 2025 - Dec 24, 2025",
-    platforms: ["Instagram", "YouTube"],
-    category: "Retail",
-    icon: ShoppingBag,
-    iconClassName: "bg-[#e9e4ff] text-[#5138ee]",
-  },
+const statusLabels: Record<CampaignApi["status"], CampaignStatus> = {
+  ACTIVE: "Active",
+  DRAFT: "Draft",
+  PAUSED: "Paused",
+  REVIEWING: "Reviewing",
+  COMPLETED: "Completed",
+};
+
+const categoryIcons: Array<{ match: string[]; icon: LucideIcon; className: string }> = [
+  { match: ["finance", "financial", "fintech"], icon: Boxes, className: "bg-[#dbeafe] text-[#2563eb]" },
+  { match: ["health", "wellness"], icon: Heart, className: "bg-[#ffe1f1] text-[#df2f75]" },
+  { match: ["travel"], icon: Plane, className: "bg-[#fff5b8] text-[#d58c00]" },
+  { match: ["beauty", "fashion", "lifestyle"], icon: Sparkles, className: "bg-[#fff0f7] text-[#d72f86]" },
+  { match: ["launch", "awareness", "product"], icon: Megaphone, className: "bg-[#f1d9ff] text-[#7c3cff]" },
 ];
+
+function formatDate(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(date);
+}
+
+function formatUpdatedAt(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Updated recently";
+
+  const now = Date.now();
+  const days = Math.max(0, Math.floor((now - date.getTime()) / 86400000));
+  if (days === 0) return "Updated today";
+  if (days === 1) return "Updated yesterday";
+  if (days < 7) return `Updated ${days} days ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks === 1) return "Updated 1 week ago";
+  return `Updated ${weeks} weeks ago`;
+}
+
+function getUpdatedRank(value: string) {
+  const time = new Date(value).getTime();
+  return Number.isNaN(time) ? Number.MAX_SAFE_INTEGER : -time;
+}
+
+function getCampaignIcon(campaign: CampaignApi) {
+  const searchable = `${campaign.category} ${campaign.title}`.toLowerCase();
+  return categoryIcons.find((item) => item.match.some((keyword) => searchable.includes(keyword))) || {
+    icon: Boxes,
+    className: "bg-[#d1fadf] text-[#08a85f]",
+  };
+}
+
+function getTimeline(campaign: CampaignApi) {
+  const start = formatDate(campaign.start_date);
+  const end = formatDate(campaign.end_date || campaign.deadline);
+  if (start && end) return `${start} - ${end}`;
+  return start || end || "Timeline not set";
+}
+
+export function mapCampaignApiToCard(campaign: CampaignApi): CampaignCardItem {
+  const icon = getCampaignIcon(campaign);
+
+  return {
+    id: campaign.campaign_id,
+    title: campaign.title,
+    status: statusLabels[campaign.status] || "Draft",
+    applications: campaign.status_summary?.applications_received ?? campaign.applications_count ?? 0,
+    recommended: campaign.status_summary?.recommended_creators ?? 0,
+    updatedAt: formatUpdatedAt(campaign.updated_at),
+    updatedRank: getUpdatedRank(campaign.updated_at),
+    budget: campaign.budget_range || (Number(campaign.total_budget) ? `$${Number(campaign.total_budget).toLocaleString()}` : "Budget not set"),
+    objective: campaign.objective || campaign.brief || "Campaign objective not set.",
+    timeline: getTimeline(campaign),
+    platforms: campaign.platforms || [],
+    category: campaign.category || "General",
+    icon: icon.icon,
+    iconClassName: icon.className,
+  };
+}
 
 export const platforms = [
   { label: "Instagram", value: "instagram", color: "text-[#ff4d86]" },

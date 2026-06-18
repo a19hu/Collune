@@ -191,6 +191,52 @@ class Campaign(models.Model):
         return self.title
 
 
+class CampaignStatusSummary(models.Model):
+    summary_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    campaign = models.OneToOneField(Campaign, on_delete=models.CASCADE, related_name="status_summary")
+    applications_received = models.PositiveIntegerField(default=0)
+    recommended_creators = models.PositiveIntegerField(default=0)
+    collaborations_started = models.PositiveIntegerField(default=0)
+    applications_close_in_days = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "campaign status summaries"
+
+    def __str__(self):
+        return f"{self.campaign.title} status summary"
+
+
+class CampaignProgressStatus(models.TextChoices):
+    COMPLETED = "COMPLETED", "Completed"
+    IN_PROGRESS = "IN_PROGRESS", "In progress"
+    UPCOMING = "UPCOMING", "Upcoming"
+
+
+class CampaignProgress(models.Model):
+    progress_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="progress_steps")
+    title = models.CharField(max_length=120)
+    status = models.CharField(
+        max_length=24,
+        choices=CampaignProgressStatus.choices,
+        default=CampaignProgressStatus.UPCOMING,
+    )
+    display_date = models.CharField(max_length=80, blank=True, default="")
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("sort_order", "created_at")
+        unique_together = ("campaign", "title")
+        verbose_name_plural = "campaign progress"
+
+    def __str__(self):
+        return f"{self.campaign.title} - {self.title}"
+
+
 class CampaignApplication(models.Model):
     application_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="applications")

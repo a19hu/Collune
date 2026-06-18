@@ -7,7 +7,10 @@ from .models import (
     BrandShortlist,
     Campaign,
     CampaignApplication,
+    CampaignProgress,
+    CampaignProgressStatus,
     CampaignStatus,
+    CampaignStatusSummary,
     CreatorProfile,
     CreatorSocialAccount,
     OtpChannel,
@@ -214,10 +217,49 @@ class CreatorProfileSerializer(serializers.ModelSerializer):
         return request.build_absolute_uri(obj.profile_image.url) if request else obj.profile_image.url
 
 
+class CampaignStatusSummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CampaignStatusSummary
+        fields = [
+            "summary_id",
+            "campaign",
+            "applications_received",
+            "recommended_creators",
+            "collaborations_started",
+            "applications_close_in_days",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["summary_id", "created_at", "updated_at"]
+
+
+class CampaignProgressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CampaignProgress
+        fields = [
+            "progress_id",
+            "campaign",
+            "title",
+            "status",
+            "display_date",
+            "sort_order",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["progress_id", "created_at", "updated_at"]
+
+    def validate_status(self, value):
+        if value not in CampaignProgressStatus.values:
+            raise serializers.ValidationError("Invalid campaign progress status.")
+        return value
+
+
 class CampaignSerializer(serializers.ModelSerializer):
     brand_detail = BrandProfileSerializer(source="brand", read_only=True)
     applications_count = serializers.IntegerField(source="applications.count", read_only=True)
     brand_guidelines_url = serializers.SerializerMethodField()
+    status_summary = CampaignStatusSummarySerializer(read_only=True)
+    progress_steps = CampaignProgressSerializer(many=True, read_only=True)
 
     class Meta:
         model = Campaign
@@ -253,6 +295,8 @@ class CampaignSerializer(serializers.ModelSerializer):
             "deadline",
             "cover_image",
             "status",
+            "status_summary",
+            "progress_steps",
             "applications_count",
             "created_at",
             "updated_at",

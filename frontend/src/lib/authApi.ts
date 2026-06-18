@@ -1,6 +1,6 @@
 import type { CreatorSocialPlatform } from "../types";
 
-const DEFAULT_API_BASE_URL = "https://cl-350157158342.asia-south1.run.app/api/v1";
+const DEFAULT_API_BASE_URL = "http://localhost:8000/api/v1";
 
 const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL ||
@@ -46,8 +46,32 @@ export type CampaignApi = CampaignPayload & {
   brand: string;
   brand_guidelines_url: string;
   applications_count: number;
+  status_summary?: {
+    summary_id: string;
+    applications_received: number;
+    recommended_creators: number;
+    collaborations_started: number;
+    applications_close_in_days: number;
+    created_at: string;
+    updated_at: string;
+  } | null;
+  progress_steps?: Array<{
+    progress_id: string;
+    title: string;
+    status: "COMPLETED" | "IN_PROGRESS" | "UPCOMING";
+    display_date: string;
+    sort_order: number;
+    created_at: string;
+    updated_at: string;
+  }>;
   created_at: string;
   updated_at: string;
+};
+type PaginatedResponse<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
 };
 export type LoginApiUser = {
   user_id: string;
@@ -269,8 +293,9 @@ export function createCampaign(payload: CampaignPayload) {
   return apiPost<CampaignApi>("/campaigns/", payload, true);
 }
 
-export function getCampaigns() {
-  return apiRequest<CampaignApi[]>("/campaigns/", {}, true);
+export async function getCampaigns() {
+  const data = await apiRequest<CampaignApi[] | PaginatedResponse<CampaignApi>>("/campaigns/", {}, true);
+  return Array.isArray(data) ? data : data.results;
 }
 
 export function getCampaign(campaignId: string) {

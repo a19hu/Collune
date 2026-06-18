@@ -1,4 +1,4 @@
-import { Building2, CircleHelp, FileText, Home, Settings, ShoppingBag, UserRound, Users } from "lucide-react";
+import { Building2, CircleHelp, FileText, Home, Settings, ShoppingBag, Star, UserRound, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import logo from "../../assets/Logo.svg";
 
@@ -14,8 +14,8 @@ const navByMode = {
   brand: [
     { label: "Dashboard", to: "/brand", icon: Home },
     { label: "Campaigns", to: "/brand/campaigns", icon: FileText, lockedWhenUnverified: true },
-    { label: "Discover Creators", to: "/discover-creators", icon: Users, lockedWhenUnverified: true },
-    { label: "Shortlists", to: "/brand/Shortlists", icon: Building2 },
+    { label: "Discover Creators", to: "/brand/creators", icon: Users, lockedWhenUnverified: true },
+    { label: "Shortlists", to: "/brand/shortlists", icon: Star },
     { label: "Settings", to: "/brand/settings", icon: Settings },
   ],
 };
@@ -38,9 +38,10 @@ export function SideBar({ isVerified = false, mode = "creator" }: { isVerified?:
             <NavLink
               key={item.label}
               to={item.to}
-              className={
+              end={item.to === "/brand"}
+              className={({ isActive }) =>
                 `flex h-[46px] items-center gap-3 rounded-lg px-4 text-[15px] font-semibold transition ${
-                   window.location.pathname == item.to
+                   isActive
                     ? "bg-[#dfe7ff] text-[#2d30ff]"
                     : "text-[#657084] hover:bg-white hover:text-[#2d30ff]"
                 }`

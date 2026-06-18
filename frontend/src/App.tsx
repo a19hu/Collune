@@ -14,6 +14,7 @@ import CreatorDashBoard from './components/Creator/CreatorDashBoard.tsx';
 import BrandDashBoard from './components/Brand/BrandDashBoard.tsx';
 import { BrandSettings } from './components/Brand/BrandSettings.tsx';
 import { BrandCampaigns } from './components/Brand/BrandCampaigns.tsx';
+import { BrandShortlists } from './components/Brand/BrandShortlists.tsx';
 import LoadingPage from './components/layout/LoadingPage.tsx';
 import type { UserAccount } from './types.ts';
 
@@ -59,7 +60,7 @@ const App: React.FC = () => {
                         <Route path="/brand/*" element={<SideBarLayout />}>
                             <Route index element={<BrandDashBoard />} />
                             <Route path="verified" element={<BrandDashBoard />} />
-                            <Route path="Shortlists" element={<BrandDashBoard />} />
+                            <Route path="shortlists" element={<BrandShortlists />} />
                             <Route path="creators" element={<BrandDashBoard />} />
                             <Route path="campaigns" element={<BrandCampaigns />} />
                             <Route path="settings" element={<BrandSettings />} />

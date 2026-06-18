@@ -6,6 +6,8 @@ from .models import (
     BrandShortlist,
     Campaign,
     CampaignApplication,
+    CampaignProgress,
+    CampaignStatusSummary,
     CreatorProfile,
     CreatorSocialAccount,
     User,
@@ -58,6 +60,20 @@ class CampaignApplicationAdmin(admin.ModelAdmin):
     list_display = ("campaign", "creator", "quoted_rate", "status", "created_at")
     search_fields = ("campaign__title", "creator__display_name")
     list_filter = ("status",)
+
+
+@admin.register(CampaignStatusSummary)
+class CampaignStatusSummaryAdmin(admin.ModelAdmin):
+    list_display = ("campaign", "applications_received", "recommended_creators", "collaborations_started", "updated_at")
+    search_fields = ("campaign__title", "campaign__brand__company_name")
+
+
+@admin.register(CampaignProgress)
+class CampaignProgressAdmin(admin.ModelAdmin):
+    list_display = ("campaign", "title", "status", "display_date", "sort_order")
+    search_fields = ("campaign__title", "title")
+    list_filter = ("status",)
+    ordering = ("campaign", "sort_order")
 
 
 @admin.register(BrandShortlist)

@@ -1,129 +1,423 @@
 import type { ReactNode } from "react";
-import { ArrowLeft, CalendarDays, CheckCircle, Clock3, Eye, Megaphone, Star, Users } from "lucide-react";
+import {
+  BarChart3,
+  BriefcaseBusiness,
+  CalendarDays,
+  Check,
+  CheckCircle2,
+  ClipboardCheck,
+  Clock3,
+  DollarSign,
+  Edit3,
+  Eye,
+  FileText,
+  GraduationCap,
+  Linkedin,
+  Megaphone,
+  MoreHorizontal,
+  PiggyBank,
+  Play,
+  Star,
+  Target,
+  TrendingUp,
+  Users,
+  WalletCards,
+  type LucideIcon,
+} from "lucide-react";
 
+import creatorOne from "../../../assets/collune/creator-1.png";
+import creatorTwo from "../../../assets/collune/creator-2.png";
+import creatorThree from "../../../assets/collune/creator-3.png";
 import { CampaignPanel } from "./CampaignUi";
 import type { CampaignCardItem } from "./campaignData";
 
-function DetailMetric({ label, value, icon }: { label: string; value: string | number; icon: ReactNode }) {
+type Accent = "violet" | "orange" | "green" | "blue" | "muted";
+
+const accentClasses: Record<Accent, { icon: string; chip: string; soft: string }> = {
+  violet: { icon: "bg-[#eee8ff] text-[#4b22ff]", chip: "bg-[#f0eaff] text-[#4b22ff]", soft: "bg-[#f7f4ff]" },
+  orange: { icon: "bg-[#fff3db] text-[#f29a00]", chip: "bg-[#fff5d8] text-[#a66c00]", soft: "bg-[#fffaf0]" },
+  green: { icon: "bg-[#e2f8ec] text-[#2fbe74]", chip: "bg-[#daf8e8] text-[#0b9150]", soft: "bg-[#f2fbf6]" },
+  blue: { icon: "bg-[#e5f0ff] text-[#2c74d6]", chip: "bg-[#dbeafe] text-[#1f5fbf]", soft: "bg-[#f5f9ff]" },
+  muted: { icon: "bg-[#f3f6fa] text-[#a7b3c4]", chip: "bg-[#f3f6fa] text-[#7f8da3]", soft: "bg-[#f8fafc]" },
+};
+
+const platformStyles: Record<string, string> = {
+  Instagram: "bg-[#ff4d86] text-white",
+  YouTube: "bg-[#ff0000] text-white",
+  LinkedIn: "bg-[#116bc1] text-white",
+};
+
+const creators = [
+  {
+    name: "Riya Sharma",
+    role: "Business Creator",
+    followers: "120K",
+    engagement: "4.8%",
+    image: creatorOne,
+    platform: "Instagram",
+  },
+  {
+    name: "Karan Jain",
+    role: "Finance Creator",
+    followers: "85K",
+    engagement: "5.2%",
+    image: creatorTwo,
+    platform: "LinkedIn",
+  },
+  {
+    name: "Neha Verma",
+    role: "Education Creator",
+    followers: "78K",
+    engagement: "4.3%",
+    image: creatorThree,
+    platform: "YouTube",
+  },
+];
+
+const categories = [
+  ["Business", BriefcaseBusiness, "violet"],
+  ["Finance", PiggyBank, "orange"],
+  ["Education", GraduationCap, "blue"],
+  ["Investing", TrendingUp, "violet"],
+  ["Fintech", WalletCards, "blue"],
+  ["Personal Finance", DollarSign, "green"],
+  ["LinkedIn Creators", Linkedin, "blue"],
+] as const;
+
+const progressSteps = [
+  ["Campaign Published", "Jun 12, 2025", Check, "green"],
+  ["Applications Open", "Jun 12, 2025", FileText, "violet"],
+  ["Review In Progress", "In Progress", BarChart3, "muted"],
+  ["Creators Recommended", "In Progress", Star, "muted"],
+  ["Collaborations Started", "Upcoming", Users, "muted"],
+] as const;
+
+const activityFeed = [
+  ["12 new creator applications received", "Today, 10:30 AM", Users, "violet"],
+  ["3 creators recommended by Collune", "Today, 9:15 AM", Star, "orange"],
+  ["Campaign details updated", "Yesterday, 4:45 PM", Edit3, "green"],
+] as const;
+
+function StatusBadge({ status }: { status: CampaignCardItem["status"] }) {
   return (
-    <CampaignPanel className="p-5">
+    <span className="inline-flex h-8 items-center rounded-lg bg-[#e8f8ef] px-4 text-sm font-black text-[#28b76f]">
+      {status}
+    </span>
+  );
+}
+
+function IconBox({ icon, accent = "muted", className = "" }: { icon: ReactNode; accent?: Accent; className?: string }) {
+  return (
+    <span className={`grid shrink-0 place-items-center rounded-xl ${accentClasses[accent].icon} ${className || "h-12 w-12"}`}>
+      {icon}
+    </span>
+  );
+}
+
+function SectionTitle({ title, copy, action }: { title: string; copy?: string; action?: ReactNode }) {
+  return (
+    <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h2 className="text-[22px] font-black tracking-normal text-[#1d2430]">{title}</h2>
+        {copy ? <p className="mt-2 text-base font-medium text-[#7a879c]">{copy}</p> : null}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+function OverviewRow({ icon, label, children }: { key?: string; icon: ReactNode; label: string; children: ReactNode }) {
+  return (
+    <div className="flex gap-4">
+      <IconBox icon={icon} className="h-10 w-10 rounded-lg" />
+      <div className="min-w-0">
+        <p className="font-black text-[#303948]">{label}</p>
+        <div className="mt-1 text-[15px] font-medium leading-snug text-[#71809a]">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function StatusMetric({ label, value, copy, icon, accent }: { label: string; value: number; copy: string; icon: ReactNode; accent: Accent }) {
+  return (
+    <div className="rounded-lg bg-[#f6f7fa] p-5">
       <div className="flex items-center gap-4">
-        <span className="grid h-11 w-11 place-items-center rounded-xl bg-[#eef2ff] text-[#4b22ff]">{icon}</span>
+        <IconBox icon={icon} accent={accent} className="h-11 w-11" />
         <div>
-          <p className="text-sm font-medium text-[#6d7b92]">{label}</p>
-          <strong className="mt-1 block text-2xl font-black text-[#1d2430]">{value}</strong>
+          <p className="text-sm font-bold text-[#8995a8]">{label}</p>
+          <strong className="block text-3xl font-black leading-tight text-[#1d2430]">{value}</strong>
         </div>
+      </div>
+      <p className="mt-3 text-sm font-medium text-[#7d8aa0]">{copy}</p>
+    </div>
+  );
+}
+
+function MetaRow({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4 text-[15px]">
+      <span className="inline-flex items-center gap-2 font-medium text-[#8290a5]">
+        {icon}
+        {label}
+      </span>
+      <strong className="text-right font-black text-[#303948]">{value}</strong>
+    </div>
+  );
+}
+
+function CreatorCard({ creator }: { key?: string; creator: (typeof creators)[number] }) {
+  const platformClass = platformStyles[creator.platform] || "bg-[#4b22ff] text-white";
+
+  return (
+    <CampaignPanel className="overflow-hidden">
+      <div className="relative aspect-[1.02/1] bg-[#eef2f7]">
+        <img src={creator.image} alt={creator.name} className="h-full w-full object-cover" />
+        <span className={`absolute left-4 top-4 grid h-8 w-8 place-items-center rounded-lg ${platformClass}`}>
+          {creator.platform === "LinkedIn" ? <Linkedin className="h-4 w-4" /> : creator.platform === "YouTube" ? <Play className="h-4 w-4 fill-current" /> : <Eye className="h-4 w-4" />}
+        </span>
+        <button type="button" className="absolute right-3 top-3 text-white drop-shadow" aria-label={`${creator.name} options`}>
+          <MoreHorizontal className="h-5 w-5" />
+        </button>
+      </div>
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-black leading-tight text-[#1d2430]">{creator.name}</h3>
+            <p className="mt-2 text-sm font-medium text-[#8390a5]">{creator.role}</p>
+          </div>
+          <span className="rounded-md bg-[#eee8ff] px-2.5 py-1 text-xs font-black text-[#4b22ff]">Recommended</span>
+        </div>
+        <div className="mt-5 grid grid-cols-2 gap-4">
+          <CreatorStat value={creator.followers} label="Followers" />
+          <CreatorStat value={creator.engagement} label="Eng. Rate" />
+        </div>
+        <button type="button" className="mt-5 text-sm font-black text-[#4b22ff]">View Profile -&gt;</button>
       </div>
     </CampaignPanel>
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: ReactNode }) {
+function CreatorStat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="border-b border-[#edf1f6] py-4 last:border-b-0">
-      <p className="text-sm font-semibold text-[#8793a8]">{label}</p>
-      <div className="mt-1 text-[15px] font-semibold leading-relaxed text-[#1d2430]">{value}</div>
+    <div>
+      <strong className="block text-base font-black text-[#63728a]">{value}</strong>
+      <span className="text-sm font-medium text-[#8390a5]">{label}</span>
     </div>
   );
 }
 
-export function CampaignDetail({ campaign, onBack }: { campaign: CampaignCardItem; onBack: () => void }) {
-  const Icon = campaign.icon;
+function CategoryPill({ label, icon: Icon, accent }: { key?: string; label: string; icon: LucideIcon; accent: Accent }) {
+  return (
+    <span className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-sm font-black ${accentClasses[accent].chip}`}>
+      <Icon className="h-4 w-4" />
+      {label}
+    </span>
+  );
+}
+
+function ProgressStep({ title, detail, icon: Icon, accent }: { key?: string; title: string; detail: string; icon: LucideIcon; accent: Accent }) {
+  return (
+    <div className="grid min-w-[120px] flex-1 justify-items-center text-center">
+      <IconBox icon={<Icon className="h-5 w-5" />} accent={accent} className="h-14 w-14 rounded-full" />
+      <p className="mt-3 text-sm font-black leading-tight text-[#303948]">{title}</p>
+      <span className="mt-1 text-sm font-medium text-[#7d8aa0]">{detail}</span>
+    </div>
+  );
+}
+
+function ActivityItem({ title, time, icon: Icon, accent }: { key?: string; title: string; time: string; icon: LucideIcon; accent: Accent }) {
+  return (
+    <div className="flex gap-4">
+      <IconBox icon={<Icon className="h-5 w-5" />} accent={accent} className="h-11 w-11 rounded-lg" />
+      <div className="min-w-0">
+        <p className="font-black text-[#303948]">{title}</p>
+        <p className="mt-1 text-sm font-medium text-[#7d8aa0]">{time}</p>
+      </div>
+    </div>
+  );
+}
+
+export function CampaignDetail({ campaign }: { campaign: CampaignCardItem; onBack: () => void }) {
+  const CampaignIcon = campaign.icon;
+  const overviewRows = [
+    {
+      label: "Objective",
+      icon: <Target className="h-5 w-5" />,
+      value: "Increase financial literacy awareness and drive engagement among young professionals and students.",
+    },
+    {
+      label: "Deliverables",
+      icon: <FileText className="h-5 w-5" />,
+      value: "1 Instagram Reel, 1 LinkedIn Post, 1 YouTube Short",
+    },
+    {
+      label: "Timeline",
+      icon: <CalendarDays className="h-5 w-5" />,
+      value: "Jun 20, 2025 - Jul 20, 2025 (30 days)",
+    },
+    {
+      label: "Platforms",
+      icon: <ClipboardCheck className="h-5 w-5" />,
+      value: campaign.platforms,
+    },
+    {
+      label: "Budget Range",
+      icon: <WalletCards className="h-5 w-5" />,
+      value: "$10K - $50K",
+    },
+    {
+      label: "Creator Compensation",
+      icon: <DollarSign className="h-5 w-5" />,
+      value: "Per Deliverable",
+    },
+    {
+      label: "Target Audience",
+      icon: <Users className="h-5 w-5" />,
+      value: "Young professionals, Students, Finance enthusiasts",
+    },
+    {
+      label: "Key Requirements",
+      icon: <CheckCircle2 className="h-5 w-5" />,
+      value: "Authentic content, Strong engagement rates, Experience in finance or education niche",
+    },
+  ];
 
   return (
-    <div className="grid gap-6">
-      <button type="button" onClick={onBack} className="inline-flex w-max items-center gap-2 text-sm font-black text-[#2f16ff]">
-        <ArrowLeft className="h-4 w-4" />
-        Back to Campaigns
-      </button>
-
-      <CampaignPanel className="overflow-hidden">
-        <div className="flex flex-wrap items-start justify-between gap-6 border-b border-[#edf1f6] p-7">
-          <div className="flex items-start gap-5">
-            <span className={`grid h-14 w-14 place-items-center rounded-xl ${campaign.iconClassName}`}>
-              <Icon className="h-7 w-7" />
-            </span>
-            <div>
-              <div className="flex flex-wrap items-center gap-3">
-                <h2 className="text-[28px] font-black tracking-normal text-[#1d2430]">{campaign.title}</h2>
-                <span className="rounded-lg bg-[#e8f8ef] px-4 py-1.5 text-sm font-black text-[#12a563]">{campaign.status}</span>
-              </div>
-              <p className="mt-3 max-w-3xl text-base font-medium leading-relaxed text-[#63728a]">{campaign.objective}</p>
+    <div className="grid gap-8 pb-8">
+      <div className="flex flex-wrap items-start justify-between gap-5">
+        <div className="flex min-w-0 items-start gap-5">
+          <span className={`grid h-16 w-16 shrink-0 place-items-center rounded-full ${campaign.iconClassName}`}>
+            <CampaignIcon className="h-8 w-8" />
+          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-4">
+              <h1 className="text-[34px] font-black leading-tight tracking-normal text-[#1d2430]">{campaign.title}</h1>
+              <StatusBadge status={campaign.status} />
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold text-[#7d8aa0]">
+              <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-4 w-4" />Created on Jun 12, 2025</span>
+              <span>•</span>
+              <span className="inline-flex items-center gap-1.5"><Clock3 className="h-4 w-4" />Last updated today</span>
+              <span>•</span>
+              <span>Campaign ID: CAM-2025-012</span>
             </div>
           </div>
-          <button className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#173ca8] px-5 text-sm font-black text-white">
-            <Megaphone className="h-4 w-4" />
+        </div>
+        <div className="flex items-center gap-3">
+          <button type="button" className="inline-flex h-11 items-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-5 text-sm font-black text-[#303948]">
+            <Edit3 className="h-4 w-4" />
             Edit Campaign
           </button>
+          <button type="button" className="grid h-11 w-11 place-items-center rounded-lg border border-[#dfe7f2] bg-white text-[#63728a]" aria-label="Campaign options">
+            <MoreHorizontal className="h-5 w-5" />
+          </button>
         </div>
+      </div>
 
-        <div className="grid gap-6 p-7 xl:grid-cols-[1fr_0.7fr]">
-          <div>
-            <div className="grid gap-4 md:grid-cols-3">
-              <DetailMetric label="Applications" value={campaign.applications} icon={<Users className="h-5 w-5" />} />
-              <DetailMetric label="Recommended" value={campaign.recommended} icon={<Star className="h-5 w-5" />} />
-              <DetailMetric label="Visibility" value="Public" icon={<Eye className="h-5 w-5" />} />
-            </div>
-
-            <CampaignPanel className="mt-6 p-6">
-              <h3 className="text-xl font-black text-[#1d2430]">Campaign Overview</h3>
-              <div className="mt-4">
-                <InfoRow label="Objective" value={campaign.objective} />
-                <InfoRow label="Budget Range" value={campaign.budget} />
-                <InfoRow label="Timeline" value={campaign.timeline} />
-                <InfoRow
-                  label="Platforms"
-                  value={
+      <div className="grid gap-7 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="grid gap-8">
+          <CampaignPanel className="p-7">
+            <SectionTitle
+              title="Campaign Overview"
+              copy="A summary of your campaign brief and requirements."
+              action={<button type="button" className="text-sm font-black text-[#4b22ff]">Edit</button>}
+            />
+            <div className="grid gap-5">
+              {overviewRows.map((row) => (
+                <OverviewRow key={row.label} icon={row.icon} label={row.label}>
+                  {Array.isArray(row.value) ? (
                     <div className="flex flex-wrap gap-2">
-                      {campaign.platforms.map((platform) => (
-                        <span key={platform} className="rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-black text-[#2f16ff]">{platform}</span>
+                      {row.value.map((platform) => (
+                        <span key={platform} className={`grid h-7 min-w-7 place-items-center rounded-md px-2 text-xs font-black ${platformStyles[platform] || "bg-[#eef2ff] text-[#4b22ff]"}`}>
+                          {platform === "Instagram" ? "IG" : platform === "YouTube" ? "YT" : platform === "LinkedIn" ? "in" : platform}
+                        </span>
                       ))}
                     </div>
-                  }
-                />
-                <InfoRow label="Creator Category" value={campaign.category} />
-              </div>
-            </CampaignPanel>
-          </div>
+                  ) : row.value}
+                </OverviewRow>
+              ))}
+            </div>
+          </CampaignPanel>
 
-          <div className="grid gap-6">
-            <CampaignPanel className="p-6">
-              <h3 className="text-xl font-black text-[#1d2430]">Activity Timeline</h3>
-              <div className="mt-5 grid gap-5">
-                {[
-                  ["Campaign updated", campaign.updatedAt, CheckCircle],
-                  ["Applications reviewed", "12 creators shortlisted", Users],
-                  ["Next report", "Due in 3 days", CalendarDays],
-                ].map(([title, copy, ActivityIcon]) => {
-                  const IconComponent = ActivityIcon as typeof CheckCircle;
-                  return (
-                    <div key={title as string} className="flex gap-3">
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#f0edff] text-[#4b22ff]">
-                        <IconComponent className="h-4 w-4" />
-                      </span>
-                      <div>
-                        <p className="font-black text-[#1d2430]">{title as string}</p>
-                        <p className="mt-1 text-sm font-medium text-[#63728a]">{copy as string}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CampaignPanel>
+          <section>
+            <SectionTitle
+              title="Recommended Creators"
+              copy="Creators recommended by Collune based on your requirements."
+              action={<button type="button" className="text-sm font-black text-[#4b22ff]">View all recommendations -&gt;</button>}
+            />
+            <div className="grid gap-5 md:grid-cols-3">
+              {creators.map((creator) => <CreatorCard key={creator.name} creator={creator} />)}
+            </div>
+          </section>
 
-            <CampaignPanel className="p-6">
-              <h3 className="text-xl font-black text-[#1d2430]">Publishing Status</h3>
-              <div className="mt-5 flex items-center gap-4 rounded-xl bg-[#f6f8fb] p-4">
-                <Clock3 className="h-6 w-6 text-[#4b22ff]" />
-                <div>
-                  <p className="font-black text-[#1d2430]">Active and receiving applications</p>
-                  <p className="mt-1 text-sm font-medium text-[#63728a]">Creators can discover and apply to this campaign.</p>
-                </div>
-              </div>
-            </CampaignPanel>
-          </div>
+          <CampaignPanel className="p-7">
+            <SectionTitle title="Campaign Progress" copy="See where your campaign stands in the overall process." />
+            <div className="flex flex-wrap justify-between gap-5">
+              {progressSteps.map(([title, detail, Icon, accent]) => (
+                <ProgressStep key={title} title={title} detail={detail} icon={Icon} accent={accent} />
+              ))}
+            </div>
+          </CampaignPanel>
+
+          <CampaignPanel className="p-7">
+            <SectionTitle title="Activity Feed" copy="Latest updates and activity on your campaign." />
+            <div className="grid gap-5">
+              {activityFeed.map(([title, time, Icon, accent]) => (
+                <ActivityItem key={title} title={title} time={time} icon={Icon} accent={accent} />
+              ))}
+            </div>
+            <button type="button" className="mt-7 text-sm font-black text-[#4b22ff]">View all activity -&gt;</button>
+          </CampaignPanel>
         </div>
-      </CampaignPanel>
+
+        <aside className="grid h-max gap-7">
+          <CampaignPanel className="p-7">
+            <div className="mb-7 flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-[22px] font-black tracking-normal text-[#1d2430]">Campaign Status</h2>
+                <p className="mt-6 text-base font-medium text-[#7d8aa0]">Track the progress of your campaign.</p>
+              </div>
+              <StatusBadge status={campaign.status} />
+            </div>
+
+            <div className="grid gap-4">
+              <StatusMetric label="Applications Received" value={campaign.applications} copy={`${campaign.applications} applications from creators`} icon={<Users className="h-5 w-5" />} accent="violet" />
+              <StatusMetric label="Recommended Creators" value={campaign.recommended} copy="Shortlisted by Collune" icon={<Star className="h-5 w-5" />} accent="orange" />
+              <StatusMetric label="Collaborations Started" value={2} copy="Deals in progress" icon={<Users className="h-5 w-5" />} accent="green" />
+            </div>
+
+            <div className="mt-7 grid gap-4">
+              <MetaRow icon={<CalendarDays className="h-4 w-4" />} label="Campaign Created" value="Jun 12, 2025" />
+              <MetaRow icon={<Clock3 className="h-4 w-4" />} label="Last Updated" value="Today" />
+              <MetaRow icon={<CalendarDays className="h-4 w-4" />} label="Applications Close In" value="8 days" />
+            </div>
+
+            <button type="button" className="mt-7 h-12 w-full rounded-lg border-2 border-[#4b22ff] bg-white text-base font-black text-[#4b22ff]">
+              View Applications ({campaign.applications})
+            </button>
+          </CampaignPanel>
+
+          <CampaignPanel className="p-7">
+            <SectionTitle title="Creator Categories Being Matched" copy="Categories that Collune is focusing on for this campaign." />
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
+              {categories.map(([label, Icon, accent]) => (
+                <CategoryPill key={label} label={label} icon={Icon} accent={accent} />
+              ))}
+            </div>
+          </CampaignPanel>
+
+          <section className="rounded-xl bg-[#eee8ff] p-7">
+            <div className="flex gap-5">
+              <IconBox icon={<Megaphone className="h-6 w-6" />} accent="violet" className="h-14 w-14 rounded-full" />
+              <div>
+                <h2 className="text-xl font-black leading-tight text-[#1d2430]">Need more creators or want to make changes?</h2>
+                <p className="mt-4 text-base font-medium leading-relaxed text-[#7d8aa0]">You can edit your campaign details or adjust requirements to improve match quality.</p>
+                <button type="button" className="mt-5 h-12 rounded-lg bg-[#4b22ff] px-8 text-base font-black text-white">Edit Campaign</button>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </div>
     </div>
   );
 }

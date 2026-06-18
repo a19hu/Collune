@@ -7,6 +7,8 @@ from .views import (
     BrandRegisterView,
     BrandShortlistViewSet,
     CampaignApplicationViewSet,
+    CampaignProgressViewSet,
+    CampaignStatusSummaryViewSet,
     CampaignViewSet,
     CreatorProfileViewSet,
     CreatorRegisterView,
@@ -26,6 +28,8 @@ router.register("brands", BrandProfileViewSet, basename="brands")
 router.register("creators", CreatorProfileViewSet, basename="creators")
 router.register("creator-social-accounts", CreatorSocialAccountViewSet, basename="creator_social_accounts")
 router.register("campaigns", CampaignViewSet, basename="campaigns")
+router.register("campaign-status-summaries", CampaignStatusSummaryViewSet, basename="campaign_status_summaries")
+router.register("campaign-progress", CampaignProgressViewSet, basename="campaign_progress")
 router.register("campaign-applications", CampaignApplicationViewSet, basename="campaign_applications")
 router.register("brand-shortlists", BrandShortlistViewSet, basename="brand_shortlists")
 
