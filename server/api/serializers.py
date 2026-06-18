@@ -217,6 +217,7 @@ class CreatorProfileSerializer(serializers.ModelSerializer):
 class CampaignSerializer(serializers.ModelSerializer):
     brand_detail = BrandProfileSerializer(source="brand", read_only=True)
     applications_count = serializers.IntegerField(source="applications.count", read_only=True)
+    brand_guidelines_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Campaign
@@ -225,10 +226,30 @@ class CampaignSerializer(serializers.ModelSerializer):
             "brand",
             "brand_detail",
             "title",
+            "internal_reference_name",
             "brief",
+            "objective",
+            "deliverables",
+            "brand_requirements",
+            "creative_direction",
+            "tone_of_communication",
+            "brand_guidelines",
+            "brand_guidelines_url",
+            "content_references",
+            "platforms",
             "category",
-            "budget_min",
-            "budget_max",
+            "audience_type",
+            "location",
+            "minimum_followers",
+            "language_preference",
+            "content_style",
+            "additional_preferences",
+            "total_budget",
+            "budget_range",
+            "compensation_type",
+            "deliverable_pricing",
+            "start_date",
+            "end_date",
             "deadline",
             "cover_image",
             "status",
@@ -237,6 +258,22 @@ class CampaignSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["campaign_id", "brand", "created_at", "updated_at"]
+
+    def get_brand_guidelines_url(self, obj):
+        request = self.context.get("request")
+        if not obj.brand_guidelines:
+            return ""
+        return request.build_absolute_uri(obj.brand_guidelines.url) if request else obj.brand_guidelines.url
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if not attrs.get("brief") and attrs.get("objective"):
+            attrs["brief"] = attrs["objective"]
+        if not attrs.get("objective") and attrs.get("brief"):
+            attrs["objective"] = attrs["brief"]
+        if attrs.get("end_date") and attrs.get("start_date") and attrs["end_date"] < attrs["start_date"]:
+            raise serializers.ValidationError({"end_date": "End date cannot be before start date."})
+        return attrs
 
 
 class CampaignApplicationSerializer(serializers.ModelSerializer):

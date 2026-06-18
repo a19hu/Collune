@@ -13,7 +13,42 @@ const API_EXTRA_HEADERS = API_BASE_URL.includes("ngrok")
 
 type ApiError = { error?: string; detail?: string; message?: string };
 type ApiRecord = Record<string, unknown>;
+export type CampaignPayload = {
+  title: string;
+  internal_reference_name?: string;
+  brief?: string;
+  objective: string;
+  deliverables: string;
+  brand_requirements: string;
+  creative_direction: string;
+  tone_of_communication: string;
+  content_references?: string;
+  platforms: string[];
+  category: string;
+  audience_type: string;
+  location?: string;
+  minimum_followers: number;
+  language_preference: string;
+  content_style: string;
+  additional_preferences?: string;
+  total_budget: string;
+  budget_range: string;
+  compensation_type: string;
+  deliverable_pricing: Record<string, string>;
+  start_date?: string;
+  end_date?: string;
+  deadline?: string;
+  status?: "DRAFT" | "ACTIVE" | "REVIEWING" | "PAUSED" | "COMPLETED";
+};
 
+export type CampaignApi = CampaignPayload & {
+  campaign_id: string;
+  brand: string;
+  brand_guidelines_url: string;
+  applications_count: number;
+  created_at: string;
+  updated_at: string;
+};
 export type LoginApiUser = {
   user_id: string;
   username: string;
@@ -228,4 +263,16 @@ export async function sendOtp(channel: OtpChannel, target: string) {
 
 export async function verifyOtp(channel: OtpChannel, target: string, code: string) {
   return apiPost<OtpResponse>("/auth/otp/verify/", { channel, target, code });
+}
+
+export function createCampaign(payload: CampaignPayload) {
+  return apiPost<CampaignApi>("/campaigns/", payload, true);
+}
+
+export function getCampaigns() {
+  return apiRequest<CampaignApi[]>("/campaigns/", {}, true);
+}
+
+export function getCampaign(campaignId: string) {
+  return apiRequest<CampaignApi>(`/campaigns/${campaignId}/`, {}, true);
 }

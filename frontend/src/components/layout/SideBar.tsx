@@ -22,7 +22,6 @@ const navByMode = {
 
 export function SideBar({ isVerified = false, mode = "creator" }: { isVerified?: boolean; mode?: SidebarMode }) {
   const navItems = navByMode[mode];
-  console.log(window.location.pathname)
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-[270px] flex-col border-r border-[#eef1f6] bg-[#f5f7ff] lg:flex">

@@ -434,6 +434,7 @@ class CreatorSocialAccountViewSet(viewsets.ModelViewSet):
 class CampaignViewSet(viewsets.ModelViewSet):
     serializer_class = CampaignSerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_queryset(self):
         queryset = Campaign.objects.select_related("brand", "brand__user")
