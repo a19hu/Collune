@@ -136,6 +136,15 @@ const CreatorRegister = () => {
 
   const submitCreatorRegistration = async () => {
     setSubmitError("");
+
+    const missingOtp: string[] = [];
+    if (!verification.emailVerified) missingOtp.push("Email OTP is not verified.");
+    // if (!verification.phoneVerified) missingOtp.push("Phone OTP is not verified.");
+    if (missingOtp.length) {
+      setSubmitError(missingOtp.join(" "));
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -195,6 +204,7 @@ const CreatorRegister = () => {
             step,
             totalSteps,
             form,
+            verification,
             setStep,
             setVerificationStatus,
             submitCreatorRegistration,
