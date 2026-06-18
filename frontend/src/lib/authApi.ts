@@ -1,15 +1,7 @@
 import type { CreatorSocialPlatform } from "../types";
 
-const DEFAULT_API_BASE_URL = "http://localhost:8000/api/v1";
 
-const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL ||
-  DEFAULT_API_BASE_URL
-).replace(/\/$/, "");
-
-const API_EXTRA_HEADERS = API_BASE_URL.includes("ngrok")
-  ? { "ngrok-skip-browser-warning": "true" }
-  : {};
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/v1`;
 
 type ApiError = { error?: string; detail?: string; message?: string };
 type ApiRecord = Record<string, unknown>;
@@ -231,7 +223,6 @@ async function apiRequest<T>(path: string, init: RequestInit = {}, authed = fals
     ...init,
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
-      ...API_EXTRA_HEADERS,
       ...(init.headers || {}),
       ...(authHeader ? { Authorization: authHeader } : {}),
     },
