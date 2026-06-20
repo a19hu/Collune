@@ -8,18 +8,13 @@ class Command(BaseCommand):
     help = "Create a Django superuser from DJANGO_SUPERUSER_* environment variables."
 
     def handle(self, *args, **options):
-        username = "a19hu"
-        email = "a@gmail.com"
-        password = "a19hu"
-
-        if not username and not password:
-            self.stdout.write("DJANGO_SUPERUSER_* not set; skipping superuser creation.")
-            return
+        username = os.environ.get("DJANGO_SUPERUSER_USERNAME")
+        email = os.environ.get("DJANGO_SUPERUSER_EMAIL", "")
+        password = os.environ.get("DJANGO_SUPERUSER_PASSWORD")
 
         if not username or not password:
-            raise CommandError(
-                "Both DJANGO_SUPERUSER_USERNAME and DJANGO_SUPERUSER_PASSWORD are required."
-            )
+            self.stdout.write("DJANGO_SUPERUSER_* not set; skipping superuser creation.")
+            return
 
         User = get_user_model()
         user, created = User.objects.get_or_create(

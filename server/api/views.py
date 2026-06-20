@@ -375,6 +375,33 @@ class CreatorRegisterView(APIView):
             status=status.HTTP_201_CREATED,
         )
 
+class CreatorProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get_object(self, request):
+        return getattr(request.user, "creator_profile", None)
+
+    def get(self, request):
+        creator = self.get_object(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CreatorProfileSerializer(creator, context={"request": request})
+        return Response({"creator": serializer.data})
+
+    def patch(self, request):
+        creator = self.get_object(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CreatorProfileSerializer(
+            creator,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"creator": serializer.data})
 
 class BrandProfileViewSet(viewsets.ModelViewSet):
     serializer_class = BrandProfileSerializer

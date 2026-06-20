@@ -12,6 +12,7 @@ import LoginPage from './pages/LoginPage.tsx';
 import { SideBarLayout } from './components/layout/SideBarLayout.tsx';
 import CreatorDashBoard from './components/Creator/CreatorDashBoard.tsx';
 import { CreatorCampaignMarketplace } from './components/Creator/CampaignMarketplace/CreatorCampaignMarketplace.tsx';
+import CreatorProfile from './components/Creator/CreatorProfile.tsx';
 import BrandDashBoard from './components/Brand/BrandDashBoard.tsx';
 import { BrandSettings } from './components/Brand/BrandSettings.tsx';
 import { BrandCampaigns } from './components/Brand/BrandCampaigns.tsx';
@@ -53,7 +54,7 @@ const App: React.FC = () => {
                         <Route path="/creator/*" element={<SideBarLayout />}>
                             <Route index element={<CreatorDashBoard />} />
                             <Route path="verified" element={<CreatorDashBoard />} />
-                            <Route path="profile" element={<CreatorDashBoard />} />
+                            <Route path="profile" element={<CreatorProfile />} />
                             <Route path="marketplace" element={<CreatorCampaignMarketplace />} />
                             <Route path="settings" element={<CreatorSetting />} />
                         </Route>

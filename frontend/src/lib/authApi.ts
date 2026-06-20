@@ -148,6 +148,38 @@ export type CreatorRegisterResponse = LoginResponse & {
   };
 };
 
+export type CreatorProfileApi = {
+  creator_id: string;
+  user?: LoginApiUser;
+  display_name: string;
+  category: string;
+  location: string;
+  languages: string[];
+  collaboration_preferences: string[];
+  preferred_response_time: string;
+  open_to_travel: boolean;
+  bio: string;
+  portfolio_url: string;
+  profile_image: string | null;
+  profile_image_url: string;
+  audience_size: number;
+  rate_min: string;
+  rate_max: string;
+  verification_status: string;
+  profile_completion: number;
+  social_accounts: Array<{
+    account_id: string;
+    platform: CreatorSocialPlatform;
+    handle: string;
+    url?: string;
+    followers?: number;
+    is_connected: boolean;
+    created_at: string;
+  }>;
+  created_at: string;
+  updated_at: string;
+};
+
 export type BrandRegisterPayload = {
   user: RegisterUserPayload;
   company_name: string;
@@ -270,6 +302,17 @@ function apiPostForm<T>(path: string, body: FormData, authed = false) {
   );
 }
 
+function apiPatchForm<T>(path: string, body: FormData, authed = false) {
+  return apiRequest<T>(
+    path,
+    {
+      method: "PATCH",
+      body,
+    },
+    authed,
+  );
+}
+
 export async function loginWithEmail(email: string, password: string) {
   return apiPost<LoginResponse>("/auth/login/", {
     username: email,
@@ -308,6 +351,16 @@ export async function registerBrandFormData(payload: BrandRegisterPayload, logo?
 export async function getBrandMe() {
   const data = await apiRequest<{ brand: BrandProfileApi }>("/brands/me/", {}, true);
   return data.brand;
+}
+
+export async function getCreatorProfile() {
+  const data = await apiRequest<{ creator: CreatorProfileApi }>("/auth/creator/profile/", {}, true);
+  return data.creator;
+}
+
+export async function updateCreatorProfile(payload: FormData) {
+  const data = await apiPatchForm<{ creator: CreatorProfileApi }>("/auth/creator/profile/", payload, true);
+  return data.creator;
 }
 
 export async function sendOtp(channel: OtpChannel, target: string) {
