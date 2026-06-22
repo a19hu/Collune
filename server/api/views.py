@@ -420,11 +420,20 @@ class CreatorsListView(APIView):
     permission_classes = [AllowAny]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
-    def get(self, request):
+    def get_queryset(self):
+        return CreatorProfile.objects.select_related("user").prefetch_related("social_accounts")
+
+    def get(self, request, creator_id=None):
+        if creator_id:
+            try:
+                creator = self.get_queryset().get(creator_id=creator_id)
+            except CreatorProfile.DoesNotExist:
+                return Response({"error": "Creator profile not found."}, status=status.HTTP_404_NOT_FOUND)
+            serializer = CreatorsProfileListSerializer(creator, context={"request": request})
+            return Response({"creator": serializer.data})
+
         creators = (
-            CreatorProfile.objects.select_related("user")
-            .prefetch_related("social_accounts")
-            .order_by("-created_at")
+            self.get_queryset().order_by("-created_at")
         )
         serializer = CreatorsProfileListSerializer(creators, many=True, context={"request": request})
         return Response({"creators": serializer.data})

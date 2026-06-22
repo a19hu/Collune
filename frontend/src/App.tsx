@@ -5,6 +5,7 @@ import CreatorRegister from './pages/CreatorRegister.tsx';
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
 import LandingPage from "./pages/LandingPage.tsx";
 import ColluneInfoPage from "./pages/ColluneInfoPage.tsx";
+import PublicCreatorProfile from "./pages/PublicCreatorProfile.tsx";
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
 import MainLayout from './components/layout/MainLayout.tsx';
 import BrandRegister from './pages/BrandRegister.tsx';
@@ -43,6 +44,7 @@ const App: React.FC = () => {
                         <Route path='/' element={<LandingPage />} />
                         <Route path="discover-creators" element={<ColluneInfoPage page="discover-creators" />} />
                         <Route path="featured-creators" element={<ColluneInfoPage page="featured-creators" />} />
+                        <Route path="creators/:creatorId" element={<PublicCreatorProfile />} />
                         <Route path="success-stories" element={<ColluneInfoPage page="success-stories" />} />
                         <Route path="blogs" element={<ColluneInfoPage page="blogs" />} />
                         <Route path="faqs" element={<ColluneInfoPage page="faqs" />} />

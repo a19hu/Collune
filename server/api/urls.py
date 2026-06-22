@@ -49,6 +49,7 @@ urlpatterns = [
     path("auth/me/", ProfileView.as_view(), name="profile"),
     path("auth/creator/profile/", CreatorProfileView.as_view(), name="creator_profile"),
     path("creators/list/", CreatorsListView.as_view(), name="creators_list"),
+    path("creators/list/<uuid:creator_id>/", CreatorsListView.as_view(), name="creator_detail"),
     path("auth/instagram/connect/", InstagramConnectView.as_view(), name="instagram_connect"),
     path("auth/instagram/callback/", InstagramCallbackView.as_view(), name="instagram_callback"),
     path("auth/youtube/connect/", YouTubeConnectView.as_view(), name="youtube_connect"),

@@ -18,7 +18,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { getCreatorsList, type CreatorProfileApi } from "../lib/authApi";
 import creator1 from "../assets/collune/creator-1.png";
@@ -150,10 +150,10 @@ function CreatorCard({ creator, index }: { creator: CreatorProfileApi; index: nu
           ))}
         </div>
       </div>
-      <a href="#creators" className="flex min-h-10 items-center justify-center gap-1 border-t border-[#edf1fb] text-[13px] font-black text-[#3356c5]">
+      <Link to={`/creators/${creator.creator_id}`} className="flex min-h-10 items-center justify-center gap-1 border-t border-[#edf1fb] text-[13px] font-black text-[#3356c5]">
         View Profile
         <ArrowRight className="h-3.5 w-3.5" />
-      </a>
+      </Link>
     </article>
   );
 }

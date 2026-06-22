@@ -376,6 +376,11 @@ export async function getCreatorsList() {
   return data.creators;
 }
 
+export async function getCreatorPublicProfile(creatorId: string) {
+  const data = await apiRequest<{ creator: CreatorProfileApi }>(`/creators/list/${creatorId}/`);
+  return data.creator;
+}
+
 export async function updateCreatorProfile(payload: FormData) {
   const data = await apiPatchForm<{ creator: CreatorProfileApi }>("/auth/creator/profile/", payload, true);
   return data.creator;
