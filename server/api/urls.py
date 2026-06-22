@@ -16,12 +16,16 @@ from .views import (
     CreatorSocialAccountViewSet,
     DashboardSummaryView,
     EmailAvailabilityView,
+    InstagramCallbackView,
+    InstagramConnectView,
     LoginView,
     OtpSendView,
     OtpVerifyView,
     ProfileView,
     SignoutView,
     VerificationView,
+    YouTubeCallbackView,
+    YouTubeConnectView,
 )
 
 router = DefaultRouter()
@@ -43,6 +47,10 @@ urlpatterns = [
     path("auth/otp/verify/", OtpVerifyView.as_view(), name="otp_verify"),
     path("auth/me/", ProfileView.as_view(), name="profile"),
     path("auth/creator/profile/", CreatorProfileView.as_view(), name="creator_profile"),
+    path("auth/instagram/connect/", InstagramConnectView.as_view(), name="instagram_connect"),
+    path("auth/instagram/callback/", InstagramCallbackView.as_view(), name="instagram_callback"),
+    path("auth/youtube/connect/", YouTubeConnectView.as_view(), name="youtube_connect"),
+    path("auth/youtube/callback/", YouTubeCallbackView.as_view(), name="youtube_callback"),
     path("auth/signout/", SignoutView.as_view(), name="signout"),
     path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("dashboard/summary/", DashboardSummaryView.as_view(), name="dashboard_summary"),

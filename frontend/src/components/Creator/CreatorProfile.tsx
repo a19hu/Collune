@@ -17,7 +17,13 @@ import {
   X,
   Youtube,
 } from "lucide-react";
-import { getCreatorProfile, updateCreatorProfile, type CreatorProfileApi } from "../../lib/authApi";
+import {
+  getCreatorProfile,
+  getInstagramConnectUrl,
+  getYouTubeConnectUrl,
+  updateCreatorProfile,
+  type CreatorProfileApi,
+} from "../../lib/authApi";
 import type { CreatorSocialPlatform } from "../../types";
 
 type EditForm = {
@@ -147,6 +153,8 @@ export function CreatorProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isConnectingInstagram, setIsConnectingInstagram] = useState(false);
+  const [isConnectingYouTube, setIsConnectingYouTube] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -158,6 +166,13 @@ export function CreatorProfile() {
         if (!mounted) return;
         setProfile(data);
         setForm(toEditForm(data));
+        const instagramStatus = new URLSearchParams(window.location.search).get("instagram");
+        const youtubeStatus = new URLSearchParams(window.location.search).get("youtube");
+        if (instagramStatus === "connected") setMessage("Instagram connected.");
+        if (instagramStatus === "error") setError("Instagram connection failed. Please try again.");
+        if (youtubeStatus === "connected") setMessage("YouTube connected.");
+        if (youtubeStatus === "no_channel") setError("No YouTube channel found for this Google account.");
+        if (youtubeStatus === "error") setError("YouTube connection failed. Please try again.");
       })
       .catch((err: Error) => {
         if (mounted) setError(err.message || "Unable to load creator profile.");
@@ -228,6 +243,30 @@ export function CreatorProfile() {
       setError(err instanceof Error ? err.message : "Unable to update creator profile.");
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function connectInstagram() {
+    setIsConnectingInstagram(true);
+    setError("");
+    try {
+      const data = await getInstagramConnectUrl();
+      window.location.href = data.auth_url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to start Instagram OAuth.");
+      setIsConnectingInstagram(false);
+    }
+  }
+
+  async function connectYouTube() {
+    setIsConnectingYouTube(true);
+    setError("");
+    try {
+      const data = await getYouTubeConnectUrl();
+      window.location.href = data.auth_url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to start YouTube OAuth.");
+      setIsConnectingYouTube(false);
     }
   }
 
@@ -362,12 +401,37 @@ export function CreatorProfile() {
         </Panel>
 
         <Panel className="p-5">
-          <SectionTitle title="Platforms" />
+          <SectionTitle
+            title="Platforms"
+            right={
+              <div className="flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={connectYouTube}
+                  disabled={isConnectingYouTube}
+                  className="inline-flex h-9 items-center gap-2 rounded-[6px] bg-[#ff2f2f] px-3 text-[12px] font-black text-white disabled:opacity-60"
+                >
+                  {isConnectingYouTube ? <Loader2 className="h-4 w-4 animate-spin" /> : <Youtube className="h-4 w-4" />}
+                  Connect YouTube
+                </button>
+                <button
+                  type="button"
+                  onClick={connectInstagram}
+                  disabled={isConnectingInstagram}
+                  className="inline-flex h-9 items-center gap-2 rounded-[6px] bg-[#1438c8] px-3 text-[12px] font-black text-white disabled:opacity-60"
+                >
+                  {isConnectingInstagram ? <Loader2 className="h-4 w-4 animate-spin" /> : <Instagram className="h-4 w-4" />}
+                  Connect Instagram
+                </button>
+              </div>
+            }
+          />
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {visiblePlatforms.map((account) => {
               const meta = platformMeta[account.platform] || platformMeta.INSTAGRAM;
               const Icon = meta.Icon;
               const followers = account.followers || Math.round((profile.audience_size || 0) / Math.max(visiblePlatforms.length, 1));
+              const isYouTube = account.platform === "YOUTUBE";
               return (
                 <div key={account.account_id} className="rounded-[6px] border border-[#dbe3ee] bg-white p-4">
                   <div className="flex items-center gap-2">
@@ -379,11 +443,13 @@ export function CreatorProfile() {
                   <div className="mt-5 grid grid-cols-2 gap-2">
                     <div>
                       <strong className="block text-[15px] font-black text-[#1438c8]">{compactNumber(followers)}</strong>
-                      <span className="text-[10px] font-semibold text-[#758198]">Followers</span>
+                      <span className="text-[10px] font-semibold text-[#758198]">{isYouTube ? "Subscribers" : "Followers"}</span>
                     </div>
                     <div>
-                      <strong className="block text-[15px] font-black text-[#1438c8]">{profileStats.engagementRate}</strong>
-                      <span className="text-[10px] font-semibold text-[#758198]">Eng. Rate</span>
+                      <strong className="block text-[15px] font-black text-[#1438c8]">
+                        {isYouTube ? compactNumber(account.view_count || 0) : profileStats.engagementRate}
+                      </strong>
+                      <span className="text-[10px] font-semibold text-[#758198]">{isYouTube ? "Views" : "Eng. Rate"}</span>
                     </div>
                   </div>
                 </div>

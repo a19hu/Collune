@@ -140,12 +140,22 @@ class CreatorSocialAccount(models.Model):
     account_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="social_accounts")
     platform = models.CharField(max_length=24, choices=SocialPlatform.choices)
+    social_id = models.CharField(max_length=255, blank=True, default="")
+    username = models.CharField(max_length=255, blank=True, default="")
     handle = models.CharField(max_length=120)
+    url = models.URLField(blank=True, default="")
+    followers = models.PositiveIntegerField(default=0)
+    media_count = models.PositiveIntegerField(default=0)
+    view_count = models.PositiveBigIntegerField(default=0)
+    engagement_rate = models.FloatField(default=0)
+    audience_country = models.JSONField(default=dict, blank=True)
+    provider_data = models.JSONField(default=dict, blank=True)
+    access_token = models.TextField(blank=True, default="")
+    refresh_token = models.TextField(blank=True, default="")
+    expires_at = models.DateTimeField(null=True, blank=True)
     is_connected = models.BooleanField(default=False)
+    last_synced_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
-
-    class Meta:
-        unique_together = ("creator", "platform", "handle")
 
     def __str__(self):
         return f"{self.creator.display_name} - {self.platform}"

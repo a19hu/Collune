@@ -174,8 +174,40 @@ class BrandProfileSerializer(serializers.ModelSerializer):
 class CreatorSocialAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = CreatorSocialAccount
-        fields = ["account_id", "creator", "platform", "handle", "url", "followers", "is_connected", "created_at"]
-        read_only_fields = ["account_id", "creator", "created_at"]
+        fields = [
+            "account_id",
+            "creator",
+            "platform",
+            "social_id",
+            "username",
+            "handle",
+            "url",
+            "followers",
+            "media_count",
+            "view_count",
+            "engagement_rate",
+            "audience_country",
+            "provider_data",
+            "expires_at",
+            "is_connected",
+            "last_synced_at",
+            "created_at",
+        ]
+        read_only_fields = [
+            "account_id",
+            "creator",
+            "social_id",
+            "username",
+            "followers",
+            "media_count",
+            "view_count",
+            "engagement_rate",
+            "audience_country",
+            "provider_data",
+            "expires_at",
+            "last_synced_at",
+            "created_at",
+        ]
 
 
 class CreatorProfileSerializer(serializers.ModelSerializer):

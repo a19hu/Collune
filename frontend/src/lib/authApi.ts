@@ -170,10 +170,19 @@ export type CreatorProfileApi = {
   social_accounts: Array<{
     account_id: string;
     platform: CreatorSocialPlatform;
+    social_id: string;
+    username: string;
     handle: string;
     url?: string;
     followers?: number;
+    media_count?: number;
+    view_count?: number;
+    engagement_rate?: number;
+    audience_country?: Record<string, number>;
+    provider_data?: Record<string, unknown>;
+    expires_at?: string | null;
     is_connected: boolean;
+    last_synced_at?: string | null;
     created_at: string;
   }>;
   created_at: string;
@@ -361,6 +370,14 @@ export async function getCreatorProfile() {
 export async function updateCreatorProfile(payload: FormData) {
   const data = await apiPatchForm<{ creator: CreatorProfileApi }>("/auth/creator/profile/", payload, true);
   return data.creator;
+}
+
+export async function getInstagramConnectUrl() {
+  return apiRequest<{ auth_url: string }>("/auth/instagram/connect/", {}, true);
+}
+
+export async function getYouTubeConnectUrl() {
+  return apiRequest<{ auth_url: string }>("/auth/youtube/connect/", {}, true);
 }
 
 export async function sendOtp(channel: OtpChannel, target: string) {

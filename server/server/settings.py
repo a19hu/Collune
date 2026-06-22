@@ -197,3 +197,28 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
+
+FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:3000")
+META_APP_ID = env("META_APP_ID", default="")
+META_APP_SECRET = env("META_APP_SECRET", default="")
+INSTAGRAM_CLIENT_ID = env("INSTAGRAM_CLIENT_ID", default=META_APP_ID)
+INSTAGRAM_CLIENT_SECRET = env("INSTAGRAM_CLIENT_SECRET", default=META_APP_SECRET)
+INSTAGRAM_REDIRECT_URI = env(
+    "INSTAGRAM_REDIRECT_URI",
+    default="http://localhost:8000/api/v1/auth/instagram/callback/",
+)
+INSTAGRAM_OAUTH_SCOPES = env(
+    "INSTAGRAM_OAUTH_SCOPES",
+    default="instagram_business_basic,instagram_business_manage_comments,instagram_business_manage_messages,instagram_business_content_publish",
+)
+
+GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")
+GOOGLE_CLIENT_SECRET = env("GOOGLE_CLIENT_SECRET", default="")
+YOUTUBE_REDIRECT_URI = env(
+    "YOUTUBE_REDIRECT_URI",
+    default="http://localhost:8000/api/v1/auth/youtube/callback/",
+)
+YOUTUBE_OAUTH_SCOPES = env(
+    "YOUTUBE_OAUTH_SCOPES",
+    default="openid email profile https://www.googleapis.com/auth/youtube.readonly",
+)

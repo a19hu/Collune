@@ -2,9 +2,13 @@ import json
 import os
 import secrets
 import string
+from urllib.parse import urlencode
 
+from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
+from django.core import signing
 from django.db import transaction
+from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from datetime import timedelta
@@ -33,6 +37,7 @@ from .models import (
     CreatorSocialAccount,
     OtpChannel,
     OtpVerification,
+    SocialPlatform,
     UserRole,
     VerificationStatus,
 )
@@ -59,6 +64,13 @@ User = get_user_model()
 BREVO_API_BASE = "https://api.brevo.com/v3"
 OTP_EXPIRY_MINUTES = 10
 OTP_MAX_ATTEMPTS = 5
+INSTAGRAM_AUTH_URL = "https://www.instagram.com/oauth/authorize"
+INSTAGRAM_TOKEN_URL = "https://api.instagram.com/oauth/access_token"
+INSTAGRAM_LONG_LIVED_TOKEN_URL = "https://graph.instagram.com/access_token"
+INSTAGRAM_ME_URL = "https://graph.instagram.com/me"
+GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
+YOUTUBE_CHANNELS_URL = "https://www.googleapis.com/youtube/v3/channels"
 
 
 def generate_username(email):
@@ -402,6 +414,260 @@ class CreatorProfileView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"creator": serializer.data})
+
+
+class InstagramConnectView(APIView):
+    permission_classes = [IsAuthenticated, IsCreator]
+
+    def get(self, request):
+        if not settings.INSTAGRAM_CLIENT_ID or not settings.INSTAGRAM_CLIENT_SECRET:
+            return Response(
+                {"error": "Instagram OAuth is not configured. Set INSTAGRAM_CLIENT_ID and INSTAGRAM_CLIENT_SECRET."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        state = signing.dumps(
+            {
+                "user_id": str(request.user.user_id),
+                "nonce": secrets.token_urlsafe(16),
+            },
+            salt="instagram-oauth",
+        )
+        params = {
+            "client_id": settings.INSTAGRAM_CLIENT_ID,
+            "redirect_uri": settings.INSTAGRAM_REDIRECT_URI,
+            "scope": settings.INSTAGRAM_OAUTH_SCOPES,
+            "response_type": "code",
+        }
+        return Response({"auth_url": f"{INSTAGRAM_AUTH_URL}?{urlencode(params)}"})
+
+
+class InstagramCallbackView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        code = request.query_params.get("code")
+        state = request.query_params.get("state")
+        frontend_url = settings.FRONTEND_URL.rstrip("/")
+
+        if not code or not state:
+            return redirect(f"{frontend_url}/creator/profile?instagram=error")
+
+        try:
+            state_data = signing.loads(state, salt="instagram-oauth", max_age=600)
+            user = User.objects.get(user_id=state_data["user_id"], role=UserRole.CREATOR)
+            creator = user.creator_profile
+        except (signing.BadSignature, signing.SignatureExpired, User.DoesNotExist, CreatorProfile.DoesNotExist, KeyError):
+            return redirect(f"{frontend_url}/creator/profile?instagram=error")
+
+        token_response = requests.post(
+            INSTAGRAM_TOKEN_URL,
+            data={
+                "client_id": settings.INSTAGRAM_CLIENT_ID,
+                "client_secret": settings.INSTAGRAM_CLIENT_SECRET,
+                "grant_type": "authorization_code",
+                "redirect_uri": settings.INSTAGRAM_REDIRECT_URI,
+                "code": code,
+            },
+            timeout=20,
+        )
+        if not token_response.ok:
+            return redirect(f"{frontend_url}/creator/profile?instagram=error")
+
+        token_data = token_response.json()
+        access_token = token_data.get("access_token", "")
+        instagram_user_id = token_data.get("user_id") or token_data.get("id") or ""
+        expires_at = None
+
+        long_token_response = requests.get(
+            INSTAGRAM_LONG_LIVED_TOKEN_URL,
+            params={
+                "grant_type": "ig_exchange_token",
+                "client_secret": settings.INSTAGRAM_CLIENT_SECRET,
+                "access_token": access_token,
+            },
+            timeout=20,
+        )
+        if long_token_response.ok:
+            long_token_data = long_token_response.json()
+            access_token = long_token_data.get("access_token", access_token)
+            expires_in = long_token_data.get("expires_in")
+            if expires_in:
+                expires_at = timezone.now() + timedelta(seconds=int(expires_in))
+
+        profile_response = requests.get(
+            INSTAGRAM_ME_URL,
+            params={
+                "fields": "user_id,username,account_type,followers_count,media_count",
+                "access_token": access_token,
+            },
+            timeout=20,
+        )
+        if not profile_response.ok:
+            return redirect(f"{frontend_url}/creator/profile?instagram=error")
+
+        profile_data = profile_response.json()
+        social_id = str(profile_data.get("user_id") or profile_data.get("id") or instagram_user_id)
+        username = profile_data.get("username", "")
+        followers = int(profile_data.get("followers_count") or 0)
+        media_count = int(profile_data.get("media_count") or 0)
+
+        account, _ = CreatorSocialAccount.objects.update_or_create(
+            creator=creator,
+            platform=SocialPlatform.INSTAGRAM,
+            social_id=social_id,
+            defaults={
+                "username": username,
+                "handle": username,
+                "url": f"https://www.instagram.com/{username}/" if username else "",
+                "followers": followers,
+                "media_count": media_count,
+                "access_token": access_token,
+                "expires_at": expires_at,
+                "is_connected": True,
+                "last_synced_at": timezone.now(),
+            },
+        )
+        creator.audience_size = max(creator.audience_size, followers)
+        creator.save(update_fields=["audience_size", "updated_at"])
+
+        return redirect(f"{frontend_url}/creator/profile?instagram=connected&account={account.account_id}")
+
+
+class YouTubeConnectView(APIView):
+    permission_classes = [IsAuthenticated, IsCreator]
+
+    def get(self, request):
+        if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
+            return Response(
+                {"error": "YouTube OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        state = signing.dumps(
+            {
+                "user_id": str(request.user.user_id),
+                "nonce": secrets.token_urlsafe(16),
+            },
+            salt="youtube-oauth",
+        )
+        params = {
+            "client_id": settings.GOOGLE_CLIENT_ID,
+            "redirect_uri": settings.YOUTUBE_REDIRECT_URI,
+            "response_type": "code",
+            "access_type": "offline",
+            "prompt": "consent",
+            "scope": settings.YOUTUBE_OAUTH_SCOPES,
+            "state": state,
+        }
+        return Response({"auth_url": f"{GOOGLE_AUTH_URL}?{urlencode(params)}"})
+
+
+class YouTubeCallbackView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        code = request.query_params.get("code")
+        state = request.query_params.get("state")
+        frontend_url = settings.FRONTEND_URL.rstrip("/")
+
+        if not code or not state:
+            return redirect(f"{frontend_url}/creator/profile?youtube=error")
+
+        try:
+            state_data = signing.loads(state, salt="youtube-oauth", max_age=600)
+            user = User.objects.get(user_id=state_data["user_id"], role=UserRole.CREATOR)
+            creator = user.creator_profile
+        except (signing.BadSignature, signing.SignatureExpired, User.DoesNotExist, CreatorProfile.DoesNotExist, KeyError):
+            return redirect(f"{frontend_url}/creator/profile?youtube=error")
+
+        token_response = requests.post(
+            GOOGLE_TOKEN_URL,
+            data={
+                "code": code,
+                "client_id": settings.GOOGLE_CLIENT_ID,
+                "client_secret": settings.GOOGLE_CLIENT_SECRET,
+                "redirect_uri": settings.YOUTUBE_REDIRECT_URI,
+                "grant_type": "authorization_code",
+            },
+            timeout=20,
+        )
+        if not token_response.ok:
+            return redirect(f"{frontend_url}/creator/profile?youtube=error")
+
+        token_data = token_response.json()
+        access_token = token_data.get("access_token", "")
+        refresh_token = token_data.get("refresh_token", "")
+        expires_at = None
+        expires_in = token_data.get("expires_in")
+        if expires_in:
+            expires_at = timezone.now() + timedelta(seconds=int(expires_in))
+
+        channel_response = requests.get(
+            YOUTUBE_CHANNELS_URL,
+            headers={"Authorization": f"Bearer {access_token}"},
+            params={"part": "snippet,statistics", "mine": "true"},
+            timeout=20,
+        )
+        if not channel_response.ok:
+            return redirect(f"{frontend_url}/creator/profile?youtube=error")
+
+        channel_data = channel_response.json()
+        items = channel_data.get("items", [])
+        if not items:
+            return redirect(f"{frontend_url}/creator/profile?youtube=no_channel")
+
+        channel = items[0]
+        snippet = channel.get("snippet", {})
+        statistics = channel.get("statistics", {})
+        channel_id = channel.get("id", "")
+        title = snippet.get("title", "")
+        custom_url = snippet.get("customUrl", "")
+        subscribers = int(statistics.get("subscriberCount") or 0)
+        videos = int(statistics.get("videoCount") or 0)
+        views = int(statistics.get("viewCount") or 0)
+        thumbnails = snippet.get("thumbnails", {})
+        thumbnail_url = (
+            thumbnails.get("high", {}).get("url")
+            or thumbnails.get("medium", {}).get("url")
+            or thumbnails.get("default", {}).get("url")
+            or ""
+        )
+
+        account, _ = CreatorSocialAccount.objects.update_or_create(
+            creator=creator,
+            platform=SocialPlatform.YOUTUBE,
+            social_id=channel_id,
+            defaults={
+                "username": custom_url or title,
+                "handle": title,
+                "url": f"https://www.youtube.com/channel/{channel_id}" if channel_id else "",
+                "followers": subscribers,
+                "media_count": videos,
+                "view_count": views,
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "expires_at": expires_at,
+                "is_connected": True,
+                "last_synced_at": timezone.now(),
+                "provider_data": {
+                    "channel_id": channel_id,
+                    "title": title,
+                    "description": snippet.get("description", ""),
+                    "custom_url": custom_url,
+                    "published_at": snippet.get("publishedAt", ""),
+                    "thumbnail_url": thumbnail_url,
+                    "subscriber_count": subscribers,
+                    "video_count": videos,
+                    "view_count": views,
+                },
+            },
+        )
+        creator.audience_size = max(creator.audience_size, subscribers)
+        creator.save(update_fields=["audience_size", "updated_at"])
+
+        return redirect(f"{frontend_url}/creator/profile?youtube=connected&account={account.account_id}")
+
 
 class BrandProfileViewSet(viewsets.ModelViewSet):
     serializer_class = BrandProfileSerializer
