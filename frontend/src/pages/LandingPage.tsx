@@ -17,9 +17,10 @@ import {
   Upload,
   UserRound,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { getCreatorsList, type CreatorProfileApi } from "../lib/authApi";
 import creator1 from "../assets/collune/creator-1.png";
 import creator2 from "../assets/collune/creator-2.png";
 import creator3 from "../assets/collune/creator-3.png";
@@ -102,28 +103,49 @@ function FloatingPhoto({
   );
 }
 
-function CreatorCard({ image, index }: { image: string; index: number; key?: string }) {
+function getCreatorHandle(creator: CreatorProfileApi) {
+  const connectedAccount = creator.social_accounts.find((account) => account.handle || account.username);
+  const rawHandle = connectedAccount?.handle || connectedAccount?.username || creator.user?.username || "";
+  return rawHandle ? `@${rawHandle.replace(/^@/, "")}` : "";
+}
+
+function getCreatorChips(creator: CreatorProfileApi) {
+  const socialChips = creator.social_accounts
+    .map((account) => account.platform || account.handle)
+    .filter(Boolean);
+  const profileChips = [...creator.collaboration_preferences, ...creator.languages].filter(Boolean);
+  return [...socialChips, ...profileChips].slice(0, 3);
+}
+
+function CreatorCard({ creator, index }: { creator: CreatorProfileApi; index: number; key?: string }) {
+  const image = creator.profile_image_url || creatorImages[index % creatorImages.length];
+  const name = creator.display_name || creator.user?.name || "Creator";
+  const handle = getCreatorHandle(creator);
+  const category = creator.category || "Creator";
+  const chips = getCreatorChips(creator);
+  const isVerified = creator.verification_status?.toLowerCase() === "verified";
+
   return (
     <article className="overflow-hidden rounded-lg border border-[#e0e7fb] bg-white text-left shadow-[0_14px_32px_rgba(41,64,132,0.09)]">
       <div className="relative aspect-[1.55] overflow-hidden">
-        <img src={image} alt="" className="h-full w-full object-cover" />
+        <img src={image} alt={name} className="h-full w-full object-cover" />
         <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-white/75 px-2 py-1 text-[9px] font-black text-[#7690ff]">
           <BadgeCheck className="h-3 w-3 fill-current" />
-          verified
+          {isVerified ? "verified" : creator.verification_status || "pending"}
         </span>
         <span className="absolute right-2.5 top-2.5 grid h-6 min-w-6 place-items-center rounded-full bg-white/85 px-1 text-xs font-black text-[#9aa6bc]">
-          {index % 3 === 1 ? "∞∞" : "i"}
+          {creator.audience_size ? `${Math.round(creator.audience_size / 1000)}k` : "i"}
         </span>
       </div>
       <div className="px-4 py-3">
-        <h3 className="inline text-lg font-black text-[#314064]">Ajeet Singh</h3>
-        <p className="ml-1 inline text-xs font-extrabold text-[#7b8aaa]">@ajeetsingh.club</p>
-        <strong className="mt-0.5 block text-xs font-black text-[#3158ca]">Business & Politics</strong>
-        <span className="block text-xs font-black text-[#8a96b1]">Worked with:</span>
+        <h3 className="inline text-lg font-black text-[#314064]">{name}</h3>
+        {handle ? <p className="ml-1 inline text-xs font-extrabold text-[#7b8aaa]">{handle}</p> : null}
+        <strong className="mt-0.5 block text-xs font-black text-[#3158ca]">{category}</strong>
+        <span className="block text-xs font-black text-[#8a96b1]">Platforms:</span>
         <div className="mt-2 grid grid-cols-3 gap-2">
-          {["Nykaa", "Idea", "Airtel"].map((brand) => (
-            <span key={brand} className="grid min-h-6 place-items-center rounded-full bg-[#eef3ff] text-[10px] font-black text-[#60749e]">
-              {brand}
+          {(chips.length ? chips : ["Creator"]).map((chip) => (
+            <span key={chip} className="grid min-h-6 place-items-center rounded-full bg-[#eef3ff] px-2 text-center text-[10px] font-black text-[#60749e]">
+              {chip}
             </span>
           ))}
         </div>
@@ -176,6 +198,30 @@ function JourneyColumn({
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const [creators, setCreators] = useState<CreatorProfileApi[]>([]);
+  const [isLoadingCreators, setIsLoadingCreators] = useState(true);
+  const [creatorError, setCreatorError] = useState("");
+  const creatorCategories = useMemo(() => {
+    const categories = creators.map((creator) => creator.category).filter(Boolean);
+    return ["All Creators", ...Array.from(new Set(categories)).slice(0, 4)];
+  }, [creators]);
+
+  useEffect(() => {
+    let isMounted = true;
+    getCreatorsList()
+      .then((data) => {
+        if (isMounted) setCreators(data);
+      })
+      .catch((error) => {
+        if (isMounted) setCreatorError(error instanceof Error ? error.message : "Could not load creators.");
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingCreators(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <main id="top" className="min-h-screen overflow-hidden bg-[#f5f7ff] font-sans text-[#17327c]">
@@ -244,16 +290,24 @@ const LandingPage = () => {
           audiences, and content styles.
         </p>
         <div className="mx-auto my-12 grid max-w-[850px] grid-cols-2 gap-1.5 rounded-[24px] border border-[#d9e2fb] bg-white p-2 md:grid-cols-5 md:rounded-full">
-          {["All Creators", "Political", "Educational", "Lorem 1", "Lorem 2"].map((tab, index) => (
+          {creatorCategories.map((tab, index) => (
             <button key={tab} className={`min-h-10 rounded-full text-[13px] font-black ${index === 0 ? "bg-[#b6a3ff] text-white" : "text-[#2450bf]"}`}>
               {tab}
             </button>
           ))}
         </div>
         <div className="mx-auto grid max-w-7xl gap-7 md:grid-cols-2 lg:grid-cols-4">
-          {creatorImages.map((image, index) => (
-            <CreatorCard key={`${image}-${index}`} image={image} index={index} />
-          ))}
+          {isLoadingCreators ? (
+            <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">Loading creators...</p>
+          ) : creatorError ? (
+            <p className="col-span-full py-8 text-sm font-black text-[#bf3f5f]">{creatorError}</p>
+          ) : creators.length ? (
+            creators.slice(0, 8).map((creator, index) => (
+              <CreatorCard key={creator.creator_id} creator={creator} index={index} />
+            ))
+          ) : (
+            <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">No creators available yet.</p>
+          )}
         </div>
         <div className="mt-10">
           <HtmlButton

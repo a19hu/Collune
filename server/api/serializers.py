@@ -248,6 +248,43 @@ class CreatorProfileSerializer(serializers.ModelSerializer):
             return ""
         return request.build_absolute_uri(obj.profile_image.url) if request else obj.profile_image.url
 
+class CreatorsProfileListSerializer(serializers.ModelSerializer):
+    user = AuthUserSerializer(read_only=True)
+    social_accounts = CreatorSocialAccountSerializer(many=True, read_only=True)
+    profile_image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CreatorProfile
+        fields = [
+            "creator_id",
+            "user",
+            "display_name",
+            "category",
+            "location",
+            "languages",
+            "collaboration_preferences",
+            "preferred_response_time",
+            "open_to_travel",
+            "bio",
+            "portfolio_url",
+            "profile_image",
+            "profile_image_url",
+            "audience_size",
+            "rate_min",
+            "rate_max",
+            "verification_status",
+            "profile_completion",
+            "social_accounts",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["creator_id", "user", "created_at", "updated_at"]
+
+    def get_profile_image_url(self, obj):
+        request = self.context.get("request")
+        if not obj.profile_image:
+            return ""
+        return request.build_absolute_uri(obj.profile_image.url) if request else obj.profile_image.url
 
 class CampaignStatusSummarySerializer(serializers.ModelSerializer):
     class Meta:

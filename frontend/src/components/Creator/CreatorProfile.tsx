@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   BadgeCheck,
   BarChart3,
@@ -92,11 +92,11 @@ function toEditForm(profile: CreatorProfileApi): EditForm {
   };
 }
 
-function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <section className={`rounded-[8px] border border-[#dce4f0] bg-white ${className}`}>{children}</section>;
 }
 
-function SectionTitle({ icon, title, right }: { icon?: React.ReactNode; title: string; right?: React.ReactNode }) {
+function SectionTitle({ icon, title, right }: { icon?: ReactNode; title: string; right?: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-2 text-[13px] font-bold text-[#65718a]">

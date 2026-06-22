@@ -51,6 +51,7 @@ from .serializers import (
     CampaignProgressSerializer,
     CampaignSerializer,
     CampaignStatusSummarySerializer,
+    CreatorsProfileListSerializer,
     CreatorProfileSerializer,
     CreatorRegisterSerializer,
     CreatorSocialAccountSerializer,
@@ -414,6 +415,19 @@ class CreatorProfileView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"creator": serializer.data})
+
+class CreatorsListView(APIView):
+    permission_classes = [AllowAny]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request):
+        creators = (
+            CreatorProfile.objects.select_related("user")
+            .prefetch_related("social_accounts")
+            .order_by("-created_at")
+        )
+        serializer = CreatorsProfileListSerializer(creators, many=True, context={"request": request})
+        return Response({"creators": serializer.data})
 
 
 class InstagramConnectView(APIView):
