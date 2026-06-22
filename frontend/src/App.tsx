@@ -64,7 +64,6 @@ const App: React.FC = () => {
                     <Route element={<RequireAuth allowedRole="Brand" />}>
                         <Route path="/brand/*" element={<SideBarLayout />}>
                             <Route index element={<BrandDashBoard />} />
-                            <Route path="verified" element={<BrandDashBoard />} />
                             <Route path="shortlists" element={<BrandShortlists />} />
                             <Route path="creators" element={<ColluneInfoPage page="discover-creators" />} />
                             <Route path="campaigns" element={<BrandCampaigns />} />

@@ -312,6 +312,7 @@ const LandingPage = () => {
         <div className="mt-10">
           <HtmlButton
             buttonName="Explore all 250+ Creators"
+            onClick={() => navigate("/discover-creators")}
             />
         </div>
       </section>

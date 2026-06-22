@@ -327,7 +327,7 @@ function ClockIcon() {
 
 const CreatorDashBoard = () => {
   const { isVerified = false } = useOutletContext<DashboardContext>();
-  return isVerified ? <VerifiedDashboard /> : <VerifiedDashboard />;
+  return isVerified ? <VerifiedDashboard /> : <UnderReviewDashboard />;
 };
 
 export default CreatorDashBoard;

@@ -108,13 +108,28 @@ export function SideBar({ isVerified = false, mode = "creator" }: { isVerified?:
       <nav className="grid gap-2 px-4">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const locked = item.lockedWhenUnverified && !isVerified;
+          const locked = !isVerified;
+
+          if (locked) {
+            return (
+              <button
+                key={item.label}
+                type="button"
+                className="flex h-[46px] cursor-not-allowed items-center gap-3 rounded-lg px-4 text-left text-[15px] font-semibold text-[#9aa3b2] opacity-70"
+                title="Available after verification"
+              >
+                <Icon className="h-5 w-5" />
+                <span className="flex-1">{item.label}</span>
+                <Building2 className="h-4 w-4 text-[#7c8798]" />
+              </button>
+            );
+          }
 
           return (
             <NavLink
               key={item.label}
               to={item.to}
-              end={item.to === "/brand"}
+              end={item.to === `/${mode}`}
               className={({ isActive }) =>
                 `flex h-[46px] items-center gap-3 rounded-lg px-4 text-[15px] font-semibold transition ${
                    isActive
@@ -125,7 +140,6 @@ export function SideBar({ isVerified = false, mode = "creator" }: { isVerified?:
             >
               <Icon className="h-5 w-5" />
               <span className="flex-1">{item.label}</span>
-              {locked ? <Building2 className="h-4 w-4 text-[#7c8798]" /> : null}
             </NavLink>
           );
         })}

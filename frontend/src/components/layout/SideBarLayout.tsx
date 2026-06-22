@@ -1,29 +1,48 @@
-import { CheckCircle, ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { getBrandMe, getCreatorProfile } from "../../lib/authApi";
+import LoadingPage from "./LoadingPage";
 import SideBar from "./SideBar";
 import type { SidebarMode } from "./SideBar";
 
 function useDashboardState() {
   const location = useLocation();
   const mode: SidebarMode = location.pathname.startsWith("/brand") ? "brand" : "creator";
-  const isVerified = location.pathname.includes("verified") || location.search.includes("verified=true");
 
-  return { mode, isVerified };
+  return { mode };
 }
 
 export const SideBarLayout = () => {
-  const { mode, isVerified } = useDashboardState();
+  const { currentUser } = useAuth();
+  const { mode } = useDashboardState();
+  const [isVerified, setIsVerified] = useState(false);
+  const [isVerificationLoading, setIsVerificationLoading] = useState(true);
   const isBrand = mode === "brand";
-  const profileName = isBrand ? "Acme Labs" : "Aakrit Gupta";
-  const profileInitial = isBrand ? "B" : "A";
-  const greeting = isVerified
-    ? isBrand
-      ? "Hello, Acme Labs. Ready to build creator partnerships?"
-      : "Hello, Aakrit. Hope you’re having a nice day!"
-    : isBrand
-      ? "Welcome, Acme Labs. Nice to have your brand onboard!"
-      : "Welcome, Aakrit. Nice to have you onboard!";
-  const statusLabel = isVerified ? (isBrand ? "Verified Brand" : "Verified Creator") : "Under Review";
+
+  useEffect(() => {
+    let mounted = true;
+    setIsVerificationLoading(true);
+
+    const loadVerificationStatus = isBrand ? getBrandMe : getCreatorProfile;
+    loadVerificationStatus()
+      .then((profile) => {
+        if (!mounted) return;
+        setIsVerified(String(profile.verification_status || "").toUpperCase() === "VERIFIED");
+      })
+      .catch(() => {
+        if (mounted) setIsVerified(false);
+      })
+      .finally(() => {
+        if (mounted) setIsVerificationLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [currentUser?.id, isBrand]);
+
+  if (isVerificationLoading) return <LoadingPage />;
 
   return (
     <div className="min-h-screen bg-white font-sans text-[#1d203a]">

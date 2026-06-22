@@ -330,6 +330,7 @@ class BrandRegisterView(APIView):
             company_size=data.get("company_size", ""),
             linkedin_url=data.get("linkedin_url", ""),
             logo=data.get("logo"),
+            verification_status=VerificationStatus.VERIFIED
         )
         return Response(
             {
