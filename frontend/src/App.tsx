@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import './index.css';
 import CreatorRegister from './pages/CreatorRegister.tsx';
@@ -21,6 +21,7 @@ import { BrandShortlists } from './components/Brand/BrandShortlists.tsx';
 import LoadingPage from './components/layout/LoadingPage.tsx';
 import type { UserAccount } from './types.ts';
 import { CreatorSetting } from './components/Creator/CreatorSetting.tsx';
+import { getBrandMe, getCreatorProfile } from './lib/authApi.ts';
 
 function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
     const { currentUser, isAuthLoading } = useAuth();
@@ -32,6 +33,40 @@ function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
     }
 
     return <Outlet />;
+}
+
+function RequireVerified({ children }: { children: React.ReactElement }) {
+    const { currentUser } = useAuth();
+    const [isVerified, setIsVerified] = useState(false);
+    const [isVerificationLoading, setIsVerificationLoading] = useState(true);
+    const isBrand = currentUser?.role === 'Brand';
+
+    useEffect(() => {
+        let mounted = true;
+        setIsVerificationLoading(true);
+
+        const loadVerificationStatus = isBrand ? getBrandMe : getCreatorProfile;
+        loadVerificationStatus()
+            .then((profile) => {
+                if (!mounted) return;
+                setIsVerified(String(profile.verification_status || "").toUpperCase() === "VERIFIED");
+            })
+            .catch(() => {
+                if (mounted) setIsVerified(false);
+            })
+            .finally(() => {
+                if (mounted) setIsVerificationLoading(false);
+            });
+
+        return () => {
+            mounted = false;
+        };
+    }, [currentUser?.id, isBrand]);
+
+    if (isVerificationLoading) return <LoadingPage />;
+    if (!isVerified) return <Navigate to={isBrand ? "/brand" : "/creator"} replace />;
+
+    return children;
 }
 
 const App: React.FC = () => {
@@ -55,9 +90,8 @@ const App: React.FC = () => {
                     <Route element={<RequireAuth allowedRole="Creator" />}>
                         <Route path="/creator/*" element={<SideBarLayout />}>
                             <Route index element={<CreatorDashBoard />} />
-                            <Route path="verified" element={<CreatorDashBoard />} />
                             <Route path="profile" element={<CreatorProfile />} />
-                            <Route path="marketplace" element={<CreatorCampaignMarketplace />} />
+                            <Route path="marketplace" element={<RequireVerified><CreatorCampaignMarketplace /></RequireVerified>} />
                             <Route path="settings" element={<CreatorSetting />} />
                         </Route>
                     </Route>

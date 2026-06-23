@@ -457,13 +457,17 @@ class InstagramConnectView(APIView):
             },
             salt="instagram-oauth",
         )
-        params = {
+        try:
+
+            params = {
             "client_id": settings.INSTAGRAM_CLIENT_ID,
             "redirect_uri": settings.INSTAGRAM_REDIRECT_URI,
             "scope": settings.INSTAGRAM_OAUTH_SCOPES,
             "response_type": "code",
-        }
-        return Response({"auth_url": f"{INSTAGRAM_AUTH_URL}?{urlencode(params)}"})
+            }
+            return Response({"auth_url": f"{INSTAGRAM_AUTH_URL}?{urlencode(params)}"})
+        except :
+            return Response("reeor")
 
 
 class InstagramCallbackView(APIView):

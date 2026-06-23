@@ -1,0 +1,7 @@
+gcloud run services update cl \
+    --region asia-south1 \
+    --image asia-south1-docker.pkg.dev/schoolmate-498917/colune/cl:v7 \
+    --port 8080 \
+    --add-cloudsql-instances schoolmate-498917:asia-south1:schoolmate \
+    --command /bin/sh \
+    --args="-c,python manage.py migrate --noinput && gunicorn server.wsgi:application --bind 0.0.0.0:\$PORT"

@@ -108,7 +108,7 @@ export function SideBar({ isVerified = false, mode = "creator" }: { isVerified?:
       <nav className="grid gap-2 px-4">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const locked = !isVerified;
+          const locked = !isVerified && item.lockedWhenUnverified;
 
           if (locked) {
             return (
