@@ -14,7 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 
 type DashboardContext = { isVerified?: boolean };
 
@@ -215,6 +215,8 @@ function CampaignCard({ campaign, index }: { campaign: (typeof campaigns)[number
 }
 
 function VerifiedDashboard() {
+  const navigate = useNavigate();
+
   return (
     <div className="grid gap-8">
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -224,9 +226,9 @@ function VerifiedDashboard() {
       <section>
         <div className="mb-7 flex items-center justify-between">
           <h2 className="text-[26px] font-black text-[#1d203a]">Campaign Marketplace</h2>
-          <a href="/creator-dashboard/marketplace" className="inline-flex items-center gap-2 text-sm font-black text-[#1f22ff]">
+          <button type="button" onClick={() => navigate("/creator/marketplace")} className="inline-flex items-center gap-2 text-sm font-black text-[#1f22ff]">
             View all campaigns <ArrowRight className="h-4 w-4" />
-          </a>
+          </button>
         </div>
         <div className="grid gap-6 xl:grid-cols-3">
           {campaigns.map((campaign, index) => <CampaignCard key={campaign.title} campaign={campaign} index={index} />)}

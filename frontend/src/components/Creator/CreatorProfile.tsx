@@ -557,7 +557,18 @@ export function CreatorProfile() {
         ) : null}
 
         <Panel className="p-5">
-          <SectionTitle title="Portfolio" right={profile.portfolio_url ? <a href={profile.portfolio_url} className="text-[12px] font-black text-[#1438c8]">Open portfolio</a> : null} />
+          <SectionTitle
+            title="Portfolio"
+            right={profile.portfolio_url ? (
+              <button
+                type="button"
+                onClick={() => window.open(profile.portfolio_url, "_blank", "noopener,noreferrer")}
+                className="text-[12px] font-black text-[#1438c8]"
+              >
+                Open portfolio
+              </button>
+            ) : null}
+          />
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {fallbackPortfolio.map((src, index) => (
               <div key={src} className="relative aspect-[1.18] overflow-hidden rounded-[6px] bg-[#dfe7f2]">

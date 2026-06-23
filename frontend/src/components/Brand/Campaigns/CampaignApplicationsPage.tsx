@@ -65,11 +65,13 @@ function ApplicationProfileCard({
   application,
   index,
   onAddToShortlist,
+  onOpenProfile,
 }: {
   key?: string;
   application: CampaignApplicationApi;
   index: number;
   onAddToShortlist: (creator: CreatorProfileApi) => void;
+  onOpenProfile: (creatorId: string) => void;
 }) {
   const creator = application.creator_detail;
   const platform = getPrimaryPlatform(creator);
@@ -113,21 +115,21 @@ function ApplicationProfileCard({
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
             {creator?.portfolio_url ? (
-              <a
-                href={creator.portfolio_url}
-                target="_blank"
-                rel="noreferrer"
+              <button
+                type="button"
+                onClick={() => window.open(creator.portfolio_url, "_blank", "noopener,noreferrer")}
                 className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#4b22ff] px-4 text-sm font-black text-white"
               >
                 Portfolio <ExternalLink className="h-4 w-4" />
-              </a>
+              </button>
             ) : null}
-            <a
-              href={`/creators/${creator?.creator_id || application.creator}`}
+            <button
+              type="button"
+              onClick={() => onOpenProfile(creator?.creator_id || application.creator)}
               className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-4 text-sm font-black text-[#303948]"
             >
               View Profile <ExternalLink className="h-4 w-4" />
-            </a>
+            </button>
             {creator ? (
               <button
                 type="button"
@@ -245,6 +247,7 @@ export function CampaignApplicationsPage() {
               application={application}
               index={index}
               onAddToShortlist={setSelectedCreator}
+              onOpenProfile={(creatorId) => navigate(`/creators/${creatorId}`)}
             />
           ))}
         </div>

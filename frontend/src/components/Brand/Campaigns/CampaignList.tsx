@@ -257,7 +257,7 @@ export function CampaignList({ onCreate, onSelect }: { onCreate: () => void; onS
 
       <p className="mt-8 text-center text-sm font-medium text-[#63728a]">
         Campaigns help you attract the right creators and build meaningful collaborations.{" "}
-        <a href="#" className="font-black text-[#2f16ff]">Learn how campaigns work</a>
+        <button type="button" className="font-black text-[#2f16ff]">Learn how campaigns work</button>
       </p>
     </div>
   );

@@ -156,7 +156,7 @@ function BrandRegisterSteps({
           />
         </div>
         <div className="mt-7 grid gap-5">
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Company Name" icon={<Building2 className="h-5 w-5" />} value={form.company_name} onChange={onFieldChange("company_name")} placeholder="Acme Labs" required />
+          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Company Name" icon={<Building2 className="h-5 w-5" />} value={form.company_name} onChange={onFieldChange("company_name")} placeholder="Your company name" required />
           <BrandSelect labelClass={labelClass} inputClass={inputClass} label="Industry" icon={<BriefcaseBusiness className="h-5 w-5" />} placeholder="Select industry" value={form.industry} onChange={onFieldChange("industry")} required>
             {industryOptions.map((industry) => <option key={industry}>{industry}</option>)}
           </BrandSelect>

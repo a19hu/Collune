@@ -115,12 +115,12 @@ function ReviewCard({ form }: { form: CampaignFormState }) {
         <h3 className="text-sm font-black text-[#475166]">Campaign Summary</h3>
         <dl className="mt-5 grid gap-4 text-sm">
           {[
-            ["Campaign Name", form.title || "Summer Collection Launch"],
-            ["Objective", form.objective || "Launch our new summer collection and drive sales for our new summer range."],
-            ["Timeline", form.start_date && form.end_date ? `${form.start_date} - ${form.end_date}` : "Jun 20, 2025 - Jul 20, 2025"],
-            ["Platforms", form.platforms.join(", ") || "Instagram, YouTube"],
-            ["Budget Range", form.budget_range || "$10K - $50K"],
-            ["Compensation Type", form.compensation_type || "Per Deliverable"],
+            ["Campaign Name", form.title || "Not set"],
+            ["Objective", form.objective || "Not set"],
+            ["Timeline", form.start_date && form.end_date ? `${form.start_date} - ${form.end_date}` : "Not set"],
+            ["Platforms", form.platforms.join(", ") || "Not set"],
+            ["Budget Range", form.budget_range || "Not set"],
+            ["Compensation Type", form.compensation_type || "Not set"],
           ].map(([label, value]) => (
             <div key={label}>
               <dt className="font-semibold text-[#8a98ad]">{label}</dt>
@@ -226,7 +226,7 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
     >
       <CampaignSection index={1} title="Campaign Title" copy="Give your campaign a clear name and internal reference.">
         <div className="grid gap-5 md:grid-cols-2">
-          <TextInput label="Campaign Name" required placeholder="e.g. Summer Collection Launch" value={form.title} onChange={onFieldChange("title")} />
+          <TextInput label="Campaign Name" required placeholder="Enter campaign name" value={form.title} onChange={onFieldChange("title")} />
           <TextInput label="Internal Reference Name (Optional)" placeholder="e.g. SummerCampaign_June2025" value={form.internal_reference_name} onChange={onFieldChange("internal_reference_name")} />
         </div>
       </CampaignSection>

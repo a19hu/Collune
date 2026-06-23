@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Check, Edit3, Instagram, MoreVertical, Plus, Send, Youtube, type LucideIcon } from "lucide-react";
+import { Instagram, MoreVertical, Plus, Youtube, type LucideIcon } from "lucide-react";
 
 import type { ShortlistCreator, ShortlistItem, ShortlistStatus } from "./shortlistData";
 
@@ -185,9 +185,3 @@ export function ActivityRow({ icon: Icon, color, title, time }: { key?: string; 
     </div>
   );
 }
-
-export const activityItems = [
-  { icon: Send, color: "bg-[#ebe5ff] text-[#4b22ff]", title: "You added 3 creators to this shortlist", time: "Today, 10:30 AM" },
-  { icon: Edit3, color: "bg-[#fff0dd] text-[#e67600]", title: "You updated the purpose", time: "Today, 10:15 AM" },
-  { icon: Check, color: "bg-[#dbeafe] text-[#2f6df6]", title: "Shortlist created", time: "Jun 12, 2025, 02:45 PM" },
-];

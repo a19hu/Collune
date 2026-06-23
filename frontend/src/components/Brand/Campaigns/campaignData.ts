@@ -22,9 +22,25 @@ export type CampaignCardItem = {
   updatedRank: number;
   budget: string;
   objective: string;
+  deliverables: string;
+  requirements: string;
+  compensationType: string;
+  audienceType: string;
+  languagePreference: string;
+  contentStyle: string;
+  additionalPreferences: string;
   timeline: string;
   platforms: string[];
   category: string;
+  createdAtRaw: string;
+  updatedAtRaw: string;
+  deadline?: string;
+  progressSteps?: Array<{
+    title: string;
+    status: "COMPLETED" | "IN_PROGRESS" | "UPCOMING";
+    displayDate: string;
+    sortOrder: number;
+  }>;
   icon: LucideIcon;
   iconClassName: string;
 };
@@ -99,9 +115,25 @@ export function mapCampaignApiToCard(campaign: CampaignApi): CampaignCardItem {
     updatedRank: getUpdatedRank(campaign.updated_at),
     budget: campaign.budget_range || (Number(campaign.total_budget) ? `$${Number(campaign.total_budget).toLocaleString()}` : "Budget not set"),
     objective: campaign.objective || campaign.brief || "Campaign objective not set.",
+    deliverables: campaign.deliverables || "Deliverables not set.",
+    requirements: campaign.brand_requirements || campaign.additional_preferences || "Requirements not set.",
+    compensationType: campaign.compensation_type || "Compensation not set",
+    audienceType: campaign.audience_type || "Audience not set",
+    languagePreference: campaign.language_preference || "Language not set",
+    contentStyle: campaign.content_style || "Content style not set",
+    additionalPreferences: campaign.additional_preferences || "",
     timeline: getTimeline(campaign),
     platforms: campaign.platforms || [],
     category: campaign.category || "General",
+    createdAtRaw: campaign.created_at,
+    updatedAtRaw: campaign.updated_at,
+    deadline: campaign.deadline || campaign.end_date,
+    progressSteps: (campaign.progress_steps || []).map((step) => ({
+      title: step.title,
+      status: step.status,
+      displayDate: step.display_date,
+      sortOrder: step.sort_order,
+    })),
     icon: icon.icon,
     iconClassName: icon.className,
   };

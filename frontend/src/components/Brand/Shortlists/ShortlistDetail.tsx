@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ArrowLeft, ArrowUpDown, MoreVertical, Plus, Search, Send } from "lucide-react";
+import { ArrowLeft, ArrowUpDown, Check, Edit3, MoreVertical, Plus, Search, Send } from "lucide-react";
 
 import {
   ActivityRow,
@@ -10,7 +10,6 @@ import {
   PrimaryButton,
   ShortlistPanel,
   StatusBadge,
-  activityItems,
 } from "./ShortlistUi";
 import type { ShortlistItem } from "./shortlistData";
 
@@ -52,6 +51,28 @@ export function ShortlistDetail({
   const visibleCreators = shortlist.creators
     .filter((creator) => `${creator.name} ${creator.category}`.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => isOrderReversed ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name));
+  const activityItems = [
+    {
+      icon: Check,
+      color: "bg-[#dbeafe] text-[#2f6df6]",
+      title: "Shortlist created",
+      time: shortlist.createdAt,
+    },
+    {
+      icon: Edit3,
+      color: "bg-[#fff0dd] text-[#e67600]",
+      title: "Shortlist updated",
+      time: shortlist.updatedAt,
+    },
+    ...(shortlist.status === "Submitted"
+      ? [{
+        icon: Send,
+        color: "bg-[#ccf8e0] text-[#009b67]",
+        title: "You submitted this shortlist to Collune",
+        time: shortlist.updatedAt,
+      }]
+      : []),
+  ];
 
   return (
     <div className="grid gap-8">
@@ -174,9 +195,6 @@ export function ShortlistDetail({
         <h2 className="text-[26px] font-black tracking-normal text-[#333b4a]">Activity</h2>
         <div className="mt-7 grid gap-5">
           {activityItems.map((item) => <ActivityRow key={item.title} {...item} />)}
-          {shortlist.status === "Submitted" ? (
-            <ActivityRow icon={Send} color="bg-[#ccf8e0] text-[#009b67]" title="You submitted this shortlist to Collune" time="Just now" />
-          ) : null}
         </div>
       </section>
     </div>

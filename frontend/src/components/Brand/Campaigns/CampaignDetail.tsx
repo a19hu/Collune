@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BarChart3,
-  BriefcaseBusiness,
   CalendarDays,
   Check,
   CheckCircle2,
@@ -12,15 +11,12 @@ import {
   Edit3,
   Eye,
   FileText,
-  GraduationCap,
   Linkedin,
   Megaphone,
   MoreHorizontal,
-  PiggyBank,
   Play,
   Star,
   Target,
-  TrendingUp,
   Users,
   WalletCards,
   type LucideIcon,
@@ -50,30 +46,6 @@ const platformStyles: Record<string, string> = {
 };
 
 const creatorFallbackImages = [creatorOne, creatorTwo, creatorThree];
-
-const categories = [
-  ["Business", BriefcaseBusiness, "violet"],
-  ["Finance", PiggyBank, "orange"],
-  ["Education", GraduationCap, "blue"],
-  ["Investing", TrendingUp, "violet"],
-  ["Fintech", WalletCards, "blue"],
-  ["Personal Finance", DollarSign, "green"],
-  ["LinkedIn Creators", Linkedin, "blue"],
-] as const;
-
-const progressSteps = [
-  ["Campaign Published", "Jun 12, 2025", Check, "green"],
-  ["Applications Open", "Jun 12, 2025", FileText, "violet"],
-  ["Review In Progress", "In Progress", BarChart3, "muted"],
-  ["Creators Recommended", "In Progress", Star, "muted"],
-  ["Collaborations Started", "Upcoming", Users, "muted"],
-] as const;
-
-const activityFeed = [
-  ["12 new creator applications received", "Today, 10:30 AM", Users, "violet"],
-  ["3 creators recommended by Collune", "Today, 9:15 AM", Star, "orange"],
-  ["Campaign details updated", "Yesterday, 4:45 PM", Edit3, "green"],
-] as const;
 
 function StatusBadge({ status }: { status: CampaignCardItem["status"] }) {
   return (
@@ -158,6 +130,24 @@ function formatFollowers(value?: number) {
   if (value >= 1000000) return `${(value / 1000000).toFixed(value % 1000000 === 0 ? 0 : 1)}M`;
   if (value >= 1000) return `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}K`;
   return String(value);
+}
+
+function formatDateTime(value?: string) {
+  if (!value) return "Not set";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Not set";
+  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(date);
+}
+
+function getDaysUntil(value?: string) {
+  if (!value) return "Not set";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Not set";
+  const days = Math.ceil((date.getTime() - Date.now()) / 86400000);
+  if (days < 0) return "Closed";
+  if (days === 0) return "Today";
+  if (days === 1) return "1 day";
+  return `${days} days`;
 }
 
 function normalizePlatform(value?: string) {
@@ -288,6 +278,41 @@ export function CampaignDetail({ campaign }: { campaign: CampaignCardItem; onBac
     () => campaignApplications.filter((application) => application.status === "ACCEPTED").map(mapApplicationToCreator),
     [campaignApplications],
   );
+  const collaborationCount = campaignApplications.filter((application) => application.status === "ACCEPTED").length;
+  const dynamicProgressSteps = useMemo(
+    () => (campaign.progressSteps || [])
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((step) => ({
+        title: step.title,
+        detail: step.displayDate || step.status.replaceAll("_", " ").toLowerCase(),
+        icon: step.status === "COMPLETED" ? Check : step.status === "IN_PROGRESS" ? BarChart3 : Clock3,
+        accent: step.status === "COMPLETED" ? "green" : step.status === "IN_PROGRESS" ? "violet" : "muted",
+      })),
+    [campaign.progressSteps],
+  );
+  const activityItems = useMemo(
+    () => [
+      ...campaignApplications.slice(0, 3).map((application) => ({
+        title: `${application.creator_detail?.display_name || "Creator"} applied to this campaign`,
+        time: formatDateTime(application.created_at),
+        icon: Users,
+        accent: "violet" as Accent,
+      })),
+      {
+        title: "Campaign details updated",
+        time: formatDateTime(campaign.updatedAtRaw),
+        icon: Edit3,
+        accent: "green" as Accent,
+      },
+    ],
+    [campaignApplications, campaign.updatedAtRaw],
+  );
+  const matchingFocus = [
+    { label: campaign.category, icon: Target, accent: "violet" as Accent },
+    { label: campaign.audienceType, icon: Users, accent: "blue" as Accent },
+    { label: campaign.contentStyle, icon: FileText, accent: "green" as Accent },
+    { label: campaign.languagePreference, icon: Linkedin, accent: "orange" as Accent },
+  ].filter((item) => item.label && !["General", "Audience not set", "Content style not set", "Language not set"].includes(item.label));
 
   useEffect(() => {
     let mounted = true;
@@ -314,17 +339,17 @@ export function CampaignDetail({ campaign }: { campaign: CampaignCardItem; onBac
     {
       label: "Objective",
       icon: <Target className="h-5 w-5" />,
-      value: "Increase financial literacy awareness and drive engagement among young professionals and students.",
+      value: campaign.objective,
     },
     {
       label: "Deliverables",
       icon: <FileText className="h-5 w-5" />,
-      value: "1 Instagram Reel, 1 LinkedIn Post, 1 YouTube Short",
+      value: campaign.deliverables,
     },
     {
       label: "Timeline",
       icon: <CalendarDays className="h-5 w-5" />,
-      value: "Jun 20, 2025 - Jul 20, 2025 (30 days)",
+      value: campaign.timeline,
     },
     {
       label: "Platforms",
@@ -334,22 +359,22 @@ export function CampaignDetail({ campaign }: { campaign: CampaignCardItem; onBac
     {
       label: "Budget Range",
       icon: <WalletCards className="h-5 w-5" />,
-      value: "$10K - $50K",
+      value: campaign.budget,
     },
     {
       label: "Creator Compensation",
       icon: <DollarSign className="h-5 w-5" />,
-      value: "Per Deliverable",
+      value: campaign.compensationType,
     },
     {
       label: "Target Audience",
       icon: <Users className="h-5 w-5" />,
-      value: "Young professionals, Students, Finance enthusiasts",
+      value: campaign.audienceType,
     },
     {
       label: "Key Requirements",
       icon: <CheckCircle2 className="h-5 w-5" />,
-      value: "Authentic content, Strong engagement rates, Experience in finance or education niche",
+      value: campaign.requirements,
     },
   ];
 
@@ -366,11 +391,11 @@ export function CampaignDetail({ campaign }: { campaign: CampaignCardItem; onBac
               <StatusBadge status={campaign.status} />
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold text-[#7d8aa0]">
-              <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-4 w-4" />Created on Jun 12, 2025</span>
+              <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-4 w-4" />Created on {formatDateTime(campaign.createdAtRaw)}</span>
               <span>•</span>
-              <span className="inline-flex items-center gap-1.5"><Clock3 className="h-4 w-4" />Last updated today</span>
+              <span className="inline-flex items-center gap-1.5"><Clock3 className="h-4 w-4" />{campaign.updatedAt}</span>
               <span>•</span>
-              <span>Campaign ID: CAM-2025-012</span>
+              <span>Campaign ID: {campaign.id}</span>
             </div>
           </div>
         </div>
@@ -431,21 +456,24 @@ export function CampaignDetail({ campaign }: { campaign: CampaignCardItem; onBac
 
           <CampaignPanel className="p-7">
             <SectionTitle title="Campaign Progress" copy="See where your campaign stands in the overall process." />
-            <div className="flex flex-wrap justify-between gap-5">
-              {progressSteps.map(([title, detail, Icon, accent]) => (
-                <ProgressStep key={title} title={title} detail={detail} icon={Icon} accent={accent} />
-              ))}
-            </div>
+            {dynamicProgressSteps.length ? (
+              <div className="flex flex-wrap justify-between gap-5">
+                {dynamicProgressSteps.map(({ title, detail, icon, accent }) => (
+                  <ProgressStep key={title} title={title} detail={detail} icon={icon} accent={accent} />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm font-medium text-[#7d8aa0]">No progress steps have been added for this campaign.</p>
+            )}
           </CampaignPanel>
 
           <CampaignPanel className="p-7">
             <SectionTitle title="Activity Feed" copy="Latest updates and activity on your campaign." />
             <div className="grid gap-5">
-              {activityFeed.map(([title, time, Icon, accent]) => (
-                <ActivityItem key={title} title={title} time={time} icon={Icon} accent={accent} />
+              {activityItems.map(({ title, time, icon, accent }) => (
+                <ActivityItem key={`${title}-${time}`} title={title} time={time} icon={icon} accent={accent} />
               ))}
             </div>
-            <button type="button" className="mt-7 text-sm font-black text-[#4b22ff]">View all activity -&gt;</button>
           </CampaignPanel>
         </div>
 
@@ -462,13 +490,13 @@ export function CampaignDetail({ campaign }: { campaign: CampaignCardItem; onBac
             <div className="grid gap-4">
               <StatusMetric label="Applications Received" value={campaign.applications} copy={`${campaign.applications} applications from creators`} icon={<Users className="h-5 w-5" />} accent="violet" />
               <StatusMetric label="Recommended Creators" value={campaign.recommended} copy="Shortlisted by Collune" icon={<Star className="h-5 w-5" />} accent="orange" />
-              <StatusMetric label="Collaborations Started" value={2} copy="Deals in progress" icon={<Users className="h-5 w-5" />} accent="green" />
+              <StatusMetric label="Collaborations Started" value={collaborationCount} copy="Accepted creators" icon={<Users className="h-5 w-5" />} accent="green" />
             </div>
 
             <div className="mt-7 grid gap-4">
-              <MetaRow icon={<CalendarDays className="h-4 w-4" />} label="Campaign Created" value="Jun 12, 2025" />
-              <MetaRow icon={<Clock3 className="h-4 w-4" />} label="Last Updated" value="Today" />
-              <MetaRow icon={<CalendarDays className="h-4 w-4" />} label="Applications Close In" value="8 days" />
+              <MetaRow icon={<CalendarDays className="h-4 w-4" />} label="Campaign Created" value={formatDateTime(campaign.createdAtRaw)} />
+              <MetaRow icon={<Clock3 className="h-4 w-4" />} label="Last Updated" value={campaign.updatedAt} />
+              <MetaRow icon={<CalendarDays className="h-4 w-4" />} label="Applications Close In" value={getDaysUntil(campaign.deadline)} />
             </div>
 
             <button
@@ -478,15 +506,6 @@ export function CampaignDetail({ campaign }: { campaign: CampaignCardItem; onBac
             >
               View Applications ({applicationCount})
             </button>
-          </CampaignPanel>
-
-          <CampaignPanel className="p-7">
-            <SectionTitle title="Creator Categories Being Matched" copy="Categories that Collune is focusing on for this campaign." />
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
-              {categories.map(([label, Icon, accent]) => (
-                <CategoryPill key={label} label={label} icon={Icon} accent={accent} />
-              ))}
-            </div>
           </CampaignPanel>
 
           <section className="rounded-xl bg-[#eee8ff] p-7">

@@ -15,55 +15,55 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Authenticate to GCP
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      # - name: Authenticate to GCP
+      #   uses: google-github-actions/auth@v2
+      #   with:
+      #     credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-      - name: Set up gcloud CLI
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      # - name: Set up gcloud CLI
+      #   uses: google-github-actions/setup-gcloud@v2
+      #   with:
+      #     project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Configure Docker for Artifact Registry
-        run: |
-          gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev --quiet
+      # - name: Configure Docker for Artifact Registry
+      #   run: |
+      #     gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev --quiet
 
-      - name: Build Docker image
-        run: |
-          SHORT_SHA="${GITHUB_SHA::8}"
-          docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cimmcobackend/mines-backend:${SHORT_SHA} .
+      # - name: Build Docker image
+      #   run: |
+      #     SHORT_SHA="${GITHUB_SHA::8}"
+      #     docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cimmcobackend/mines-backend:${SHORT_SHA} .
 
-      - name: Push Docker image
-        run: |
-          SHORT_SHA="${GITHUB_SHA::8}"
-          docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cimmcobackend/mines-backend:${SHORT_SHA}
+      # - name: Push Docker image
+      #   run: |
+      #     SHORT_SHA="${GITHUB_SHA::8}"
+      #     docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cimmcobackend/mines-backend:${SHORT_SHA}
 
-      - name: Terraform Init
-        working-directory: terraform
-        run: |
-          terraform init
+      # - name: Terraform Init
+      #   working-directory: terraform
+      #   run: |
+      #     terraform init
 
-      - name: Terraform Import Existing Private IP Range (one-time)
-        working-directory: terraform
-        run: |
-          if ! terraform state show google_compute_global_address.private_ip_alloc >/dev/null 2>&1; then
-            terraform import \
-              google_compute_global_address.private_ip_alloc \
-              "projects/${{ secrets.GCP_PROJECT_ID }}/global/addresses/postgresql-18-private-ip-alloc" || true
-          fi
+      # - name: Terraform Import Existing Private IP Range (one-time)
+      #   working-directory: terraform
+      #   run: |
+      #     if ! terraform state show google_compute_global_address.private_ip_alloc >/dev/null 2>&1; then
+      #       terraform import \
+      #         google_compute_global_address.private_ip_alloc \
+      #         "projects/${{ secrets.GCP_PROJECT_ID }}/global/addresses/postgresql-18-private-ip-alloc" || true
+      #     fi
 
-      - name: Terraform Apply
-        working-directory: terraform
-        run: |
-          SHORT_SHA="${GITHUB_SHA::8}"
-          terraform apply -auto-approve \
-            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
-            -var="region=${{ secrets.GCP_REGION }}" \
-            -var="image_tag=${SHORT_SHA}" \
-            -var="db_password=${{ secrets.DB_PASSWORD }}" \
-            -var="bucket_name=${{ secrets.BUCKET_NAME }}" \
-            -var="gemini_api_key=${{ secrets.GEMINI_API_KEY }}"
+      # - name: Terraform Apply
+      #   working-directory: terraform
+      #   run: |
+      #     SHORT_SHA="${GITHUB_SHA::8}"
+      #     terraform apply -auto-approve \
+      #       -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
+      #       -var="region=${{ secrets.GCP_REGION }}" \
+      #       -var="image_tag=${SHORT_SHA}" \
+      #       -var="db_password=${{ secrets.DB_PASSWORD }}" \
+      #       -var="bucket_name=${{ secrets.BUCKET_NAME }}" \
+      #       -var="gemini_api_key=${{ secrets.GEMINI_API_KEY }}"

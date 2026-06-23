@@ -1,13 +1,9 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ArrowRight,
-  BriefcaseBusiness,
-  FileText,
   Flag,
-  Handshake,
   MoreVertical,
   Plus,
-  Rocket,
   Star,
   Users,
   type LucideIcon,
@@ -73,6 +69,7 @@ function HeaderButton({ children, onClick, variant = "solid" }: { children: Reac
 
 function MetricCard({ metric }: { key?: string; metric: Metric }) {
   const Icon = metric.icon;
+  const navigate = useNavigate();
 
   return (
     <Panel className="min-h-[224px] p-7">
@@ -81,18 +78,20 @@ function MetricCard({ metric }: { key?: string; metric: Metric }) {
       </span>
       <p className="mt-6 text-base font-medium text-[#657084]">{metric.label}</p>
       <strong className="mt-3 block text-[46px] font-black leading-none text-black">{metric.value}</strong>
-      <a href={metric.link} className="mt-6 inline-flex items-center gap-2 text-base font-black text-[#7b83ff]">
+      <button type="button" onClick={() => navigate(metric.link)} className="mt-6 inline-flex items-center gap-2 text-base font-black text-[#7b83ff]">
         View all {metric.label.toLowerCase().replace(" active", "s")} <ArrowRight className="h-4 w-4" />
-      </a>
+      </button>
     </Panel>
   );
 }
 
-function SectionHeader({ title, href }: { title: string; href: string }) {
+function SectionHeader({ title, path }: { title: string; path: string }) {
+  const navigate = useNavigate();
+
   return (
     <div className="mb-7 flex items-center justify-between gap-4">
       <h2 className="text-[26px] font-black tracking-normal text-black">{title}</h2>
-      <a href={href} className="text-base font-black text-[#7b83ff]">View all</a>
+      <button type="button" onClick={() => navigate(path)} className="text-base font-black text-[#7b83ff]">View all</button>
     </div>
   );
 }
@@ -204,60 +203,9 @@ function getDashboardCampaigns(campaigns: CampaignCardItem[]) {
     .slice(0, 3);
 }
 
-const fallbackCampaigns: CampaignCardItem[] = [
-  {
-    id: "financial-literacy",
-    title: "Financial Literacy Campaign",
-    status: "Active",
-    applications: 23,
-    recommended: 12,
-    updatedAt: "Updated today",
-    updatedRank: 1,
-    budget: "$10K - $50K",
-    objective: "Increase financial literacy awareness.",
-    timeline: "Jun 20, 2025 - Jul 20, 2025",
-    platforms: ["Instagram", "YouTube"],
-    category: "Finance",
-    icon: Flag,
-    iconClassName: "bg-[#ebe5ff] text-[#6a75ff]",
-  },
-  {
-    id: "product-launch",
-    title: "Product Launch Campaign",
-    status: "Active",
-    applications: 18,
-    recommended: 7,
-    updatedAt: "Updated today",
-    updatedRank: 2,
-    budget: "$10K - $30K",
-    objective: "Launch a new product with creators.",
-    timeline: "Jul 1, 2025 - Aug 1, 2025",
-    platforms: ["Instagram"],
-    category: "Launch",
-    icon: Rocket,
-    iconClassName: "bg-[#ffe1e5] text-[#ef4444]",
-  },
-  {
-    id: "brand-awareness",
-    title: "Brand Awareness Campaign",
-    status: "Active",
-    applications: 15,
-    recommended: 6,
-    updatedAt: "Updated today",
-    updatedRank: 3,
-    budget: "$15K - $35K",
-    objective: "Grow brand awareness.",
-    timeline: "Jul 10, 2025 - Aug 20, 2025",
-    platforms: ["LinkedIn"],
-    category: "Brand",
-    icon: BriefcaseBusiness,
-    iconClassName: "bg-[#fff0bc] text-[#d78a00]",
-  },
-];
-
 const BrandDashBoard = () => {
   const navigate = useNavigate();
-  const [brandName, setBrandName] = useState("Acme Labs");
+  const [brandName, setBrandName] = useState("Brand");
   const [campaigns, setCampaigns] = useState<CampaignCardItem[]>([]);
   const [shortlists, setShortlists] = useState<ShortlistItem[]>([]);
 
@@ -266,7 +214,7 @@ const BrandDashBoard = () => {
 
     getBrandMe()
       .then((brand) => {
-        if (mounted) setBrandName(brand.company_name || "Acme Labs");
+        if (mounted) setBrandName(brand.company_name || "Brand");
       })
       .catch(() => undefined);
 
@@ -292,8 +240,7 @@ const BrandDashBoard = () => {
   }, []);
 
   const visibleCampaigns = useMemo(() => {
-    const activeCampaigns = getDashboardCampaigns(campaigns);
-    return activeCampaigns.length ? activeCampaigns : fallbackCampaigns;
+    return getDashboardCampaigns(campaigns);
   }, [campaigns]);
 
   const submittedShortlists = useMemo(
@@ -332,11 +279,21 @@ const BrandDashBoard = () => {
       </div>
 
       <section className="mt-12">
-        <SectionHeader title="Active Campaigns" href="/brand/campaigns" />
+        <SectionHeader title="Active Campaigns" path="/brand/campaigns" />
         <div className="grid gap-6 xl:grid-cols-4">
           {visibleCampaigns.map((campaign, index) => (
             <CampaignDashboardCard key={campaign.id} campaign={campaign} index={index} onOpen={() => navigate("/brand/campaigns")} />
           ))}
+          {!visibleCampaigns.length ? (
+            <Panel className="grid min-h-[294px] place-items-center p-8 text-center xl:col-span-3">
+              <div>
+                <h3 className="text-[21px] font-black text-black">No active campaigns</h3>
+                <p className="mx-auto mt-3 max-w-[320px] text-base font-medium leading-snug text-[#657084]">
+                  Active campaigns from your backend will appear here after you publish one.
+                </p>
+              </div>
+            </Panel>
+          ) : null}
           <CreateCard
             title="Create New Campaign"
             copy="Launch a campaign and find the right creators."
@@ -347,11 +304,21 @@ const BrandDashBoard = () => {
       </section>
 
       <section className="mt-12">
-        <SectionHeader title="Submitted Shortlists" href="/brand/shortlists" />
+        <SectionHeader title="Submitted Shortlists" path="/brand/shortlists" />
         <div className="grid gap-6 xl:grid-cols-4">
           {submittedShortlists.map((shortlist, index) => (
             <ShortlistDashboardCard key={shortlist.id} shortlist={shortlist} index={index} onOpen={() => navigate("/brand/shortlists")} />
           ))}
+          {!submittedShortlists.length ? (
+            <Panel className="grid min-h-[244px] place-items-center p-8 text-center xl:col-span-3">
+              <div>
+                <h3 className="text-[21px] font-black text-black">No submitted shortlists</h3>
+                <p className="mx-auto mt-3 max-w-[320px] text-base font-medium leading-snug text-[#657084]">
+                  Submitted shortlists from your backend will appear here.
+                </p>
+              </div>
+            </Panel>
+          ) : null}
           <CreateCard
             title="Build a Shortlist"
             copy="Discover creators and build your custom shortlist."
