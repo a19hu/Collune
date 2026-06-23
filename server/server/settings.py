@@ -222,3 +222,14 @@ YOUTUBE_OAUTH_SCOPES = env(
     "YOUTUBE_OAUTH_SCOPES",
     default="openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly",
 )
+
+X_CLIENT_ID = env("X_CLIENT_ID", default=env("X_CONSUMER_KEY", default=""))
+X_CLIENT_SECRET = env("X_CLIENT_SECRET", default=env("X_SECRET_KEY", default=""))
+X_REDIRECT_URI = env(
+    "X_REDIRECT_URI",
+    default="http://localhost:8000/api/v1/auth/x/callback/",
+)
+X_OAUTH_SCOPES = env(
+    "X_OAUTH_SCOPES",
+    default="tweet.read users.read follows.read offline.access",
+)

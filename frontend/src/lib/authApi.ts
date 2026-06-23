@@ -461,6 +461,10 @@ export async function getYouTubeConnectUrl() {
   return apiRequest<{ auth_url: string }>("/auth/youtube/connect/", {}, true);
 }
 
+export async function getXConnectUrl() {
+  return apiRequest<{ auth_url: string }>("/auth/x/connect/", {}, true);
+}
+
 export async function refreshYouTubeVideos() {
   const data = await apiPost<{ creator: CreatorProfileApi }>("/auth/youtube/refresh/", {}, true);
   return data.creator;

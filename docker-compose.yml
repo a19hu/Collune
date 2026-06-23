@@ -13,6 +13,8 @@ services:
     volumes:
       - ./server:/app
       - static_data:/app/staticfiles
+    env_file:
+      - ./server/.env
     environment:
       - POSTGRES_HOST=db
       - POSTGRES_DB=data
@@ -33,6 +35,8 @@ services:
       - app_network
     volumes:
       - ./server:/app
+    env_file:
+      - ./server/.env
     environment:
       - POSTGRES_HOST=db
       - POSTGRES_DB=data

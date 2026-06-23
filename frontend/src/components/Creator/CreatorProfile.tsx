@@ -20,6 +20,7 @@ import {
 import {
   getCreatorProfile,
   getInstagramConnectUrl,
+  getXConnectUrl,
   getYouTubeConnectUrl,
   refreshYouTubeVideos,
   updateCreatorProfile,
@@ -156,6 +157,7 @@ export function CreatorProfile() {
   const [isSaving, setIsSaving] = useState(false);
   const [isConnectingInstagram, setIsConnectingInstagram] = useState(false);
   const [isConnectingYouTube, setIsConnectingYouTube] = useState(false);
+  const [isConnectingX, setIsConnectingX] = useState(false);
   const [isRefreshingYouTube, setIsRefreshingYouTube] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -170,11 +172,14 @@ export function CreatorProfile() {
         setForm(toEditForm(data));
         const instagramStatus = new URLSearchParams(window.location.search).get("instagram");
         const youtubeStatus = new URLSearchParams(window.location.search).get("youtube");
+        const xStatus = new URLSearchParams(window.location.search).get("x");
         if (instagramStatus === "connected") setMessage("Instagram connected.");
         if (instagramStatus === "error") setError("Instagram connection failed. Please try again.");
         if (youtubeStatus === "connected") setMessage("YouTube connected.");
         if (youtubeStatus === "no_channel") setError("No YouTube channel found for this Google account.");
         if (youtubeStatus === "error") setError("YouTube connection failed. Please try again.");
+        if (xStatus === "connected") setMessage("X connected.");
+        if (xStatus === "error") setError("X connection failed. Please try again.");
       })
       .catch((err: Error) => {
         if (mounted) setError(err.message || "Unable to load creator profile.");
@@ -273,6 +278,18 @@ export function CreatorProfile() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to start YouTube OAuth.");
       setIsConnectingYouTube(false);
+    }
+  }
+
+  async function connectX() {
+    setIsConnectingX(true);
+    setError("");
+    try {
+      const data = await getXConnectUrl();
+      window.location.href = data.auth_url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to start X OAuth.");
+      setIsConnectingX(false);
     }
   }
 
@@ -444,6 +461,15 @@ export function CreatorProfile() {
                 >
                   {isConnectingInstagram ? <Loader2 className="h-4 w-4 animate-spin" /> : <Instagram className="h-4 w-4" />}
                   Connect Instagram
+                </button>
+                <button
+                  type="button"
+                  onClick={connectX}
+                  disabled={isConnectingX}
+                  className="inline-flex h-9 items-center gap-2 rounded-[6px] bg-[#111827] px-3 text-[12px] font-black text-white disabled:opacity-60"
+                >
+                  {isConnectingX ? <Loader2 className="h-4 w-4 animate-spin" /> : <Twitter className="h-4 w-4" />}
+                  Connect X
                 </button>
               </div>
             }

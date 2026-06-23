@@ -1,5 +1,7 @@
 import json
 import os
+import base64
+import hashlib
 import secrets
 import string
 from urllib.parse import urlencode
@@ -75,6 +77,9 @@ YOUTUBE_CHANNELS_URL = "https://www.googleapis.com/youtube/v3/channels"
 YOUTUBE_PLAYLIST_ITEMS_URL = "https://www.googleapis.com/youtube/v3/playlistItems"
 YOUTUBE_VIDEOS_URL = "https://www.googleapis.com/youtube/v3/videos"
 YOUTUBE_ANALYTICS_REPORTS_URL = "https://youtubeanalytics.googleapis.com/v2/reports"
+X_AUTH_URL = "https://twitter.com/i/oauth2/authorize"
+X_TOKEN_URL = "https://api.twitter.com/2/oauth2/token"
+X_ME_URL = "https://api.twitter.com/2/users/me"
 
 
 def generate_username(email):
@@ -990,6 +995,143 @@ class YouTubeRefreshView(APIView):
         creator.save(update_fields=["audience_size", "updated_at"])
         serializer = CreatorProfileSerializer(creator, context={"request": request})
         return Response({"creator": serializer.data})
+
+
+class XConnectView(APIView):
+    permission_classes = [IsAuthenticated, IsCreator]
+
+    def get(self, request):
+        if not settings.X_CLIENT_ID:
+            return Response(
+                {"error": "X OAuth is not configured. Set X_CLIENT_ID."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        code_verifier = secrets.token_urlsafe(64)
+        code_challenge = base64.urlsafe_b64encode(
+            hashlib.sha256(code_verifier.encode("ascii")).digest()
+        ).decode("ascii").rstrip("=")
+        state = signing.dumps(
+            {
+                "user_id": str(request.user.user_id),
+                "nonce": secrets.token_urlsafe(16),
+                "code_verifier": code_verifier,
+            },
+            salt="x-oauth",
+        )
+        params = {
+            "response_type": "code",
+            "client_id": settings.X_CLIENT_ID,
+            "redirect_uri": settings.X_REDIRECT_URI,
+            "scope": settings.X_OAUTH_SCOPES,
+            "state": state,
+            "code_challenge": code_challenge,
+            "code_challenge_method": "S256",
+        }
+        return Response({"auth_url": f"{X_AUTH_URL}?{urlencode(params)}"})
+
+
+class XCallbackView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        code = request.query_params.get("code")
+        state = request.query_params.get("state")
+        frontend_url = settings.FRONTEND_URL.rstrip("/")
+
+        if not code or not state:
+            return redirect(f"{frontend_url}/creator/profile?x=error")
+
+        try:
+            state_data = signing.loads(state, salt="x-oauth", max_age=600)
+            user = User.objects.get(user_id=state_data["user_id"], role=UserRole.CREATOR)
+            creator = user.creator_profile
+            code_verifier = state_data["code_verifier"]
+        except (signing.BadSignature, signing.SignatureExpired, User.DoesNotExist, CreatorProfile.DoesNotExist, KeyError):
+            return redirect(f"{frontend_url}/creator/profile?x=error")
+
+        token_data = {
+            "code": code,
+            "grant_type": "authorization_code",
+            "client_id": settings.X_CLIENT_ID,
+            "redirect_uri": settings.X_REDIRECT_URI,
+            "code_verifier": code_verifier,
+        }
+        token_kwargs = {"data": token_data, "timeout": 20}
+        if settings.X_CLIENT_SECRET:
+            token_kwargs["auth"] = (settings.X_CLIENT_ID, settings.X_CLIENT_SECRET)
+
+        token_response = requests.post(X_TOKEN_URL, **token_kwargs)
+        if not token_response.ok:
+            return redirect(f"{frontend_url}/creator/profile?x=error")
+
+        token_json = token_response.json()
+        access_token = token_json.get("access_token", "")
+        refresh_token = token_json.get("refresh_token", "")
+        expires_at = None
+        expires_in = token_json.get("expires_in")
+        if expires_in:
+            expires_at = timezone.now() + timedelta(seconds=int(expires_in))
+
+        user_response = requests.get(
+            X_ME_URL,
+            headers={"Authorization": f"Bearer {access_token}"},
+            params={"user.fields": "description,location,profile_image_url,public_metrics,verified,url,created_at"},
+            timeout=20,
+        )
+        if not user_response.ok:
+            return redirect(f"{frontend_url}/creator/profile?x=error")
+
+        x_user = user_response.json().get("data", {})
+        metrics = x_user.get("public_metrics", {})
+        followers = int(metrics.get("followers_count") or 0)
+        following = int(metrics.get("following_count") or 0)
+        tweet_count = int(metrics.get("tweet_count") or 0)
+        listed_count = int(metrics.get("listed_count") or 0)
+        username = x_user.get("username", "")
+        existing_account = CreatorSocialAccount.objects.filter(
+            creator=creator,
+            platform=SocialPlatform.X,
+            social_id=x_user.get("id", ""),
+        ).first()
+
+        account, _ = CreatorSocialAccount.objects.update_or_create(
+            creator=creator,
+            platform=SocialPlatform.X,
+            social_id=x_user.get("id", ""),
+            defaults={
+                "username": username,
+                "handle": f"@{username}" if username else x_user.get("name", ""),
+                "url": f"https://x.com/{username}" if username else x_user.get("url", ""),
+                "followers": followers,
+                "media_count": tweet_count,
+                "view_count": 0,
+                "access_token": access_token,
+                "refresh_token": refresh_token or (existing_account.refresh_token if existing_account else ""),
+                "expires_at": expires_at,
+                "is_connected": True,
+                "last_synced_at": timezone.now(),
+                "provider_data": {
+                    "id": x_user.get("id", ""),
+                    "name": x_user.get("name", ""),
+                    "username": username,
+                    "description": x_user.get("description", ""),
+                    "location": x_user.get("location", ""),
+                    "profile_image_url": x_user.get("profile_image_url", ""),
+                    "verified": x_user.get("verified", False),
+                    "followers_count": followers,
+                    "following_count": following,
+                    "tweet_count": tweet_count,
+                    "listed_count": listed_count,
+                    "created_at": x_user.get("created_at", ""),
+                    "url": x_user.get("url", ""),
+                },
+            },
+        )
+        creator.audience_size = max(creator.audience_size, followers)
+        creator.save(update_fields=["audience_size", "updated_at"])
+
+        return redirect(f"{frontend_url}/creator/profile?x=connected&account={account.account_id}")
 
 
 class BrandProfileViewSet(viewsets.ModelViewSet):
