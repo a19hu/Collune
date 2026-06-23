@@ -204,32 +204,6 @@ function VerifiedCard() {
   );
 }
 
-function LockedAudienceCard() {
-  return (
-    <Panel className="overflow-hidden p-5">
-      <h2 className="inline-flex items-center gap-1 text-lg font-black text-[#65718a]">
-        Audience Breakdown <Lock className="h-4 w-4" />
-      </h2>
-      <div className="relative mt-4 min-h-[220px] overflow-hidden rounded-[6px] bg-[#f8f4ff]">
-        <div className="absolute inset-0 blur-[8px]">
-          <div className="mx-auto mt-8 h-28 w-28 rounded-full border-[18px] border-[#c9b8ff]" />
-          <div className="mx-8 mt-6 grid gap-2">
-            <span className="h-2 rounded-full bg-[#dce5ff]" />
-            <span className="h-2 w-2/3 rounded-full bg-[#dce5ff]" />
-            <span className="h-2 w-4/5 rounded-full bg-[#dce5ff]" />
-          </div>
-        </div>
-        <div className="absolute inset-x-5 bottom-6 text-center">
-          <p className="text-[13px] font-semibold leading-tight text-[#64728c]">Detailed audience insights are locked.</p>
-          <Link to="/login" className="mt-4 grid h-11 place-items-center rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]">
-            Login as Brand
-          </Link>
-        </div>
-      </div>
-    </Panel>
-  );
-}
-
 export function PublicCreatorProfile() {
   const { creatorId } = useParams();
   const { currentUser } = useAuth();
@@ -477,54 +451,6 @@ export function PublicCreatorProfile() {
               ))}
             </div>
           </Panel>
-
-          {isBrand ? <Panel className="p-5">
-            <SectionTitle title="Audience Breakdown" />
-            <div className="mt-4 grid gap-4 lg:grid-cols-3">
-              <div className="rounded-[6px] border border-[#dbe3ee] p-4">
-                <p className="text-[11px] font-bold text-[#64728c]">Top Locations</p>
-                {[
-                  ["India", 72],
-                  ["U.S.", 10],
-                  ["S.A.", 8],
-                  ["U.A.E.", 4],
-                  ["U.K.", 4],
-                  ["Others", 2],
-                ].map(([label, value]) => (
-                  <div key={label as string} className="mt-2 grid grid-cols-[46px_1fr_32px] items-center gap-2 text-[10px] font-semibold text-[#59667e]">
-                    <span>{label}</span>
-                    <span className="h-1.5 rounded-full bg-[#dce5f5]">
-                      <span className="block h-full rounded-full bg-[#1438c8]" style={{ width: `${value}%` }} />
-                    </span>
-                    <span className="text-right">{value}%</span>
-                  </div>
-                ))}
-              </div>
-              <div className="rounded-[6px] border border-[#dbe3ee] p-4">
-                <p className="text-[11px] font-bold text-[#64728c]">Gender Split</p>
-                <div className="mt-3 flex items-center justify-center gap-5">
-                  <Donut values={[52, 46, 2]} colors={["#7386ff", "#ff8880", "#cfd7e6"]} />
-                  <div className="text-[10px] font-semibold text-[#59667e]">
-                    <p><span className="text-[#7386ff]">-</span> Male 52%</p>
-                    <p><span className="text-[#ff8880]">-</span> Female 46%</p>
-                    <p><span className="text-[#cfd7e6]">-</span> Others 2%</p>
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-[6px] border border-[#dbe3ee] p-4">
-                <p className="text-[11px] font-bold text-[#64728c]">Age Split</p>
-                <div className="mt-3 flex items-center justify-center gap-5">
-                  <Donut values={[14, 39, 35, 12]} colors={["#1438c8", "#7386ff", "#ff8880", "#d7deeb"]} />
-                  <div className="text-[10px] font-semibold text-[#59667e]">
-                    <p><span className="text-[#1438c8]">-</span> 18-24</p>
-                    <p><span className="text-[#7386ff]">-</span> 25-34</p>
-                    <p><span className="text-[#ff8880]">-</span> 35-44</p>
-                    <p><span className="text-[#d7deeb]">-</span> 45+</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Panel> : null}
           </div>
 
           <aside className="grid content-start gap-5">
@@ -549,7 +475,6 @@ export function PublicCreatorProfile() {
                     These actions are only available for logged in brands
                   </p>
                 </Panel>
-                <LockedAudienceCard />
               </>
             )}
           </aside>

@@ -1,8 +1,0 @@
-
-
-export const BrandSettings=()=>{
-    return(
-        <>
-        </>
-    )
-}

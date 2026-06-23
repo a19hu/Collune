@@ -238,29 +238,7 @@ function VerifiedDashboard() {
         </div>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.9fr_0.9fr]">
-        <Panel className="p-6">
-          <h2 className="text-xl font-black text-[#1d203a]">Recent<br />Activity</h2>
-          <div className="mt-7 grid gap-6">
-            {activity.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.text} className="flex gap-4">
-                  <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${item.color}`}>
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <p className="text-[15px] font-medium leading-snug text-[#1d203a]">{item.text}</p>
-                    <p className="mt-2 text-sm text-[#6f7889]">{item.time}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <a href="/creator-dashboard/activity" className="mt-8 inline-flex items-center gap-2 text-sm font-black text-[#1f22ff]">
-            View all activity <ArrowRight className="h-4 w-4" />
-          </a>
-        </Panel>
+      <div className="grid gap-6 xl:grid-cols-[1.9fr_0.9fr]">
 
         <Panel className="p-6">
           <div className="flex items-center justify-between">

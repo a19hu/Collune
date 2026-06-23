@@ -15,13 +15,11 @@ import CreatorDashBoard from './components/Creator/CreatorDashBoard.tsx';
 import { CreatorCampaignMarketplace } from './components/Creator/CampaignMarketplace/CreatorCampaignMarketplace.tsx';
 import CreatorProfile from './components/Creator/CreatorProfile.tsx';
 import BrandDashBoard from './components/Brand/BrandDashBoard.tsx';
-import { BrandSettings } from './components/Brand/BrandSettings.tsx';
 import { BrandCampaigns } from './components/Brand/BrandCampaigns.tsx';
 import { CampaignApplicationsPage } from './components/Brand/Campaigns/CampaignApplicationsPage.tsx';
 import { BrandShortlists } from './components/Brand/BrandShortlists.tsx';
 import LoadingPage from './components/layout/LoadingPage.tsx';
 import type { UserAccount } from './types.ts';
-import { CreatorSetting } from './components/Creator/CreatorSetting.tsx';
 import { getBrandMe, getCreatorProfile } from './lib/authApi.ts';
 
 function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
@@ -93,7 +91,6 @@ const App: React.FC = () => {
                             <Route index element={<CreatorDashBoard />} />
                             <Route path="profile" element={<CreatorProfile />} />
                             <Route path="marketplace" element={<RequireVerified><CreatorCampaignMarketplace /></RequireVerified>} />
-                            <Route path="settings" element={<CreatorSetting />} />
                         </Route>
                     </Route>
                     <Route element={<RequireAuth allowedRole="Brand" />}>
@@ -103,7 +100,6 @@ const App: React.FC = () => {
                             <Route path="creators" element={<ColluneInfoPage page="discover-creators" />} />
                             <Route path="campaigns" element={<BrandCampaigns />} />
                             <Route path="campaigns/:campaignId/applications" element={<CampaignApplicationsPage />} />
-                            <Route path="settings" element={<BrandSettings />} />
                         </Route>
                     </Route>
                     <Route path="/creator-register" element={<CreatorRegister />} />

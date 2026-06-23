@@ -570,53 +570,6 @@ export function CreatorProfile() {
           </div>
         </Panel>
 
-        <Panel className="p-5">
-          <SectionTitle title="Audience Breakdown" />
-          <div className="mt-4 grid gap-4 lg:grid-cols-3">
-            <div className="rounded-[6px] border border-[#dbe3ee] p-4">
-              <p className="text-[11px] font-bold text-[#64728c]">Top Locations</p>
-              {[
-                ["India", 72],
-                ["U.S.", 10],
-                ["S.A.", 8],
-                ["U.A.E.", 4],
-                ["U.K.", 4],
-                ["Others", 2],
-              ].map(([label, value]) => (
-                <div key={label as string} className="mt-2 grid grid-cols-[46px_1fr_32px] items-center gap-2 text-[10px] font-semibold text-[#59667e]">
-                  <span>{label}</span>
-                  <span className="h-1.5 rounded-full bg-[#dce5f5]">
-                    <span className="block h-full rounded-full bg-[#1438c8]" style={{ width: `${value}%` }} />
-                  </span>
-                  <span className="text-right">{value}%</span>
-                </div>
-              ))}
-            </div>
-            <div className="rounded-[6px] border border-[#dbe3ee] p-4">
-              <p className="text-[11px] font-bold text-[#64728c]">Gender Split</p>
-              <div className="mt-3 flex items-center justify-center gap-5">
-                <Donut values={[52, 46, 2]} colors={["#7386ff", "#ff8880", "#cfd7e6"]} />
-                <div className="text-[10px] font-semibold text-[#59667e]">
-                  <p><span className="text-[#7386ff]">•</span> Male 52%</p>
-                  <p><span className="text-[#ff8880]">•</span> Female 46%</p>
-                  <p><span className="text-[#cfd7e6]">•</span> Others 2%</p>
-                </div>
-              </div>
-            </div>
-            <div className="rounded-[6px] border border-[#dbe3ee] p-4">
-              <p className="text-[11px] font-bold text-[#64728c]">Age Split</p>
-              <div className="mt-3 flex items-center justify-center gap-5">
-                <Donut values={[14, 39, 35, 12]} colors={["#1438c8", "#7386ff", "#ff8880", "#d7deeb"]} />
-                <div className="text-[10px] font-semibold text-[#59667e]">
-                  <p><span className="text-[#1438c8]">•</span> 18-24</p>
-                  <p><span className="text-[#7386ff]">•</span> 25-34</p>
-                  <p><span className="text-[#ff8880]">•</span> 35-44</p>
-                  <p><span className="text-[#d7deeb]">•</span> 45+</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Panel>
       </div>
 
       {isEditing ? (

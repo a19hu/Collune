@@ -12,14 +12,12 @@ const navByMode = {
     { label: "Dashboard", to: "/creator", icon: Home },
     { label: "Profile", to: "/creator/profile", icon: UserRound },
     { label: "Campaign Marketplace", to: "/creator/marketplace", icon: ShoppingBag, lockedWhenUnverified: true },
-    { label: "Settings", to: "/creator/settings", icon: Settings },
   ],
   brand: [
     { label: "Dashboard", to: "/brand", icon: Home },
     { label: "Campaigns", to: "/brand/campaigns", icon: FileText, lockedWhenUnverified: true },
     { label: "Discover Creators", to: "/brand/creators", icon: Users, lockedWhenUnverified: true },
     { label: "Shortlists", to: "/brand/shortlists", icon: Star },
-    { label: "Settings", to: "/brand/settings", icon: Settings },
   ],
 };
 
