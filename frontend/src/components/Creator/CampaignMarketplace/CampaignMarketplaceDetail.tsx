@@ -1,4 +1,4 @@
-import { ArrowRight, BriefcaseBusiness, CheckCircle2 } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, CheckCircle2, Loader2 } from "lucide-react";
 
 import {
   BrandAvatar,
@@ -18,12 +18,18 @@ import type { MarketplaceCampaign } from "./marketplaceData";
 export function CampaignMarketplaceDetail({
   campaign,
   hasApplied,
+  isApplying,
+  applyError,
   onApply,
 }: {
   campaign: MarketplaceCampaign;
   hasApplied: boolean;
+  isApplying: boolean;
+  applyError: string;
   onApply: () => void;
 }) {
+  const applyLabel = hasApplied ? "Applied" : isApplying ? "Applying..." : "Apply To Campaign";
+
   return (
     <div className="grid gap-7">
       <Panel className="p-7">
@@ -49,11 +55,14 @@ export function CampaignMarketplaceDetail({
           <button
             type="button"
             onClick={onApply}
-            className="inline-flex h-12 items-center gap-3 rounded-lg bg-[#5168ff] px-8 text-base font-black text-white shadow-[0_8px_16px_rgba(81,104,255,0.25)]"
+            disabled={hasApplied || isApplying}
+            className="inline-flex h-12 items-center gap-3 rounded-lg bg-[#5168ff] px-8 text-base font-black text-white shadow-[0_8px_16px_rgba(81,104,255,0.25)] disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {hasApplied ? "Applied" : "Apply To Campaign"} <ArrowRight className="h-5 w-5" />
+            {isApplying ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+            {applyLabel} {!isApplying ? <ArrowRight className="h-5 w-5" /> : null}
           </button>
         </div>
+        {applyError ? <p className="mt-4 text-sm font-semibold text-[#d23b3b]">{applyError}</p> : null}
       </Panel>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
@@ -96,7 +105,7 @@ export function CampaignMarketplaceDetail({
             </div>
           </DetailSection>
 
-          <BrandBlock campaign={campaign} onApply={onApply} />
+          <BrandBlock campaign={campaign} hasApplied={hasApplied} isApplying={isApplying} onApply={onApply} />
         </div>
 
         <OverviewCard campaign={campaign} />

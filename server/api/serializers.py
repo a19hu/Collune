@@ -10,7 +10,6 @@ from .models import (
     CampaignProgress,
     CampaignProgressStatus,
     CampaignStatus,
-    CampaignStatusSummary,
     CreatorProfile,
     CreatorSocialAccount,
     OtpChannel,
@@ -286,20 +285,59 @@ class CreatorsProfileListSerializer(serializers.ModelSerializer):
             return ""
         return request.build_absolute_uri(obj.profile_image.url) if request else obj.profile_image.url
 
-class CampaignStatusSummarySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CampaignStatusSummary
-        fields = [
-            "summary_id",
-            "campaign",
-            "applications_received",
-            "recommended_creators",
-            "collaborations_started",
-            "applications_close_in_days",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = ["summary_id", "created_at", "updated_at"]
+class CampaignStatusSummarySerializer(serializers.Serializer):
+    summary_id = serializers.SerializerMethodField()
+    campaign = serializers.SerializerMethodField()
+    applications_received = serializers.SerializerMethodField()
+    recommended_creators = serializers.SerializerMethodField()
+    collaborations_started = serializers.SerializerMethodField()
+    applications_close_in_days = serializers.SerializerMethodField()
+    created_at = serializers.SerializerMethodField()
+    updated_at = serializers.SerializerMethodField()
+
+    def _campaign(self, obj):
+        return obj if isinstance(obj, Campaign) else obj.campaign
+
+    def _summary(self, obj):
+        return None if isinstance(obj, Campaign) else obj
+
+    def get_summary_id(self, obj):
+        summary = self._summary(obj)
+        return str(summary.summary_id) if summary else str(self._campaign(obj).campaign_id)
+
+    def get_campaign(self, obj):
+        return str(self._campaign(obj).campaign_id)
+
+    def get_applications_received(self, obj):
+        campaign = self._campaign(obj)
+        if hasattr(campaign, "applications_received_count"):
+            return campaign.applications_received_count
+        return CampaignApplication.objects.filter(campaign=campaign).count()
+
+    def get_recommended_creators(self, obj):
+        campaign = self._campaign(obj)
+        if hasattr(campaign, "recommended_creators_count"):
+            return campaign.recommended_creators_count
+        return CampaignApplication.objects.filter(
+            campaign=campaign,
+            status=ApplicationStatus.ACCEPTED,
+        ).count()
+
+    def get_collaborations_started(self, obj):
+        summary = self._summary(obj)
+        return summary.collaborations_started if summary else 0
+
+    def get_applications_close_in_days(self, obj):
+        summary = self._summary(obj)
+        return summary.applications_close_in_days if summary else 0
+
+    def get_created_at(self, obj):
+        summary = self._summary(obj)
+        return (summary.created_at if summary else self._campaign(obj).created_at).isoformat()
+
+    def get_updated_at(self, obj):
+        summary = self._summary(obj)
+        return (summary.updated_at if summary else self._campaign(obj).updated_at).isoformat()
 
 
 class CampaignProgressSerializer(serializers.ModelSerializer):
@@ -327,7 +365,7 @@ class CampaignSerializer(serializers.ModelSerializer):
     brand_detail = BrandProfileSerializer(source="brand", read_only=True)
     applications_count = serializers.IntegerField(source="applications.count", read_only=True)
     brand_guidelines_url = serializers.SerializerMethodField()
-    status_summary = CampaignStatusSummarySerializer(read_only=True)
+    status_summary = serializers.SerializerMethodField()
     progress_steps = CampaignProgressSerializer(many=True, read_only=True)
 
     class Meta:
@@ -377,6 +415,9 @@ class CampaignSerializer(serializers.ModelSerializer):
         if not obj.brand_guidelines:
             return ""
         return request.build_absolute_uri(obj.brand_guidelines.url) if request else obj.brand_guidelines.url
+
+    def get_status_summary(self, obj):
+        return CampaignStatusSummarySerializer(obj, context=self.context).data
 
     def validate(self, attrs):
         attrs = super().validate(attrs)

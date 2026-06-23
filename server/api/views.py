@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.core import signing
 from django.db import transaction
+from django.db.models import Count, Q
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -31,7 +32,6 @@ from .models import (
     Campaign,
     CampaignApplication,
     CampaignProgress,
-    CampaignStatusSummary,
     CampaignStatus,
     CreatorProfile,
     CreatorSocialAccount,
@@ -765,7 +765,18 @@ class CampaignViewSet(viewsets.ModelViewSet):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_queryset(self):
-        queryset = Campaign.objects.select_related("brand", "brand__user", "status_summary").prefetch_related("progress_steps")
+        queryset = (
+            Campaign.objects.select_related("brand", "brand__user")
+            .prefetch_related("progress_steps")
+            .annotate(
+                applications_received_count=Count("applications", distinct=True),
+                recommended_creators_count=Count(
+                    "applications",
+                    filter=Q(applications__status=ApplicationStatus.ACCEPTED),
+                    distinct=True,
+                ),
+            )
+        )
         if self.request.user.role == UserRole.BRAND:
             return queryset.filter(brand__user=self.request.user)
         if self.request.user.role == UserRole.CREATOR:
@@ -796,28 +807,24 @@ class CampaignViewSet(viewsets.ModelViewSet):
         return Response({"application": serializer.data}, status=status.HTTP_201_CREATED)
 
 
-class CampaignStatusSummaryViewSet(viewsets.ModelViewSet):
+class CampaignStatusSummaryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CampaignStatusSummarySerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        queryset = CampaignStatusSummary.objects.select_related("campaign", "campaign__brand", "campaign__brand__user")
+        campaigns = Campaign.objects.select_related("brand", "brand__user").annotate(
+            applications_received_count=Count("applications", distinct=True),
+            recommended_creators_count=Count(
+                "applications",
+                filter=Q(applications__status=ApplicationStatus.ACCEPTED),
+                distinct=True,
+            ),
+        )
         if self.request.user.role == UserRole.BRAND:
-            return queryset.filter(campaign__brand__user=self.request.user)
+            campaigns = campaigns.filter(brand__user=self.request.user)
         if self.request.user.role == UserRole.CREATOR:
-            return queryset.filter(campaign__status=CampaignStatus.ACTIVE)
-        return queryset
-
-    def perform_create(self, serializer):
-        campaign = serializer.validated_data["campaign"]
-        if campaign.brand.user != self.request.user:
-            raise PermissionDenied("You can only update status summaries for your own campaigns.")
-        serializer.save()
-
-    def get_permissions(self):
-        if self.action in ["create", "update", "partial_update", "destroy"]:
-            return [IsAuthenticated(), IsBrand()]
-        return super().get_permissions()
+            campaigns = campaigns.filter(status=CampaignStatus.ACTIVE)
+        return campaigns
 
 
 class CampaignProgressViewSet(viewsets.ModelViewSet):
@@ -848,8 +855,30 @@ class CampaignApplicationViewSet(viewsets.ModelViewSet):
             return queryset.filter(creator__user=self.request.user)
         return queryset.all()
 
-    def perform_create(self, serializer):
-        serializer.save(creator=self.request.user.creator_profile)
+    def create(self, request, *args, **kwargs):
+        if request.user.role != UserRole.CREATOR:
+            raise PermissionDenied("Only creators can apply to campaigns.")
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        campaign = serializer.validated_data["campaign"]
+        application, _ = CampaignApplication.objects.update_or_create(
+            campaign=campaign,
+            creator=request.user.creator_profile,
+            defaults={
+                "pitch": serializer.validated_data.get("pitch", ""),
+                "quoted_rate": serializer.validated_data.get("quoted_rate") or 0,
+                "status": ApplicationStatus.APPLIED,
+            },
+        )
+        response_serializer = self.get_serializer(application)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        instance.delete()
 
 
 class BrandShortlistViewSet(viewsets.ModelViewSet):

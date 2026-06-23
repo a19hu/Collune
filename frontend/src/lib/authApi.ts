@@ -71,6 +71,18 @@ export type CampaignStatusSummaryApi = {
   created_at: string;
   updated_at: string;
 };
+export type CampaignApplicationApi = {
+  application_id: string;
+  campaign: string;
+  campaign_detail?: CampaignApi;
+  creator: string;
+  creator_detail?: CreatorProfileApi;
+  pitch: string;
+  quoted_rate: string;
+  status: "APPLIED" | "SHORTLISTED" | "ACCEPTED" | "REJECTED";
+  created_at: string;
+  updated_at: string;
+};
 type PaginatedResponse<T> = {
   count: number;
   next: string | null;
@@ -422,4 +434,17 @@ export async function getCampaignStatusSummaries() {
     true,
   );
   return Array.isArray(data) ? data : data.results;
+}
+
+export async function getCampaignApplications() {
+  const data = await apiRequest<CampaignApplicationApi[] | PaginatedResponse<CampaignApplicationApi>>(
+    "/campaign-applications/",
+    {},
+    true,
+  );
+  return Array.isArray(data) ? data : data.results;
+}
+
+export function applyToCampaign(campaignId: string) {
+  return apiPost<CampaignApplicationApi>("/campaign-applications/", { campaign: campaignId }, true);
 }

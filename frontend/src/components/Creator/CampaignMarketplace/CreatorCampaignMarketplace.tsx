@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "../../../contexts/AuthContext";
-import { getCampaign, getCampaigns, getCampaignStatusSummaries, type CampaignStatusSummaryApi } from "../../../lib/authApi";
+import {
+  applyToCampaign,
+  getCampaign,
+  getCampaignApplications,
+  getCampaigns,
+  getCampaignStatusSummaries,
+  type CampaignStatusSummaryApi,
+} from "../../../lib/authApi";
 import { CampaignMarketplaceDetail } from "./CampaignMarketplaceDetail";
 import { CampaignMarketplaceList } from "./CampaignMarketplaceList";
 import { MarketplaceHeader } from "./MarketplaceUi";
@@ -17,16 +24,19 @@ export function CreatorCampaignMarketplace() {
   const [appliedIds, setAppliedIds] = useState<string[]>([]);
   const [statusSummaries, setStatusSummaries] = useState<CampaignStatusSummaryApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isApplying, setIsApplying] = useState(false);
   const [error, setError] = useState("");
+  const [applyError, setApplyError] = useState("");
 
   useEffect(() => {
     let mounted = true;
     setIsLoading(true);
     setError("");
-    Promise.all([getCampaigns(), getCampaignStatusSummaries().catch(() => [])])
-      .then(([items, summaries]) => {
+    Promise.all([getCampaigns(), getCampaignStatusSummaries().catch(() => []), getCampaignApplications().catch(() => [])])
+      .then(([items, summaries, applications]) => {
         if (!mounted) return;
         setStatusSummaries(summaries);
+        setAppliedIds(applications.map((application) => application.campaign));
         const mapped = applyStatusSummaries(items, summaries).map(mapCampaignToMarketplace);
         setCampaigns(mapped);
         if (mapped[0]) setSelectedId(mapped[0].id);
@@ -63,8 +73,21 @@ export function CreatorCampaignMarketplace() {
     }
   };
 
-  const applyToCampaign = () => {
-    setAppliedIds((ids) => ids.includes(selectedCampaign.id) ? ids : [...ids, selectedCampaign.id]);
+  const applyForCampaign = async () => {
+    if (!selectedCampaign || appliedIds.includes(selectedCampaign.id) || isApplying) return;
+    setIsApplying(true);
+    setApplyError("");
+    try {
+      const application = await applyToCampaign(selectedCampaign.id);
+      setAppliedIds((ids) => ids.includes(application.campaign) ? ids : [...ids, application.campaign]);
+      const [items, summaries] = await Promise.all([getCampaigns(), getCampaignStatusSummaries().catch(() => statusSummaries)]);
+      setStatusSummaries(summaries);
+      setCampaigns(applyStatusSummaries(items, summaries).map(mapCampaignToMarketplace));
+    } catch (err) {
+      setApplyError(err instanceof Error ? err.message : "Unable to apply to this campaign.");
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   return (
@@ -75,7 +98,9 @@ export function CreatorCampaignMarketplace() {
         <CampaignMarketplaceDetail
           campaign={selectedCampaign}
           hasApplied={appliedIds.includes(selectedCampaign.id)}
-          onApply={applyToCampaign}
+          isApplying={isApplying}
+          applyError={applyError}
+          onApply={applyForCampaign}
         />
       ) : (
         <CampaignMarketplaceList campaigns={campaigns} isLoading={isLoading} error={error} onOpen={openCampaign} />

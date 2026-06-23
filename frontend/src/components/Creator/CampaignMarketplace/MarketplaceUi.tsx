@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Clock,
   Instagram,
+  Loader2,
   MessageCircle,
   MoreHorizontal,
   Play,
@@ -223,7 +224,19 @@ export function ReferenceCard({ item }: { key?: string; item: MarketplaceCampaig
   );
 }
 
-export function BrandBlock({ campaign, onApply }: { campaign: MarketplaceCampaign; onApply: () => void }) {
+export function BrandBlock({
+  campaign,
+  hasApplied,
+  isApplying,
+  onApply,
+}: {
+  campaign: MarketplaceCampaign;
+  hasApplied: boolean;
+  isApplying: boolean;
+  onApply: () => void;
+}) {
+  const applyLabel = hasApplied ? "Applied" : isApplying ? "Applying..." : "Apply To Campaign";
+
   return (
     <DetailSection title="7. About the Brand">
       <div className="flex flex-wrap items-center justify-between gap-6">
@@ -253,8 +266,14 @@ export function BrandBlock({ campaign, onApply }: { campaign: MarketplaceCampaig
             <p className="mt-1 text-sm font-medium text-[#65758f]">If this campaign is a good fit, apply now and start your collaboration journey with {campaign.brandName}.</p>
           </div>
         </div>
-        <button type="button" onClick={onApply} className="inline-flex h-12 items-center gap-3 rounded-lg bg-[#5168ff] px-8 text-base font-black text-white shadow-[0_8px_16px_rgba(81,104,255,0.25)]">
-          Apply To Campaign <ArrowRight className="h-5 w-5" />
+        <button
+          type="button"
+          onClick={onApply}
+          disabled={hasApplied || isApplying}
+          className="inline-flex h-12 items-center gap-3 rounded-lg bg-[#5168ff] px-8 text-base font-black text-white shadow-[0_8px_16px_rgba(81,104,255,0.25)] disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {isApplying ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+          {applyLabel} {!isApplying ? <ArrowRight className="h-5 w-5" /> : null}
         </button>
       </div>
     </DetailSection>
