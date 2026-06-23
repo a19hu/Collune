@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart3,
   BriefcaseBusiness,
@@ -28,6 +29,7 @@ import {
 import creatorOne from "../../../assets/collune/creator-1.png";
 import creatorTwo from "../../../assets/collune/creator-2.png";
 import creatorThree from "../../../assets/collune/creator-3.png";
+import { getCampaignApplications, type CampaignApplicationApi, type CreatorProfileApi } from "../../../lib/authApi";
 import { CampaignPanel } from "./CampaignUi";
 import type { CampaignCardItem } from "./campaignData";
 
@@ -47,32 +49,7 @@ const platformStyles: Record<string, string> = {
   LinkedIn: "bg-[#116bc1] text-white",
 };
 
-const creators = [
-  {
-    name: "Riya Sharma",
-    role: "Business Creator",
-    followers: "120K",
-    engagement: "4.8%",
-    image: creatorOne,
-    platform: "Instagram",
-  },
-  {
-    name: "Karan Jain",
-    role: "Finance Creator",
-    followers: "85K",
-    engagement: "5.2%",
-    image: creatorTwo,
-    platform: "LinkedIn",
-  },
-  {
-    name: "Neha Verma",
-    role: "Education Creator",
-    followers: "78K",
-    engagement: "4.3%",
-    image: creatorThree,
-    platform: "YouTube",
-  },
-];
+const creatorFallbackImages = [creatorOne, creatorTwo, creatorThree];
 
 const categories = [
   ["Business", BriefcaseBusiness, "violet"],
@@ -165,7 +142,57 @@ function MetaRow({ icon, label, value }: { icon: ReactNode; label: string; value
   );
 }
 
-function CreatorCard({ creator }: { key?: string; creator: (typeof creators)[number] }) {
+type CreatorCardItem = {
+  id: string;
+  name: string;
+  role: string;
+  followers: string;
+  engagement: string;
+  image: string;
+  platform: string;
+  status: CampaignApplicationApi["status"];
+};
+
+function formatFollowers(value?: number) {
+  if (!value) return "0";
+  if (value >= 1000000) return `${(value / 1000000).toFixed(value % 1000000 === 0 ? 0 : 1)}M`;
+  if (value >= 1000) return `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}K`;
+  return String(value);
+}
+
+function normalizePlatform(value?: string) {
+  if (value === "YOUTUBE") return "YouTube";
+  if (value === "LINKEDIN") return "LinkedIn";
+  if (value === "INSTAGRAM") return "Instagram";
+  return value || "Instagram";
+}
+
+function getPrimaryPlatform(creator?: CreatorProfileApi) {
+  return normalizePlatform(
+    creator?.social_accounts?.find((account) => account.is_connected)?.platform || creator?.social_accounts?.[0]?.platform,
+  );
+}
+
+function getEngagement(creator?: CreatorProfileApi) {
+  const engagement = creator?.social_accounts?.find((account) => typeof account.engagement_rate === "number")?.engagement_rate;
+  return typeof engagement === "number" ? `${engagement.toFixed(1)}%` : "N/A";
+}
+
+function mapApplicationToCreator(application: CampaignApplicationApi, index: number): CreatorCardItem {
+  const creator = application.creator_detail;
+  return {
+    id: application.application_id,
+    name: creator?.display_name || creator?.user?.name || "Creator",
+    role: creator?.category || "Creator",
+    followers: formatFollowers(creator?.audience_size),
+    engagement: getEngagement(creator),
+    image: creator?.profile_image_url || creatorFallbackImages[index % creatorFallbackImages.length],
+    platform: getPrimaryPlatform(creator),
+    status: application.status,
+  };
+}
+
+function CreatorCard({ creator }: { key?: string; creator: CreatorCardItem }) {
   const platformClass = platformStyles[creator.platform] || "bg-[#4b22ff] text-white";
 
   return (
@@ -193,6 +220,15 @@ function CreatorCard({ creator }: { key?: string; creator: (typeof creators)[num
         </div>
         <button type="button" className="mt-5 text-sm font-black text-[#4b22ff]">View Profile -&gt;</button>
       </div>
+    </CampaignPanel>
+  );
+}
+
+function EmptyPanel({ title, copy }: { title: string; copy: string }) {
+  return (
+    <CampaignPanel className="p-7 text-center">
+      <h3 className="text-lg font-black text-[#1d2430]">{title}</h3>
+      <p className="mx-auto mt-2 max-w-[420px] text-sm font-medium leading-relaxed text-[#7d8aa0]">{copy}</p>
     </CampaignPanel>
   );
 }
@@ -238,7 +274,42 @@ function ActivityItem({ title, time, icon: Icon, accent }: { key?: string; title
 }
 
 export function CampaignDetail({ campaign }: { campaign: CampaignCardItem; onBack: () => void }) {
+  const navigate = useNavigate();
+  const [applications, setApplications] = useState<CampaignApplicationApi[]>([]);
+  const [isLoadingApplications, setIsLoadingApplications] = useState(true);
+  const [applicationsError, setApplicationsError] = useState("");
   const CampaignIcon = campaign.icon;
+  const campaignApplications = useMemo(
+    () => applications.filter((application) => application.campaign === campaign.id),
+    [applications, campaign.id],
+  );
+  const applicationCount = isLoadingApplications ? campaign.applications : campaignApplications.length;
+  const recommendedCreators = useMemo(
+    () => campaignApplications.filter((application) => application.status === "ACCEPTED").map(mapApplicationToCreator),
+    [campaignApplications],
+  );
+
+  useEffect(() => {
+    let mounted = true;
+    setIsLoadingApplications(true);
+    setApplicationsError("");
+    getCampaignApplications()
+      .then((items) => {
+        if (!mounted) return;
+        setApplications(items);
+      })
+      .catch((err) => {
+        if (!mounted) return;
+        setApplicationsError(err instanceof Error ? err.message : "Unable to load campaign applications.");
+      })
+      .finally(() => {
+        if (mounted) setIsLoadingApplications(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [campaign.id]);
+
   const overviewRows = [
     {
       label: "Objective",
@@ -345,9 +416,17 @@ export function CampaignDetail({ campaign }: { campaign: CampaignCardItem; onBac
               copy="Creators recommended by Collune based on your requirements."
               action={<button type="button" className="text-sm font-black text-[#4b22ff]">View all recommendations -&gt;</button>}
             />
-            <div className="grid gap-5 md:grid-cols-3">
-              {creators.map((creator) => <CreatorCard key={creator.name} creator={creator} />)}
-            </div>
+            {applicationsError ? (
+              <EmptyPanel title="Unable to load recommendations" copy={applicationsError} />
+            ) : isLoadingApplications ? (
+              <EmptyPanel title="Loading recommendations" copy="Fetching recommended creators for this campaign." />
+            ) : recommendedCreators.length ? (
+              <div className="grid gap-5 md:grid-cols-3">
+                {recommendedCreators.map((creator) => <CreatorCard key={creator.id} creator={creator} />)}
+              </div>
+            ) : (
+              <EmptyPanel title="No recommended creators yet" copy="Accepted campaign applications will appear here as recommended creators." />
+            )}
           </section>
 
           <CampaignPanel className="p-7">
@@ -392,8 +471,12 @@ export function CampaignDetail({ campaign }: { campaign: CampaignCardItem; onBac
               <MetaRow icon={<CalendarDays className="h-4 w-4" />} label="Applications Close In" value="8 days" />
             </div>
 
-            <button type="button" className="mt-7 h-12 w-full rounded-lg border-2 border-[#4b22ff] bg-white text-base font-black text-[#4b22ff]">
-              View Applications ({campaign.applications})
+            <button
+              type="button"
+              onClick={() => navigate(`/brand/campaigns/${campaign.id}/applications`)}
+              className="mt-7 h-12 w-full rounded-lg border-2 border-[#4b22ff] bg-white text-base font-black text-[#4b22ff]"
+            >
+              View Applications ({applicationCount})
             </button>
           </CampaignPanel>
 

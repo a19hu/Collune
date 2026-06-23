@@ -17,6 +17,7 @@ import CreatorProfile from './components/Creator/CreatorProfile.tsx';
 import BrandDashBoard from './components/Brand/BrandDashBoard.tsx';
 import { BrandSettings } from './components/Brand/BrandSettings.tsx';
 import { BrandCampaigns } from './components/Brand/BrandCampaigns.tsx';
+import { CampaignApplicationsPage } from './components/Brand/Campaigns/CampaignApplicationsPage.tsx';
 import { BrandShortlists } from './components/Brand/BrandShortlists.tsx';
 import LoadingPage from './components/layout/LoadingPage.tsx';
 import type { UserAccount } from './types.ts';
@@ -101,6 +102,7 @@ const App: React.FC = () => {
                             <Route path="shortlists" element={<BrandShortlists />} />
                             <Route path="creators" element={<ColluneInfoPage page="discover-creators" />} />
                             <Route path="campaigns" element={<BrandCampaigns />} />
+                            <Route path="campaigns/:campaignId/applications" element={<CampaignApplicationsPage />} />
                             <Route path="settings" element={<BrandSettings />} />
                         </Route>
                     </Route>
