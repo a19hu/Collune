@@ -220,5 +220,5 @@ YOUTUBE_REDIRECT_URI = env(
 )
 YOUTUBE_OAUTH_SCOPES = env(
     "YOUTUBE_OAUTH_SCOPES",
-    default="openid email profile https://www.googleapis.com/auth/youtube.readonly",
+    default="openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly",
 )

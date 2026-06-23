@@ -21,6 +21,7 @@ import {
   getCreatorProfile,
   getInstagramConnectUrl,
   getYouTubeConnectUrl,
+  refreshYouTubeVideos,
   updateCreatorProfile,
   type CreatorProfileApi,
 } from "../../lib/authApi";
@@ -155,6 +156,7 @@ export function CreatorProfile() {
   const [isSaving, setIsSaving] = useState(false);
   const [isConnectingInstagram, setIsConnectingInstagram] = useState(false);
   const [isConnectingYouTube, setIsConnectingYouTube] = useState(false);
+  const [isRefreshingYouTube, setIsRefreshingYouTube] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -207,6 +209,10 @@ export function CreatorProfile() {
       { account_id: "x", platform: "X" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.12), is_connected: false, created_at: "" },
     ];
   }, [profile]);
+  const youtubeAccount = useMemo(
+    () => profile?.social_accounts.find((account) => account.platform === "YOUTUBE" && account.is_connected),
+    [profile],
+  );
 
   function updateField<K extends keyof EditForm>(key: K, value: EditForm[K]) {
     setForm((current) => (current ? { ...current, [key]: value } : current));
@@ -267,6 +273,22 @@ export function CreatorProfile() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to start YouTube OAuth.");
       setIsConnectingYouTube(false);
+    }
+  }
+
+  async function refreshYouTube() {
+    setIsRefreshingYouTube(true);
+    setError("");
+    setMessage("");
+    try {
+      const updated = await refreshYouTubeVideos();
+      setProfile(updated);
+      setForm(toEditForm(updated));
+      setMessage("YouTube videos refreshed.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to refresh YouTube videos.");
+    } finally {
+      setIsRefreshingYouTube(false);
     }
   }
 
@@ -457,6 +479,56 @@ export function CreatorProfile() {
             })}
           </div>
         </Panel>
+
+        {youtubeAccount ? (
+          <Panel className="p-5">
+            <SectionTitle
+              title="YouTube Analytics"
+              right={
+                <button
+                  type="button"
+                  onClick={refreshYouTube}
+                  disabled={isRefreshingYouTube}
+                  className="inline-flex h-9 items-center gap-2 rounded-[6px] bg-[#ff2f2f] px-3 text-[12px] font-black text-white disabled:opacity-60"
+                >
+                  {isRefreshingYouTube ? <Loader2 className="h-4 w-4 animate-spin" /> : <Youtube className="h-4 w-4" />}
+                  Refresh Videos
+                </button>
+              }
+            />
+            <div className="mt-4 grid gap-3 sm:grid-cols-4">
+              <MetricTile value={compactNumber(youtubeAccount.youtube_short_video_count || 0)} label="Shorts" />
+              <MetricTile value={compactNumber(youtubeAccount.youtube_long_video_count || 0)} label="Long Videos" />
+              <MetricTile value={compactNumber(youtubeAccount.view_count || 0)} label="Total Views" />
+              <MetricTile value={compactNumber(youtubeAccount.media_count || 0)} label="Videos" />
+            </div>
+            {youtubeAccount.youtube_videos?.length ? (
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                {youtubeAccount.youtube_videos.slice(0, 6).map((video) => (
+                  <div key={video.video_id} className="overflow-hidden rounded-[6px] border border-[#dbe3ee] bg-white">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${video.video_id}`}
+                      title={video.title}
+                      className="aspect-video w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
+                    <div className="p-3">
+                      <p className="line-clamp-2 text-[13px] font-black text-[#25304a]">{video.title}</p>
+                      <p className="mt-1 text-[11px] font-semibold text-[#64728c]">
+                        {video.content_type === "SHORT" ? "Short" : "Long video"} • {compactNumber(video.view_count)} views • {compactNumber(video.like_count)} likes • {compactNumber(video.comment_count)} comments
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-5 rounded-[6px] border border-[#dbe3ee] bg-[#f8fbff] p-4 text-sm font-semibold text-[#64728c]">
+                No YouTube videos stored yet. Click Refresh Videos, or reconnect YouTube if you recently added the analytics scope.
+              </div>
+            )}
+          </Panel>
+        ) : null}
 
         <Panel className="p-5">
           <SectionTitle title="Portfolio" right={profile.portfolio_url ? <a href={profile.portfolio_url} className="text-[12px] font-black text-[#1438c8]">Open portfolio</a> : null} />

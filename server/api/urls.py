@@ -27,6 +27,7 @@ from .views import (
     VerificationView,
     YouTubeCallbackView,
     YouTubeConnectView,
+    YouTubeRefreshView,
 )
 
 router = DefaultRouter()
@@ -54,6 +55,7 @@ urlpatterns = [
     path("auth/instagram/callback/", InstagramCallbackView.as_view(), name="instagram_callback"),
     path("auth/youtube/connect/", YouTubeConnectView.as_view(), name="youtube_connect"),
     path("auth/youtube/callback/", YouTubeCallbackView.as_view(), name="youtube_callback"),
+    path("auth/youtube/refresh/", YouTubeRefreshView.as_view(), name="youtube_refresh"),
     path("auth/signout/", SignoutView.as_view(), name="signout"),
     path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("dashboard/summary/", DashboardSummaryView.as_view(), name="dashboard_summary"),

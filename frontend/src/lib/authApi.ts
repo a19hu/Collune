@@ -220,6 +220,21 @@ export type CreatorProfileApi = {
     view_count?: number;
     engagement_rate?: number;
     audience_country?: Record<string, number>;
+    youtube_short_video_count?: number;
+    youtube_long_video_count?: number;
+    youtube_videos?: Array<{
+      video_id: string;
+      title: string;
+      published_at: string;
+      thumbnail_url: string;
+      duration: string;
+      duration_seconds: number;
+      content_type: "SHORT" | "LONG";
+      view_count: number;
+      like_count: number;
+      comment_count: number;
+    }>;
+    youtube_analytics?: Record<string, unknown>;
     provider_data?: Record<string, unknown>;
     expires_at?: string | null;
     is_connected: boolean;
@@ -444,6 +459,11 @@ export async function getInstagramConnectUrl() {
 
 export async function getYouTubeConnectUrl() {
   return apiRequest<{ auth_url: string }>("/auth/youtube/connect/", {}, true);
+}
+
+export async function refreshYouTubeVideos() {
+  const data = await apiPost<{ creator: CreatorProfileApi }>("/auth/youtube/refresh/", {}, true);
+  return data.creator;
 }
 
 export async function sendOtp(channel: OtpChannel, target: string) {
