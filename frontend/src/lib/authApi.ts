@@ -83,6 +83,35 @@ export type CampaignApplicationApi = {
   created_at: string;
   updated_at: string;
 };
+export type BrandShortlistStatusApi = "DRAFT" | "SUBMITTED" | "OUTREACH_IN_PROGRESS" | "COMPLETED";
+export type BrandShortlistPayload = {
+  title: string;
+  creators?: string[];
+  status?: BrandShortlistStatusApi;
+  purpose?: string;
+  notes?: string;
+  platforms?: string[];
+  categories?: string;
+  audience?: string;
+  budget_range?: string;
+  timeline?: string;
+};
+export type BrandShortlistApi = BrandShortlistPayload & {
+  shortlist_id: string;
+  brand: string;
+  creators: string[];
+  creator_details: CreatorProfileApi[];
+  status: BrandShortlistStatusApi;
+  purpose: string;
+  notes: string;
+  platforms: string[];
+  categories: string;
+  audience: string;
+  budget_range: string;
+  timeline: string;
+  created_at: string;
+  updated_at: string;
+};
 type PaginatedResponse<T> = {
   count: number;
   next: string | null;
@@ -312,6 +341,17 @@ function apiPost<T>(path: string, body: unknown, authed = false) {
   );
 }
 
+function apiPatch<T>(path: string, body: unknown, authed = false) {
+  return apiRequest<T>(
+    path,
+    {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    },
+    authed,
+  );
+}
+
 function apiPostForm<T>(path: string, body: FormData, authed = false) {
   return apiRequest<T>(
     path,
@@ -447,4 +487,25 @@ export async function getCampaignApplications() {
 
 export function applyToCampaign(campaignId: string) {
   return apiPost<CampaignApplicationApi>("/campaign-applications/", { campaign: campaignId }, true);
+}
+
+export async function getBrandShortlists() {
+  const data = await apiRequest<BrandShortlistApi[] | PaginatedResponse<BrandShortlistApi>>(
+    "/brand-shortlists/",
+    {},
+    true,
+  );
+  return Array.isArray(data) ? data : data.results;
+}
+
+export function createBrandShortlist(payload: BrandShortlistPayload) {
+  return apiPost<BrandShortlistApi>("/brand-shortlists/", payload, true);
+}
+
+export function updateBrandShortlist(shortlistId: string, payload: Partial<BrandShortlistPayload>) {
+  return apiPatch<BrandShortlistApi>(`/brand-shortlists/${shortlistId}/`, payload, true);
+}
+
+export function getBrandShortlist(shortlistId: string) {
+  return apiRequest<BrandShortlistApi>(`/brand-shortlists/${shortlistId}/`, {}, true);
 }

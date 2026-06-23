@@ -14,9 +14,9 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { getBrandMe, getCampaigns } from "../../lib/authApi";
+import { getBrandMe, getBrandShortlists, getCampaigns } from "../../lib/authApi";
 import { mapCampaignApiToCard, type CampaignCardItem } from "./Campaigns/campaignData";
-import { initialShortlists, type ShortlistItem } from "./Shortlists/shortlistData";
+import { mapShortlistApiToItem, type ShortlistItem } from "./Shortlists/shortlistData";
 
 type Metric = {
   label: string;
@@ -27,7 +27,10 @@ type Metric = {
 
 const statusClasses: Record<string, string> = {
   Open: "bg-[#cbf8df] text-[#009b67]",
+  Draft: "bg-[#dce9ff] text-[#2f6df6]",
   Submitted: "bg-[#dce9ff] text-[#2f6df6]",
+  "Outreach In Progress": "bg-[#ffd7a8] text-[#cf4e00]",
+  Completed: "bg-[#ccf8e0] text-[#009b67]",
   "Creator Outreach In Progress": "bg-[#ffd7a8] text-[#cf4e00]",
   "Deal Discussion Ongoing": "bg-[#e9d5ff] text-[#7c2cff]",
 };
@@ -133,7 +136,6 @@ function CampaignDashboardCard({ campaign, index, onOpen }: { key?: string; camp
 
 function ShortlistDashboardCard({ shortlist, index, onOpen }: { key?: string; shortlist: ShortlistItem; index: number; onOpen: () => void }) {
   const Icon = shortlist.icon;
-  const statusLabel = index === 1 ? "Creator Outreach In Progress" : index === 2 ? "Deal Discussion Ongoing" : shortlist.status;
 
   return (
     <Panel className="min-h-[244px] p-6">
@@ -148,7 +150,7 @@ function ShortlistDashboardCard({ shortlist, index, onOpen }: { key?: string; sh
       <h3 className="mt-7 text-[21px] font-black leading-tight text-black">{shortlist.title.replace(" Creators", "")}</h3>
       <p className="mt-4 text-base font-medium text-[#657084]">{shortlist.creators.length} Creators</p>
       <div className="mt-5">
-        <StatusPill label={statusLabel} />
+        <StatusPill label={shortlist.status} />
       </div>
       <button type="button" onClick={onOpen} className="mt-5 inline-flex items-center gap-2 text-base font-black text-[#7b83ff]">
         View Details <ArrowRight className="h-4 w-4" />
@@ -257,6 +259,7 @@ const BrandDashBoard = () => {
   const navigate = useNavigate();
   const [brandName, setBrandName] = useState("Acme Labs");
   const [campaigns, setCampaigns] = useState<CampaignCardItem[]>([]);
+  const [shortlists, setShortlists] = useState<ShortlistItem[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -275,6 +278,14 @@ const BrandDashBoard = () => {
         if (mounted) setCampaigns([]);
       });
 
+    getBrandShortlists()
+      .then((items) => {
+        if (mounted) setShortlists(items.map(mapShortlistApiToItem));
+      })
+      .catch(() => {
+        if (mounted) setShortlists([]);
+      });
+
     return () => {
       mounted = false;
     };
@@ -286,14 +297,18 @@ const BrandDashBoard = () => {
   }, [campaigns]);
 
   const submittedShortlists = useMemo(
-    () => initialShortlists.filter((shortlist) => shortlist.status !== "Draft").slice(0, 3),
-    [],
+    () => shortlists.filter((shortlist) => shortlist.status !== "Draft").sort((a, b) => a.updatedRank - b.updatedRank).slice(0, 3),
+    [shortlists],
+  );
+  const activeCollaborations = useMemo(
+    () => shortlists.filter((shortlist) => shortlist.status === "Outreach In Progress").length,
+    [shortlists],
   );
 
   const metrics: Metric[] = [
     { label: "Active Campaigns", value: visibleCampaigns.length, link: "/brand/campaigns", icon: Flag },
-    { label: "Shortlists Submitted", value: initialShortlists.length, link: "/brand/shortlists", icon: Star },
-    { label: "Collaborations Active", value: 8, link: "/brand/shortlists", icon: Users },
+    { label: "Shortlists Submitted", value: shortlists.filter((shortlist) => shortlist.status !== "Draft").length, link: "/brand/shortlists", icon: Star },
+    { label: "Collaborations Active", value: activeCollaborations, link: "/brand/shortlists", icon: Users },
   ];
 
   return (

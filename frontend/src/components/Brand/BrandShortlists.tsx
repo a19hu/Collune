@@ -1,43 +1,109 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 
+import {
+  createBrandShortlist,
+  getBrandShortlists,
+  getCreatorsList,
+  updateBrandShortlist,
+} from "../../lib/authApi";
 import { PrimaryButton } from "./Shortlists/ShortlistUi";
 import { ShortlistDetail } from "./Shortlists/ShortlistDetail";
 import { ShortlistList } from "./Shortlists/ShortlistList";
-import { createNewShortlist, initialShortlists, suggestedCreators, type ShortlistItem, type ShortlistStatus } from "./Shortlists/shortlistData";
+import {
+  mapCreatorApiToShortlistCreator,
+  mapShortlistApiToItem,
+  statusApiValues,
+  type ShortlistItem,
+  type ShortlistStatus,
+} from "./Shortlists/shortlistData";
 
 type View = "list" | "detail";
 type SortKey = "recent" | "name" | "creators";
 
 export function BrandShortlists() {
   const [view, setView] = useState<View>("list");
-  const [shortlists, setShortlists] = useState<ShortlistItem[]>(initialShortlists);
-  const [selectedId, setSelectedId] = useState(initialShortlists[0]?.id || "");
+  const [shortlists, setShortlists] = useState<ShortlistItem[]>([]);
+  const [selectedId, setSelectedId] = useState("");
   const [activeTab, setActiveTab] = useState<"All Shortlists" | ShortlistStatus>("All Shortlists");
   const [sort, setSort] = useState<SortKey>("recent");
   const [search, setSearch] = useState("");
   const [isPurposeEditing, setIsPurposeEditing] = useState(false);
   const [isNotesEditing, setIsNotesEditing] = useState(false);
   const [isOrderReversed, setIsOrderReversed] = useState(false);
-  const [sequence, setSequence] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const selectedShortlist = useMemo(
     () => shortlists.find((shortlist) => shortlist.id === selectedId) || shortlists[0],
     [selectedId, shortlists],
   );
 
-  const updateSelected = (updater: (shortlist: ShortlistItem) => ShortlistItem) => {
-    setShortlists((items) => items.map((item) => item.id === selectedId ? updater(item) : item));
+  const loadShortlists = async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const items = (await getBrandShortlists()).map(mapShortlistApiToItem);
+      setShortlists(items);
+      setSelectedId((current) => current || items[0]?.id || "");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to load shortlists.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const createShortlist = () => {
-    const nextSequence = sequence + 1;
-    const next = createNewShortlist(nextSequence);
-    setSequence(nextSequence);
-    setShortlists((items) => [next, ...items]);
-    setSelectedId(next.id);
-    setSearch("");
-    setView("detail");
+  useEffect(() => {
+    void loadShortlists();
+  }, []);
+
+  const persistSelected = async (updater: (shortlist: ShortlistItem) => ShortlistItem) => {
+    if (!selectedShortlist) return;
+    const next = updater(selectedShortlist);
+    setShortlists((items) => items.map((item) => item.id === selectedId ? next : item));
+    try {
+      const saved = await updateBrandShortlist(selectedId, {
+        title: next.title,
+        status: statusApiValues[next.status],
+        purpose: next.purpose,
+        notes: next.notes,
+        platforms: next.platforms,
+        categories: next.categories,
+        audience: next.audience,
+        budget_range: next.budgetRange,
+        timeline: next.timeline,
+        creators: next.creators.map((creator) => creator.id),
+      });
+      setShortlists((items) => items.map((item) => item.id === selectedId ? mapShortlistApiToItem(saved) : item));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to save shortlist.");
+      void loadShortlists();
+    }
+  };
+
+  const createShortlist = async () => {
+    setError("");
+    try {
+      const next = await createBrandShortlist({
+        title: `New Shortlist ${shortlists.length + 1}`,
+        status: "DRAFT",
+        purpose: "Describe the type of creators you want Collune to reach out to.",
+        notes: "",
+        platforms: [],
+        categories: "",
+        audience: "",
+        budget_range: "",
+        timeline: "",
+        creators: [],
+      });
+      const mapped = mapShortlistApiToItem(next);
+      setShortlists((items) => [mapped, ...items]);
+      setSelectedId(mapped.id);
+      setSearch("");
+      setView("detail");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to create shortlist.");
+    }
   };
 
   const openShortlist = (shortlist: ShortlistItem) => {
@@ -56,7 +122,7 @@ export function BrandShortlists() {
   };
 
   const submitToCollune = () => {
-    updateSelected((shortlist) => ({
+    void persistSelected((shortlist) => ({
       ...shortlist,
       status: "Submitted",
       updatedAt: "Updated today",
@@ -68,11 +134,11 @@ export function BrandShortlists() {
   const saveChanges = () => {
     setIsPurposeEditing(false);
     setIsNotesEditing(false);
-    updateSelected((shortlist) => ({ ...shortlist, updatedAt: "Updated today", updatedRank: 0 }));
+    void persistSelected((shortlist) => ({ ...shortlist, updatedAt: "Updated today", updatedRank: 0 }));
   };
 
   const removeCreator = (creatorId: string) => {
-    updateSelected((shortlist) => ({
+    void persistSelected((shortlist) => ({
       ...shortlist,
       creators: shortlist.creators.filter((creator) => creator.id !== creatorId),
       updatedAt: "Updated today",
@@ -80,19 +146,23 @@ export function BrandShortlists() {
     }));
   };
 
-  const discoverCreators = () => {
+  const discoverCreators = async () => {
     setSearch("");
     setIsOrderReversed(false);
-    updateSelected((shortlist) => {
-      const nextCreator = suggestedCreators.find((creator) => !shortlist.creators.some((item) => item.id === creator.id));
-      if (!nextCreator) return shortlist;
-      return {
+    if (!selectedShortlist) return;
+    try {
+      const creators = await getCreatorsList();
+      const nextCreator = creators.find((creator) => !selectedShortlist.creators.some((item) => item.id === creator.creator_id));
+      if (!nextCreator) return;
+      void persistSelected((shortlist) => ({
         ...shortlist,
-        creators: [{ ...nextCreator, added: "Added today" }, ...shortlist.creators],
+        creators: [{ ...mapCreatorApiToShortlistCreator(nextCreator, shortlist.creators.length), added: "Added today" }, ...shortlist.creators],
         updatedAt: "Updated today",
         updatedRank: 0,
-      };
-    });
+      }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to load creators.");
+    }
   };
 
   return (
@@ -105,7 +175,11 @@ export function BrandShortlists() {
         </PrimaryButton>
       </header>
 
-      {view === "detail" && selectedShortlist ? (
+      {error ? <p className="mb-6 rounded-lg bg-[#ffe9e9] px-4 py-3 text-sm font-semibold text-[#d23b3b]">{error}</p> : null}
+
+      {isLoading ? (
+        <p className="text-sm font-semibold text-[#657084]">Loading shortlists...</p>
+      ) : view === "detail" && selectedShortlist ? (
         <ShortlistDetail
           shortlist={selectedShortlist}
           search={search}
@@ -113,12 +187,12 @@ export function BrandShortlists() {
           isNotesEditing={isNotesEditing}
           isOrderReversed={isOrderReversed}
           onBack={backToList}
-          onDiscover={discoverCreators}
+          onDiscover={() => void discoverCreators()}
           onSearch={setSearch}
           onEditPurpose={() => setIsPurposeEditing((value) => !value)}
           onEditNotes={() => setIsNotesEditing((value) => !value)}
-          onPurposeChange={(value) => updateSelected((shortlist) => ({ ...shortlist, purpose: value }))}
-          onNotesChange={(value) => updateSelected((shortlist) => ({ ...shortlist, notes: value }))}
+          onPurposeChange={(value) => setShortlists((items) => items.map((item) => item.id === selectedId ? { ...item, purpose: value } : item))}
+          onNotesChange={(value) => setShortlists((items) => items.map((item) => item.id === selectedId ? { ...item, notes: value } : item))}
           onSave={saveChanges}
           onSubmit={submitToCollune}
           onToggleOrder={() => setIsOrderReversed((value) => !value)}

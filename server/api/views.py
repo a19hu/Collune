@@ -886,7 +886,9 @@ class BrandShortlistViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsBrand]
 
     def get_queryset(self):
-        return BrandShortlist.objects.select_related("brand", "creator", "creator__user").filter(brand__user=self.request.user)
+        return BrandShortlist.objects.select_related("brand").prefetch_related("creators", "creators__user").filter(
+            brand__user=self.request.user
+        )
 
     def perform_create(self, serializer):
         serializer.save(brand=self.request.user.brand_profile)
@@ -906,7 +908,7 @@ class DashboardSummaryView(APIView):
                     "metrics": {
                         "active_campaigns": Campaign.objects.filter(brand=brand, status=CampaignStatus.ACTIVE).count(),
                         "creator_applications": CampaignApplication.objects.filter(campaign__brand=brand).count(),
-                        "shortlisted_creators": BrandShortlist.objects.filter(brand=brand).count(),
+                        "shortlisted_creators": CreatorProfile.objects.filter(shortlisted_by__brand=brand).distinct().count(),
                     },
                 }
             )
@@ -919,7 +921,7 @@ class DashboardSummaryView(APIView):
                     "profile_completion": creator.profile_completion,
                     "metrics": {
                         "campaign_applications": CampaignApplication.objects.filter(creator=creator).count(),
-                        "brand_shortlists": BrandShortlist.objects.filter(creator=creator).count(),
+                        "brand_shortlists": BrandShortlist.objects.filter(creators=creator).count(),
                         "connected_accounts": CreatorSocialAccount.objects.filter(creator=creator, is_connected=True).count(),
                     },
                 }

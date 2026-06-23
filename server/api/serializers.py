@@ -14,6 +14,7 @@ from .models import (
     CreatorSocialAccount,
     OtpChannel,
     OtpVerification,
+    ShortlistStatus,
     SocialPlatform,
     UserRole,
     VerificationStatus,
@@ -452,9 +453,45 @@ class CampaignApplicationSerializer(serializers.ModelSerializer):
 
 
 class BrandShortlistSerializer(serializers.ModelSerializer):
-    creator_detail = CreatorProfileSerializer(source="creator", read_only=True)
+    creator_details = CreatorProfileSerializer(source="creators", many=True, read_only=True)
+    creators = serializers.PrimaryKeyRelatedField(queryset=CreatorProfile.objects.all(), many=True, required=False)
 
     class Meta:
         model = BrandShortlist
-        fields = ["shortlist_id", "brand", "creator", "creator_detail", "notes", "created_at"]
-        read_only_fields = ["shortlist_id", "brand", "created_at"]
+        fields = [
+            "shortlist_id",
+            "brand",
+            "title",
+            "creators",
+            "creator_details",
+            "status",
+            "purpose",
+            "notes",
+            "platforms",
+            "categories",
+            "audience",
+            "budget_range",
+            "timeline",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["shortlist_id", "brand", "creator_details", "created_at", "updated_at"]
+
+    def create(self, validated_data):
+        creators = validated_data.pop("creators", [])
+        shortlist = BrandShortlist.objects.create(**validated_data)
+        if creators:
+            shortlist.creators.set(creators)
+        return shortlist
+
+    def update(self, instance, validated_data):
+        creators = validated_data.pop("creators", None)
+        instance = super().update(instance, validated_data)
+        if creators is not None:
+            instance.creators.set(creators)
+        return instance
+
+    def validate_status(self, value):
+        if value not in ShortlistStatus.values:
+            raise serializers.ValidationError("Invalid shortlist status.")
+        return value

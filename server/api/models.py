@@ -265,16 +265,31 @@ class CampaignApplication(models.Model):
         return f"{self.creator.display_name} -> {self.campaign.title}"
 
 
+class ShortlistStatus(models.TextChoices):
+    DRAFT = "DRAFT", "Draft"
+    SUBMITTED = "SUBMITTED", "Submitted"
+    OUTREACH_IN_PROGRESS = "OUTREACH_IN_PROGRESS", "Outreach In Progress"
+    COMPLETED = "COMPLETED", "Completed"
+
+
 class BrandShortlist(models.Model):
     shortlist_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     brand = models.ForeignKey(BrandProfile, on_delete=models.CASCADE, related_name="shortlists")
-    creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="shortlisted_by")
+    title = models.CharField(max_length=160)
+    creators = models.ManyToManyField(CreatorProfile, related_name="shortlisted_by", blank=True)
+    status = models.CharField(max_length=32, choices=ShortlistStatus.choices, default=ShortlistStatus.DRAFT)
+    purpose = models.TextField(blank=True, default="")
     notes = models.TextField(blank=True, default="")
+    platforms = models.JSONField(blank=True, default=list)
+    categories = models.CharField(max_length=240, blank=True, default="")
+    audience = models.CharField(max_length=240, blank=True, default="")
+    budget_range = models.CharField(max_length=120, blank=True, default="")
+    timeline = models.CharField(max_length=160, blank=True, default="")
     created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ("brand", "creator")
-        ordering = ("-created_at",)
+        ordering = ("-updated_at", "-created_at")
 
     def __str__(self):
-        return f"{self.brand.company_name} - {self.creator.display_name}"
+        return f"{self.brand.company_name} - {self.title}"

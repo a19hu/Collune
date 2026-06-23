@@ -78,5 +78,7 @@ class CampaignProgressAdmin(admin.ModelAdmin):
 
 @admin.register(BrandShortlist)
 class BrandShortlistAdmin(admin.ModelAdmin):
-    list_display = ("brand", "creator", "created_at")
-    search_fields = ("brand__company_name", "creator__display_name")
+    list_display = ("title", "brand", "status", "created_at", "updated_at")
+    search_fields = ("title", "brand__company_name", "creators__display_name")
+    list_filter = ("status",)
+    filter_horizontal = ("creators",)
