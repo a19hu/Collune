@@ -19,6 +19,7 @@ import {
 
 import { useAuth } from "../contexts/AuthContext";
 import { getCreatorPublicProfile, type CreatorProfileApi } from "../lib/authApi";
+import { AddCreatorToShortlistModal } from "../components/Brand/Shortlists/AddCreatorToShortlistModal";
 import type { CreatorSocialPlatform } from "../types";
 
 const fallbackPortfolio = [
@@ -115,23 +116,36 @@ function Donut({ values, colors }: { values: number[]; colors: string[] }) {
   );
 }
 
-function BrandActions({ isBrand }: { isBrand: boolean }) {
+function BrandActions({ creator, isBrand }: { creator: CreatorProfileApi; isBrand: boolean }) {
+  const [isShortlistModalOpen, setIsShortlistModalOpen] = useState(false);
+
   if (isBrand) {
     return (
-      <Panel className="p-5">
-        <h2 className="text-lg font-black text-[#65718a]">For Brands</h2>
-        <div className="mt-4 grid gap-3">
-          <button type="button" className="h-12 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]">
-            Add to Shortlist
-          </button>
-          <button type="button" className="h-12 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]">
-            Request Collaboration
-          </button>
-          <button type="button" className="h-12 rounded-[6px] bg-[#1438c8] text-sm font-black text-white">
-            Save Creator
-          </button>
-        </div>
-      </Panel>
+      <>
+        <Panel className="p-5">
+          <h2 className="text-lg font-black text-[#65718a]">For Brands</h2>
+          <div className="mt-4 grid gap-3">
+            <button
+              type="button"
+              onClick={() => setIsShortlistModalOpen(true)}
+              className="h-12 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]"
+            >
+              Add to Shortlist
+            </button>
+            <button type="button" className="h-12 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]">
+              Request Collaboration
+            </button>
+            <button type="button" className="h-12 rounded-[6px] bg-[#1438c8] text-sm font-black text-white">
+              Save Creator
+            </button>
+          </div>
+        </Panel>
+        <AddCreatorToShortlistModal
+          creator={creator}
+          isOpen={isShortlistModalOpen}
+          onClose={() => setIsShortlistModalOpen(false)}
+        />
+      </>
     );
   }
 
@@ -514,7 +528,7 @@ export function PublicCreatorProfile() {
           </div>
 
           <aside className="grid content-start gap-5">
-            <BrandActions isBrand={isBrand} />
+            <BrandActions creator={profile} isBrand={isBrand} />
             {isBrand ? (
               <>
                 <CreatorStatsCard />

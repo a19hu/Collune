@@ -12,6 +12,7 @@ import {
   type CampaignApplicationApi,
   type CreatorProfileApi,
 } from "../../../lib/authApi";
+import { AddCreatorToShortlistModal } from "../Shortlists/AddCreatorToShortlistModal";
 import { CampaignPanel } from "./CampaignUi";
 
 const fallbackImages = [creatorOne, creatorTwo, creatorThree];
@@ -60,7 +61,16 @@ function PlatformIcon({ platform }: { platform: string }) {
   return <Instagram className="h-4 w-4" />;
 }
 
-function ApplicationProfileCard({ application, index }: { key?: string; application: CampaignApplicationApi; index: number }) {
+function ApplicationProfileCard({
+  application,
+  index,
+  onAddToShortlist,
+}: {
+  key?: string;
+  application: CampaignApplicationApi;
+  index: number;
+  onAddToShortlist: (creator: CreatorProfileApi) => void;
+}) {
   const creator = application.creator_detail;
   const platform = getPrimaryPlatform(creator);
   const platformClass = platformClasses[platform] || "bg-[#4b22ff] text-white";
@@ -118,6 +128,15 @@ function ApplicationProfileCard({ application, index }: { key?: string; applicat
             >
               View Profile <ExternalLink className="h-4 w-4" />
             </a>
+            {creator ? (
+              <button
+                type="button"
+                onClick={() => onAddToShortlist(creator)}
+                className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-4 text-sm font-black text-[#1438c8]"
+              >
+                Add to Shortlist
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
@@ -153,6 +172,7 @@ export function CampaignApplicationsPage() {
   const navigate = useNavigate();
   const [campaign, setCampaign] = useState<CampaignApi | null>(null);
   const [applications, setApplications] = useState<CampaignApplicationApi[]>([]);
+  const [selectedCreator, setSelectedCreator] = useState<CreatorProfileApi | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -220,12 +240,24 @@ export function CampaignApplicationsPage() {
       ) : campaignApplications.length ? (
         <div className="grid gap-5">
           {campaignApplications.map((application, index) => (
-            <ApplicationProfileCard key={application.application_id} application={application} index={index} />
+            <ApplicationProfileCard
+              key={application.application_id}
+              application={application}
+              index={index}
+              onAddToShortlist={setSelectedCreator}
+            />
           ))}
         </div>
       ) : (
         <FeedbackPanel title="No applications yet" copy="Creator applications will appear here when creators apply to this campaign." />
       )}
+      {selectedCreator ? (
+        <AddCreatorToShortlistModal
+          creator={selectedCreator}
+          isOpen={Boolean(selectedCreator)}
+          onClose={() => setSelectedCreator(null)}
+        />
+      ) : null}
     </div>
   );
 }
