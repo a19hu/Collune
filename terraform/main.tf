@@ -12,6 +12,7 @@ provider "google" {
   project = var.project_id
   region  = var.region
   zone    = var.zone
+
 }
 
 data "google_project" "current" {
@@ -20,6 +21,44 @@ data "google_project" "current" {
 
 locals {
   cloud_run_service_account_email = var.cloud_run_service_account_email != "" ? var.cloud_run_service_account_email : "${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+
+  django_env = {
+    DB_NAME                     = var.database_name
+    DB_USER                     = var.db_user
+    DB_PASSWORD                 = var.db_password
+    DB_INSTANCE_CONNECTION_NAME = google_sql_database_instance.postgres.connection_name
+    DB_PORT                     = "5432"
+    GS_BUCKET_NAME              = var.bucket_name
+    GS_PROJECT_ID               = var.project_id
+
+    EMAIL_BACKEND       = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST          = "smtp-relay.brevo.com"
+    EMAIL_PORT          = "587"
+    EMAIL_USE_TLS       = "True"
+    EMAIL_HOST_USER     = var.email_host_user
+    EMAIL_HOST_PASSWORD = var.email_host_password
+    DEFAULT_FROM_EMAIL  = "noreply@spsystems.in"
+
+    DJANGO_SUPERUSER_USERNAME = var.django_superuser_username
+    DJANGO_SUPERUSER_EMAIL    = var.django_superuser_email
+    DJANGO_SUPERUSER_PASSWORD = var.django_superuser_password
+
+    META_APP_ID            = var.meta_app_id
+    META_APP_SECRET        = var.meta_app_secret
+    INSTAGRAM_REDIRECT_URI = "https://collune-backend-350157158342.asia-south1.run.app/api/v1/auth/instagram/callback/"
+    FRONTEND_URL           = "https://collune.vercel.app"
+
+    GOOGLE_CLIENT_SECRET = var.google_client_secret
+    YOUTUBE_REDIRECT_URI = "https://collune-backend-350157158342.asia-south1.run.app/api/v1/auth/youtube/callback/"
+    GOOGLE_CLIENT_ID     = var.google_client_id
+    YOUTUBE_OAUTH_SCOPES = "openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly"
+
+    X_CLIENT_ID     = var.x_client_id
+    X_CLIENT_SECRET = var.x_client_secret
+    X_REDIRECT_URI  = "https://collune-backend-350157158342.asia-south1.run.app/api/v1/auth/x/callback/"
+    X_OAUTH_SCOPES  = "tweet.read users.read follows.read offline.access"
+    X_BEARER_TOKEN  = var.x_bearer_token
+  }
 }
 
 # Enable required GCP services
@@ -68,10 +107,20 @@ resource "google_cloud_run_service" "default" {
   template {
     spec {
       containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/collunebackend/collune-backend:${var.image_tag}"
+        image   = "${var.region}-docker.pkg.dev/${var.project_id}/collune/collune-backend:${var.image_tag}"
+        command = ["gunicorn"]
+        args    = ["server.wsgi:application", "--bind", "0.0.0.0:8080"]
 
         ports {
-          container_port = 8000
+          container_port = 8080
+        }
+
+        dynamic "env" {
+          for_each = local.django_env
+          content {
+            name  = env.key
+            value = env.value
+          }
         }
 
         resources {
@@ -120,17 +169,26 @@ resource "google_project_iam_member" "storage_admin" {
 
 # Cloud Run Job for Database Migrations
 resource "google_cloud_run_v2_job" "migrate" {
-  name     = "collune-migrate"
-  location = var.region
-  project  = var.project_id
+  name                = "collune-migrate"
+  location            = var.region
+  project             = var.project_id
+  deletion_protection = false
 
   template {
     template {
       service_account = local.cloud_run_service_account_email
       containers {
-        image   = "${var.region}-docker.pkg.dev/${var.project_id}/collunebackend/collune-backend:latest"
-        command = ["alembic"]
-        args    = ["upgrade", "head"]
+        image   = "${var.region}-docker.pkg.dev/${var.project_id}/collune/collune-backend:${var.image_tag}"
+        command = ["/bin/sh", "-c"]
+        args    = ["python manage.py migrate --noinput && python manage.py ensure_superuser"]
+
+        dynamic "env" {
+          for_each = local.django_env
+          content {
+            name  = env.key
+            value = env.value
+          }
+        }
 
         volume_mounts {
           name       = "cloudsql"
@@ -146,11 +204,6 @@ resource "google_cloud_run_v2_job" "migrate" {
     }
   }
 
-  lifecycle {
-    ignore_changes = [
-      template[0].template[0].containers[0].image,
-    ]
-  }
 }
 
 # Allow unauthenticated access to the Cloud Run service (for Flutter app)

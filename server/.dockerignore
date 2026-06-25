@@ -7,3 +7,5 @@ media
 .mypy_cache
 .ruff_cache
 .git
+.env
+migrations

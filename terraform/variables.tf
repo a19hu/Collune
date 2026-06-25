@@ -92,3 +92,71 @@ variable "cloud_run_service_account_email" {
   type        = string
   default     = ""
 }
+
+variable "email_host_user" {
+  type    = string
+  default = ""
+}
+
+variable "email_host_password" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "django_superuser_username" {
+  type    = string
+  default = ""
+}
+
+variable "django_superuser_email" {
+  type    = string
+  default = ""
+}
+
+variable "django_superuser_password" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "meta_app_id" {
+  type    = string
+  default = ""
+}
+
+variable "meta_app_secret" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "google_client_id" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "google_client_secret" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "x_client_id" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "x_client_secret" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "x_bearer_token" {
+  type      = string
+  default   = ""
+  sensitive = true
+}

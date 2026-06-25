@@ -23,7 +23,7 @@ resource "google_sql_database_instance" "postgres" {
     }
 
     ip_configuration {
-      ipv4_enabled    = false
+      ipv4_enabled = true
     }
 
     database_flags {
@@ -38,7 +38,6 @@ resource "google_sql_database_instance" "postgres" {
     }
   }
 
-  deletion_protection = false
 }
 
 resource "google_sql_database" "app_db" {

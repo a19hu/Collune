@@ -1,69 +1,87 @@
-name: Build & Deploy to Cloud Run via GitHub Actions
+name: Deploy Cloud Run
 
 on:
   push:
     branches:
       - main
+      - master
 
 jobs:
-  build-and-deploy:
+  deploy-cloud-run:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
+
+    env:
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      REGION: ${{ secrets.GCP_REGION }}
+      REPOSITORY: collune
+      IMAGE_NAME: collune-backend
+      TF_IN_AUTOMATION: "true"
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # - name: Authenticate to GCP
-      #   uses: google-github-actions/auth@v2
-      #   with:
-      #     credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      # - name: Set up gcloud CLI
-      #   uses: google-github-actions/setup-gcloud@v2
-      #   with:
-      #     project_id: ${{ secrets.GCP_PROJECT_ID }}
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # - name: Configure Docker for Artifact Registry
-      #   run: |
-      #     gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev --quiet
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
 
-      # - name: Build Docker image
-      #   run: |
-      #     SHORT_SHA="${GITHUB_SHA::8}"
-      #     docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cimmcobackend/mines-backend:${SHORT_SHA} .
+      - name: Build and push backend image
+        working-directory: server
+        run: |
+          SHORT_SHA="${GITHUB_SHA::8}"
+          IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${IMAGE_NAME}"
 
-      # - name: Push Docker image
-      #   run: |
-      #     SHORT_SHA="${GITHUB_SHA::8}"
-      #     docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cimmcobackend/mines-backend:${SHORT_SHA}
+          docker build \
+            -t "${IMAGE_URI}:${SHORT_SHA}" \
+            -t "${IMAGE_URI}:latest" \
+            .
 
-      # - name: Terraform Init
-      #   working-directory: terraform
-      #   run: |
-      #     terraform init
+          docker push "${IMAGE_URI}:${SHORT_SHA}"
+          docker push "${IMAGE_URI}:latest"
 
-      # - name: Terraform Import Existing Private IP Range (one-time)
-      #   working-directory: terraform
-      #   run: |
-      #     if ! terraform state show google_compute_global_address.private_ip_alloc >/dev/null 2>&1; then
-      #       terraform import \
-      #         google_compute_global_address.private_ip_alloc \
-      #         "projects/${{ secrets.GCP_PROJECT_ID }}/global/addresses/postgresql-18-private-ip-alloc" || true
-      #     fi
+          echo "IMAGE_TAG=${SHORT_SHA}" >> "${GITHUB_ENV}"
 
-      # - name: Terraform Apply
-      #   working-directory: terraform
-      #   run: |
-      #     SHORT_SHA="${GITHUB_SHA::8}"
-      #     terraform apply -auto-approve \
-      #       -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
-      #       -var="region=${{ secrets.GCP_REGION }}" \
-      #       -var="image_tag=${SHORT_SHA}" \
-      #       -var="db_password=${{ secrets.DB_PASSWORD }}" \
-      #       -var="bucket_name=${{ secrets.BUCKET_NAME }}" \
-      #       -var="gemini_api_key=${{ secrets.GEMINI_API_KEY }}"
+      - name: Terraform init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Deploy Cloud Run service and job only
+        working-directory: terraform
+        run: |
+          terraform apply -auto-approve \
+            -target=google_cloud_run_service.default \
+            -target=google_cloud_run_v2_job.migrate \
+            -target=google_cloud_run_service_iam_member.public_access \
+            -var="project_id=${PROJECT_ID}" \
+            -var="region=${REGION}" \
+            -var="image_tag=${IMAGE_TAG}" \
+            -var="db_password=${{ secrets.DB_PASSWORD }}" \
+            -var="bucket_name=${{ secrets.BUCKET_NAME }}" \
+            -var="email_host_user=${{ secrets.EMAIL_HOST_USER }}" \
+            -var="email_host_password=${{ secrets.EMAIL_HOST_PASSWORD }}" \
+            -var="django_superuser_username=${{ secrets.DJANGO_SUPERUSER_USERNAME }}" \
+            -var="django_superuser_email=${{ secrets.DJANGO_SUPERUSER_EMAIL }}" \
+            -var="django_superuser_password=${{ secrets.DJANGO_SUPERUSER_PASSWORD }}" \
+            -var="meta_app_id=${{ secrets.META_APP_ID }}" \
+            -var="meta_app_secret=${{ secrets.META_APP_SECRET }}" \
+            -var="google_client_id=${{ secrets.GOOGLE_CLIENT_ID }}" \
+            -var="google_client_secret=${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+            -var="x_client_id=${{ secrets.X_CLIENT_ID }}" \
+            -var="x_client_secret=${{ secrets.X_CLIENT_SECRET }}" \
+            -var="x_bearer_token=${{ secrets.X_BEARER_TOKEN }}"
