@@ -420,7 +420,7 @@ export async function registerBrand(payload: BrandRegisterPayload) {
 export async function registerBrandFormData(payload: BrandRegisterPayload, logo?: File | null) {
   const body = new FormData();
   body.append("payload", JSON.stringify(payload));
-  if (logo) body.append("logo", logo);
+  if (logo) body.append("logo", logo, logo.name);
   return apiPostForm<BrandRegisterResponse>("/auth/brands/register/", body);
 }
 

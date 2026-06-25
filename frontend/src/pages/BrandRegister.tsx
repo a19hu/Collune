@@ -27,6 +27,9 @@ import { normalizePhoneNumber } from "../lib/function";
 import type { BrandRegisterForm } from "../types";
 
 const totalSteps = 3;
+const maxLogoSizeBytes = 2 * 1024 * 1024;
+const allowedLogoTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
+const allowedLogoExtensions = [".png", ".jpg", ".jpeg", ".webp"];
 
 const inputClass =
   "h-[47px] w-full rounded-lg border border-[#d9e2f2] bg-white px-11 text-sm font-medium text-[#202337] outline-none transition placeholder:text-[#95a3ba] focus:border-[#5068f2] focus:ring-4 focus:ring-[#5068f2]/10";
@@ -170,7 +173,7 @@ function BrandRegisterSteps({
             <span className="relative grid h-[148px] place-items-center rounded-lg border-2 border-dashed border-[#d9e2f2] text-center transition hover:border-[#5068f2]">
               <input
                 type="file"
-                accept="image/png,image/jpeg,image/svg+xml"
+                accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
                 onChange={onLogoChange}
                 className="absolute inset-0 cursor-pointer opacity-0"
                 aria-label="Upload company logo"
@@ -178,7 +181,7 @@ function BrandRegisterSteps({
               <span>
                 <UploadCloud className="mx-auto h-10 w-10 text-[#95a3ba]" />
                 <strong className="mt-3 block text-sm font-black text-[#202337]">{form.logo ? form.logo.name : "Upload your logo"}</strong>
-                <span className="mt-2 block text-xs font-medium text-[#95a3ba]">PNG, JPG or SVG - Max size 2MB</span>
+                <span className="mt-2 block text-xs font-medium text-[#95a3ba]">PNG, JPG or WebP - Max size 2MB</span>
               </span>
             </span>
           </label>
@@ -319,9 +322,25 @@ const BrandRegister = () => {
           onTermsChange={(event) => setForm((current) => ({ ...current, acceptedTerms: event.target.checked }))}
           onLogoChange={(event) => {
             const file = event.target.files?.[0] || null;
-            if (file && file.size > 2 * 1024 * 1024) {
+            if (!file) {
+              setSubmitError("");
+              setForm((current) => ({ ...current, logo: null }));
+              return;
+            }
+
+            const fileName = file.name.toLowerCase();
+            const hasAllowedExtension = allowedLogoExtensions.some((extension) => fileName.endsWith(extension));
+            if (!allowedLogoTypes.has(file.type) && !hasAllowedExtension) {
+              setSubmitError("Company logo must be a PNG, JPG, or WebP image.");
+              event.target.value = "";
+              setForm((current) => ({ ...current, logo: null }));
+              return;
+            }
+
+            if (file.size > maxLogoSizeBytes) {
               setSubmitError("Company logo must be 2MB or smaller.");
               event.target.value = "";
+              setForm((current) => ({ ...current, logo: null }));
               return;
             }
             setSubmitError("");
