@@ -20,6 +20,19 @@ resource "google_storage_bucket" "bucket" {
     }
   }
 
+  cors {
+    origin = [
+      "https://collune.vercel.app",
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "http://127.0.0.1:3000",
+      "http://127.0.0.1:5173",
+    ]
+    method          = ["GET", "HEAD", "OPTIONS"]
+    response_header = ["Content-Type", "Access-Control-Allow-Origin"]
+    max_age_seconds = 3600
+  }
+
   labels = var.labels
 
   force_destroy = var.force_destroy

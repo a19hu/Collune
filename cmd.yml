@@ -8,3 +8,4 @@ gcloud run services update cl \
 
 
 GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token) terraform apply -auto-approve
+gcloud builds submit --tag asia-south1-docker.pkg.dev/schoolmate-498917/collune/collune-backend:latest .

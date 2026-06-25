@@ -144,6 +144,7 @@ GS_PROJECT_ID = env("GS_PROJECT_ID", default=None)
 if GS_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
     GS_DEFAULT_ACL = None
+    GS_QUERYSTRING_AUTH = False
     MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/"
 else:
     MEDIA_URL = "/media/"
