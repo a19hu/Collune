@@ -98,8 +98,10 @@ const App: React.FC = () => {
                         <Route path="/brand/*" element={<SideBarLayout />}>
                             <Route index element={<BrandDashBoard />} />
                             <Route path="shortlists" element={<BrandShortlists />} />
+                            <Route path="shortlists/:shortlistId" element={<BrandShortlists />} />
                             <Route path="creators" element={<ColluneInfoPage page="discover-creators" />} />
                             <Route path="campaigns" element={<BrandCampaigns />} />
+                            <Route path="campaigns/:campaignId" element={<CampaignApplicationsPage />} />
                             <Route path="campaigns/:campaignId/applications" element={<CampaignApplicationsPage />} />
                         </Route>
                     </Route>

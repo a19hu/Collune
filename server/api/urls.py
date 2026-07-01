@@ -4,10 +4,12 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from .admin.views import VerificationView
 from .brand.views import (
+    BrandDetailDashboardView,
     BrandProfileViewSet,
     BrandsListView,
     BrandRegisterView,
     BrandShortlistViewSet,
+    CampaignsViewSet,
     CampaignProgressViewSet,
     CampaignStatusSummaryViewSet,
     CampaignViewSet,
@@ -56,6 +58,8 @@ urlpatterns = [
     path("auth/otp/verify/", OtpVerifyView.as_view(), name="otp_verify"),
     path("auth/me/", ProfileView.as_view(), name="profile"),
     path("auth/creator/profile/", CreatorProfileView.as_view(), name="creator_profile"),
+    path("brands/dashboard/", BrandDetailDashboardView.as_view(), name="brand_dashboard"),
+    path("brands/campaigns/", CampaignsViewSet.as_view(), name="brand_campaigns"),
     path("brands/list/", BrandsListView.as_view(), name="brands_list"),
     path("brands/list/<uuid:brand_id>/", BrandsListView.as_view(), name="brand_detail"),
     path("creators/list/", CreatorsListView.as_view(), name="creators_list"),

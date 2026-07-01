@@ -1,0 +1,133 @@
+import { ArrowRight, MoreVertical, Star, Users } from "lucide-react";
+import { ReactNode } from "react"
+import { useNavigate } from "react-router-dom";
+type itemapi = {
+    id: string;
+    name: string;
+    status: string;
+    applications_received_count?: number;
+    recommended_creators_count?: number;
+    creators_count?: number;
+    updated_at?: string;
+}
+
+const statusClasses: Record<string, string> = {
+    Open: "bg-[#cbf8df] text-[#009b67]",
+    Draft: "bg-[#dce9ff] text-[#2f6df6]",
+    Submitted: "bg-[#dce9ff] text-[#2f6df6]",
+    "Outreach In Progress": "bg-[#ffd7a8] text-[#cf4e00]",
+    Completed: "bg-[#ccf8e0] text-[#009b67]",
+    "Creator Outreach In Progress": "bg-[#ffd7a8] text-[#cf4e00]",
+    "Deal Discussion Ongoing": "bg-[#e9d5ff] text-[#7c2cff]",
+};
+
+const campaignIconStyles = [
+    "bg-[#ebe5ff] text-[#6a75ff]",
+    "bg-[#ffe1e5] text-[#ef4444]",
+    "bg-[#fff0bc] text-[#d78a00]",
+];
+
+function formatUpdatedAt(value: string) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "Updated recently";
+
+    const days = Math.max(0, Math.floor((Date.now() - date.getTime()) / 86400000));
+    if (days === 0) return "Updated today";
+    if (days === 1) return "Updated yesterday";
+    if (days < 7) return `Updated ${days} days ago`;
+    const weeks = Math.floor(days / 7);
+    return weeks === 1 ? "Updated 1 week ago" : `Updated ${weeks} weeks ago`;
+}
+
+
+export const BrandCard = ({ item, index, shortlist = false, listvisible = false }: { item: itemapi, index: number, shortlist?: boolean, listvisible?: boolean }) => {
+
+    const navigate = useNavigate();
+
+    return (
+        <>
+            <Panel className="min-h-[294px] p-6">
+                <div className="flex items-start justify-between">
+                    <span className={`grid h-12 w-12 place-items-center rounded-full ${campaignIconStyles[index % campaignIconStyles.length]}`}>
+                        {/* <Icon className="h-6 w-6" /> */}
+                    </span>
+                    <button type="button"
+                        // onClick={onOpen}
+                        className="text-[#657084]" aria-label={`${item.name} options`}>
+                        <MoreVertical className="h-5 w-5" />
+                    </button>
+                </div>
+
+                <h3 className="mt-7 min-h-[58px] text-[21px] font-black leading-snug text-black">{item.name}</h3>
+                {
+                    shortlist ?
+                        <>
+                            <p className="mt-4 text-base font-medium text-[#657084]">{item.creators_count} Creators</p>
+                            <div className="mt-5">
+                                <StatusPill label={item.status} />
+                            </div>
+                        </>
+                        :
+                        <>
+                            <div className="mt-3">
+                                <StatusPill label={item.status} />
+                            </div>
+                            <div className="mt-5 grid grid-cols-2 gap-4 text-base text-[#657084]">
+                                <div className="flex items-center gap-3">
+                                    <Users className="h-5 w-5 text-[#4b22ff]" />
+                                    <div>
+                                        <strong className="block text-base font-medium text-[#657084]">{item.applications_received_count}</strong>
+                                        <span>Applications</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    <Star className="h-5 w-5 text-[#ff9f00]" />
+                                    <div>
+                                        <strong className="block text-base font-medium text-[#657084]">{item.recommended_creators_count}</strong>
+                                        <span>Recommended</span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </>
+                }
+                {
+                    listvisible ?
+                        <div className="mt-5 flex items-center justify-between border-t border-[#e4ebf4] pt-5">
+                            <span className="text-sm font-medium text-[#63728a]">{formatUpdatedAt(item.updated_at)}</span>
+                            <button type="button" onClick={() => navigate(`/brand/campaigns/${item.id}`)} className="inline-flex items-center gap-2 text-sm font-black text-[#2f16ff]">
+                                View Campaign <ArrowRight className="h-4 w-4" />
+                            </button>
+                        </div>
+                        :
+                        <button type="button"
+                            onClick={() => navigate(`/brand/campaigns/${item.id}`)}
+                            className="mt-5 inline-flex items-center gap-2 text-base font-black text-[#7b83ff]">
+                            View Campaign <ArrowRight className="h-4 w-4" />
+                        </button>
+                }
+            </Panel>
+
+
+        </>
+    )
+}
+
+
+
+export function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
+    return (
+        <section className={`rounded-xl border border-[#dfe5ee] bg-white shadow-[0_2px_4px_rgba(20,30,60,0.02)] ${className}`}>
+            {children}
+        </section>
+    );
+}
+
+export function StatusPill({ label }: { label: string }) {
+    return (
+        <span className={`inline-flex h-7 w-max items-center rounded-lg px-4 text-sm font-black ${statusClasses[label] || "bg-[#dce9ff] text-[#2f6df6]"}`}>
+            {label}
+        </span>
+    );
+}

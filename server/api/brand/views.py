@@ -3,13 +3,14 @@ from django.db.models import Count, Q
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..models import (
-    ApplicationStatus, BrandProfile, BrandShortlist, Campaign, CampaignApplication, CampaignProgress, CampaignStatus, CreatorProfile, UserRole, VerificationStatus,
+    ApplicationStatus, BrandProfile, BrandShortlist, Campaign, CampaignApplication, CampaignProgress, CampaignStatus, CampaignStatusSummary, CreatorProfile, ShortlistStatus, UserRole, VerificationStatus,
 )
 from ..permissions import IsBrand, IsCreator, IsVerifiedColluneMember
 from ..common.services import auth_response, create_user, parse_payload
@@ -17,6 +18,23 @@ from .serializers import (
     BrandProfileSerializer, BrandRegisterSerializer, BrandShortlistSerializer, CampaignApplicationSerializer,
     CampaignProgressSerializer, CampaignSerializer, CampaignStatusSummarySerializer,
 )
+
+
+class CampaignPagination(PageNumberPagination):
+    page_size = 6
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+    def get_paginated_response(self, data):
+        return Response({
+            "count": self.page.paginator.count,
+            "next": self.get_next_link(),
+            "previous": self.get_previous_link(),
+            "page": self.page.number,
+            "total_pages": self.page.paginator.num_pages,
+            "page_size": self.get_page_size(self.request),
+            "campaigns": data,
+        })
 
 
 class BrandRegisterView(APIView):
@@ -69,6 +87,89 @@ class BrandsListView(APIView):
         brands = self.get_queryset().order_by("-created_at")
         serializer = BrandProfileSerializer(brands, many=True, context={"request": request})
         return Response({"brands": serializer.data})
+    
+class BrandDetailDashboardView(APIView):
+    permission_classes = [IsAuthenticated, IsBrand]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request):
+        brand = getattr(request.user, "brand_profile", None)
+        if not brand:
+            return Response({"error": "No brand profile found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        brand_campaigns = Campaign.objects.filter(brand=brand)
+        brand_shortlists = BrandShortlist.objects.filter(brand=brand)
+        active_campaigns = brand_campaigns.filter(status=CampaignStatus.ACTIVE).order_by("-created_at")
+        active_shortlists = brand_shortlists.filter(status=ShortlistStatus.SUBMITTED).order_by("-created_at")
+        result = {
+            "no_of_active_campaigns": active_campaigns.count(),
+            "no_of_active_shortlists": active_shortlists.count(),
+            "collaborations_active": 0,
+            "active_campaigns": [
+                {
+                    "id": campaign.campaign_id,
+                    "name": campaign.title,
+                    "status": campaign.status,
+                    "applications_received_count": CampaignApplication.objects.filter(campaign=campaign).count(),
+                    "recommended_creators_count": CampaignApplication.objects.filter(campaign=campaign, status=ApplicationStatus.ACCEPTED).count(),
+                }
+                for campaign in active_campaigns[:3]
+            ],
+            "active_shortlists": [
+                {
+                    "id": shortlist.shortlist_id,
+                    "name": shortlist.title,
+                    "status": shortlist.status,
+                    "creators_count": shortlist.creators.count(),
+                }
+                for shortlist in active_shortlists[:3]
+            ],
+
+        }
+        return Response({"brand_dashboard": result})
+    
+class CampaignsViewSet(APIView):
+    permission_classes = [IsAuthenticated, IsBrand]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+    pagination_class = CampaignPagination
+
+    def get(self, request):
+        brand = getattr(request.user, "brand_profile", None)
+        if not brand:
+            return Response({"error": "No brand profile found."}, status=status.HTTP_404_NOT_FOUND)
+
+        campaigns = (
+            Campaign.objects.filter(brand=brand)
+            .annotate(
+                applications_received_count=Count("applications", distinct=True),
+                recommended_creators_count=Count(
+                    "applications",
+                    filter=Q(applications__status=ApplicationStatus.ACCEPTED),
+                    distinct=True,
+                ),
+            )
+            .order_by("-updated_at")
+        )
+
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(campaigns, request, view=self)
+        campaign_page = page if page is not None else campaigns
+
+        data = [
+            {
+                "id": str(campaign.campaign_id),
+                "name": campaign.title,
+                "status": campaign.status,
+                "applications_received_count": campaign.applications_received_count,
+                "recommended_creators_count": campaign.recommended_creators_count,
+                "updated_at": campaign.updated_at.isoformat(),
+            }
+            for campaign in campaign_page
+        ]
+
+        if page is not None:
+            return paginator.get_paginated_response(data)
+        return Response({"campaigns": data})
 
 class BrandProfileViewSet(viewsets.ModelViewSet):
     serializer_class = BrandProfileSerializer

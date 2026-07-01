@@ -24,6 +24,27 @@ class BrandRegisterSerializer(serializers.Serializer):
     linkedin_url = serializers.URLField(required=False, allow_blank=True)
     logo = serializers.ImageField(required=False, allow_null=True)
 
+class BrandDashboardSerializer(serializers.Serializer):
+    brand = serializers.SerializerMethodField()
+    active_campaigns_count = serializers.SerializerMethodField()
+    active_shortlists_count = serializers.SerializerMethodField()
+
+    def get_brand(self, obj):
+        return BrandProfileSerializer(obj).data
+
+    def get_active_campaigns_count(self, obj):
+        return Campaign.objects.filter(
+            brand=obj,
+            status__in=[CampaignStatus.ACTIVE, CampaignStatus.PAUSED],
+        ).count()
+
+    def get_active_shortlists_count(self, obj):
+        return BrandShortlist.objects.filter(
+            brand=obj,
+            status=ShortlistStatus.ACTIVE,
+        ).count()
+
+
 class BrandProfileSerializer(serializers.ModelSerializer):
     user = AuthUserSerializer(read_only=True)
     logo_url = serializers.SerializerMethodField()

@@ -85,6 +85,23 @@ export type CampaignApplicationApi = {
   created_at: string;
   updated_at: string;
 };
+export type BrandCampaignListItemApi = {
+  id: string;
+  name: string;
+  status: CampaignApi["status"];
+  applications_received_count: number;
+  recommended_creators_count: number;
+  updated_at: string;
+};
+export type BrandCampaignListResponse = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  page: number;
+  total_pages: number;
+  page_size: number;
+  campaigns: BrandCampaignListItemApi[];
+};
 export type BrandShortlistStatusApi = "DRAFT" | "SUBMITTED" | "OUTREACH_IN_PROGRESS" | "COMPLETED";
 export type BrandShortlistPayload = {
   title: string;
@@ -274,6 +291,17 @@ export type BrandProfileApi = {
   profile_completion: number;
 };
 
+export type BrandDashboardApi = {
+  brand?: BrandProfileApi;
+  no_of_active_campaigns: number;
+  no_of_submitted_shortlists?: number;
+  no_of_active_shortlists: number;
+  collaborations_active?: number;
+  active_campaigns: Array<CampaignApi | { id: string; name: string; status: string }>;
+  active_shortlists?: Array<BrandShortlistApi | { id: string; name: string; status: string }>;
+  submitted_shortlists?: BrandShortlistApi[];
+};
+
 export type OtpChannel = "EMAIL" | "PHONE";
 
 export type OtpResponse = {
@@ -431,6 +459,11 @@ export async function getBrandMe() {
   return data.brand;
 }
 
+export async function getBrandDashboard() {
+  const data = await apiRequest<{ brand_dashboard: BrandDashboardApi }>("/brands/dashboard/", {}, true);
+  return data.brand_dashboard;
+}
+
 export async function getBrandsList() {
   const data = await apiRequest<{ brands: BrandProfileApi[] } | BrandProfileApi[] | PaginatedResponse<BrandProfileApi>>(
     "/brands/list/",
@@ -505,6 +538,14 @@ export function createCampaign(payload: CampaignPayload) {
 export async function getCampaigns() {
   const data = await apiRequest<CampaignApi[] | PaginatedResponse<CampaignApi>>("/campaigns/", {}, true);
   return Array.isArray(data) ? data : data.results;
+}
+
+export function getBrandCampaigns(page = 1, pageSize = 10) {
+  const query = new URLSearchParams({
+    page: String(page),
+    page_size: String(pageSize),
+  });
+  return apiRequest<BrandCampaignListResponse>(`/brands/campaigns/?${query.toString()}`, {}, true);
 }
 
 export function getCampaign(campaignId: string) {
