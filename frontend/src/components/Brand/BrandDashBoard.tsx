@@ -207,7 +207,6 @@ function getDashboardCampaigns(campaigns: CampaignCardItem[]) {
 const BrandDashBoard = () => {
   const navigate = useNavigate();
   const [brand, setBrand] = useState<BrandProfileApi | null>(null);
-  const [isSavingVisibility, setIsSavingVisibility] = useState(false);
   const [campaigns, setCampaigns] = useState<CampaignCardItem[]>([]);
   const [shortlists, setShortlists] = useState<ShortlistItem[]>([]);
 

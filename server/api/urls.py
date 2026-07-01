@@ -2,30 +2,34 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .views import (
+from .admin.views import VerificationView
+from .brand.views import (
     BrandProfileViewSet,
     BrandsListView,
     BrandRegisterView,
     BrandShortlistViewSet,
-    CampaignApplicationViewSet,
     CampaignProgressViewSet,
     CampaignStatusSummaryViewSet,
     CampaignViewSet,
-    CreatorProfileView,
-    CreatorProfileViewSet,
-    CreatorRegisterView,
-    CreatorsListView,
-    CreatorSocialAccountViewSet,
+)
+from .common.views import (
     DashboardSummaryView,
     EmailAvailabilityView,
-    InstagramCallbackView,
-    InstagramConnectView,
     LoginView,
     OtpSendView,
     OtpVerifyView,
     ProfileView,
     SignoutView,
-    VerificationView,
+)
+from .creator.views import (
+    CampaignApplicationViewSet,
+    CreatorProfileView,
+    CreatorProfileViewSet,
+    CreatorRegisterView,
+    CreatorsListView,
+    CreatorSocialAccountViewSet,
+    InstagramCallbackView,
+    InstagramConnectView,
     XCallbackView,
     XConnectView,
     YouTubeCallbackView,
