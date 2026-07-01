@@ -21,6 +21,7 @@ import { BrandShortlists } from './components/Brand/BrandShortlists.tsx';
 import LoadingPage from './components/layout/LoadingPage.tsx';
 import type { UserAccount } from './types.ts';
 import { getBrandMe, getCreatorProfile } from './lib/authApi.ts';
+import { CampaignCreateForm } from './components/Brand/Campaigns/CampaignCreateForm.tsx';
 
 function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
     const { currentUser, isAuthLoading } = useAuth();
@@ -101,6 +102,7 @@ const App: React.FC = () => {
                             <Route path="shortlists/:shortlistId" element={<BrandShortlists />} />
                             <Route path="creators" element={<ColluneInfoPage page="discover-creators" />} />
                             <Route path="campaigns" element={<BrandCampaigns />} />
+                            <Route path="campaigns/new_create" element={<CampaignCreateForm />} />
                             <Route path="campaigns/:campaignId" element={<CampaignApplicationsPage />} />
                             <Route path="campaigns/:campaignId/applications" element={<CampaignApplicationsPage />} />
                         </Route>

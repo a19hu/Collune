@@ -30,7 +30,6 @@ const pageSize = 6;
 const loadingCards = Array.from({ length: 5 }, (_, index) => index);
 
 export const BrandCampaigns = () => {
-  const [view, setView] = useState<CampaignView>("list");
   const [sort, setSort] = useState<SortKey>("recent");
   const [page, setPage] = useState(1);
   const [campaigns, setCampaigns] = useState<CampaignCardItem[]>([]);
@@ -62,23 +61,7 @@ export const BrandCampaigns = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="mb-10 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-black tracking-normal text-[#173ca8] font-semibold">
-           Campaigns
-          </h1>
-        </div>
-
-          <button
-            type="button"
-            onClick={() => setView("create")}
-            className="inline-flex h-12 items-center gap-3 rounded-lg bg-[#173ca8] px-7 text-sm font-black text-white shadow-[0_8px_14px_rgba(23,60,168,0.22)]"
-          >
-            <Plus className="h-5 w-5" />
-            Create Campaign
-          </button>
-      </header>
+    
     <div>
       <div className="mb-8 flex items-center justify-end">
         <label className="inline-flex items-center gap-2 text-sm font-medium text-[#60708a]">
@@ -109,8 +92,6 @@ export const BrandCampaigns = () => {
         Campaigns help you attract the right creators and build meaningful collaborations.{" "}
         <button type="button" className="font-black text-[#2f16ff]">Learn how campaigns work</button>
       </p>
-    </div>
-     
     </div>
   );
 };

@@ -48,9 +48,6 @@ const BrandDashBoard = () => {
   }, []);
 
 
-  const brandName = brand?.company_name || "Brand";
-
-
   const metrics: Metric[] = [
     { label: "Active Campaigns", value: brand?.no_of_active_campaigns || 0, link: "/brand/campaigns", icon: Flag },
     { label: "Shortlists Submitted", value: brand?.no_of_active_shortlists || 0, link: "/brand/shortlists", icon: Star },
@@ -58,24 +55,7 @@ const BrandDashBoard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="mb-12 flex flex-wrap items-center justify-between gap-5">
-        <div>
-          <h1 className="text-[28px] font-black tracking-normal text-[#173ca8] font-semibold">Welcome {brandName}!</h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <HeaderButton onClick={() => navigate("/brand/campaigns")}>
-            <Plus className="h-5 w-5" />
-            Create Campaign
-          </HeaderButton>
-          <HeaderButton onClick={() => navigate("/brand/shortlists")} variant="outline">
-            <Plus className="h-5 w-5" />
-            Build Shortlist
-          </HeaderButton>
-        </div>
-      </header>
-
-
+<>
       <div className="grid gap-6 xl:grid-cols-3">
         {metrics.map((metric) => <Panel className="min-h-[224px] p-7">
           <span className="grid h-12 w-12 place-items-center rounded-full bg-[#ebe5ff] text-[#6a75ff]">
@@ -142,26 +122,9 @@ const BrandDashBoard = () => {
           />
         </div>
       </section>
-    </div>
+    </>
   );
 };
-
-
-function HeaderButton({ children, onClick, variant = "solid" }: { children: ReactNode; onClick: () => void; variant?: "solid" | "outline" }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex h-12 items-center gap-3 rounded-lg px-7 text-sm font-black ${variant === "solid"
-        ? "bg-[#173ca8] text-white shadow-[0_8px_14px_rgba(23,60,168,0.22)]"
-        : "border-2 border-[#173ca8] bg-white text-[#173ca8]"
-        }`}
-    >
-      {children}
-    </button>
-  );
-}
-
 
 function SectionHeader({ title, path }: { title: string; path: string }) {
   const navigate = useNavigate();
