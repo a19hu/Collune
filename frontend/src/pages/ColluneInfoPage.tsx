@@ -175,12 +175,21 @@ function FeaturedBrandCard({ brand }: { brand: BrandProfileApi }) {
 }
 
 function FeaturedBrandsPage() {
+  const { currentUser } = useAuth();
   const [brands, setBrands] = useState<BrandProfileApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const isLoggedIn = Boolean(currentUser);
 
   useEffect(() => {
     let mounted = true;
+    if (!isLoggedIn) {
+      setIsLoading(false);
+      return () => {
+        mounted = false;
+      };
+    }
+
     getBrandsList()
       .then((data) => {
         if (mounted) setBrands(data);
@@ -194,7 +203,7 @@ function FeaturedBrandsPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [isLoggedIn]);
 
   return (
     <main className="min-h-screen bg-[#f5f7ff] px-6 pb-24 pt-36 text-[#17327c]">
@@ -208,7 +217,17 @@ function FeaturedBrandsPage() {
 
         {error ? <p className="mt-8 rounded-[8px] bg-white p-5 text-sm font-black text-[#b42318]">{error}</p> : null}
         <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {isLoading ? (
+          {!isLoggedIn ? (
+            <div className="col-span-full rounded-[10px] bg-white p-8 text-center shadow-[0_10px_24px_rgba(40,67,140,0.08)]">
+              <h2 className="text-xl font-black text-[#334260]">Verified member access only</h2>
+              <p className="mx-auto mt-2 max-w-md text-sm font-bold text-[#65718a]">
+                Brand profiles and platform member information are available only after signing in as a verified Collune member.
+              </p>
+              <Link to="/login" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-[6px] bg-[#1438c8] px-6 text-sm font-black text-white">
+                Sign in
+              </Link>
+            </div>
+          ) : isLoading ? (
             <p className="col-span-full py-10 text-center text-sm font-black text-[#65718a]">Loading brands...</p>
           ) : brands.length ? (
             brands.map((brand) => <FeaturedBrandCard key={brand.brand_id} brand={brand} />)
@@ -237,6 +256,13 @@ function DiscoverCreatorsPage() {
 
   useEffect(() => {
     let mounted = true;
+    if (!isLoggedIn) {
+      setIsLoading(false);
+      return () => {
+        mounted = false;
+      };
+    }
+
     getCreatorsList()
       .then((data) => {
         if (mounted) setCreators(data);
@@ -250,7 +276,7 @@ function DiscoverCreatorsPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [isLoggedIn]);
 
   const locations = useMemo(() => Array.from(new Set(creators.map((creator) => creator.location).filter(Boolean))), [creators]);
   const filteredCreators = useMemo(() => {
@@ -332,7 +358,17 @@ function DiscoverCreatorsPage() {
 
           {error ? <p className="mt-8 rounded-[8px] bg-white p-5 text-sm font-black text-[#b42318]">{error}</p> : null}
           <div className="mt-5 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
-            {isLoading ? (
+            {!isLoggedIn ? (
+              <div className="col-span-full rounded-[10px] bg-white p-8 text-center shadow-[0_10px_24px_rgba(40,67,140,0.08)]">
+                <h2 className="text-xl font-black text-[#334260]">Verified member access only</h2>
+                <p className="mx-auto mt-2 max-w-md text-sm font-bold text-[#65718a]">
+                  Creator profiles and platform member information are available only after signing in as a verified Collune member.
+                </p>
+                <Link to="/login" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-[6px] bg-[#1438c8] px-6 text-sm font-black text-white">
+                  Sign in
+                </Link>
+              </div>
+            ) : isLoading ? (
               <p className="col-span-full py-10 text-center text-sm font-black text-[#65718a]">Loading creators...</p>
             ) : filteredCreators.length ? (
               filteredCreators.slice(0, isLoggedIn ? 24 : 6).map((creator, index) => (

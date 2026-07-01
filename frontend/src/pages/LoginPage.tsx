@@ -6,6 +6,7 @@ import logo from "../assets/Logo.svg";
 import HtmlInput from "../HtmlComponents/HtmlInput";
 import { RegisterError } from "../HtmlComponents/RegisterFormParts";
 import { useAuth } from "../contexts/AuthContext";
+import { authStorage } from "../contexts/authStorage";
 
 const inputClass =
   "h-[52px] w-full rounded-xl border border-[#d8e2fb] bg-white px-12 text-[15px] font-semibold text-[#173ca8] outline-none transition placeholder:text-[#9aa7bf] focus:border-[#6d7eff] focus:ring-4 focus:ring-[#6d7eff]/10";
@@ -14,7 +15,7 @@ const labelClass = "mb-2 block text-xs font-semibold text-[#6e7d99]";
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [email, setEmail] = useState(() => localStorage.getItem("saaserp_last_login_username") || "");
+  const [email, setEmail] = useState(() => authStorage.getRememberedEmail());
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState("");
@@ -27,9 +28,10 @@ export const LoginPage = () => {
 
     try {
       const user = await login(email.trim(), password);
+      authStorage.setRememberedEmail(user.email || email.trim());
       navigate(user.role === "Brand" ? "/brand" : user.role === "Creator" ? "/creator" : "/", { replace: true });
     } catch (error) {
-      setAuthError(error instanceof Error ? error.message : "Invalid email or password.");
+      setAuthError("Something went wrong. Please check your credentials and try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -39,9 +41,9 @@ export const LoginPage = () => {
     <main className="min-h-screen bg-[#f4f6fb] p-4 text-[#202337] md:p-10">
       <section className="relative mx-auto grid min-h-[calc(100vh-80px)] max-w-[1180px] overflow-hidden rounded-xl bg-white lg:grid-cols-[0.9fr_1.1fr]">
         <aside className="relative hidden flex-col justify-between overflow-hidden bg-[#f0edff] px-12 py-11 lg:flex">
-          <a href="/" aria-label="Collune home" className="inline-flex w-max">
+          <Link to="/" aria-label="Collune home" className="inline-flex w-max">
             <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
-          </a>
+          </Link>
 
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-black text-[#2447bd] shadow-sm">
@@ -73,9 +75,9 @@ export const LoginPage = () => {
 
         <section className="flex items-center justify-center px-6 py-10 md:px-12">
           <form className="w-full max-w-[460px]" onSubmit={handleSubmit}>
-            <a href="/" aria-label="Collune home" className="mb-10 inline-flex w-max lg:hidden">
+            <Link to="/" aria-label="Collune home" className="mb-10 inline-flex w-max lg:hidden">
               <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
-            </a>
+            </Link>
 
             <div>
               <h2 className="text-[32px] font-black tracking-normal text-[#202337]">Welcome back</h2>

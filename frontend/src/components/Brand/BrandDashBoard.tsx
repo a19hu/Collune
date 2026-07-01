@@ -255,16 +255,6 @@ const BrandDashBoard = () => {
   );
   const brandName = brand?.company_name || "Brand";
 
-  async function toggleProfileVisibility() {
-    if (!brand) return;
-    setIsSavingVisibility(true);
-    try {
-      const updated = await updateBrandProfile({ is_profile_visible: !brand.is_profile_visible });
-      setBrand(updated);
-    } finally {
-      setIsSavingVisibility(false);
-    }
-  }
 
   const metrics: Metric[] = [
     { label: "Active Campaigns", value: visibleCampaigns.length, link: "/brand/campaigns", icon: Flag },
@@ -277,17 +267,6 @@ const BrandDashBoard = () => {
       <header className="mb-12 flex flex-wrap items-center justify-between gap-5">
         <div>
           <h1 className="text-[28px] font-black tracking-normal text-[#173ca8]">Welcome {brandName}!</h1>
-          {brand ? (
-            <button
-              type="button"
-              onClick={toggleProfileVisibility}
-              disabled={isSavingVisibility}
-              className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-[6px] border border-[#d8e2fb] bg-white px-3 text-xs font-black text-[#334260] disabled:opacity-60"
-            >
-              {isSavingVisibility ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {brand.is_profile_visible ? "Featured on Collune" : "Hidden from Collune"}
-            </button>
-          ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <HeaderButton onClick={() => navigate("/brand/campaigns")}>

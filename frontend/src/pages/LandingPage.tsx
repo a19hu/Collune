@@ -21,6 +21,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { getCreatorsList, type CreatorProfileApi } from "../lib/authApi";
+import { useAuth } from "../contexts/AuthContext";
 import creator1 from "../assets/collune/creator-1.png";
 import creator2 from "../assets/collune/creator-2.png";
 import creator3 from "../assets/collune/creator-3.png";
@@ -198,9 +199,11 @@ function JourneyColumn({
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [creators, setCreators] = useState<CreatorProfileApi[]>([]);
   const [isLoadingCreators, setIsLoadingCreators] = useState(true);
   const [creatorError, setCreatorError] = useState("");
+  const isLoggedIn = Boolean(currentUser);
   const creatorCategories = useMemo(() => {
     const categories = creators.map((creator) => creator.category).filter(Boolean);
     return ["All Creators", ...Array.from(new Set(categories)).slice(0, 4)];
@@ -208,6 +211,14 @@ const LandingPage = () => {
 
   useEffect(() => {
     let isMounted = true;
+    if (!isLoggedIn) {
+      setIsLoadingCreators(false);
+      setCreators([]);
+      return () => {
+        isMounted = false;
+      };
+    }
+
     getCreatorsList()
       .then((data) => {
         if (isMounted) setCreators(data);
@@ -221,7 +232,7 @@ const LandingPage = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isLoggedIn]);
 
   return (
     <main id="top" className="min-h-screen overflow-hidden bg-[#f5f7ff] font-sans text-[#17327c]">
@@ -297,7 +308,17 @@ const LandingPage = () => {
           ))}
         </div>
         <div className="mx-auto grid max-w-7xl gap-7 md:grid-cols-2 lg:grid-cols-4">
-          {isLoadingCreators ? (
+          {!isLoggedIn ? (
+            <div className="col-span-full rounded-lg border border-[#e0e7fb] bg-white p-8 text-center shadow-[0_14px_32px_rgba(41,64,132,0.09)]">
+              <h3 className="text-xl font-black text-[#314064]">Verified member access only</h3>
+              <p className="mx-auto mt-2 max-w-md text-sm font-extrabold leading-tight text-[#7c879d]">
+                Creator profiles and member information are available only after signing in as a verified Collune member.
+              </p>
+              <button type="button" onClick={() => navigate("/login")} className="mt-5 min-h-11 rounded-[6px] bg-[#1438c8] px-6 text-sm font-black text-white">
+                Sign in
+              </button>
+            </div>
+          ) : isLoadingCreators ? (
             <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">Loading creators...</p>
           ) : creatorError ? (
             <p className="col-span-full py-8 text-sm font-black text-[#bf3f5f]">{creatorError}</p>

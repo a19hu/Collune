@@ -6,6 +6,7 @@ import { HtmlProgess } from "../HtmlComponents/HtmlProgress";
 import { AuthSwitchLink, RegisterError, RegisterSubmitButtons } from "../HtmlComponents/RegisterFormParts";
 import Register from "../components/layout/Register";
 import { useAuth } from "../contexts/AuthContext";
+import { authStorage } from "../contexts/authStorage";
 import { checkEmailAvailability, registerCreator, verifyOtp } from "../lib/authApi";
 import { CreatorRegisterForm, SocialAccountForm, VerificationState } from "../types";
 import { StepsCreatorRegister } from "./StepsCreatorRegister";
@@ -172,19 +173,9 @@ const CreatorRegister = () => {
           })),
       });
 
-      localStorage.setItem("saaserp_access_token", response.access);
-      localStorage.setItem("saaserp_refresh_token", response.refresh);
-      localStorage.setItem("saaserp_drf_token", response.token);
-      localStorage.setItem("saaserp_last_login_username", response.user.username);
-
-      setSessionUser({
-        id: response.user.user_id,
-        phone: response.user.phone_no || "",
-        name: response.user.name || response.user.username,
-        email: response.user.email,
-        role: "Creator",
-        schoolCode: response.creator.creator_id,
-      });
+      authStorage.setTokens(response.access, response.refresh, response.token);
+      authStorage.setUser(response.user);
+      setSessionUser(response.user);
       navigate("/creator", { replace: true });
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Could not create your creator account.");

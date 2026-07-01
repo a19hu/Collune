@@ -43,7 +43,7 @@ from .models import (
     UserRole,
     VerificationStatus,
 )
-from .permissions import IsAdminUserRole, IsBrand, IsCreator
+from .permissions import IsAdminUserRole, IsBrand, IsCreator, IsVerifiedColluneMember
 from .serializers import (
     AuthUserSerializer,
     BrandProfileSerializer,
@@ -106,6 +106,19 @@ def parse_payload(request):
     return data
 
 
+def auth_user_payload(user):
+    role_map = {
+        UserRole.ADMIN: "Admin",
+        UserRole.BRAND: "Brand",
+        UserRole.CREATOR: "Creator",
+    }
+    return {
+        "name": user.name,
+        "email": user.email,
+        "role": role_map.get(user.role, "Admin"),
+    }
+
+
 def auth_response(user, message="Login successful."):
     token, _ = Token.objects.get_or_create(user=user)
     refresh = RefreshToken.for_user(user)
@@ -114,7 +127,7 @@ def auth_response(user, message="Login successful."):
         "token": token.key,
         "refresh": str(refresh),
         "access": str(refresh.access_token),
-        "user": AuthUserSerializer(user).data,
+        "user": auth_user_payload(user),
     }
 
 
@@ -467,17 +480,7 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        username = serializer.validated_data["username"]
-        password = serializer.validated_data["password"]
-        user = authenticate(request, username=username, password=password)
-        if not user:
-            user_obj = User.objects.filter(email__iexact=username).first()
-            if user_obj:
-                user = authenticate(request, username=user_obj.username, password=password)
-        if not user:
-            return Response({"error": "Invalid username or password."}, status=status.HTTP_400_BAD_REQUEST)
-        if not user.is_active or not user.status:
-            return Response({"error": "This account is inactive."}, status=status.HTTP_403_FORBIDDEN)
+        user = serializer.validated_data.get("user")
         user.last_login_at = timezone.now()
         user.save(update_fields=["last_login_at"])
         return Response(auth_response(user))
@@ -680,7 +683,7 @@ class CreatorProfileView(APIView):
         return Response({"creator": serializer.data})
 
 class CreatorsListView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, IsVerifiedColluneMember]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_queryset(self):
@@ -706,7 +709,7 @@ class CreatorsListView(APIView):
 
 
 class BrandsListView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, IsVerifiedColluneMember]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_queryset(self):
@@ -1176,6 +1179,11 @@ class BrandProfileViewSet(viewsets.ModelViewSet):
             is_profile_visible=True,
         )
 
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            return [IsAuthenticated(), IsVerifiedColluneMember()]
+        return super().get_permissions()
+
     @action(detail=False, methods=["get", "patch"], url_path="me")
     def me(self, request):
         brand = getattr(request.user, "brand_profile", None)
@@ -1201,6 +1209,11 @@ class CreatorProfileViewSet(viewsets.ModelViewSet):
         if self.request.user.role == UserRole.BRAND:
             return queryset.filter(verification_status=VerificationStatus.VERIFIED, is_profile_visible=True)
         return queryset.all()
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            return [IsAuthenticated(), IsVerifiedColluneMember()]
+        return super().get_permissions()
 
     @action(detail=False, methods=["get", "patch"], url_path="me")
     def me(self, request):

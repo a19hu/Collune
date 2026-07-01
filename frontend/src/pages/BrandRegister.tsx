@@ -22,6 +22,7 @@ import { BrandSelect } from "../HtmlComponents/HtmlSelect";
 import { AuthSwitchLink, RegisterError, RegisterStepHeader, RegisterSubmitButtons } from "../HtmlComponents/RegisterFormParts";
 import Register from "../components/layout/Register";
 import { useAuth } from "../contexts/AuthContext";
+import { authStorage } from "../contexts/authStorage";
 import { checkEmailAvailability, registerBrandFormData } from "../lib/authApi";
 import { normalizePhoneNumber } from "../lib/function";
 import type { BrandRegisterForm } from "../types";
@@ -277,19 +278,9 @@ const BrandRegister = () => {
       };
       const response = await registerBrandFormData(payload, form.logo);
 
-      localStorage.setItem("saaserp_access_token", response.access);
-      localStorage.setItem("saaserp_refresh_token", response.refresh);
-      localStorage.setItem("saaserp_drf_token", response.token);
-      localStorage.setItem("saaserp_last_login_username", response.user.username);
-
-      setSessionUser({
-        id: response.user.user_id,
-        phone: response.user.phone_no || "",
-        name: response.user.name || response.user.username,
-        email: response.user.email,
-        role: "Brand",
-        schoolCode: response.brand.brand_id,
-      });
+      authStorage.setTokens(response.access, response.refresh, response.token);
+      authStorage.setUser(response.user);
+      setSessionUser(response.user);
       navigate("/brand", { replace: true });
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Could not create your brand account.");

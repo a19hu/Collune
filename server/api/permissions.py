@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 
-from .models import UserRole
+from .models import UserRole, VerificationStatus
 
 
 class HasRole(BasePermission):
@@ -21,3 +21,20 @@ class IsBrand(HasRole):
 
 class IsCreator(HasRole):
     allowed_roles = (UserRole.CREATOR,)
+
+
+class IsVerifiedColluneMember(BasePermission):
+    message = "Only verified Collune members can access platform data."
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        if request.user.role == UserRole.ADMIN:
+            return True
+        if request.user.role == UserRole.BRAND:
+            profile = getattr(request.user, "brand_profile", None)
+            return bool(profile and profile.verification_status == VerificationStatus.VERIFIED)
+        if request.user.role == UserRole.CREATOR:
+            profile = getattr(request.user, "creator_profile", None)
+            return bool(profile and profile.verification_status == VerificationStatus.VERIFIED)
+        return False

@@ -1,4 +1,6 @@
 import type { CreatorSocialPlatform } from "../types";
+import type { UserAccount } from "../types";
+import { authStorage } from "../contexts/authStorage";
 
 
 const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/v1`;
@@ -134,7 +136,7 @@ export type LoginResponse = {
   token: string;
   refresh: string;
   access: string;
-  user: LoginApiUser;
+  user: UserAccount;
 };
 
 type RegisterUserPayload = {
@@ -287,10 +289,8 @@ export type EmailAvailabilityResponse = {
 };
 
 function getAuthHeader() {
-  const access = localStorage.getItem("saaserp_access_token");
-  const drfToken = localStorage.getItem("saaserp_drf_token");
+  const access = authStorage.getAccessToken();
   if (access) return `Bearer ${access}`;
-  if (drfToken) return `Token ${drfToken}`;
   return "";
 }
 
@@ -434,6 +434,8 @@ export async function getBrandMe() {
 export async function getBrandsList() {
   const data = await apiRequest<{ brands: BrandProfileApi[] } | BrandProfileApi[] | PaginatedResponse<BrandProfileApi>>(
     "/brands/list/",
+    {},
+    true,
   );
   if (Array.isArray(data)) return data;
   if ("results" in data) return data.results;
@@ -453,6 +455,8 @@ export async function getCreatorProfile() {
 export async function getCreatorsList() {
   const data = await apiRequest<{ creators: CreatorProfileApi[] } | CreatorProfileApi[] | PaginatedResponse<CreatorProfileApi>>(
     "/creators/list/",
+    {},
+    true,
   );
   if (Array.isArray(data)) return data;
   if ("results" in data) return data.results;
@@ -460,7 +464,7 @@ export async function getCreatorsList() {
 }
 
 export async function getCreatorPublicProfile(creatorId: string) {
-  const data = await apiRequest<{ creator: CreatorProfileApi }>(`/creators/list/${creatorId}/`);
+  const data = await apiRequest<{ creator: CreatorProfileApi }>(`/creators/list/${creatorId}/`, {}, true);
   return data.creator;
 }
 

@@ -154,6 +154,13 @@ class ColluneAuthTests(APITestCase):
         hidden_creator.is_profile_visible = False
         hidden_creator.save(update_fields=["verification_status", "is_profile_visible"])
 
+        public_brands = self.client.get(reverse("brands_list"))
+        public_creators = self.client.get(reverse("creators_list"))
+
+        self.assertIn(public_brands.status_code, (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN))
+        self.assertIn(public_creators.status_code, (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN))
+
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {visible_brand_response.data['token']}")
         brands = self.client.get(reverse("brands_list"))
         creators = self.client.get(reverse("creators_list"))
 

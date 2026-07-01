@@ -213,6 +213,12 @@ export function PublicCreatorProfile() {
 
   useEffect(() => {
     let mounted = true;
+    if (!currentUser) {
+      setIsLoading(false);
+      return () => {
+        mounted = false;
+      };
+    }
     if (!creatorId) {
       setError("Creator profile not found.");
       setIsLoading(false);
@@ -233,7 +239,7 @@ export function PublicCreatorProfile() {
     return () => {
       mounted = false;
     };
-  }, [creatorId]);
+  }, [creatorId, currentUser]);
 
   const profileStats = useMemo(() => {
     const audience = profile?.audience_size || 0;
@@ -261,6 +267,23 @@ export function PublicCreatorProfile() {
     return (
       <main className="grid min-h-[70vh] place-items-center bg-[#f4f7fb]">
         <Loader2 className="h-9 w-9 animate-spin text-[#1438c8]" />
+      </main>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <main className="min-h-screen bg-[#f5f7ff] px-6 pb-24 pt-36 text-[#17327c]">
+        <section className="mx-auto max-w-xl rounded-[10px] bg-white p-8 text-center shadow-[0_10px_24px_rgba(40,67,140,0.08)]">
+          <Lock className="mx-auto h-10 w-10 text-[#7288ff]" />
+          <h1 className="mt-4 text-2xl font-black text-[#334260]">Verified member access only</h1>
+          <p className="mx-auto mt-2 max-w-md text-sm font-bold text-[#65718a]">
+            Creator profiles and platform member information are available only after signing in as a verified Collune member.
+          </p>
+          <Link to="/login" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-[6px] bg-[#1438c8] px-6 text-sm font-black text-white">
+            Sign in
+          </Link>
+        </section>
       </main>
     );
   }

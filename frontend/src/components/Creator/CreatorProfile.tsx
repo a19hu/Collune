@@ -176,7 +176,7 @@ export function CreatorProfile() {
         const youtubeStatus = new URLSearchParams(window.location.search).get("youtube");
         const xStatus = new URLSearchParams(window.location.search).get("x");
         if (instagramStatus === "connected") setMessage("Instagram connected.");
-        if (instagramStatus === "error") setError("Instagram connection failed. Please try again.");
+        if (instagramStatus === "error") setError(instagramStatus);
         if (youtubeStatus === "connected") setMessage("YouTube connected.");
         if (youtubeStatus === "no_channel") setError("No YouTube channel found for this Google account.");
         if (youtubeStatus === "error") setError("YouTube connection failed. Please try again.");

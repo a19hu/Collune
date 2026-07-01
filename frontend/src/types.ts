@@ -1,10 +1,7 @@
 export type UserAccount = {
-  id: string;
-  phone: string;
   name: string;
   email: string;
-  role: 'Super Admin' | 'Creator' | 'Brand';
-  schoolCode?: string;
+  role: 'Admin' | 'Creator' | 'Brand';
 };
 
 
