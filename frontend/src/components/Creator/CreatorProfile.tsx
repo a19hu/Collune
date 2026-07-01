@@ -38,6 +38,7 @@ type EditForm = {
   open_to_travel: boolean;
   bio: string;
   portfolio_url: string;
+  is_profile_visible: boolean;
   audience_size: string;
   rate_min: string;
   rate_max: string;
@@ -87,6 +88,7 @@ function toEditForm(profile: CreatorProfileApi): EditForm {
     open_to_travel: Boolean(profile.open_to_travel),
     bio: profile.bio || "",
     portfolio_url: profile.portfolio_url || "",
+    is_profile_visible: Boolean(profile.is_profile_visible),
     audience_size: String(profile.audience_size || 0),
     rate_min: String(profile.rate_min || "0"),
     rate_max: String(profile.rate_max || "0"),
@@ -239,6 +241,7 @@ export function CreatorProfile() {
     body.append("open_to_travel", String(form.open_to_travel));
     body.append("bio", form.bio);
     body.append("portfolio_url", form.portfolio_url);
+    body.append("is_profile_visible", String(form.is_profile_visible));
     body.append("audience_size", form.audience_size || "0");
     body.append("rate_min", form.rate_min || "0");
     body.append("rate_max", form.rate_max || "0");
@@ -641,6 +644,10 @@ export function CreatorProfile() {
               <label className="flex items-center gap-3 text-sm font-bold text-[#526079]">
                 <input type="checkbox" checked={form.open_to_travel} onChange={(event) => updateField("open_to_travel", event.target.checked)} className="h-4 w-4 accent-[#1438c8]" />
                 Open to travel
+              </label>
+              <label className="flex items-center gap-3 text-sm font-bold text-[#526079]">
+                <input type="checkbox" checked={form.is_profile_visible} onChange={(event) => updateField("is_profile_visible", event.target.checked)} className="h-4 w-4 accent-[#1438c8]" />
+                Feature my profile on Collune
               </label>
               <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-[6px] border border-[#dbe3ee] px-4 py-3 text-sm font-black text-[#1438c8]">
                 <Upload className="h-4 w-4" />

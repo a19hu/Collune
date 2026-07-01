@@ -152,6 +152,14 @@ resource "google_cloud_run_service" "default" {
     latest_revision = true
     percent         = 100
   }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].metadata[0].annotations["run.googleapis.com/client-name"],
+      template[0].metadata[0].annotations["run.googleapis.com/client-version"],
+      template[0].metadata[0].labels["client.knative.dev/nonce"],
+    ]
+  }
 }
 
 # IAM roles for the Cloud Run service account

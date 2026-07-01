@@ -86,6 +86,82 @@ class ColluneAuthTests(APITestCase):
         self.assertEqual(Campaign.objects.count(), 1)
         self.assertEqual(BrandProfile.objects.get().campaigns.count(), 1)
 
+    def test_public_lists_respect_profile_visibility(self):
+        visible_brand_response = self.client.post(
+            reverse("brand_register"),
+            {
+                "user": {
+                    "name": "Visible Brand",
+                    "email": "visible@brand.test",
+                    "password": "StrongPass123!",
+                },
+                "company_name": "Visible Brand",
+                "industry": "Technology",
+            },
+            format="json",
+        )
+        hidden_brand_response = self.client.post(
+            reverse("brand_register"),
+            {
+                "user": {
+                    "name": "Hidden Brand",
+                    "email": "hidden@brand.test",
+                    "password": "StrongPass123!",
+                },
+                "company_name": "Hidden Brand",
+                "industry": "Finance",
+            },
+            format="json",
+        )
+        hidden_brand = BrandProfile.objects.get(brand_id=hidden_brand_response.data["brand"]["brand_id"])
+        hidden_brand.is_profile_visible = False
+        hidden_brand.save(update_fields=["is_profile_visible"])
+
+        self.verify_creator_otp(email="visible.creator@example.com", phone="+919999944441")
+        visible_creator_response = self.client.post(
+            reverse("creator_register"),
+            {
+                "user": {
+                    "name": "Visible Creator",
+                    "email": "visible.creator@example.com",
+                    "phone_no": "+919999944441",
+                    "password": "StrongPass123!",
+                },
+                "category": "Lifestyle",
+            },
+            format="json",
+        )
+        visible_creator = CreatorProfile.objects.get(creator_id=visible_creator_response.data["creator"]["creator_id"])
+        visible_creator.verification_status = "VERIFIED"
+        visible_creator.save(update_fields=["verification_status"])
+
+        self.verify_creator_otp(email="hidden.creator@example.com", phone="+919999944442")
+        hidden_creator_response = self.client.post(
+            reverse("creator_register"),
+            {
+                "user": {
+                    "name": "Hidden Creator",
+                    "email": "hidden.creator@example.com",
+                    "phone_no": "+919999944442",
+                    "password": "StrongPass123!",
+                },
+                "category": "Education",
+            },
+            format="json",
+        )
+        hidden_creator = CreatorProfile.objects.get(creator_id=hidden_creator_response.data["creator"]["creator_id"])
+        hidden_creator.verification_status = "VERIFIED"
+        hidden_creator.is_profile_visible = False
+        hidden_creator.save(update_fields=["verification_status", "is_profile_visible"])
+
+        brands = self.client.get(reverse("brands_list"))
+        creators = self.client.get(reverse("creators_list"))
+
+        self.assertEqual(brands.status_code, status.HTTP_200_OK)
+        self.assertEqual(creators.status_code, status.HTTP_200_OK)
+        self.assertEqual([brand["brand_id"] for brand in brands.data["brands"]], [visible_brand_response.data["brand"]["brand_id"]])
+        self.assertEqual([creator["creator_id"] for creator in creators.data["creators"]], [visible_creator_response.data["creator"]["creator_id"]])
+
     @patch.dict(
         "os.environ",
         {

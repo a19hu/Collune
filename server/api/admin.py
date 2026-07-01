@@ -29,16 +29,16 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(BrandProfile)
 class BrandProfileAdmin(admin.ModelAdmin):
-    list_display = ("company_name", "industry", "verification_status", "profile_completion", "created_at")
+    list_display = ("company_name", "industry", "is_profile_visible", "verification_status", "profile_completion", "created_at")
     search_fields = ("company_name", "industry", "user__email", "user__name")
-    list_filter = ("verification_status", "industry")
+    list_filter = ("verification_status", "is_profile_visible", "industry")
 
 
 @admin.register(CreatorProfile)
 class CreatorProfileAdmin(admin.ModelAdmin):
-    list_display = ("display_name", "category", "audience_size", "verification_status", "profile_completion")
+    list_display = ("display_name", "category", "audience_size", "is_profile_visible", "verification_status", "profile_completion")
     search_fields = ("display_name", "category", "user__email", "user__name")
-    list_filter = ("verification_status", "category")
+    list_filter = ("verification_status", "is_profile_visible", "category")
 
 
 @admin.register(CreatorSocialAccount)

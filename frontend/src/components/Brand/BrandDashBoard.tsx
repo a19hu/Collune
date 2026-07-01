@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ArrowRight,
   Flag,
+  Loader2,
   MoreVertical,
   Plus,
   Star,
@@ -10,7 +11,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { getBrandMe, getBrandShortlists, getCampaigns } from "../../lib/authApi";
+import { getBrandMe, getBrandShortlists, getCampaigns, updateBrandProfile, type BrandProfileApi } from "../../lib/authApi";
 import { mapCampaignApiToCard, type CampaignCardItem } from "./Campaigns/campaignData";
 import { mapShortlistApiToItem, type ShortlistItem } from "./Shortlists/shortlistData";
 
@@ -205,7 +206,8 @@ function getDashboardCampaigns(campaigns: CampaignCardItem[]) {
 
 const BrandDashBoard = () => {
   const navigate = useNavigate();
-  const [brandName, setBrandName] = useState("Brand");
+  const [brand, setBrand] = useState<BrandProfileApi | null>(null);
+  const [isSavingVisibility, setIsSavingVisibility] = useState(false);
   const [campaigns, setCampaigns] = useState<CampaignCardItem[]>([]);
   const [shortlists, setShortlists] = useState<ShortlistItem[]>([]);
 
@@ -214,7 +216,7 @@ const BrandDashBoard = () => {
 
     getBrandMe()
       .then((brand) => {
-        if (mounted) setBrandName(brand.company_name || "Brand");
+        if (mounted) setBrand(brand);
       })
       .catch(() => undefined);
 
@@ -251,6 +253,18 @@ const BrandDashBoard = () => {
     () => shortlists.filter((shortlist) => shortlist.status === "Outreach In Progress").length,
     [shortlists],
   );
+  const brandName = brand?.company_name || "Brand";
+
+  async function toggleProfileVisibility() {
+    if (!brand) return;
+    setIsSavingVisibility(true);
+    try {
+      const updated = await updateBrandProfile({ is_profile_visible: !brand.is_profile_visible });
+      setBrand(updated);
+    } finally {
+      setIsSavingVisibility(false);
+    }
+  }
 
   const metrics: Metric[] = [
     { label: "Active Campaigns", value: visibleCampaigns.length, link: "/brand/campaigns", icon: Flag },
@@ -261,7 +275,20 @@ const BrandDashBoard = () => {
   return (
     <div className="min-h-screen bg-white">
       <header className="mb-12 flex flex-wrap items-center justify-between gap-5">
-        <h1 className="text-[28px] font-black tracking-normal text-[#173ca8]">Welcome {brandName}!</h1>
+        <div>
+          <h1 className="text-[28px] font-black tracking-normal text-[#173ca8]">Welcome {brandName}!</h1>
+          {brand ? (
+            <button
+              type="button"
+              onClick={toggleProfileVisibility}
+              disabled={isSavingVisibility}
+              className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-[6px] border border-[#d8e2fb] bg-white px-3 text-xs font-black text-[#334260] disabled:opacity-60"
+            >
+              {isSavingVisibility ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {brand.is_profile_visible ? "Featured on Collune" : "Hidden from Collune"}
+            </button>
+          ) : null}
+        </div>
         <div className="flex flex-wrap items-center gap-3">
           <HeaderButton onClick={() => navigate("/brand/campaigns")}>
             <Plus className="h-5 w-5" />

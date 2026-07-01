@@ -203,6 +203,7 @@ export type CreatorProfileApi = {
   portfolio_url: string;
   profile_image: string | null;
   profile_image_url: string;
+  is_profile_visible: boolean;
   audience_size: number;
   rate_min: string;
   rate_max: string;
@@ -266,6 +267,7 @@ export type BrandProfileApi = {
   company_size: string;
   linkedin_url: string;
   logo_url: string;
+  is_profile_visible: boolean;
   verification_status: string;
   profile_completion: number;
 };
@@ -426,6 +428,20 @@ export async function registerBrandFormData(payload: BrandRegisterPayload, logo?
 
 export async function getBrandMe() {
   const data = await apiRequest<{ brand: BrandProfileApi }>("/brands/me/", {}, true);
+  return data.brand;
+}
+
+export async function getBrandsList() {
+  const data = await apiRequest<{ brands: BrandProfileApi[] } | BrandProfileApi[] | PaginatedResponse<BrandProfileApi>>(
+    "/brands/list/",
+  );
+  if (Array.isArray(data)) return data;
+  if ("results" in data) return data.results;
+  return data.brands;
+}
+
+export async function updateBrandProfile(payload: Partial<BrandProfileApi>) {
+  const data = await apiPatch<{ brand: BrandProfileApi }>("/brands/me/", payload, true);
   return data.brand;
 }
 

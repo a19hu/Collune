@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (
     BrandProfileViewSet,
+    BrandsListView,
     BrandRegisterView,
     BrandShortlistViewSet,
     CampaignApplicationViewSet,
@@ -51,6 +52,8 @@ urlpatterns = [
     path("auth/otp/verify/", OtpVerifyView.as_view(), name="otp_verify"),
     path("auth/me/", ProfileView.as_view(), name="profile"),
     path("auth/creator/profile/", CreatorProfileView.as_view(), name="creator_profile"),
+    path("brands/list/", BrandsListView.as_view(), name="brands_list"),
+    path("brands/list/<uuid:brand_id>/", BrandsListView.as_view(), name="brand_detail"),
     path("creators/list/", CreatorsListView.as_view(), name="creators_list"),
     path("creators/list/<uuid:creator_id>/", CreatorsListView.as_view(), name="creator_detail"),
     path("auth/instagram/connect/", InstagramConnectView.as_view(), name="instagram_connect"),

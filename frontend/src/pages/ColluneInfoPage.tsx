@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BadgeCheck, BookOpenText, HelpCircle, Info, Lock, Search, Sparkles, Trophy } from "lucide-react";
+import { ArrowRight, BadgeCheck, BookOpenText, Building2, ExternalLink, HelpCircle, Info, Lock, Search, Sparkles, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { getCreatorsList, type CreatorProfileApi } from "../lib/authApi";
+import { getBrandsList, getCreatorsList, type BrandProfileApi, type CreatorProfileApi } from "../lib/authApi";
 import creator1 from "../assets/collune/creator-1.png";
 import creator2 from "../assets/collune/creator-2.png";
 import creator3 from "../assets/collune/creator-3.png";
@@ -24,6 +24,13 @@ const pageContent = {
     copy: "Explore a handpicked selection of creators trusted by brands for structured collaborations.",
     icon: BadgeCheck,
     cards: ["Verified work history", "Brand-safe profiles", "High-signal recommendations"],
+  },
+  "featured-brands": {
+    eyebrow: "Brand Network",
+    title: "Featured Brands",
+    copy: "Explore verified brands that choose to keep their Collune profiles visible.",
+    icon: Building2,
+    cards: ["Verified company profiles", "Creator-ready partners", "Public visibility by choice"],
   },
   "success-stories": {
     eyebrow: "For Brands",
@@ -128,6 +135,89 @@ function LockedFilters() {
         Creating and account is free and only takes a minute.
       </p>
     </aside>
+  );
+}
+
+function FeaturedBrandCard({ brand }: { brand: BrandProfileApi }) {
+  const initials = brand.company_name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word.charAt(0).toUpperCase())
+    .join("") || "B";
+
+  return (
+    <article className="rounded-[10px] bg-white p-6 text-left shadow-[0_10px_24px_rgba(40,67,140,0.08)]">
+      <div className="flex items-start gap-4">
+        {brand.logo_url ? (
+          <img src={brand.logo_url} alt={brand.company_name} className="h-14 w-14 rounded-[8px] object-cover" />
+        ) : (
+          <span className="grid h-14 w-14 place-items-center rounded-[8px] bg-[#dfe7ff] text-lg font-black text-[#1438c8]">{initials}</span>
+        )}
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-xl font-black text-[#334260]">{brand.company_name}</h2>
+          <p className="mt-1 text-sm font-bold text-[#7288ff]">{brand.industry || "Brand"}</p>
+        </div>
+        <BadgeCheck className="h-5 w-5 shrink-0 fill-[#7288ff] text-[#7288ff]" />
+      </div>
+      <div className="mt-5 grid gap-2 text-sm font-bold text-[#65718a]">
+        <span>{brand.company_size || "Company size not added"}</span>
+        {brand.website ? (
+          <a href={brand.website} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[#1438c8]">
+            Website <ExternalLink className="h-4 w-4" />
+          </a>
+        ) : (
+          <span>Website not added</span>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function FeaturedBrandsPage() {
+  const [brands, setBrands] = useState<BrandProfileApi[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let mounted = true;
+    getBrandsList()
+      .then((data) => {
+        if (mounted) setBrands(data);
+      })
+      .catch((err) => {
+        if (mounted) setError(err instanceof Error ? err.message : "Unable to load brands.");
+      })
+      .finally(() => {
+        if (mounted) setIsLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  return (
+    <main className="min-h-screen bg-[#f5f7ff] px-6 pb-24 pt-36 text-[#17327c]">
+      <section className="mx-auto max-w-7xl">
+        <div className="max-w-2xl">
+          <h1 className="text-[clamp(36px,4vw,44px)] font-black leading-none text-[#1438c8]">Featured Brands</h1>
+          <p className="mt-3 text-base font-bold leading-tight text-[#65718a]">
+            Verified brands that have chosen to make their Collune profile visible to the platform.
+          </p>
+        </div>
+
+        {error ? <p className="mt-8 rounded-[8px] bg-white p-5 text-sm font-black text-[#b42318]">{error}</p> : null}
+        <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {isLoading ? (
+            <p className="col-span-full py-10 text-center text-sm font-black text-[#65718a]">Loading brands...</p>
+          ) : brands.length ? (
+            brands.map((brand) => <FeaturedBrandCard key={brand.brand_id} brand={brand} />)
+          ) : (
+            <p className="col-span-full py-10 text-center text-sm font-black text-[#65718a]">No brands are visible yet.</p>
+          )}
+        </div>
+      </section>
+    </main>
   );
 }
 
@@ -331,6 +421,9 @@ function DiscoverCreatorsPage() {
 const ColluneInfoPage = ({ page }: { page: PageKey }) => {
   if (page === "discover-creators" || page === "featured-creators") {
     return <DiscoverCreatorsPage />;
+  }
+  if (page === "featured-brands") {
+    return <FeaturedBrandsPage />;
   }
 
   const content = pageContent[page];

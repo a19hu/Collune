@@ -684,7 +684,10 @@ class CreatorsListView(APIView):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_queryset(self):
-        return CreatorProfile.objects.select_related("user").prefetch_related("social_accounts")
+        return CreatorProfile.objects.select_related("user").prefetch_related("social_accounts").filter(
+            verification_status=VerificationStatus.VERIFIED,
+            is_profile_visible=True,
+        )
 
     def get(self, request, creator_id=None):
         if creator_id:
@@ -700,6 +703,30 @@ class CreatorsListView(APIView):
         )
         serializer = CreatorsProfileListSerializer(creators, many=True, context={"request": request})
         return Response({"creators": serializer.data})
+
+
+class BrandsListView(APIView):
+    permission_classes = [AllowAny]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get_queryset(self):
+        return BrandProfile.objects.select_related("user").filter(
+            verification_status=VerificationStatus.VERIFIED,
+            is_profile_visible=True,
+        )
+
+    def get(self, request, brand_id=None):
+        if brand_id:
+            try:
+                brand = self.get_queryset().get(brand_id=brand_id)
+            except BrandProfile.DoesNotExist:
+                return Response({"error": "Brand profile not found."}, status=status.HTTP_404_NOT_FOUND)
+            serializer = BrandProfileSerializer(brand, context={"request": request})
+            return Response({"brand": serializer.data})
+
+        brands = self.get_queryset().order_by("-created_at")
+        serializer = BrandProfileSerializer(brands, many=True, context={"request": request})
+        return Response({"brands": serializer.data})
 
 
 class InstagramConnectView(APIView):
@@ -1144,7 +1171,10 @@ class BrandProfileViewSet(viewsets.ModelViewSet):
             return BrandProfile.objects.select_related("user").all()
         if self.request.user.role == UserRole.BRAND:
             return BrandProfile.objects.select_related("user").filter(user=self.request.user)
-        return BrandProfile.objects.select_related("user").filter(verification_status=VerificationStatus.VERIFIED)
+        return BrandProfile.objects.select_related("user").filter(
+            verification_status=VerificationStatus.VERIFIED,
+            is_profile_visible=True,
+        )
 
     @action(detail=False, methods=["get", "patch"], url_path="me")
     def me(self, request):
@@ -1169,7 +1199,7 @@ class CreatorProfileViewSet(viewsets.ModelViewSet):
         if self.request.user.role == UserRole.CREATOR:
             return queryset.filter(user=self.request.user)
         if self.request.user.role == UserRole.BRAND:
-            return queryset.filter(verification_status=VerificationStatus.VERIFIED)
+            return queryset.filter(verification_status=VerificationStatus.VERIFIED, is_profile_visible=True)
         return queryset.all()
 
     @action(detail=False, methods=["get", "patch"], url_path="me")

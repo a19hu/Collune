@@ -78,6 +78,7 @@ const App: React.FC = () => {
                         <Route path='/' element={<LandingPage />} />
                         <Route path="discover-creators" element={<ColluneInfoPage page="discover-creators" />} />
                         <Route path="featured-creators" element={<ColluneInfoPage page="featured-creators" />} />
+                        <Route path="featured-brands" element={<ColluneInfoPage page="featured-brands" />} />
                         <Route path="creators/:creatorId" element={<PublicCreatorProfile />} />
                         <Route path="success-stories" element={<ColluneInfoPage page="success-stories" />} />
                         <Route path="blogs" element={<ColluneInfoPage page="blogs" />} />

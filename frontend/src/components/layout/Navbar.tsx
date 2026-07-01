@@ -21,7 +21,10 @@ const navItems = [
   },
   {
     label: "Brands",
-    items: [{ label: "Success Stories", href: "/success-stories" }],
+    items: [
+      { label: "Featured Brands", href: "/featured-brands" },
+      { label: "Success Stories", href: "/success-stories" },
+    ],
   },
   { label: "How it Works", href: "/#how-it-works" },
   {

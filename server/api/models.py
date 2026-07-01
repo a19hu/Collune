@@ -94,6 +94,7 @@ class BrandProfile(models.Model):
     company_size = models.CharField(max_length=64, blank=True, default="")
     linkedin_url = models.URLField(blank=True, default="")
     logo = models.ImageField(upload_to="brands/logos/", blank=True, null=True)
+    is_profile_visible = models.BooleanField(default=True)
     verification_status = models.CharField(
         max_length=24,
         choices=VerificationStatus.choices,
@@ -120,6 +121,7 @@ class CreatorProfile(models.Model):
     bio = models.TextField(blank=True, default="")
     portfolio_url = models.URLField(blank=True, default="")
     profile_image = models.ImageField(upload_to="creators/profiles/", blank=True, null=True)
+    is_profile_visible = models.BooleanField(default=True)
     audience_size = models.PositiveIntegerField(default=0)
     rate_min = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     rate_max = models.DecimalField(max_digits=12, decimal_places=2, default=0)
