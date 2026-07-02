@@ -230,6 +230,10 @@ export async function getInstagramConnectUrl() {
   return apiRequest<{ auth_url: string }>("/auth/instagram/connect/", {}, true);
 }
 
+export async function getFacebookConnectUrl() {
+  return apiRequest<{ auth_url: string }>("/auth/facebook/connect/", {}, true);
+}
+
 export async function getYouTubeConnectUrl() {
   return apiRequest<{ auth_url: string }>("/auth/youtube/connect/", {}, true);
 }

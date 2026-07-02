@@ -18,6 +18,7 @@ import {
   Youtube,
 } from "lucide-react";
 import {
+  getFacebookConnectUrl,
   getCreatorProfile,
   getInstagramConnectUrl,
   getXConnectUrl,
@@ -129,6 +130,7 @@ export function CreatorProfile() {
   const [isSaving, setIsSaving] = useState(false);
   const [isConnectingInstagram, setIsConnectingInstagram] = useState(false);
   const [isConnectingYouTube, setIsConnectingYouTube] = useState(false);
+  const [isConnectingFacebook, setIsConnectingFacebook] = useState(false);
   const [isConnectingX, setIsConnectingX] = useState(false);
   const [isRefreshingYouTube, setIsRefreshingYouTube] = useState(false);
   const [error, setError] = useState("");
@@ -142,14 +144,28 @@ export function CreatorProfile() {
         if (!mounted) return;
         setProfile(data);
         setForm(toEditForm(data));
-        const instagramStatus = new URLSearchParams(window.location.search).get("instagram");
-        const youtubeStatus = new URLSearchParams(window.location.search).get("youtube");
-        const xStatus = new URLSearchParams(window.location.search).get("x");
+        const callbackParams = new URLSearchParams(window.location.search);
+        const instagramStatus = callbackParams.get("instagram");
+        const youtubeStatus = callbackParams.get("youtube");
+        const facebookStatus = callbackParams.get("facebook");
+        const facebookReason = callbackParams.get("facebook_reason");
+        const xStatus = callbackParams.get("x");
         if (instagramStatus === "connected") setMessage("Instagram connected.");
         if (instagramStatus === "error") setError(instagramStatus);
         if (youtubeStatus === "connected") setMessage("YouTube connected.");
         if (youtubeStatus === "no_channel") setError("No YouTube channel found for this Google account.");
         if (youtubeStatus === "error") setError("YouTube connection failed. Please try again.");
+        if (facebookStatus === "connected") setMessage("Facebook connected.");
+        if (facebookStatus === "error") {
+          const reasonMessage = facebookReason === "token"
+            ? "Facebook token exchange failed. Check the app secret and exact redirect URI."
+            : facebookReason === "profile"
+              ? "Facebook profile fetch failed. Check app permissions and Graph API fields."
+              : facebookReason === "state"
+                ? "Facebook session expired. Start the connect flow again."
+                : "Facebook connection failed. Please try again.";
+          setError(reasonMessage);
+        }
         if (xStatus === "connected") setMessage("X connected.");
         if (xStatus === "error") setError("X connection failed. Please try again.");
       })
@@ -182,7 +198,7 @@ export function CreatorProfile() {
     return [
       { account_id: "instagram", platform: "INSTAGRAM" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.5), is_connected: false, created_at: "" },
       { account_id: "youtube", platform: "YOUTUBE" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.3), is_connected: false, created_at: "" },
-      { account_id: "linkedin", platform: "LINKEDIN" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.2), is_connected: false, created_at: "" },
+      { account_id: "facebook", platform: "FACEBOOK" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.2), is_connected: false, created_at: "" },
       { account_id: "x", platform: "X" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.12), is_connected: false, created_at: "" },
     ];
   }, [profile]);
@@ -251,6 +267,18 @@ export function CreatorProfile() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to start YouTube OAuth.");
       setIsConnectingYouTube(false);
+    }
+  }
+
+  async function connectFacebook() {
+    setIsConnectingFacebook(true);
+    setError("");
+    try {
+      const data = await getFacebookConnectUrl();
+      window.location.href = data.auth_url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to start Facebook OAuth.");
+      setIsConnectingFacebook(false);
     }
   }
 
@@ -434,6 +462,15 @@ export function CreatorProfile() {
                 >
                   {isConnectingInstagram ? <Loader2 className="h-4 w-4 animate-spin" /> : <Instagram className="h-4 w-4" />}
                   Connect Instagram
+                </button>
+                <button
+                  type="button"
+                  onClick={connectFacebook}
+                  disabled={isConnectingFacebook}
+                  className="inline-flex h-9 items-center gap-2 rounded-[6px] bg-[#1877f2] px-3 text-[12px] font-black text-white disabled:opacity-60"
+                >
+                  {isConnectingFacebook ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe2 className="h-4 w-4" />}
+                  Connect Facebook
                 </button>
                 <button
                   type="button"

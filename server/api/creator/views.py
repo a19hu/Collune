@@ -34,6 +34,8 @@ INSTAGRAM_AUTH_URL = "https://www.instagram.com/oauth/authorize"
 INSTAGRAM_TOKEN_URL = "https://api.instagram.com/oauth/access_token"
 INSTAGRAM_LONG_LIVED_TOKEN_URL = "https://graph.instagram.com/access_token"
 INSTAGRAM_ME_URL = "https://graph.instagram.com/me"
+FACEBOOK_AUTH_URL = "https://www.facebook.com/{version}/dialog/oauth"
+FACEBOOK_GRAPH_URL = "https://graph.facebook.com/{version}"
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 YOUTUBE_CHANNELS_URL = "https://www.googleapis.com/youtube/v3/channels"
@@ -561,6 +563,156 @@ class InstagramCallbackView(APIView):
         creator.save(update_fields=["audience_size", "updated_at"])
 
         return redirect(f"{frontend_url}/creator/profile?instagram=connected&account={account.account_id}")
+
+class FacebookConnectView(APIView):
+    permission_classes = [IsAuthenticated, IsCreator]
+
+    def get(self, request):
+        if not settings.FACEBOOK_APP_ID or not settings.FACEBOOK_APP_SECRET:
+            return Response(
+                {"error": "Facebook OAuth is not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        state = signing.dumps(
+            {
+                "user_id": str(request.user.user_id),
+                "nonce": secrets.token_urlsafe(16),
+            },
+            salt="facebook-oauth",
+        )
+        params = {
+            "client_id": settings.FACEBOOK_APP_ID,
+            "redirect_uri": settings.FACEBOOK_REDIRECT_URI,
+            "scope": settings.FACEBOOK_OAUTH_SCOPES,
+            "response_type": "code",
+            "state": state,
+        }
+        auth_url = FACEBOOK_AUTH_URL.format(version=settings.FACEBOOK_GRAPH_VERSION)
+        return Response({"auth_url": f"{auth_url}?{urlencode(params)}"})
+
+class FacebookCallbackView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        code = request.query_params.get("code")
+        state = request.query_params.get("state")
+        frontend_url = settings.FRONTEND_URL.rstrip("/")
+
+        def facebook_error(reason):
+            return redirect(f"{frontend_url}/creator/profile?facebook=error&facebook_reason={reason}")
+
+        if not code or not state:
+            return facebook_error("missing_code")
+
+        try:
+            state_data = signing.loads(state, salt="facebook-oauth", max_age=600)
+            user = User.objects.get(user_id=state_data["user_id"], role=UserRole.CREATOR)
+            creator = user.creator_profile
+        except (signing.BadSignature, signing.SignatureExpired, User.DoesNotExist, CreatorProfile.DoesNotExist, KeyError):
+            return facebook_error("state")
+
+        graph_url = FACEBOOK_GRAPH_URL.format(version=settings.FACEBOOK_GRAPH_VERSION)
+        token_response = requests.get(
+            f"{graph_url}/oauth/access_token",
+            params={
+                "client_id": settings.FACEBOOK_APP_ID,
+                "client_secret": settings.FACEBOOK_APP_SECRET,
+                "redirect_uri": settings.FACEBOOK_REDIRECT_URI,
+                "code": code,
+            },
+            timeout=20,
+        )
+        if not token_response.ok:
+            return facebook_error("token")
+
+        token_data = token_response.json()
+        access_token = token_data.get("access_token", "")
+        if not access_token:
+            return facebook_error("token")
+        expires_at = None
+        expires_in = token_data.get("expires_in")
+        if expires_in:
+            expires_at = timezone.now() + timedelta(seconds=int(expires_in))
+
+        long_token_response = requests.get(
+            f"{graph_url}/oauth/access_token",
+            params={
+                "grant_type": "fb_exchange_token",
+                "client_id": settings.FACEBOOK_APP_ID,
+                "client_secret": settings.FACEBOOK_APP_SECRET,
+                "fb_exchange_token": access_token,
+            },
+            timeout=20,
+        )
+        if long_token_response.ok:
+            long_token_data = long_token_response.json()
+            access_token = long_token_data.get("access_token", access_token)
+            long_expires_in = long_token_data.get("expires_in")
+            if long_expires_in:
+                expires_at = timezone.now() + timedelta(seconds=int(long_expires_in))
+
+        profile_response = requests.get(
+            f"{graph_url}/me",
+            params={
+                "fields": "id,name,email,picture.type(large)",
+                "access_token": access_token,
+            },
+            timeout=20,
+        )
+        if not profile_response.ok:
+            return facebook_error("profile")
+
+        profile_data = profile_response.json()
+        pages = []
+        pages_response = requests.get(
+            f"{graph_url}/me/accounts",
+            params={
+                "fields": "id,name,link,fan_count,followers_count,picture.type(large)",
+                "access_token": access_token,
+            },
+            timeout=20,
+        )
+        if pages_response.ok:
+            pages = pages_response.json().get("data", [])
+
+        primary_page = pages[0] if pages else {}
+        followers = int(primary_page.get("followers_count") or primary_page.get("fan_count") or 0)
+        facebook_id = str(profile_data.get("id", ""))
+        name = profile_data.get("name", "")
+        picture_url = profile_data.get("picture", {}).get("data", {}).get("url", "")
+        page_picture_url = primary_page.get("picture", {}).get("data", {}).get("url", "")
+
+        account, _ = CreatorSocialAccount.objects.update_or_create(
+            creator=creator,
+            platform=SocialPlatform.FACEBOOK,
+            social_id=facebook_id,
+            defaults={
+                "username": name,
+                "handle": name,
+                "url": primary_page.get("link") or (f"https://www.facebook.com/{facebook_id}" if facebook_id else ""),
+                "followers": followers,
+                "media_count": len(pages),
+                "access_token": access_token,
+                "expires_at": expires_at,
+                "is_connected": True,
+                "last_synced_at": timezone.now(),
+                "provider_data": {
+                    "id": facebook_id,
+                    "name": name,
+                    "email": profile_data.get("email", ""),
+                    "profile_picture_url": picture_url,
+                    "primary_page_id": primary_page.get("id", ""),
+                    "primary_page_name": primary_page.get("name", ""),
+                    "primary_page_picture_url": page_picture_url,
+                    "pages": pages,
+                },
+            },
+        )
+        creator.audience_size = max(creator.audience_size, followers)
+        creator.save(update_fields=["audience_size", "updated_at"])
+
+        return redirect(f"{frontend_url}/creator/profile?facebook=connected&account={account.account_id}")
 
 class YouTubeConnectView(APIView):
     permission_classes = [IsAuthenticated, IsCreator]

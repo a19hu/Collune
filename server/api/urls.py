@@ -28,6 +28,8 @@ from .creator.views import (
     CreatorProfileViewSet,
     CreatorRegisterView,
     CreatorSocialAccountViewSet,
+    FacebookCallbackView,
+    FacebookConnectView,
     InstagramCallbackView,
     InstagramConnectView,
     XCallbackView,
@@ -79,6 +81,8 @@ urlpatterns = [
 
     path("auth/instagram/connect/", InstagramConnectView.as_view(), name="instagram_connect"),
     path("auth/instagram/callback/", InstagramCallbackView.as_view(), name="instagram_callback"),
+    path("auth/facebook/connect/", FacebookConnectView.as_view(), name="facebook_connect"),
+    path("auth/facebook/callback/", FacebookCallbackView.as_view(), name="facebook_callback"),
     path("auth/youtube/connect/", YouTubeConnectView.as_view(), name="youtube_connect"),
     path("auth/youtube/callback/", YouTubeCallbackView.as_view(), name="youtube_callback"),
     path("auth/youtube/refresh/", YouTubeRefreshView.as_view(), name="youtube_refresh"),

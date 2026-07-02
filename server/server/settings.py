@@ -212,6 +212,17 @@ INSTAGRAM_OAUTH_SCOPES = env(
     "INSTAGRAM_OAUTH_SCOPES",
     default="instagram_business_basic,instagram_business_manage_comments,instagram_business_manage_messages,instagram_business_content_publish",
 )
+FACEBOOK_APP_ID = env("FACEBOOK_APP_ID", default=META_APP_ID)
+FACEBOOK_APP_SECRET = env("FACEBOOK_APP_SECRET", default=META_APP_SECRET)
+FACEBOOK_GRAPH_VERSION = env("FACEBOOK_GRAPH_VERSION", default="v20.0")
+FACEBOOK_REDIRECT_URI = env(
+    "FACEBOOK_REDIRECT_URI",
+    default="http://localhost:8000/api/v1/auth/facebook/callback/",
+)
+FACEBOOK_OAUTH_SCOPES = env(
+    "FACEBOOK_OAUTH_SCOPES",
+    default="public_profile,email,pages_show_list,pages_read_engagement",
+)
 
 GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")
 GOOGLE_CLIENT_SECRET = env("GOOGLE_CLIENT_SECRET", default="")
