@@ -10,6 +10,7 @@ import type {
   CampaignApplicationApi,
   CampaignPayload,
   CampaignStatusSummaryApi,
+  CreatorCampaignListItemApi,
   CreatorDashboardApi,
   CreatorListItemApi,
   CreatorProfileApi,
@@ -255,6 +256,11 @@ export function createCampaign(payload: CampaignPayload) {
 export async function getCampaigns() {
   const data = await apiRequest<CampaignApi[] | PaginatedResponse<CampaignApi>>("/campaigns/", {}, true);
   return Array.isArray(data) ? data : data.results;
+}
+
+export async function getCreatorCampaigns() {
+  const data = await apiRequest<{ campaigns: CreatorCampaignListItemApi[] }>("/creator/campaigns/", {}, true);
+  return data.campaigns;
 }
 
 export function getBrandCampaigns(page = 1, pageSize = 10) {

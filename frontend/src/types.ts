@@ -114,6 +114,15 @@ export type CampaignApi = CampaignPayload & {
   created_at: string;
   updated_at: string;
 };
+export type CreatorCampaignListItemApi = {
+  id: string;
+  title: string;
+  objective: string;
+  deadline: string | null;
+  posted_at: string;
+  brand_name: string;
+  brand_logo: string | null;
+};
 export type CampaignStatusSummaryApi = {
   summary_id: string;
   campaign: string;

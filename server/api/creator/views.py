@@ -188,6 +188,27 @@ class CreatorDashboardView(APIView):
 
         }
         return Response({"creator": data})
+    
+class CampaignsListView(APIView):
+    permission_classes = [IsAuthenticated, IsCreator]
+
+    def get(self, request):
+        campaigns = Campaign.objects.filter(status=CampaignStatus.ACTIVE).order_by("-created_at")
+        data = [
+            {
+                "id": str(campaign.campaign_id),
+                "title": campaign.title,
+                "objective": campaign.objective,
+                "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
+                "posted_at": campaign.created_at.isoformat(),
+                "brand_name": campaign.brand.company_name,
+                "brand_logo": request.build_absolute_uri(campaign.brand.logo.url) if campaign.brand.logo else None,
+            }
+            for campaign in campaigns
+        ]
+        return Response({"campaigns": data})
+    
+
 
 class CreatorProfileViewSet(viewsets.ModelViewSet):
     serializer_class = CreatorProfileSerializer

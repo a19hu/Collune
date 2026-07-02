@@ -36,7 +36,8 @@ from .creator.views import (
     YouTubeConnectView,
     YouTubeRefreshView,
     CreatorListViewSet,
-    CreatorDashboardView
+    CreatorDashboardView,
+    CampaignsListView
 )
 
 router = DefaultRouter()
@@ -62,6 +63,7 @@ urlpatterns = [
 
     path("brands/dashboard/", BrandDetailDashboardView.as_view(), name="brand_dashboard"),
     path("creators/dashboard/", CreatorDashboardView.as_view(), name="creator_dashboard"),
+    path("creator/campaigns/", CampaignsListView.as_view(), name="creator_campaigns"),
 
     path("brands/campaigns/", CampaignsViewSet.as_view(), name="brand_campaigns"),
     path("brands/list/", BrandsListView.as_view(), name="brands_list"),

@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { BookOpen, BriefcaseBusiness, Dumbbell, GraduationCap, Leaf, Shirt, ShoppingBag } from "lucide-react";
 
-import type { CampaignApi, CampaignStatusSummaryApi } from "../../../types";
+import type { CampaignApi, CampaignStatusSummaryApi, CreatorCampaignListItemApi } from "../../../types";
 
 export type MarketplaceCampaign = {
   id: string;
@@ -98,6 +98,57 @@ export function mapCampaignToMarketplace(campaign: CampaignApi): MarketplaceCamp
     creativeDirection: (campaign.creative_direction || "Content should feel authentic, practical, and aligned with the campaign objective.")
       .split("\n")
       .filter(Boolean),
+    references: referenceImages.map((image, index) => ({
+      image,
+      title: index === 1 ? "Instagram Carousel" : index === 3 ? "YouTube Video" : "Instagram Reel",
+    })),
+    source: "api",
+  };
+}
+
+export function mapCreatorCampaignToMarketplace(campaign: CreatorCampaignListItemApi): MarketplaceCampaign {
+  const brandName = campaign.brand_name || "Brand";
+  const brand = getBrandPresentation(`${brandName} ${campaign.title} ${campaign.objective}`);
+  const deadline = formatDate(campaign.deadline) || "Deadline not set";
+
+  return {
+    id: campaign.id,
+    brandName,
+    brandType: brand.type,
+    brandLogoUrl: campaign.brand_logo || "",
+    brandInitials: getInitials(brandName),
+    brandIcon: brand.icon,
+    brandIconClassName: brand.className,
+    postedAt: formatPostedAt(campaign.posted_at),
+    title: campaign.title,
+    status: "Open Applications",
+    description: campaign.objective || "Campaign details are available in the full brief.",
+    objective: campaign.objective || "Campaign objective has not been added yet.",
+    deliverables: [
+      { title: "Creator content", detail: "Details shared by brand", icon: "instagram" },
+      { title: "Campaign post", detail: "Format to be confirmed", icon: "instagram" },
+      { title: "Brand update", detail: "Timeline to be confirmed", icon: "message" },
+    ],
+    deadline,
+    deadlineShort: deadline,
+    applicationsCloseLabel: deadline === "Deadline not set" ? "Applications open" : `Apply before ${deadline}`,
+    postedOn: formatDate(campaign.posted_at) || "Recently",
+    platform: "Instagram",
+    timeline: [
+      { title: "Applications Close", date: deadline },
+      { title: "Creators Selected", date: "After review" },
+      { title: "Content Submission", date: "To be confirmed" },
+      { title: "Campaign End", date: deadline },
+    ],
+    requirements: [
+      { label: "Looking For", value: "Creators", icon: BookOpen },
+      { label: "Audience", value: "Target audience not set", icon: BookOpen },
+      { label: "Minimum Followers", value: "Not specified", icon: BookOpen },
+      { label: "Languages", value: "Any", icon: BookOpen },
+      { label: "Location", value: "Any location", icon: BookOpen },
+      { label: "Content Style", value: "Authentic, Relatable", icon: BookOpen },
+    ],
+    creativeDirection: [campaign.objective || "Create authentic content aligned with the campaign objective."],
     references: referenceImages.map((image, index) => ({
       image,
       title: index === 1 ? "Instagram Carousel" : index === 3 ? "YouTube Video" : "Instagram Reel",

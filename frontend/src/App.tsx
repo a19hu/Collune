@@ -23,6 +23,7 @@ import type { UserAccount } from './types.ts';
 import { getBrandMe, getCreatorProfile } from './lib/authApi.ts';
 import { CampaignCreateForm } from './components/Brand/Campaigns/CampaignCreateForm.tsx';
 import { DiscoverCreatorsPage } from './pages/DiscoverCreatorsPage.tsx';
+import { CampaignMarketplaceList } from './components/Creator/CampaignMarketplace/CampaignMarketplaceList.tsx';
 
 function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
     const { currentUser, isAuthLoading } = useAuth();
@@ -91,7 +92,8 @@ const App: React.FC = () => {
                         <Route path="/creator/*" element={<SideBarLayout />}>
                             <Route index element={<CreatorDashBoard />} />
                             <Route path="profile" element={<CreatorProfile />} />
-                            <Route path="marketplace" element={<RequireVerified><CreatorCampaignMarketplace /></RequireVerified>} />
+                            <Route path="campaigns" element={<RequireVerified><CreatorCampaignMarketplace /></RequireVerified>} />
+                            <Route path="marketplace" element={<RequireVerified><CampaignMarketplaceList /></RequireVerified>} />
                         </Route>
                     </Route>
                     <Route element={<RequireAuth allowedRole="Brand" />}>
