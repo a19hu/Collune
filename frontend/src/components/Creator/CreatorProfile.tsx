@@ -146,12 +146,22 @@ export function CreatorProfile() {
         setForm(toEditForm(data));
         const callbackParams = new URLSearchParams(window.location.search);
         const instagramStatus = callbackParams.get("instagram");
+        const instagramReason = callbackParams.get("instagram_reason");
         const youtubeStatus = callbackParams.get("youtube");
         const facebookStatus = callbackParams.get("facebook");
         const facebookReason = callbackParams.get("facebook_reason");
         const xStatus = callbackParams.get("x");
         if (instagramStatus === "connected") setMessage("Instagram connected.");
-        if (instagramStatus === "error") setError(instagramStatus);
+        if (instagramStatus === "error") {
+          const reasonMessage = instagramReason === "token"
+            ? "Instagram token exchange failed. Check the Instagram client secret and exact redirect URI."
+            : instagramReason === "profile"
+              ? "Instagram profile fetch failed. Check app permissions and Instagram account type."
+              : instagramReason === "state"
+                ? "Instagram session expired. Start the connect flow again."
+                : "Instagram connection failed. Please try again.";
+          setError(reasonMessage);
+        }
         if (youtubeStatus === "connected") setMessage("YouTube connected.");
         if (youtubeStatus === "no_channel") setError("No YouTube channel found for this Google account.");
         if (youtubeStatus === "error") setError("YouTube connection failed. Please try again.");
@@ -422,21 +432,6 @@ export function CreatorProfile() {
             <MetricTile value={profileStats.reach} label="Avg. Reach" />
             <MetricTile value={profileStats.comments} label="Avg. Comments" />
             <MetricTile value={profileStats.shares} label="Avg. Shares" />
-          </div>
-          <div className="mt-4 grid gap-5 rounded-[6px] bg-[#eaf1ff] p-4 md:grid-cols-2">
-            <div>
-              <p className="text-[11px] font-semibold text-[#64728c]">Audience from India</p>
-              <div className="mt-2 flex items-center gap-3">
-                <strong className="text-[15px] font-black text-[#1438c8]">72%</strong>
-                <span className="h-1.5 flex-1 rounded-full bg-white">
-                  <span className="block h-full w-[72%] rounded-full bg-[#1438c8]" />
-                </span>
-              </div>
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold text-[#64728c]">Top Languages</p>
-              <strong className="mt-1 block text-[15px] font-black text-[#1438c8]">{profile.languages.join(", ") || "Not added"}</strong>
-            </div>
           </div>
         </Panel>
 

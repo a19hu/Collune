@@ -461,17 +461,19 @@ class InstagramConnectView(APIView):
             },
             salt="instagram-oauth",
         )
-        try:
-
-            params = {
+        params = {
             "client_id": settings.INSTAGRAM_CLIENT_ID,
             "redirect_uri": settings.INSTAGRAM_REDIRECT_URI,
             "scope": settings.INSTAGRAM_OAUTH_SCOPES,
             "response_type": "code",
-            }
-            return Response({"auth_url": f"{INSTAGRAM_AUTH_URL}?{urlencode(params)}"})
-        except :
-            return Response("reeor")
+            "state": state,
+            "enable_fb_login": "0",
+            "force_authentication": "1",
+        }
+        return Response({
+            "auth_url": f"{INSTAGRAM_AUTH_URL}?{urlencode(params)}",
+            "redirect_uri": settings.INSTAGRAM_REDIRECT_URI,
+        })
 
 class InstagramCallbackView(APIView):
     permission_classes = [AllowAny]
@@ -481,15 +483,18 @@ class InstagramCallbackView(APIView):
         state = request.query_params.get("state")
         frontend_url = settings.FRONTEND_URL.rstrip("/")
 
+        def instagram_error(reason):
+            return redirect(f"{frontend_url}/creator/profile?instagram=error&instagram_reason={reason}")
+
         if not code or not state:
-            return redirect(f"{frontend_url}/creator/profile?instagram=error")
+            return instagram_error("missing_code")
 
         try:
             state_data = signing.loads(state, salt="instagram-oauth", max_age=600)
             user = User.objects.get(user_id=state_data["user_id"], role=UserRole.CREATOR)
             creator = user.creator_profile
         except (signing.BadSignature, signing.SignatureExpired, User.DoesNotExist, CreatorProfile.DoesNotExist, KeyError):
-            return redirect(f"{frontend_url}/creator/profile?instagram=error")
+            return instagram_error("state")
 
         token_response = requests.post(
             INSTAGRAM_TOKEN_URL,
@@ -503,10 +508,12 @@ class InstagramCallbackView(APIView):
             timeout=20,
         )
         if not token_response.ok:
-            return redirect(f"{frontend_url}/creator/profile?instagram=error")
+            return instagram_error("token")
 
         token_data = token_response.json()
         access_token = token_data.get("access_token", "")
+        if not access_token:
+            return instagram_error("token")
         instagram_user_id = token_data.get("user_id") or token_data.get("id") or ""
         expires_at = None
 
@@ -535,7 +542,7 @@ class InstagramCallbackView(APIView):
             timeout=20,
         )
         if not profile_response.ok:
-            return redirect(f"{frontend_url}/creator/profile?instagram=error")
+            return instagram_error("profile")
 
         profile_data = profile_response.json()
         social_id = str(profile_data.get("user_id") or profile_data.get("id") or instagram_user_id)
