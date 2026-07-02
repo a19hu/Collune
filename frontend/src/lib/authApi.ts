@@ -501,7 +501,7 @@ export async function getCreatorsList() {
 }
 
 export async function getCreatorPublicProfile(creatorId: string) {
-  const data = await apiRequest<{ creator: CreatorProfileApi }>(`/creator/${creatorId}/`, {}, true);
+  const data = await apiRequest<{ creator: CreatorProfileApi }>(`/creator/${creatorId}/`, {}, false);
   return data.creator;
 }
 

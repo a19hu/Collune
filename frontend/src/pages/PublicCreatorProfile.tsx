@@ -21,6 +21,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { getCreatorPublicProfile, getCreatorsList, type CreatorProfileApi } from "../lib/authApi";
 import { AddCreatorToShortlistModal } from "../components/Brand/Shortlists/AddCreatorToShortlistModal";
 import type { CreatorSocialPlatform } from "../types";
+import { formatUpdatedAt } from "../HtmlComponents/BrandCard";
 
 const fallbackPortfolio = [
   "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=480&q=80",
@@ -33,11 +34,8 @@ const fallbackPortfolio = [
 const platformMeta: Record<CreatorSocialPlatform, { label: string; color: string; Icon: typeof Instagram }> = {
   INSTAGRAM: { label: "Instagram", color: "bg-[#f4a5ff]", Icon: Instagram },
   YOUTUBE: { label: "Youtube", color: "bg-[#ff624f]", Icon: Youtube },
-  LINKEDIN: { label: "Linkedin", color: "bg-[#8099ff]", Icon: Linkedin },
   X: { label: "X / Twitter", color: "bg-[#344055]", Icon: Twitter },
   FACEBOOK: { label: "Facebook", color: "bg-[#4f7cff]", Icon: Globe2 },
-  TIKTOK: { label: "Tiktok", color: "bg-[#111827]", Icon: Camera },
-  SNAPCHAT: { label: "Snapchat", color: "bg-[#ffe85c]", Icon: Camera },
 };
 
 function compactNumber(value: number) {
@@ -86,36 +84,6 @@ function LockedMetricTile({ value, label, unlocked }: { value: string; label: st
   );
 }
 
-function Donut({ values, colors }: { values: number[]; colors: string[] }) {
-  let offset = 25;
-  const total = values.reduce((sum, value) => sum + value, 0) || 1;
-
-  return (
-    <svg viewBox="0 0 44 44" className="h-[78px] w-[78px] -rotate-90">
-      <circle cx="22" cy="22" r="15.9" fill="none" stroke="#e6ebf4" strokeWidth="5" />
-      {values.map((value, index) => {
-        const dash = (value / total) * 100;
-        const circle = (
-          <circle
-            key={`${colors[index]}-${value}`}
-            cx="22"
-            cy="22"
-            r="15.9"
-            fill="none"
-            stroke={colors[index]}
-            strokeDasharray={`${dash} ${100 - dash}`}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            strokeWidth="5"
-          />
-        );
-        offset -= dash;
-        return circle;
-      })}
-    </svg>
-  );
-}
-
 function BrandActions({ creator, isBrand }: { creator: CreatorProfileApi; isBrand: boolean }) {
   const [isShortlistModalOpen, setIsShortlistModalOpen] = useState(false);
 
@@ -131,9 +99,6 @@ function BrandActions({ creator, isBrand }: { creator: CreatorProfileApi; isBran
               className="h-12 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]"
             >
               Add to Shortlist
-            </button>
-            <button type="button" className="h-12 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]">
-              Request Collaboration
             </button>
             <button type="button" className="h-12 rounded-[6px] bg-[#1438c8] text-sm font-black text-white">
               Save Creator
@@ -168,30 +133,6 @@ function BrandActions({ creator, isBrand }: { creator: CreatorProfileApi; isBran
   );
 }
 
-function CreatorStatsCard() {
-  const stats = [
-    ["Projects Completed", "20+"],
-    ["Repeat Brands", "38%"],
-    ["Response Rate", "92%"],
-    ["Acceptance Rate", "70%"],
-    ["Avg. Response Time", "24h"],
-    ["Completion Rate", "98%"],
-  ];
-
-  return (
-    <Panel className="p-5">
-      <h2 className="text-lg font-black text-[#65718a]">Creator Stats</h2>
-      <div className="mt-4 grid gap-3 text-[13px] font-semibold text-[#7a879d]">
-        {stats.map(([label, value]) => (
-          <div key={label} className="flex items-center justify-between gap-4">
-            <span>{label}</span>
-            <strong className="text-[#64728c]">{value}</strong>
-          </div>
-        ))}
-      </div>
-    </Panel>
-  );
-}
 
 function VerifiedCard() {
   return (
@@ -247,7 +188,7 @@ export function PublicCreatorProfile() {
     return [
       { account_id: "instagram", platform: "INSTAGRAM" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.5), is_connected: false, created_at: "" },
       { account_id: "youtube", platform: "YOUTUBE" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.3), is_connected: false, created_at: "" },
-      { account_id: "linkedin", platform: "LINKEDIN" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.2), is_connected: false, created_at: "" },
+      { account_id: "Facebook", platform: "FACEBOOK" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.2), is_connected: false, created_at: "" },
       { account_id: "x", platform: "X" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.12), is_connected: false, created_at: "" },
     ];
   }, [profile]);
@@ -303,7 +244,7 @@ export function PublicCreatorProfile() {
                 <BadgeCheck className="h-5 w-5 fill-[#6f85ff] text-white" />
               </div>
               <p className="mt-1 text-[13px] font-semibold text-[#6b7891]">
-                {profile.category || "Creator"} {profile.location ? <span> | {profile.location}</span> : null}
+                {profile.category || "Creator"}
               </p>
               <p className="mt-1 flex items-center gap-1 text-[12px] font-medium text-[#7b8597]">
                 <MapPin className="h-3.5 w-3.5" />
@@ -318,7 +259,7 @@ export function PublicCreatorProfile() {
                 ))}
               </div>
               <div className="mt-5 max-w-[210px] rounded-[6px] border border-[#d8e0ec] bg-white px-4 py-2 text-center lg:ml-auto">
-                <strong className="block text-[24px] font-black leading-none text-[#1438c8]">{profileStats.totalFollowers}</strong>
+                <strong className="block text-[24px] font-black leading-none text-[#1438c8]">{(profile?.total_flowers).toLocaleString() || 0}</strong>
                 <span className="text-[11px] font-semibold text-[#6c7790]">Followers across Platforms</span>
               </div>
             </div>
@@ -328,7 +269,7 @@ export function PublicCreatorProfile() {
           <Panel className="p-5">
             <SectionTitle icon={<UserRound className="h-4 w-4 text-[#7386ff]" />} title={`About ${profile?.display_name || "Creator"}`} />
             <p className="mt-4 text-[13px] font-medium leading-relaxed text-[#536179]">
-              {profile.bio || "Profile bio has not been added yet."}
+              {profile?.about || "Profile bio has not been added yet."}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               {/* {chips.map((chip) => (
@@ -336,8 +277,6 @@ export function PublicCreatorProfile() {
                   {chip}
                 </span>
               ))} */}
-              {profile.open_to_travel ? <span className="rounded-full bg-[#e8fff3] px-3 py-1 text-[11px] font-bold text-[#067647]">Open to travel</span> : null}
-              {profile.preferred_response_time ? <span className="rounded-full bg-[#fff3df] px-3 py-1 text-[11px] font-bold text-[#995c00]">{profile.preferred_response_time}</span> : null}
             </div>
           </Panel>
 
@@ -345,10 +284,10 @@ export function PublicCreatorProfile() {
             <SectionTitle
               icon={<BarChart3 className="h-4 w-4 text-[#7386ff]" />}
               title="Audience Snapshot"
-              right={isBrand ? <span className="text-[11px] font-semibold text-[#7b8597]">Updated {profile?.updated_at ? new Date(profile.updated_at).toLocaleDateString() : "N/A"}</span> : null}
+              right={isBrand ? <span className="text-[11px] font-semibold text-[#7b8597]">{formatUpdatedAt(profile?.updated_at)}</span> : null}
             />
             <div className={`mt-4 grid gap-3 sm:grid-cols-2 ${isBrand ? "lg:grid-cols-6" : "lg:grid-cols-4"}`}>
-              <MetricTile value={profileStats.totalFollowers} label="Total Followers" />
+              <MetricTile value={ (profile?.total_flowers).toLocaleString() || 0 } label="Total Followers" />
               {isBrand ? (
                 <>
                   <MetricTile value={profileStats.engagementRate} label="Avg. Eng. rate" />
@@ -365,25 +304,6 @@ export function PublicCreatorProfile() {
                 </>
               )}
             </div>
-            {isBrand ? <div className="mt-4 grid gap-5 rounded-[6px] bg-[#eaf1ff] p-4 md:grid-cols-2">
-              <div>
-                <p className="text-[11px] font-semibold text-[#64728c]">Audience from India</p>
-                <div className="mt-2 flex items-center gap-3">
-                  <strong className="text-[15px] font-black text-[#1438c8]">72%</strong>
-                  <span className="h-1.5 flex-1 rounded-full bg-white">
-                    <span className="block h-full w-[72%] rounded-full bg-[#1438c8]" />
-                  </span>
-                </div>
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold text-[#64728c]">Top Languages</p>
-                <strong className="mt-1 block text-[15px] font-black text-[#1438c8]">{profile.languages.join(", ") || "Not added"}</strong>
-              </div>
-            </div> : (
-              <p className="mt-4 text-center text-[13px] font-semibold text-[#64728c]">
-                Login as a brand to unlock detailed audience demographics, locations, age groups, gender split and interests.
-              </p>
-            )}
           </Panel>
 
           <Panel className="p-5">
@@ -439,7 +359,6 @@ export function PublicCreatorProfile() {
             <BrandActions creator={profile} isBrand={isBrand} />
             {isBrand ? (
               <>
-                <CreatorStatsCard />
                 <VerifiedCard />
               </>
             ) : (
@@ -450,7 +369,6 @@ export function PublicCreatorProfile() {
                   </h2>
                   <div className="mt-4 grid gap-3">
                     <button type="button" className="h-12 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]">Add to Shortlist</button>
-                    <button type="button" className="h-12 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]">Request Collaboration</button>
                     <button type="button" className="h-12 rounded-[6px] bg-[#1438c8] text-sm font-black text-white">Save Creator</button>
                   </div>
                   <p className="mt-4 text-center text-[12px] font-semibold leading-tight text-[#64728c]">

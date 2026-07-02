@@ -89,6 +89,83 @@ class CreatorRegisterView(APIView):
             status=status.HTTP_201_CREATED,
         )
 
+class CreatorProfileViewSet(viewsets.ModelViewSet):
+    serializer_class = CreatorProfileSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get_queryset(self):
+        queryset = CreatorProfile.objects.select_related("user").prefetch_related("social_accounts")
+        if self.request.user.role == UserRole.CREATOR:
+            return queryset.filter(user=self.request.user)
+        if self.request.user.role == UserRole.BRAND:
+            return queryset.filter(verification_status=VerificationStatus.VERIFIED, is_profile_visible=True)
+        return queryset.all()
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            return [IsAuthenticated(), IsVerifiedColluneMember()]
+        return super().get_permissions()
+
+    @action(detail=False, methods=["get", "patch"], url_path="me")
+    def me(self, request):
+        creator = getattr(request.user, "creator_profile", None)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        if request.method == "PATCH":
+            serializer = self.get_serializer(creator, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response({"creator": serializer.data})
+        return Response({"creator": self.get_serializer(creator).data})
+
+class CreatorSocialAccountViewSet(viewsets.ModelViewSet):
+    serializer_class = CreatorSocialAccountSerializer
+    permission_classes = [IsAuthenticated, IsCreator]
+
+    def get_queryset(self):
+        return CreatorSocialAccount.objects.filter(creator__user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(creator=self.request.user.creator_profile)
+
+class CampaignApplicationViewSet(viewsets.ModelViewSet):
+    serializer_class = CampaignApplicationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = CampaignApplication.objects.select_related("campaign", "campaign__brand", "creator", "creator__user")
+        if self.request.user.role == UserRole.BRAND:
+            return queryset.filter(campaign__brand__user=self.request.user)
+        if self.request.user.role == UserRole.CREATOR:
+            return queryset.filter(creator__user=self.request.user)
+        return queryset.all()
+
+    def create(self, request, *args, **kwargs):
+        if request.user.role != UserRole.CREATOR:
+            raise PermissionDenied("Only creators can apply to campaigns.")
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        campaign = serializer.validated_data["campaign"]
+        application, _ = CampaignApplication.objects.update_or_create(
+            campaign=campaign,
+            creator=request.user.creator_profile,
+            defaults={
+                "pitch": serializer.validated_data.get("pitch", ""),
+                "quoted_rate": serializer.validated_data.get("quoted_rate") or 0,
+                "status": ApplicationStatus.APPLIED,
+            },
+        )
+        response_serializer = self.get_serializer(application)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
 class CreatorProfileView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
@@ -117,30 +194,6 @@ class CreatorProfileView(APIView):
         serializer.save()
         return Response({"creator": serializer.data})
 
-class CreatorsListView(APIView):
-    permission_classes = [IsAuthenticated, IsVerifiedColluneMember]
-    parser_classes = [JSONParser, MultiPartParser, FormParser]
-
-    def get_queryset(self):
-        return CreatorProfile.objects.select_related("user").prefetch_related("social_accounts").filter(
-            verification_status=VerificationStatus.VERIFIED,
-            is_profile_visible=True,
-        )
-
-    def get(self, request, creator_id=None):
-        if creator_id:
-            try:
-                creator = self.get_queryset().get(creator_id=creator_id)
-            except CreatorProfile.DoesNotExist:
-                return Response({"error": "Creator profile not found."}, status=status.HTTP_404_NOT_FOUND)
-            serializer = CreatorsProfileListSerializer(creator, context={"request": request})
-            return Response({"creator": serializer.data})
-
-        creators = (
-            self.get_queryset().order_by("-created_at")
-        )
-        serializer = CreatorsProfileListSerializer(creators, many=True, context={"request": request})
-        return Response({"creators": serializer.data})
 
 class CreatorListViewSet(APIView):
     permission_classes = [AllowAny]
@@ -167,6 +220,10 @@ class CreatorListViewSet(APIView):
                 "profile_image": request.build_absolute_uri(creator.profile_image.url) if creator.profile_image else None,
                 "updated_at": creator.updated_at,
                 "languages": creator.languages,
+                "location": creator.location,
+                "bio": creator.bio,
+                "total_flowers": creator.audience_size,
+                "about": creator.about,
             }
             return Response({"creator": data})
         creators = CreatorProfile.objects.select_related("user").filter(
@@ -612,80 +669,3 @@ class XCallbackView(APIView):
         creator.save(update_fields=["audience_size", "updated_at"])
 
         return redirect(f"{frontend_url}/creator/profile?x=connected&account={account.account_id}")
-
-class CreatorProfileViewSet(viewsets.ModelViewSet):
-    serializer_class = CreatorProfileSerializer
-    permission_classes = [IsAuthenticated]
-    parser_classes = [JSONParser, MultiPartParser, FormParser]
-
-    def get_queryset(self):
-        queryset = CreatorProfile.objects.select_related("user").prefetch_related("social_accounts")
-        if self.request.user.role == UserRole.CREATOR:
-            return queryset.filter(user=self.request.user)
-        if self.request.user.role == UserRole.BRAND:
-            return queryset.filter(verification_status=VerificationStatus.VERIFIED, is_profile_visible=True)
-        return queryset.all()
-
-    def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            return [IsAuthenticated(), IsVerifiedColluneMember()]
-        return super().get_permissions()
-
-    @action(detail=False, methods=["get", "patch"], url_path="me")
-    def me(self, request):
-        creator = getattr(request.user, "creator_profile", None)
-        if not creator:
-            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
-        if request.method == "PATCH":
-            serializer = self.get_serializer(creator, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response({"creator": serializer.data})
-        return Response({"creator": self.get_serializer(creator).data})
-
-class CreatorSocialAccountViewSet(viewsets.ModelViewSet):
-    serializer_class = CreatorSocialAccountSerializer
-    permission_classes = [IsAuthenticated, IsCreator]
-
-    def get_queryset(self):
-        return CreatorSocialAccount.objects.filter(creator__user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(creator=self.request.user.creator_profile)
-
-class CampaignApplicationViewSet(viewsets.ModelViewSet):
-    serializer_class = CampaignApplicationSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        queryset = CampaignApplication.objects.select_related("campaign", "campaign__brand", "creator", "creator__user")
-        if self.request.user.role == UserRole.BRAND:
-            return queryset.filter(campaign__brand__user=self.request.user)
-        if self.request.user.role == UserRole.CREATOR:
-            return queryset.filter(creator__user=self.request.user)
-        return queryset.all()
-
-    def create(self, request, *args, **kwargs):
-        if request.user.role != UserRole.CREATOR:
-            raise PermissionDenied("Only creators can apply to campaigns.")
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        campaign = serializer.validated_data["campaign"]
-        application, _ = CampaignApplication.objects.update_or_create(
-            campaign=campaign,
-            creator=request.user.creator_profile,
-            defaults={
-                "pitch": serializer.validated_data.get("pitch", ""),
-                "quoted_rate": serializer.validated_data.get("quoted_rate") or 0,
-                "status": ApplicationStatus.APPLIED,
-            },
-        )
-        response_serializer = self.get_serializer(application)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-
-    def perform_update(self, serializer):
-        serializer.save()
-
-    def perform_destroy(self, instance):
-        instance.delete()

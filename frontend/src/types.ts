@@ -41,7 +41,7 @@ export type SocialAccountForm = {
   handle: string;
 };
 
-export type CreatorSocialPlatform = "INSTAGRAM" | "YOUTUBE" | "LINKEDIN" | "X" | "FACEBOOK" | "TIKTOK" | "SNAPCHAT";
+export type CreatorSocialPlatform = "INSTAGRAM" | "YOUTUBE" |"X" | "FACEBOOK";
 
 
 export type VerificationState = {

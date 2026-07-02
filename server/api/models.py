@@ -119,6 +119,7 @@ class CreatorProfile(models.Model):
     preferred_response_time = models.CharField(max_length=80, blank=True, default="")
     open_to_travel = models.BooleanField(default=False)
     bio = models.TextField(blank=True, default="")
+    about=models.TextField(blank=True, default="")
     portfolio_url = models.URLField(blank=True, default="")
     profile_image = models.ImageField(upload_to="creators/profiles/", blank=True, null=True)
     is_profile_visible = models.BooleanField(default=True)

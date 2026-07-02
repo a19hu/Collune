@@ -27,7 +27,7 @@ const campaignIconStyles = [
     "bg-[#fff0bc] text-[#d78a00]",
 ];
 
-function formatUpdatedAt(value: string) {
+export function formatUpdatedAt(value: string) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "Updated recently";
 

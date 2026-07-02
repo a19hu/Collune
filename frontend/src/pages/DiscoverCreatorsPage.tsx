@@ -16,6 +16,12 @@ const categoryOptions = [
 ];
 
 const platformOptions = ["Instagram", "YouTube","Twitter", "Facebook"];
+const platformValueMap: Record<string, string[]> = {
+  Instagram: ["INSTAGRAM"],
+  YouTube: ["YOUTUBE"],
+  Twitter: ["X", "TWITTER"],
+  Facebook: ["FACEBOOK"],
+};
 
 
 export const DiscoverCreatorsPage = () => {
@@ -29,8 +35,9 @@ export const DiscoverCreatorsPage = () => {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [minFollowers, setMinFollowers] = useState(0);
   const [location, setLocation] = useState("");
-  const [gender, setGender] = useState("All");
-  const isLoggedIn = Boolean(currentUser);
+  const [categoryQuery, setCategoryQuery] = useState("");
+  const [locationQuery, setLocationQuery] = useState("");
+  const isBrand = currentUser?.role === "Brand";
 
   useEffect(() => {
     let mounted = true;
@@ -51,31 +58,52 @@ export const DiscoverCreatorsPage = () => {
   }, []);
 
   const locations = useMemo(() => Array.from(new Set(creators.map((creator) => creator.location).filter(Boolean))), [creators]);
+  const visibleCategoryOptions = useMemo(() => {
+    const text = categoryQuery.trim().toLowerCase();
+    return categoryOptions.filter((category) => !text || category.toLowerCase().includes(text));
+  }, [categoryQuery]);
+  const visibleLocationOptions = useMemo(() => {
+    const text = locationQuery.trim().toLowerCase();
+    return locations.filter((item) => !text || item.toLowerCase().includes(text));
+  }, [locationQuery, locations]);
   const filteredCreators = useMemo(() => {
     const text = query.trim().toLowerCase();
     const next = creators.filter((creator) => {
+      const socialAccounts = creator.social_accounts ?? [];
+      const languages = creator.languages ?? [];
+      const collaborationPreferences = creator.collaboration_preferences ?? [];
       const matchesText = !text || [
         creator.display_name,
-        creator.user?.name,
+        creator.username,
         creator.category,
         creator.location,
         creator.bio,
-        ...creator.languages,
-        ...creator.collaboration_preferences,
+        ...languages,
+        ...collaborationPreferences,
+        ...socialAccounts.flatMap((account) => [account.platform, account.handle, account.username]),
       ].filter(Boolean).some((value) => String(value).toLowerCase().includes(text));
+
+      if (!isBrand) return matchesText;
+
       const matchesCategory = !selectedCategories.length || selectedCategories.includes(creator.category);
-      const matchesPlatform = !selectedPlatforms.length || creator.social_accounts.some((account) => selectedPlatforms.includes(account.platform));
-      const matchesFollowers = creator.audience_size >= minFollowers;
+      const matchesPlatform = !selectedPlatforms.length || socialAccounts.some((account) => {
+        const accountPlatform = String(account.platform).toUpperCase();
+        return selectedPlatforms.some((platform) => platformValueMap[platform]?.includes(accountPlatform));
+      });
+      const followerCount = creator.audience_size || socialAccounts.reduce((total, account) => total + (account.followers || 0), 0);
+      const matchesFollowers = followerCount >= minFollowers;
       const matchesLocation = !location || creator.location === location;
-      return matchesText && matchesCategory && matchesPlatform && matchesFollowers && matchesLocation && gender;
+      return matchesText && matchesCategory && matchesPlatform && matchesFollowers && matchesLocation;
     });
 
     return [...next].sort((a, b) => {
-      if (sortBy === "followers") return b.audience_size - a.audience_size;
-      if (sortBy === "newest") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      if (!isBrand) return 0;
+      if (sortBy === "followers") return (b.audience_size || 0) - (a.audience_size || 0);
+      if (sortBy === "newest") return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
       return (b.profile_completion || 0) - (a.profile_completion || 0);
     });
-  }, [creators, gender, location, minFollowers, query, selectedCategories, selectedPlatforms, sortBy]);
+  }, [creators, isBrand, location, minFollowers, query, selectedCategories, selectedPlatforms, sortBy]);
+  const visibleCreators = isBrand ? filteredCreators : filteredCreators.slice(0, 12);
 
   function toggleValue(value: string, setter: (value: string[]) => void, current: string[]) {
     setter(current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
@@ -88,7 +116,8 @@ export const DiscoverCreatorsPage = () => {
     setSelectedPlatforms([]);
     setMinFollowers(0);
     setLocation("");
-    setGender("All");
+    setCategoryQuery("");
+    setLocationQuery("");
   }
 
 
@@ -116,9 +145,9 @@ export const DiscoverCreatorsPage = () => {
         <div>
           <div className="mt-9 flex flex-wrap items-center justify-between gap-4">
             <p className="text-base font-bold text-[#65718a]">
-              {isLoggedIn ? `${creators.length} creators found.` : `Showing ${Math.min(creators.length, 6)} of ${creators.length}+`}
+              {isBrand ? `${filteredCreators.length} of ${creators.length} creators found.` : `Showing ${visibleCreators.length} of ${filteredCreators.length} creators`}
             </p>
-            {isLoggedIn ? (
+            {isBrand ? (
               <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="h-9 rounded-[6px] border border-[#d8e2fb] bg-white px-3 text-sm font-bold text-[#65718a]">
                 <option value="relevance">Sort by: Relevance</option>
                 <option value="followers">Sort by: Followers</option>
@@ -129,19 +158,21 @@ export const DiscoverCreatorsPage = () => {
           <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_minmax(300px,170px)] lg:items-start">
 
           {error ? <p className="mt-8 rounded-[8px] bg-white p-5 text-sm font-black text-[#b42318]">{error}</p> : null}
-          <div className="mt-5 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-5 max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
+            <div className="grid gap-7 md:grid-cols-2 xl:grid-cols-3">
             {isLoading ? (
               <p className="col-span-full py-10 text-center text-sm font-black text-[#65718a]">Loading creators...</p>
-            ) : creators.length ? (
-              creators.slice(0, isLoggedIn ? 24 : 6).map((creator, index) => (
-                <CreatorCard creator={creator} index={index} />
+            ) : visibleCreators.length ? (
+              visibleCreators.map((creator, index) => (
+                <CreatorCard  creator={creator} index={index} />
               ))
             ) : (
               <p className="col-span-full py-10 text-center text-sm font-black text-[#65718a]">No creators match these filters.</p>
             )}
+            </div>
           </div>
 
-        {isLoggedIn ? (
+        {isBrand ? (
           <aside className="rounded-[14px] border border-[#d8e2fb] bg-white p-5">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-black text-[#334260]">Filters</h2>
@@ -152,10 +183,15 @@ export const DiscoverCreatorsPage = () => {
                 <h3 className="mb-3 text-sm font-black text-[#334260]">Categories</h3>
                 <label className="mb-3 flex h-9 items-center gap-2 rounded-[6px] border border-[#d8e2fb] px-3 text-xs font-bold text-[#65718a]">
                   <Search className="h-4 w-4" />
-                  Search Categories...
+                  <input
+                    value={categoryQuery}
+                    onChange={(event) => setCategoryQuery(event.target.value)}
+                    placeholder="Search Categories..."
+                    className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-[#9aa7c4]"
+                  />
                 </label>
                 <div className="grid grid-cols-2 gap-3 text-sm font-semibold text-[#65718a]">
-                  {categoryOptions.map((category) => (
+                  {visibleCategoryOptions.map((category) => (
                     <label key={category} className="flex items-center gap-2">
                       <input type="checkbox" checked={selectedCategories.includes(category)} onChange={() => toggleValue(category, setSelectedCategories, selectedCategories)} className="accent-[#7288ff]" />
                       {category}
@@ -184,16 +220,21 @@ export const DiscoverCreatorsPage = () => {
               </div>
               <div>
                 <h3 className="mb-3 text-sm font-black text-[#334260]">Location</h3>
-                <select value={location} onChange={(event) => setLocation(event.target.value)} className="h-10 w-full rounded-[6px] border border-[#d8e2fb] px-3 text-sm font-bold text-[#65718a]">
-                  <option value="">Search Location</option>
-                  {locations.map((item) => <option key={item} value={item}>{item}</option>)}
-                </select>
-              </div>
-              <div>
-                <h3 className="mb-3 text-sm font-black text-[#334260]">Gender</h3>
-                <div className="grid grid-cols-3 gap-1">
-                  {["All", "Male", "Female"].map((item) => (
-                    <button key={item} type="button" onClick={() => setGender(item)} className={`h-9 rounded-[5px] border border-[#d8e2fb] text-sm font-bold ${gender === item ? "bg-[#dfe7ff] text-[#334260]" : "bg-white text-[#65718a]"}`}>
+                <label className="mb-3 flex h-9 items-center gap-2 rounded-[6px] border border-[#d8e2fb] px-3 text-xs font-bold text-[#65718a]">
+                  <Search className="h-4 w-4" />
+                  <input
+                    value={locationQuery}
+                    onChange={(event) => setLocationQuery(event.target.value)}
+                    placeholder="Search Location..."
+                    className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-[#9aa7c4]"
+                  />
+                </label>
+                <div className="grid max-h-36 gap-2 overflow-y-auto text-sm font-semibold text-[#65718a]">
+                  <button type="button" onClick={() => setLocation("")} className={`rounded-[5px] border border-[#d8e2fb] px-3 py-2 text-left ${!location ? "bg-[#dfe7ff] text-[#334260]" : "bg-white"}`}>
+                    All locations
+                  </button>
+                  {visibleLocationOptions.map((item) => (
+                    <button key={item} type="button" onClick={() => setLocation(item)} className={`rounded-[5px] border border-[#d8e2fb] px-3 py-2 text-left ${location === item ? "bg-[#dfe7ff] text-[#334260]" : "bg-white"}`}>
                       {item}
                     </button>
                   ))}
@@ -227,7 +268,7 @@ function LockedFilters() {
         Sign in to continue
       </Link>
       <div className="mt-8 grid gap-4 text-sm font-bold text-[#25304a]">
-        {["Categories", "Platform", "Followers", "Location", "Gender"].map((label) => (
+        {["Categories", "Platform", "Followers", "Location"].map((label) => (
           <div key={label} className="flex items-center justify-between">
             <span>{label}</span>
             <Lock className="h-4 w-4" />

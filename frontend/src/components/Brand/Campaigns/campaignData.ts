@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import type { CampaignApi } from "../../../lib/authApi";
+import { formatUpdatedAt } from "@/src/HtmlComponents/BrandCard";
 
 export type CampaignStatus = "Active" | "Draft" | "Paused" | "Reviewing" | "Completed";
 
@@ -66,20 +67,6 @@ function formatDate(value?: string | null) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(date);
-}
-
-function formatUpdatedAt(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Updated recently";
-
-  const now = Date.now();
-  const days = Math.max(0, Math.floor((now - date.getTime()) / 86400000));
-  if (days === 0) return "Updated today";
-  if (days === 1) return "Updated yesterday";
-  if (days < 7) return `Updated ${days} days ago`;
-  const weeks = Math.floor(days / 7);
-  if (weeks === 1) return "Updated 1 week ago";
-  return `Updated ${weeks} weeks ago`;
 }
 
 function getUpdatedRank(value: string) {

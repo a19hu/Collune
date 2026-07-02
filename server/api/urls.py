@@ -28,7 +28,6 @@ from .creator.views import (
     CreatorProfileView,
     CreatorProfileViewSet,
     CreatorRegisterView,
-    CreatorsListView,
     CreatorSocialAccountViewSet,
     InstagramCallbackView,
     InstagramConnectView,

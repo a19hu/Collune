@@ -121,35 +121,6 @@ function MetricTile({ value, label }: { value: string; label: string }) {
   );
 }
 
-function Donut({ values, colors }: { values: number[]; colors: string[] }) {
-  let offset = 25;
-  const total = values.reduce((sum, value) => sum + value, 0) || 1;
-
-  return (
-    <svg viewBox="0 0 44 44" className="h-[78px] w-[78px] -rotate-90">
-      <circle cx="22" cy="22" r="15.9" fill="none" stroke="#e6ebf4" strokeWidth="5" />
-      {values.map((value, index) => {
-        const dash = (value / total) * 100;
-        const circle = (
-          <circle
-            key={`${colors[index]}-${value}`}
-            cx="22"
-            cy="22"
-            r="15.9"
-            fill="none"
-            stroke={colors[index]}
-            strokeDasharray={`${dash} ${100 - dash}`}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            strokeWidth="5"
-          />
-        );
-        offset -= dash;
-        return circle;
-      })}
-    </svg>
-  );
-}
 
 export function CreatorProfile() {
   const [profile, setProfile] = useState<CreatorProfileApi | null>(null);

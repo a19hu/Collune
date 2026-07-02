@@ -5,6 +5,7 @@ import creatorTwo from "../../../assets/collune/creator-2.png";
 import creatorThree from "../../../assets/collune/creator-3.png";
 import creatorFour from "../../../assets/collune/creator-4.png";
 import type { BrandShortlistApi, BrandShortlistStatusApi, CreatorProfileApi } from "../../../lib/authApi";
+import { formatUpdatedAt } from "@/src/HtmlComponents/BrandCard";
 
 export type ShortlistStatus = "Draft" | "Submitted" | "Outreach In Progress" | "Completed";
 
@@ -78,17 +79,6 @@ function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Today";
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(date);
-}
-
-function formatUpdatedAt(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Updated today";
-  const days = Math.max(0, Math.floor((Date.now() - date.getTime()) / 86400000));
-  if (days === 0) return "Updated today";
-  if (days === 1) return "Updated yesterday";
-  if (days < 7) return `Updated ${days} days ago`;
-  const weeks = Math.floor(days / 7);
-  return weeks === 1 ? "Updated 1 week ago" : `Updated ${weeks} weeks ago`;
 }
 
 function getEngagement(creator: CreatorProfileApi) {
