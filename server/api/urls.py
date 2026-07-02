@@ -15,7 +15,6 @@ from .brand.views import (
     CampaignViewSet,
 )
 from .common.views import (
-    DashboardSummaryView,
     EmailAvailabilityView,
     LoginView,
     OtpSendView,
@@ -36,7 +35,8 @@ from .creator.views import (
     YouTubeCallbackView,
     YouTubeConnectView,
     YouTubeRefreshView,
-    CreatorListViewSet
+    CreatorListViewSet,
+    CreatorDashboardView
 )
 
 router = DefaultRouter()
@@ -57,8 +57,12 @@ urlpatterns = [
     path("auth/otp/send/", OtpSendView.as_view(), name="otp_send"),
     path("auth/otp/verify/", OtpVerifyView.as_view(), name="otp_verify"),
     path("auth/me/", ProfileView.as_view(), name="profile"),
+
     path("auth/creator/profile/", CreatorProfileView.as_view(), name="creator_profile"),
+
     path("brands/dashboard/", BrandDetailDashboardView.as_view(), name="brand_dashboard"),
+    path("creators/dashboard/", CreatorDashboardView.as_view(), name="creator_dashboard"),
+
     path("brands/campaigns/", CampaignsViewSet.as_view(), name="brand_campaigns"),
     path("brands/list/", BrandsListView.as_view(), name="brands_list"),
     path("brands/list/<uuid:brand_id>/", BrandsListView.as_view(), name="brand_detail"),
@@ -73,7 +77,6 @@ urlpatterns = [
     path("auth/x/callback/", XCallbackView.as_view(), name="x_callback"),
     path("auth/signout/", SignoutView.as_view(), name="signout"),
     path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("dashboard/summary/", DashboardSummaryView.as_view(), name="dashboard_summary"),
     path("verification/<str:profile_type>/<uuid:profile_id>/", VerificationView.as_view(), name="verification"),
     path("", include(router.urls)),
 ]

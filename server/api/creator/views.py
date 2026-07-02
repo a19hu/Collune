@@ -92,27 +92,55 @@ class CreatorRegisterView(APIView):
 class CreatorDashboardView(APIView):
     permission_classes = [IsAuthenticated, IsCreator]
 
-    def get(self,request,profile_verified=False):
+    def get_profile_completion(self, creator):
+        checks = [
+            bool(creator.display_name.strip()),
+            bool(creator.category.strip()),
+            bool(creator.location.strip()),
+            bool(creator.languages),
+            bool(creator.collaboration_preferences),
+            bool(creator.preferred_response_time.strip()),
+            bool(creator.bio.strip()),
+            bool(getattr(creator, "about", "").strip()),
+            bool(creator.portfolio_url.strip()),
+            bool(creator.profile_image),
+            creator.audience_size > 0,
+            creator.rate_min > 0,
+            creator.rate_max > 0 and creator.rate_max >= creator.rate_min,
+            creator.social_accounts.filter(is_connected=True).exists(),
+        ]
+        completion = round((sum(checks) / len(checks)) * 100)
+
+        if creator.profile_completion != completion:
+            creator.profile_completion = completion
+            creator.save(update_fields=["profile_completion"])
+
+        return completion
+
+    def get(self, request, profile_verified=False):
         creator = getattr(request.user, "creator_profile", None)
         if not creator:
             return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
 
+        profile_completion = self.get_profile_completion(creator)
+        social_media_connected = creator.social_accounts.filter(is_connected=True).exists()
+
         if profile_verified:
-            data= {
-                "profile_view": creator.profile_view_count,
-                "brand_requests": creator.brand_request_count,
-                "campaign_applications": creator.campaign_application_count,
-                "profile_completion": creator.profile_percentage,
+            data = {
+                "profile_view": getattr(creator, "profile_view_count", 0),
+                "brand_requests": getattr(creator, "brand_request_count", 0),
+                "campaign_applications": creator.applications.count(),
+                "profile_completion": profile_completion,
 
             }
             return Response({"creator": data})
         
-        data= {
+        data = {
             "account_id": str(creator.creator_id),
             "account_created": bool(creator.created_at),
-            "Social_media_connected": creator.social_accounts.filter(is_connected=True).exists(),
+            "social_media_connected": social_media_connected,
             "verification_status": creator.verification_status,
-            "profile_completion": creator.profile_percentage,
+            "profile_completion": profile_completion,
 
         }
         return Response({"creator": data})

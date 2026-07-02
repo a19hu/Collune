@@ -115,37 +115,3 @@ class OtpVerifyView(APIView):
         otp.verified_at = timezone.now()
         otp.save(update_fields=["attempts", "is_verified", "verified_at"])
         return Response({"message": "OTP verified.", "channel": channel, "target": target})
-
-class DashboardSummaryView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        if request.user.role == UserRole.BRAND and hasattr(request.user, "brand_profile"):
-            brand = request.user.brand_profile
-            return Response(
-                {
-                    "mode": "brand",
-                    "verification_status": brand.verification_status,
-                    "profile_completion": brand.profile_completion,
-                    "metrics": {
-                        "active_campaigns": Campaign.objects.filter(brand=brand, status=CampaignStatus.ACTIVE).count(),
-                        "creator_applications": CampaignApplication.objects.filter(campaign__brand=brand).count(),
-                        "shortlisted_creators": CreatorProfile.objects.filter(shortlisted_by__brand=brand).distinct().count(),
-                    },
-                }
-            )
-        if request.user.role == UserRole.CREATOR and hasattr(request.user, "creator_profile"):
-            creator = request.user.creator_profile
-            return Response(
-                {
-                    "mode": "creator",
-                    "verification_status": creator.verification_status,
-                    "profile_completion": creator.profile_completion,
-                    "metrics": {
-                        "campaign_applications": CampaignApplication.objects.filter(creator=creator).count(),
-                        "brand_shortlists": BrandShortlist.objects.filter(creators=creator).count(),
-                        "connected_accounts": CreatorSocialAccount.objects.filter(creator=creator, is_connected=True).count(),
-                    },
-                }
-            )
-        return Response({"mode": "admin", "metrics": {"brands": BrandProfile.objects.count(), "creators": CreatorProfile.objects.count()}})

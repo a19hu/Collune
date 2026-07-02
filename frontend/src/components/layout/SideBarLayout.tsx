@@ -238,8 +238,8 @@ export const SideBarLayout = () => {
       <SideBar isVerified={isVerified} mode={mode} />
 
       <div className="lg:pl-[270px]">
-        <main className="min-h-[calc(100vh-98px)] bg-white px-6 py-8 lg:px-8">
-          <div className="min-h-screen bg-white">
+        <main className="min-h-[calc(100vh-98px)] bg-white px-6 py-0 lg:px-8">
+          <div className="min-h-screen bg-white pt-8">
             {
               isBrand ?
                 <TopComponentsBrand /> :

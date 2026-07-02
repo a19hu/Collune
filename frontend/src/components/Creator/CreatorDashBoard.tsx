@@ -13,8 +13,11 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
+import { getCreatorDashboard, type CreatorDashboardApi } from "../../lib/authApi";
+import { Panel } from "@/src/HtmlComponents/BrandCard";
+import { UnderReviewDashboard } from "./UnderReviewDashboard";
 
 type DashboardContext = { isVerified?: boolean };
 
@@ -30,6 +33,15 @@ const metricCards = [
   { label: "Campaign Applications", value: "8", change: "↑ 14% vs last 7 days", icon: Send, color: "bg-[#fff0dd] text-[#ff9f1c]" },
   { label: "Profile Completion", value: "100%", change: "Excellent! 🎉", icon: CheckCircle, color: "bg-[#ebe5ff] text-[#4635ff]" },
 ];
+
+function buildMetricCards(dashboard?: CreatorDashboardApi | null) {
+  return [
+    { ...metricCards[0], value: String(dashboard?.profile_view ?? 0) },
+    { ...metricCards[1], value: String(dashboard?.brand_requests ?? 0) },
+    { ...metricCards[2], value: String(dashboard?.campaign_applications ?? 0) },
+    { ...metricCards[3], value: `${dashboard?.profile_completion ?? 0}%` },
+  ];
+}
 
 const campaigns = [
   {
@@ -61,11 +73,11 @@ const campaigns = [
   },
 ];
 
-const activity = [
-  { icon: Eye, color: "bg-[#ebe5ff] text-[#4635ff]", text: 'Brand "Fintech Startup" viewed your profile', time: "2 hours ago" },
-  { icon: Bell, color: "bg-[#fff0dd] text-[#ff9f1c]", text: 'Campaign "Skincare Brand" deadline approaching in 3 days', time: "5 hours ago" },
-  { icon: ShoppingBag, color: "bg-[#cbf8df] text-[#00b980]", text: 'New campaign "Travel App" matches your niche', time: "1 day ago" },
-];
+// const activity = [
+//   { icon: Eye, color: "bg-[#ebe5ff] text-[#4635ff]", text: 'Brand "Fintech Startup" viewed your profile', time: "2 hours ago" },
+//   { icon: Bell, color: "bg-[#fff0dd] text-[#ff9f1c]", text: 'Campaign "Skincare Brand" deadline approaching in 3 days', time: "5 hours ago" },
+//   { icon: ShoppingBag, color: "bg-[#cbf8df] text-[#00b980]", text: 'New campaign "Travel App" matches your niche', time: "1 day ago" },
+// ];
 
 const quickActions = [
   { icon: UserRound, title: "Edit Profile", copy: "Update your information" },
@@ -74,105 +86,6 @@ const quickActions = [
   { icon: UserRound, title: "Update Portfolio", copy: "Add or edit your work" },
 ];
 
-function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return (
-    <section className={`rounded-xl border border-[#e1e5ec] bg-white shadow-[0_2px_4px_rgba(20,30,60,0.02)] ${className}`}>
-      {children}
-    </section>
-  );
-}
-
-function LockedPanel({ title, copy }: { title: string; copy: string }) {
-  return (
-    <Panel className="grid min-h-[348px] place-items-center p-8 text-center">
-      <div>
-        <Lock className="mx-auto h-12 w-12 text-[#8b7cff]" />
-        <h3 className="mt-7 text-xl font-black text-[#343b4d]">{title}</h3>
-        <p className="mx-auto mt-4 max-w-sm text-[15px] font-medium leading-snug text-[#6f7889]">{copy}</p>
-        <button className="mt-7 h-12 rounded-lg border-2 border-[#2f31e7] px-8 text-sm font-black text-[#2f31e7]">
-          Learn More
-        </button>
-      </div>
-    </Panel>
-  );
-}
-
-function UnderReviewDashboard() {
-  const steps = [
-    ["We review your profile", "Our team checks your details and content"],
-    ["We verify your accounts", "We verify your social media authenticity"],
-    ["Your profile goes live", "You'll get notified once approved"],
-    ["Brands can discover you", "You'll start receiving opportunities"],
-  ];
-
-  return (
-    <div className="grid gap-5">
-      <div className="grid gap-5 xl:grid-cols-3">
-        <Panel className="min-h-[432px] p-8">
-          <div className="flex items-start justify-between">
-            <h2 className="text-[22px] font-black text-[#1d203a]">Profile Verification</h2>
-            <span className="grid h-16 w-16 place-items-center rounded-2xl bg-[#e9e2ff] text-[#2f31e7]">✦</span>
-          </div>
-          <div className="mt-8 grid gap-5">
-            {[
-              ["Account Created", true],
-              ["Social Accounts Connected", true],
-              ["Verification In Progress", false],
-            ].map(([label, done]) => (
-              <div key={label as string} className="flex items-start gap-4">
-                {done ? <CheckCircle className="h-5 w-5 fill-[#16b989] text-white" /> : <ClockIcon />}
-                <div>
-                  <p className="font-semibold text-[#343b4d]">{label as string}</p>
-                  {!done ? <p className="mt-1 text-sm font-medium text-[#6f7889]">Our team is reviewing your profile</p> : null}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-7 flex items-center gap-4 rounded-lg bg-[#f6f2ff] p-5">
-            <CalendarDays className="h-5 w-5 text-[#2f31e7]" />
-            <div>
-              <p className="text-sm font-medium text-[#7a8496]">Expected completion:</p>
-              <p className="font-black text-[#1d203a]">Within 24 hours</p>
-            </div>
-          </div>
-        </Panel>
-
-        <Panel className="min-h-[432px] p-8">
-          <h2 className="text-[22px] font-black text-[#1d203a]">What happens next?</h2>
-          <div className="mt-7 grid gap-5">
-            {steps.map(([title, copy], index) => (
-              <div key={title} className="flex gap-4">
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#2f31e7] text-sm font-black text-white">{index + 1}</span>
-                <div>
-                  <h3 className="font-black text-[#1d203a]">{title}</h3>
-                  <p className="mt-1 text-sm font-medium text-[#6f7889]">{copy}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Panel>
-
-        <Panel className="min-h-[432px] p-8 text-center">
-          <h2 className="text-[22px] font-black text-[#1d203a] text-left">Complete your profile</h2>
-          <div className="mx-auto mt-16 grid h-[132px] w-[132px] place-items-center rounded-full border-[10px] border-[#2f31e7] text-center">
-            <div>
-              <strong className="block text-[36px] font-black text-[#2f31e7]">85%</strong>
-              <span className="text-sm font-medium text-[#6f7889]">Complete</span>
-            </div>
-          </div>
-          <p className="mx-auto mt-8 max-w-xs text-[15px] font-medium leading-snug text-[#6f7889]">
-            A complete profile gets more discovery and better opportunities.
-          </p>
-        </Panel>
-      </div>
-
-      <div className="grid gap-5 xl:grid-cols-[1fr_1fr]">
-        <LockedPanel title="Available after verification" copy="Once your profile is verified, you'll be able to browse and apply to campaigns." />
-        <LockedPanel title="No opportunities yet" copy="Complete verification first. Once approved, brands will start discovering you." />
-      </div>
-    </div>
-  );
-}
 
 function MetricCard({ item }: { item: (typeof metricCards)[number]; key?: string }) {
   const Icon = item.icon;
@@ -214,13 +127,14 @@ function CampaignCard({ campaign, index }: { campaign: (typeof campaigns)[number
   );
 }
 
-function VerifiedDashboard() {
+function VerifiedDashboard({ dashboard }: { dashboard?: CreatorDashboardApi | null }) {
   const navigate = useNavigate();
+  const cards = buildMetricCards(dashboard);
 
   return (
     <div className="grid gap-8">
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        {metricCards.map((item) => <MetricCard key={item.label} item={item} />)}
+        {cards.map((item) => <MetricCard key={item.label} item={item} />)}
       </div>
 
       <section>
@@ -297,17 +211,41 @@ function VerifiedDashboard() {
   );
 }
 
-function ClockIcon() {
-  return (
-    <span className="grid h-5 w-5 place-items-center rounded-full border-2 border-[#2f31e7]">
-      <span className="h-2 w-px bg-[#2f31e7]" />
-    </span>
-  );
-}
 
 const CreatorDashBoard = () => {
   const { isVerified = false } = useOutletContext<DashboardContext>();
-  return isVerified ? <VerifiedDashboard /> : <UnderReviewDashboard />;
+  const [dashboard, setDashboard] = useState<CreatorDashboardApi | null>(null);
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
+  const [dashboardError, setDashboardError] = useState("");
+
+  useEffect(() => {
+    let mounted = true;
+
+    getCreatorDashboard()
+      .then((data) => {
+        if (mounted) setDashboard(data);
+      })
+      .catch((error) => {
+        if (mounted) setDashboardError(error instanceof Error ? error.message : "Unable to load dashboard.");
+      })
+      .finally(() => {
+        if (mounted) setIsLoadingDashboard(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (isLoadingDashboard) {
+    return <Panel className="p-8 text-sm font-black text-[#6f7889]">Loading dashboard...</Panel>;
+  }
+
+  if (dashboardError) {
+    return <Panel className="p-8 text-sm font-black text-[#b42318]">{dashboardError}</Panel>;
+  }
+
+  return isVerified ? <VerifiedDashboard dashboard={dashboard} /> : <UnderReviewDashboard dashboard={dashboard} />;
 };
 
 export default CreatorDashBoard;
