@@ -1,7 +1,4 @@
 
-
-
-
 export const HtmlProgess = ({ step, totalSteps = 3, divClassName }: { step: number; totalSteps?: number, divClassName?: string }) => {
     const helper = step === 5 ? "Almost there! Just a few more details." : "Let's get started with the basics.";
     const shouldCenterDots = divClassName?.includes("text-center");

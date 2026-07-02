@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Building2, ChevronDown, CircleHelp, FileText, Home, LogOut, Settings, ShoppingBag, Star, UserRound, Users } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import logo from "../../assets/Logo.svg";
 import { useAuth } from "../../contexts/AuthContext";
 import { getBrandMe, type BrandProfileApi } from "../../lib/authApi";
@@ -63,7 +63,10 @@ export function SideBar({ isVerified = false, mode = "creator" }: { isVerified?:
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-[270px] flex-col border-r border-[#eef1f6] bg-[#f5f7ff] lg:flex">
       <div className="px-16 pb-6 pt-6">
+    <Link to='/'>
         <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
+    </Link>
+
       </div>
 
       {isBrand ? (

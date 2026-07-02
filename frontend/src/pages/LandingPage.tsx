@@ -9,6 +9,7 @@ import {
   FileText,
   Lock,
   MessageCircle,
+  Play,
   Search,
   Send,
   ShieldCheck,
@@ -21,27 +22,12 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { getCreatorsList, type CreatorProfileApi } from "../lib/authApi";
-import { useAuth } from "../contexts/AuthContext";
-import creator1 from "../assets/collune/creator-1.png";
-import creator2 from "../assets/collune/creator-2.png";
-import creator3 from "../assets/collune/creator-3.png";
-import creator4 from "../assets/collune/creator-4.png";
-import heroCreator1 from "../assets/collune/hero-creator-1.png";
+import heroCreator1 from "../assets/collune/hero-creator-1.jpg";
 import heroCreator2 from "../assets/collune/hero-creator-2.png";
 import heroCreator3 from "../assets/collune/hero-creator-3.png";
 import heroCreator4 from "../assets/collune/hero-creator-4.png";
 import HtmlButton from "../HtmlComponents/HtmlButton";
-
-const creatorImages = [
-  creator1,
-  creator2,
-  creator3,
-  creator4,
-  heroCreator3,
-  heroCreator1,
-  creator2,
-  heroCreator4,
-];
+import { CreatorCard } from "../HtmlComponents/CreatorCard";
 
 const trustCards = [
   {
@@ -75,149 +61,25 @@ const creatorSteps = [
   { icon: MessageCircle, title: "Collaborate", text: "Work on exciting campaigns and grow together." },
 ];
 
-function SectionLabel({ children }: { children: string }) {
-  return (
-    <div className="inline-flex min-h-7 min-w-[min(330px,100%)] items-center justify-center gap-2 rounded-full border border-[#dae3ff] bg-white/60 px-8 text-[12px] font-black uppercase text-[#2a54cf]">
-      <span className="h-2 w-2 rounded-full bg-[#8195ff] shadow-[0_0_0_4px_rgba(129,149,255,0.13)]" />
-      {children}
-    </div>
-  );
-}
 
-
-function FloatingPhoto({
-  image,
-  className,
-  icon,
-}: {
-  image: string;
-  className: string;
-  icon: ReactNode;
-}) {
-  return (
-    <div className={`absolute z-10 hidden rounded-[22px] shadow-[0_22px_48px_rgba(31,52,112,0.18)] lg:block ${className}`}>
-      <img src={image} alt="" className="h-full w-full rounded-[22px] object-cover" />
-      <span className="absolute grid h-14 w-14 place-items-center rounded-full border-[5px] border-[#f5f7ff] bg-[#2450cc] text-white">
-        {icon}
-      </span>
-    </div>
-  );
-}
-
-function getCreatorHandle(creator: CreatorProfileApi) {
-  const connectedAccount = creator.social_accounts.find((account) => account.handle || account.username);
-  const rawHandle = connectedAccount?.handle || connectedAccount?.username || creator.user?.username || "";
-  return rawHandle ? `@${rawHandle.replace(/^@/, "")}` : "";
-}
-
-function getCreatorChips(creator: CreatorProfileApi) {
-  const socialChips = creator.social_accounts
-    .map((account) => account.platform || account.handle)
-    .filter(Boolean);
-  const profileChips = [...creator.collaboration_preferences, ...creator.languages].filter(Boolean);
-  return [...socialChips, ...profileChips].slice(0, 3);
-}
-
-function CreatorCard({ creator, index }: { creator: CreatorProfileApi; index: number; key?: string }) {
-  const image = creator.profile_image_url || creatorImages[index % creatorImages.length];
-  const name = creator.display_name || creator.user?.name || "Creator";
-  const handle = getCreatorHandle(creator);
-  const category = creator.category || "Creator";
-  const chips = getCreatorChips(creator);
-  const isVerified = creator.verification_status?.toLowerCase() === "verified";
-
-  return (
-    <article className="overflow-hidden rounded-lg border border-[#e0e7fb] bg-white text-left shadow-[0_14px_32px_rgba(41,64,132,0.09)]">
-      <div className="relative aspect-[1.55] overflow-hidden">
-        <img src={image} alt={name} className="h-full w-full object-cover" />
-        <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-white/75 px-2 py-1 text-[9px] font-black text-[#7690ff]">
-          <BadgeCheck className="h-3 w-3 fill-current" />
-          {isVerified ? "verified" : creator.verification_status || "pending"}
-        </span>
-        <span className="absolute right-2.5 top-2.5 grid h-6 min-w-6 place-items-center rounded-full bg-white/85 px-1 text-xs font-black text-[#9aa6bc]">
-          {creator.audience_size ? `${Math.round(creator.audience_size / 1000)}k` : "i"}
-        </span>
-      </div>
-      <div className="px-4 py-3">
-        <h3 className="inline text-lg font-black text-[#314064]">{name}</h3>
-        {handle ? <p className="ml-1 inline text-xs font-extrabold text-[#7b8aaa]">{handle}</p> : null}
-        <strong className="mt-0.5 block text-xs font-black text-[#3158ca]">{category}</strong>
-        <span className="block text-xs font-black text-[#8a96b1]">Platforms:</span>
-        <div className="mt-2 grid grid-cols-3 gap-2">
-          {(chips.length ? chips : ["Creator"]).map((chip) => (
-            <span key={chip} className="grid min-h-6 place-items-center rounded-full bg-[#eef3ff] px-2 text-center text-[10px] font-black text-[#60749e]">
-              {chip}
-            </span>
-          ))}
-        </div>
-      </div>
-      <Link to={`/creators/${creator.creator_id}`} className="flex min-h-10 items-center justify-center gap-1 border-t border-[#edf1fb] text-[13px] font-black text-[#3356c5]">
-        View Profile
-        <ArrowRight className="h-3.5 w-3.5" />
-      </Link>
-    </article>
-  );
-}
-
-function JourneyColumn({
-  title,
-  side,
-  steps,
-}: {
-  title: string;
-  side: "left" | "right";
-  steps: typeof brandSteps;
-}) {
-  return (
-    <div>
-      <div className="mb-8 inline-flex min-w-[220px] items-center justify-center gap-2 rounded-full border border-[#dce5ff] px-5 py-2.5 text-[13px] font-black uppercase text-[#3558c9]">
-        {side === "left" ? <Star className="h-3.5 w-3.5" /> : <UserRound className="h-3.5 w-3.5" />}
-        {title}
-      </div>
-      <div className="relative grid gap-7 before:absolute before:bottom-9 before:top-9 before:border-l-2 before:border-dashed before:border-[#b1bdff] before:content-[''] before:left-0 lg:before:left-3">
-        {steps.map((step, index) => {
-          const Icon = step.icon;
-          return (
-            <article key={step.title} className="relative grid min-h-[116px] grid-cols-[64px_1fr] items-center gap-4 rounded-lg border border-[#edf1fb] bg-white p-5 text-left shadow-[0_14px_30px_rgba(35,58,124,0.08)] md:grid-cols-[84px_1fr]">
-              <span className={`absolute top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border-2 border-[#93a4ff] bg-[#f5f7ff] text-xs font-black text-[#7e91ff] ${side === "left" ? "-left-3 lg:-left-12" : "-left-3 lg:-right-12 lg:left-auto"}`}>
-                {index + 1}
-              </span>
-              <span className="grid h-16 w-16 place-items-center rounded-lg bg-[#e7edff] text-[#8194ff] md:h-[76px] md:w-[76px]">
-                <Icon className="h-8 w-8" />
-              </span>
-              <div>
-                <h3 className="mb-1 text-[17px] font-black text-[#3a4864]">{step.title}</h3>
-                <p className="text-[13px] font-extrabold leading-tight text-[#7c879d]">{step.text}</p>
-              </div>
-            </article>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
   const [creators, setCreators] = useState<CreatorProfileApi[]>([]);
   const [isLoadingCreators, setIsLoadingCreators] = useState(true);
   const [creatorError, setCreatorError] = useState("");
-  const isLoggedIn = Boolean(currentUser);
+  const [selectedCreatorCategory, setSelectedCreatorCategory] = useState("All Creators");
   const creatorCategories = useMemo(() => {
     const categories = creators.map((creator) => creator.category).filter(Boolean);
     return ["All Creators", ...Array.from(new Set(categories)).slice(0, 4)];
   }, [creators]);
+  const filteredCreators = useMemo(() => {
+    if (selectedCreatorCategory === "All Creators") return creators;
+    return creators.filter((creator) => creator.category === selectedCreatorCategory);
+  }, [creators, selectedCreatorCategory]);
 
   useEffect(() => {
     let isMounted = true;
-    if (!isLoggedIn) {
-      setIsLoadingCreators(false);
-      setCreators([]);
-      return () => {
-        isMounted = false;
-      };
-    }
 
     getCreatorsList()
       .then((data) => {
@@ -232,64 +94,63 @@ const LandingPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [isLoggedIn]);
+  }, []);
 
   return (
-    <main id="top" className="min-h-screen overflow-hidden bg-[#f5f7ff] font-sans text-[#17327c]">
-      <section className="relative grid min-h-[930px] place-items-center px-6 pb-20 pt-36">
-        <div className="absolute left-[max(150px,calc(50%-555px))] top-[260px] hidden h-[380px] w-[210px] rounded-bl-[170px] border-b-[3px] border-l-[3px] border-dashed border-[#b5a8ff] opacity-80 lg:block" />
-        <div className="absolute right-[max(135px,calc(50%-580px))] top-[278px] hidden h-[380px] w-[210px] rounded-br-[170px] border-b-[3px] border-r-[3px] border-dashed border-[#b5a8ff] opacity-80 lg:block" />
+    <main id="top" className="min-h-screen overflow-hidden bg-[#f3f6ff] font-sans text-[#17327c]">
+      <section className="relative grid min-h-[calc(100vh-1px)] place-items-center px-5 pb-20 pt-28">
+        <div className="absolute left-[max(120px,calc(50%-565px))] top-[150px] hidden h-[560px] w-[178px] rounded-l-[170px] border-l-[3px] border-dashed border-[#b9a8ff] opacity-80 lg:block" />
+        <div className="absolute right-[max(120px,calc(50%-565px))] top-[278px] hidden h-[560px] w-[178px] rounded-r-[170px] border-r-[3px] border-dashed border-[#b9a8ff] opacity-80 lg:block" />
 
-        <FloatingPhoto image={heroCreator1} className="left-[max(90px,calc(50%-595px))] top-[138px] h-48 w-48 rotate-[7deg] [&>span]:-bottom-2.5 [&>span]:-right-4" icon={<Check className="h-7 w-7" />} />
-        <FloatingPhoto image={heroCreator2} className="right-[max(110px,calc(50%-610px))] top-[132px] h-40 w-44 -rotate-[8deg] [&>span]:bottom-6 [&>span]:-left-8" icon={<Star className="h-6 w-6" />} />
-        <FloatingPhoto image={heroCreator3} className="left-[max(116px,calc(50%-595px))] top-[625px] h-48 w-48 -rotate-[7deg] [&>span]:-bottom-4 [&>span]:-left-5 [&>span]:bg-[#a791ff]" icon={<Boxes className="h-6 w-6" />} />
-        <FloatingPhoto image={heroCreator4} className="right-[max(110px,calc(50%-610px))] top-[625px] h-44 w-48 rotate-[8deg] [&>span]:-right-5 [&>span]:-top-5 [&>span]:bg-[#a791ff]" icon={<BadgeCheck className="h-6 w-6" />} />
+        <FloatingPhoto image={heroCreator1} className="left-[max(78px,calc(50%-592px))] top-[200px] h-[126px] w-[136px] rotate-[6deg] [&>span]:-bottom-4 [&>span]:-right-5" icon={<Check className="h-6 w-6" />} />
+        <FloatingPhoto image={heroCreator2} className="right-[max(94px,calc(50%-585px))] top-[34px] h-[130px] w-[124px] -rotate-[7deg] [&>span]:bottom-4 [&>span]:-left-7" icon={<Star className="h-5 w-5" />} />
+        <FloatingPhoto image={heroCreator3} className="left-[max(94px,calc(50%-575px))] top-[555px] h-[128px] w-[134px] -rotate-[7deg] [&>span]:-bottom-5 [&>span]:-left-4 [&>span]:bg-[#a893ff]" icon={<Boxes className="h-5 w-5" />} />
+        <FloatingPhoto image={heroCreator4} className="right-[max(110px,calc(50%-570px))] top-[532px] h-[138px] w-[146px] rotate-[8deg] [&>span]:-right-5 [&>span]:-top-4 [&>span]:bg-[#a893ff]" icon={<BadgeCheck className="h-5 w-5" />} />
 
-        <div className="absolute left-[max(112px,calc(50%-590px))] top-[420px] z-20 hidden rotate-[9deg] items-center gap-2 rounded-[18px] bg-[#9c8cff] px-6 py-4 text-base font-black leading-none text-white shadow-[0_18px_30px_rgba(122,107,235,0.22)] lg:inline-flex">
-          <ShieldCheck className="h-7 w-7" />
-          <span>Trusted<br />Collaboration</span>
-        </div>
-        <div className="absolute right-[max(165px,calc(50%-560px))] top-[395px] z-20 hidden -rotate-[9deg] items-center gap-2 rounded-[18px] bg-[#8194ff] px-6 py-4 text-base font-black leading-none text-white shadow-[0_18px_30px_rgba(122,107,235,0.22)] lg:inline-flex">
-          <Clock3 className="h-7 w-7" />
-          <span>On time<br />Payments</span>
-        </div>
+        <HeroBadge className="left-[max(60px,calc(48%-580px))] top-[380px] rotate-[12deg]" icon={<ShieldCheck className="h-6 w-6" />}>
+          Trusted<br />Collaborations
+        </HeroBadge>
+        <HeroBadge className="right-[max(150px,calc(50%-545px))] top-[245px] -rotate-[10deg] bg-[#8194ff]" icon={<Clock3 className="h-6 w-6" />}>
+          On time<br />Payments
+        </HeroBadge>
 
-        <div className="relative z-10 flex w-full max-w-[760px] flex-col items-center text-center">
+        <div className="relative z-10 flex w-full max-w-[780px] flex-col items-center text-center">
           <SectionLabel>More Than a Marketplace</SectionLabel>
-          <h1 className="mb-5 mt-7 text-[clamp(48px,6.5vw,85px)] font-black leading-[0.98] tracking-normal text-[#153fb8]">
+          <h1 className="mb-5 mt-7 text-[clamp(46px,6vw,70px)] font-black leading-[1.02] tracking-normal text-[#173fb5]">
             Where Brands And Creators
             <span className="block italic text-[#ad9bff]">Build What Lasts.</span>
           </h1>
-          <p className="max-w-2xl text-[17px] font-extrabold leading-snug text-[#4e5c77]">
+          <p className="max-w-xl text-[15px] font-extrabold leading-snug text-[#4e5c77]">
             We bring trust, alignment, and accountability into every collaboration,
             so outcomes speak louder than reach.
           </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-5">
-            <HtmlButton
-            buttonName="Apply as a Creator"
-            onClick={() => navigate("/creator-register")}
-            />
-            <HtmlButton
-            buttonName="Apply as a Brand"
-            variant="light"
-            onClick={() => navigate("/brand-register")}
-            />
+          <div className="mt-9 flex flex-wrap justify-center gap-4">
+            <HeroButton onClick={() => navigate("/creator-register")} icon={<Play className="h-4 w-4 fill-current" />}>
+              Apply as a Creator
+            </HeroButton>
+            <HeroButton onClick={() => navigate("/brand-register")} icon={<FileText className="h-4 w-4" />} variant="light">
+              Apply as a Brand
+            </HeroButton>
           </div>
-          <div className="mt-10 flex flex-wrap justify-center gap-5 text-sm font-black text-[#8291c1]">
+          <div className="mt-10 flex flex-wrap justify-center gap-x-4 gap-y-3 text-xs font-black text-[#8291c1]">
             {[
               ["Verified Creators", BadgeCheck],
               ["Secure Payments", ShieldCheck],
               ["Structured Workflows", Sparkles],
-            ].map(([label, Icon]) => (
-              <span key={label as string} className="inline-flex items-center gap-2">
-                <Icon className="h-4 w-4 text-[#8da0ff]" />
-                {label as string}
-              </span>
-            ))}
+            ].map(([label, Icon], index) => {
+              const BenefitIcon = Icon;
+              return (
+                <span key={label as string} className="inline-flex items-center gap-2">
+                  {index ? <span className="h-4 w-px bg-[#b9c4e5]" /> : null}
+                  <BenefitIcon className="h-4 w-4 rounded-full bg-[#8da0ff] p-0.5 text-white" />
+                  {label as string}
+                </span>
+              );
+            })}
           </div>
         </div>
 
-        <a href="#creators" aria-label="Scroll to creators" className="absolute bottom-11 left-1/2 grid h-12 w-12 -translate-x-1/2 place-items-center rounded-full bg-white text-[#9aa7c4] shadow-[0_12px_28px_rgba(68,90,158,0.1)]">
+        <a href="#creators" aria-label="Scroll to creators" className="absolute bottom-7 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-white text-[#9aa7c4] shadow-[0_12px_28px_rgba(68,90,158,0.1)]">
           <ArrowDown className="h-4.5 w-4.5" />
         </a>
       </section>
@@ -301,30 +162,27 @@ const LandingPage = () => {
           audiences, and content styles.
         </p>
         <div className="mx-auto my-12 grid max-w-[850px] grid-cols-2 gap-1.5 rounded-[24px] border border-[#d9e2fb] bg-white p-2 md:grid-cols-5 md:rounded-full">
-          {creatorCategories.map((tab, index) => (
-            <button key={tab} className={`min-h-10 rounded-full text-[13px] font-black ${index === 0 ? "bg-[#b6a3ff] text-white" : "text-[#2450bf]"}`}>
+          {creatorCategories.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setSelectedCreatorCategory(tab)}
+              className={`min-h-10 rounded-full text-[13px] font-black transition ${
+                selectedCreatorCategory === tab ? "bg-[#b6a3ff] text-white" : "text-[#2450bf] hover:bg-[#eef3ff]"
+              }`}
+            >
               {tab}
             </button>
           ))}
         </div>
         <div className="mx-auto grid max-w-7xl gap-7 md:grid-cols-2 lg:grid-cols-4">
-          {!isLoggedIn ? (
-            <div className="col-span-full rounded-lg border border-[#e0e7fb] bg-white p-8 text-center shadow-[0_14px_32px_rgba(41,64,132,0.09)]">
-              <h3 className="text-xl font-black text-[#314064]">Verified member access only</h3>
-              <p className="mx-auto mt-2 max-w-md text-sm font-extrabold leading-tight text-[#7c879d]">
-                Creator profiles and member information are available only after signing in as a verified Collune member.
-              </p>
-              <button type="button" onClick={() => navigate("/login")} className="mt-5 min-h-11 rounded-[6px] bg-[#1438c8] px-6 text-sm font-black text-white">
-                Sign in
-              </button>
-            </div>
-          ) : isLoadingCreators ? (
+          {isLoadingCreators ? (
             <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">Loading creators...</p>
           ) : creatorError ? (
             <p className="col-span-full py-8 text-sm font-black text-[#bf3f5f]">{creatorError}</p>
-          ) : creators.length ? (
-            creators.slice(0, 8).map((creator, index) => (
-              <CreatorCard key={creator.creator_id} creator={creator} index={index} />
+          ) : filteredCreators.length ? (
+            filteredCreators.slice(0, 8).map((creator, index) => (
+              <CreatorCard creator={creator} index={index} />
             ))
           ) : (
             <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">No creators available yet.</p>
@@ -333,6 +191,7 @@ const LandingPage = () => {
         <div className="mt-10">
           <HtmlButton
             buttonName="Explore all 250+ Creators"
+            variant="light"
             onClick={() => navigate("/discover-creators")}
             />
         </div>
@@ -444,5 +303,120 @@ const LandingPage = () => {
     </main>
   );
 };
+
+function SectionLabel({ children }: { children: string }) {
+  return (
+    <div className="inline-flex min-h-7 min-w-[min(330px,100%)] items-center justify-center gap-2 rounded-full border border-[#dae3ff] bg-white/60 px-8 text-[12px] font-black uppercase text-[#2a54cf]">
+      <span className="h-2 w-2 rounded-full bg-[#8195ff] shadow-[0_0_0_4px_rgba(129,149,255,0.13)]" />
+      {children}
+    </div>
+  );
+}
+
+
+function FloatingPhoto({
+  image,
+  className,
+  icon,
+}: {
+  image: string;
+  className: string;
+  icon: ReactNode;
+}) {
+  return (
+    <div className={`absolute z-10 hidden overflow-visible rounded-[18px] shadow-[0_24px_48px_rgba(31,52,112,0.18)] lg:block ${className}`}>
+      <img src={image} alt="" className="h-full w-full rounded-[18px] object-cover" />
+      <span className="absolute grid h-12 w-12 place-items-center rounded-full border-[5px] border-[#f2f5ff] bg-[#244abe] text-white">
+        {icon}
+      </span>
+    </div>
+  );
+}
+
+function HeroBadge({
+  children,
+  className,
+  icon,
+}: {
+  children: ReactNode;
+  className: string;
+  icon: ReactNode;
+}) {
+  return (
+    <div className={`absolute z-20 hidden items-center gap-2 rounded-[15px] bg-[#a996ff] px-5 py-3 text-[13px] font-black leading-tight text-white shadow-[0_18px_30px_rgba(122,107,235,0.23)] lg:inline-flex ${className}`}>
+      {icon}
+      <span>{children}</span>
+    </div>
+  );
+}
+
+function HeroButton({
+  children,
+  variant = "solid",
+  icon,
+  onClick,
+}: {
+  children: ReactNode;
+  variant?: "solid" | "light";
+  icon: ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex h-[52px] min-w-[205px] items-center justify-center gap-3 rounded-full px-6 text-[13px] font-black shadow-[0_14px_24px_rgba(28,57,176,0.18)] transition hover:-translate-y-0.5 ${
+        variant === "solid"
+          ? "bg-[#2448bd] text-white"
+          : "border border-[#dce5ff] bg-white text-[#2448bd]"
+      }`}
+    >
+      <span className={`grid h-8 w-8 place-items-center rounded-full ${variant === "solid" ? "bg-white/30 text-white" : "bg-[#2448bd] text-white"}`}>
+        {icon}
+      </span>
+      {children}
+      <ArrowRight className="h-4 w-4" />
+    </button>
+  );
+}
+
+
+function JourneyColumn({
+  title,
+  side,
+  steps,
+}: {
+  title: string;
+  side: "left" | "right";
+  steps: typeof brandSteps;
+}) {
+  return (
+    <div>
+      <div className="mb-8 inline-flex min-w-[220px] items-center justify-center gap-2 rounded-full border border-[#dce5ff] px-5 py-2.5 text-[13px] font-black uppercase text-[#3558c9]">
+        {side === "left" ? <Star className="h-3.5 w-3.5" /> : <UserRound className="h-3.5 w-3.5" />}
+        {title}
+      </div>
+      <div className="relative grid gap-7 before:absolute before:bottom-9 before:top-9 before:border-l-2 before:border-dashed before:border-[#b1bdff] before:content-[''] before:left-0 lg:before:left-3">
+        {steps.map((step, index) => {
+          const Icon = step.icon;
+          return (
+            <article key={step.title} className="relative grid min-h-[116px] grid-cols-[64px_1fr] items-center gap-4 rounded-lg border border-[#edf1fb] bg-white p-5 text-left shadow-[0_14px_30px_rgba(35,58,124,0.08)] md:grid-cols-[84px_1fr]">
+              <span className={`absolute top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border-2 border-[#93a4ff] bg-[#f5f7ff] text-xs font-black text-[#7e91ff] ${side === "left" ? "-left-3 lg:-left-12" : "-left-3 lg:-right-12 lg:left-auto"}`}>
+                {index + 1}
+              </span>
+              <span className="grid h-16 w-16 place-items-center rounded-lg bg-[#e7edff] text-[#8194ff] md:h-[76px] md:w-[76px]">
+                <Icon className="h-8 w-8" />
+              </span>
+              <div>
+                <h3 className="mb-1 text-[17px] font-black text-[#3a4864]">{step.title}</h3>
+                <p className="text-[13px] font-extrabold leading-tight text-[#7c879d]">{step.text}</p>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default LandingPage;

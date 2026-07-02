@@ -218,7 +218,7 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
 
   return (
     <form
-      className="mx-auto grid max-w-[930px] gap-10"
+      className="mx-auto grid gap-10"
       onSubmit={(event) => {
         event.preventDefault();
         void submitCampaign();

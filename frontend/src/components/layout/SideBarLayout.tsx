@@ -11,18 +11,18 @@ import { HeaderButton } from "@/src/HtmlComponents/HtmlButton";
 function useDashboardState() {
   const location = useLocation();
   const mode: SidebarMode = location.pathname.startsWith("/brand") ? "brand" : "creator";
+  const pathname = location.pathname.replace(/\/$/, "") || "/";
 
-  return { mode };
+  return { mode, pathname };
 }
 
 export const SideBarLayout = () => {
   const { currentUser } = useAuth();
-  const { mode } = useDashboardState();
+  const { mode, pathname } = useDashboardState();
   const navigate = useNavigate();
   const [isVerified, setIsVerified] = useState(false);
   const [isVerificationLoading, setIsVerificationLoading] = useState(true);
   const isBrand = mode === "brand";
-  const [locationPath, setLocationPath] = useState(window.location.pathname.replace(/\/$/, ""));
 
   useEffect(() => {
     let mounted = true;
@@ -46,71 +46,78 @@ export const SideBarLayout = () => {
     };
   }, [currentUser?.id, isBrand]);
 
-  useEffect(() => {
-    const location =  window.location.pathname.replace(/\/$/, "");
-    setLocationPath(location);
-  },[]);
-
   function TopComponents() {
-    switch (locationPath) {
-      case "/brand/campaigns":
-        return (
-          <header className="mb-10 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-black tracking-normal text-[#173ca8] font-semibold">
-           Campaigns
-          </h1>
-        </div>
-
-          <button
-            type="button"
-            onClick={() => navigate("/brand/campaigns/new_create")}
-            className="inline-flex h-12 items-center gap-3 rounded-lg bg-[#173ca8] px-7 text-sm font-black text-white shadow-[0_8px_14px_rgba(23,60,168,0.22)]"
-          >
-            <Plus className="h-5 w-5" />
-            Create Campaign
-          </button>
-      </header>
-        );
-      case "/brand/shortlists":
-        return (
-          <HeaderButton onClick={() => navigate("/brand/shortlists/new_create")} variant="solid">
-            <Plus className="h-5 w-5" />
-            Build Shortlist
-          </HeaderButton>
-        );
-      case "/brand/campaigns/new_create":
-        return (
-          <header className="mb-10 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-black tracking-normal text-[#173ca8] font-semibold">
-           Create new campaign
-          </h1>
-        </div>
-      </header>
-        )
-      default:
-        return(
+    const topRoutes = [
+      {
+        matches: () => pathname === "/brand",
+        render: () => (
           <header className="mb-12 flex flex-wrap items-center justify-between gap-5">
-        <div>
-          <h1 className="text-[28px] font-black tracking-normal text-[#173ca8] font-semibold">Welcome 
-            {/* {brandName}! */}
-            </h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <HeaderButton onClick={() => navigate("/brand/campaigns/new_create")} variant="solid">
-            <Plus className="h-5 w-5" />
-            Create Campaign
-          </HeaderButton>
-          <HeaderButton onClick={() => navigate("/brand/shortlists")} variant="outline">
-            <Plus className="h-5 w-5" />
-            Build Shortlist
-          </HeaderButton>
-        </div>
-      </header>
-        )
-        ;
-    } 
+            <div>
+              <h1 className="text-[28px] font-semibold tracking-normal text-[#173ca8]">
+                Welcome {currentUser?.name || "Brand"}
+              </h1>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <HeaderButton onClick={() => navigate("/brand/campaigns/new_create")} variant="solid">
+                <Plus className="h-5 w-5" />
+                Create Campaign
+              </HeaderButton>
+              <HeaderButton onClick={() => navigate("/brand/shortlists")} variant="outline">
+                <Plus className="h-5 w-5" />
+                Build Shortlist
+              </HeaderButton>
+            </div>
+          </header>
+        ),
+      },
+      {
+        matches: () => pathname === "/creator",
+        render: () => (
+          <header className="mb-12 flex flex-wrap items-center justify-between gap-5">
+            <div>
+              <h1 className="text-[28px] font-semibold tracking-normal text-[#173ca8]">
+                Welcome {currentUser?.name || "Creator"}
+              </h1>
+            </div>
+            <HeaderButton onClick={() => navigate("/creator/marketplace")} variant="solid">
+              Browse Campaigns
+            </HeaderButton>
+          </header>
+        ),
+      },
+      {
+        matches: () => pathname === "/brand/campaigns/new_create",
+        render: () => (
+          <header className="mb-10 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 className="text-[28px] font-semibold tracking-normal text-[#173ca8]">
+                Create new campaign
+              </h1>
+            </div>
+          </header>
+        ),
+      },
+      {
+        matches: () => pathname === "/brand/campaigns",
+        render: () => (
+          <header className="mb-12 flex flex-wrap items-center justify-between gap-5">
+            <div>
+              <h1 className="text-[28px] font-semibold tracking-normal text-[#173ca8]">
+                Campaigns
+              </h1>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <HeaderButton onClick={() => navigate("/brand/campaigns/new_create")} variant="solid">
+                <Plus className="h-5 w-5" />
+                Create Campaign
+              </HeaderButton>
+            </div>
+          </header>
+        ),
+      },
+    ];
+
+    return topRoutes.find((route) => route.matches())?.render() ?? null;
   }
 
   if (isVerificationLoading) return <LoadingPage />;
@@ -121,11 +128,10 @@ export const SideBarLayout = () => {
 
       <div className="lg:pl-[270px]">
         <main className="min-h-[calc(100vh-98px)] bg-white px-6 py-8 lg:px-8">
-    <div className="min-h-screen bg-white">
-      <TopComponents />
-          <Outlet context={{ isVerified, mode }} />
-        </div>
-
+          <div className="min-h-screen bg-white">
+            <TopComponents />
+            <Outlet context={{ isVerified, mode }} />
+          </div>
         </main>
       </div>
     </div>

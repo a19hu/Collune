@@ -265,6 +265,12 @@ export type CreatorProfileApi = {
   updated_at: string;
 };
 
+type CreatorListItemApi = Partial<CreatorProfileApi> & {
+  id?: string;
+  username?: string;
+  verified?: boolean;
+};
+
 export type BrandRegisterPayload = {
   user: RegisterUserPayload;
   company_name: string;
@@ -486,14 +492,12 @@ export async function getCreatorProfile() {
 }
 
 export async function getCreatorsList() {
-  const data = await apiRequest<{ creators: CreatorProfileApi[] } | CreatorProfileApi[] | PaginatedResponse<CreatorProfileApi>>(
+  const data = await apiRequest<{ creators: CreatorListItemApi[] }>(
     "/creators/list/",
     {},
-    true,
+    false,
   );
-  if (Array.isArray(data)) return data;
-  if ("results" in data) return data.results;
-  return data.creators;
+  return data.creators
 }
 
 export async function getCreatorPublicProfile(creatorId: string) {

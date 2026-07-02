@@ -20,7 +20,7 @@ from .serializers import (
 )
 
 
-class CampaignPagination(PageNumberPagination):
+class Pagination(PageNumberPagination):
     page_size = 6
     page_size_query_param = "page_size"
     max_page_size = 100
@@ -131,7 +131,7 @@ class BrandDetailDashboardView(APIView):
 class CampaignsViewSet(APIView):
     permission_classes = [IsAuthenticated, IsBrand]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
-    pagination_class = CampaignPagination
+    pagination_class = Pagination
 
     def get(self, request):
         brand = getattr(request.user, "brand_profile", None)
@@ -171,6 +171,41 @@ class CampaignsViewSet(APIView):
             return paginator.get_paginated_response(data)
         return Response({"campaigns": data})
 
+class ShortlistViewSet(APIView):
+    permission_classes = [IsAuthenticated, IsBrand]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+    pagination_class = Pagination
+
+    def get(self, request):
+        brand = getattr(request.user, "brand_profile", None)
+        if not brand:
+            return Response({"error": "No brand profile found."}, status=status.HTTP_404_NOT_FOUND)
+
+        shortlists = (
+            BrandShortlist.objects.filter(brand=brand)
+            .annotate(creators_count=Count("creators", distinct=True))
+            .order_by("-updated_at")
+        )
+
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(shortlists, request, view=self)
+        shortlist_page = page if page is not None else shortlists
+
+        data = [
+            {
+                "id": str(shortlist.shortlist_id),
+                "name": shortlist.title,
+                "status": shortlist.status,
+                "creators_count": shortlist.creators_count,
+                "updated_at": shortlist.updated_at.isoformat(),
+            }
+            for shortlist in shortlist_page
+        ]
+
+        if page is not None:
+            return paginator.get_paginated_response(data)
+        return Response({"shortlists": data})
+    
 class BrandProfileViewSet(viewsets.ModelViewSet):
     serializer_class = BrandProfileSerializer
     permission_classes = [IsAuthenticated]

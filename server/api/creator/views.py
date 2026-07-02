@@ -142,6 +142,30 @@ class CreatorsListView(APIView):
         serializer = CreatorsProfileListSerializer(creators, many=True, context={"request": request})
         return Response({"creators": serializer.data})
 
+class CreatorListViewSet(APIView):
+    permission_classes = [AllowAny]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request):
+        creators = CreatorProfile.objects.select_related("user").filter(
+            verification_status=VerificationStatus.VERIFIED.value,
+            is_profile_visible=True,
+        ).order_by("-created_at")
+
+        data = [
+            {
+                "id": str(creator.creator_id),
+                "creator_id": str(creator.creator_id),
+                "display_name": creator.display_name,
+                "category": creator.category,
+                "verified": creator.verification_status == VerificationStatus.VERIFIED.value,
+                "username": creator.user.username,
+                "profile_image": request.build_absolute_uri(creator.profile_image.url) if creator.profile_image else None,
+            }
+            for creator in creators
+        ]
+        return Response({"creators": data})
+
 class InstagramConnectView(APIView):
     permission_classes = [IsAuthenticated, IsCreator]
 
