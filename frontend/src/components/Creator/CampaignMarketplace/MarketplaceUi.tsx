@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   BriefcaseBusiness,
@@ -48,18 +49,23 @@ export function StatusBadge({ children }: { children: ReactNode }) {
   );
 }
 
-export function CampaignCard({ campaign, onOpen }: { key?: string; campaign: MarketplaceCampaign; onOpen: (campaign: MarketplaceCampaign) => void }) {
+export function CampaignCard({ campaign }: { key?: string; campaign: MarketplaceCampaign; }) {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/creator/marketplace/${campaign.id}`);
+  };
   return (
     <Panel className="min-h-[306px] p-6">
       <div className="flex items-start justify-between gap-4">
-        <button type="button" onClick={() => onOpen(campaign)} className="flex min-w-0 items-center gap-4 text-left">
+        <button type="button" onClick={handleClick} className="flex min-w-0 items-center gap-4 text-left">
           <BrandAvatar campaign={campaign} />
           <span className="min-w-0">
             <strong className="block truncate text-base font-black text-[#1d2430]">{campaign.brandName}</strong>
             <span className="mt-1 block text-sm font-medium text-[#65758f]">{campaign.postedAt}</span>
           </span>
         </button>
-        <button type="button" onClick={() => onOpen(campaign)} className="text-[#65758f]" aria-label={`${campaign.title} options`}>
+        <button type="button" onClick={handleClick} className="text-[#65758f]" aria-label={`${campaign.title} options`}>
           <MoreHorizontal className="h-5 w-5" />
         </button>
       </div>
@@ -75,7 +81,7 @@ export function CampaignCard({ campaign, onOpen }: { key?: string; campaign: Mar
           <Calendar className="h-4 w-4" />
           Apply before {campaign.deadlineShort}
         </p>
-        <button type="button" onClick={() => onOpen(campaign)} className="inline-flex h-14 min-w-[152px] items-center justify-center gap-3 rounded-lg border-2 border-[#5168ff] px-5 text-base font-black text-[#3048ff]">
+        <button type="button" onClick={handleClick} className="inline-flex h-14 min-w-[152px] items-center justify-center gap-3 rounded-lg border-2 border-[#5168ff] px-5 text-base font-black text-[#3048ff]">
           View<br />Campaign
           <ChevronRight className="h-5 w-5" />
         </button>

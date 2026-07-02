@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { BookOpen, BriefcaseBusiness, Dumbbell, GraduationCap, Leaf, Shirt, ShoppingBag } from "lucide-react";
 
-import type { CampaignApi, CampaignStatusSummaryApi, CreatorCampaignListItemApi } from "../../../types";
+import type { CampaignApi, CampaignStatusSummaryApi, CreatorCampaignDetailApi, CreatorCampaignListItemApi } from "../../../types";
 
 export type MarketplaceCampaign = {
   id: string;
@@ -155,6 +155,66 @@ export function mapCreatorCampaignToMarketplace(campaign: CreatorCampaignListIte
     })),
     source: "api",
   };
+}
+
+export function mapCreatorCampaignDetailToMarketplace(campaign: CreatorCampaignDetailApi): MarketplaceCampaign {
+  const brandName = campaign.brand_name || "Brand";
+  const brand = getBrandPresentation(`${brandName} ${campaign.title} ${campaign.category} ${campaign.objective}`);
+  const deadline = formatDate(campaign.deadline) || "Deadline not set";
+  const platform = normalizePlatform(campaign.platforms?.[0]);
+
+  return {
+    id: campaign.id,
+    brandName,
+    brandType: campaign.brand_type || brand.type,
+    brandLogoUrl: campaign.brand_logo || "",
+    brandInitials: getInitials(brandName),
+    brandIcon: brand.icon,
+    brandIconClassName: brand.className,
+    postedAt: formatPostedAt(campaign.posted_at),
+    title: campaign.title,
+    status: "Open Applications",
+    description: campaign.brief || campaign.objective || "Campaign details are available in the full brief.",
+    objective: campaign.objective || campaign.brief || "Campaign objective has not been added yet.",
+    deliverables: getDeliverablesFromText(campaign.deliverables),
+    deadline,
+    deadlineShort: deadline,
+    applicationsCloseLabel: deadline === "Deadline not set" ? "Applications open" : `Apply before ${deadline}`,
+    postedOn: formatDate(campaign.posted_at) || "Recently",
+    platform,
+    timeline: [
+      { title: "Applications Close", date: deadline },
+      { title: "Creators Selected", date: formatDate(campaign.start_date) || "After review" },
+      { title: "Content Submission", date: formatDate(campaign.end_date) || "To be confirmed" },
+      { title: "Campaign End", date: formatDate(campaign.end_date || campaign.deadline) || "To be confirmed" },
+    ],
+    requirements: [
+      { label: "Looking For", value: campaign.creator_requirements?.looking_for || campaign.category || "Creators", icon: BookOpen },
+      { label: "Audience", value: campaign.creator_requirements?.audience || campaign.audience_type || "Target audience not set", icon: BookOpen },
+      { label: "Minimum Followers", value: campaign.minimum_followers ? `${campaign.minimum_followers.toLocaleString()}+` : "Not specified", icon: BookOpen },
+      { label: "Languages", value: campaign.language_preference || "Any", icon: BookOpen },
+      { label: "Location", value: campaign.location || "Any location", icon: BookOpen },
+      { label: "Content Style", value: campaign.content_style || "Authentic, Relatable", icon: BookOpen },
+    ],
+    creativeDirection: (campaign.creative_direction || "Content should feel authentic, practical, and aligned with the campaign objective.")
+      .split("\n")
+      .filter(Boolean),
+    references: referenceImages.map((image, index) => ({
+      image,
+      title: index === 1 ? "Instagram Carousel" : index === 3 ? "YouTube Video" : "Instagram Reel",
+    })),
+    source: "api",
+  };
+}
+
+function getDeliverablesFromText(text: string) {
+  const parts = (text || "").split(/\n|,/).map((item) => item.trim()).filter(Boolean).slice(0, 3);
+  const fallback = ["Creator content", "Campaign post", "Brand update"];
+  return (parts.length ? parts : fallback).map((title, index) => ({
+    title,
+    detail: index === 0 ? "Details shared by brand" : index === 1 ? "Format to be confirmed" : "Timeline to be confirmed",
+    icon: index === 2 ? "message" as const : "instagram" as const,
+  }));
 }
 
 function getDeliverables(campaign: CampaignApi) {

@@ -123,6 +123,44 @@ export type CreatorCampaignListItemApi = {
   brand_name: string;
   brand_logo: string | null;
 };
+export type CreatorCampaignDetailApi = CreatorCampaignListItemApi & {
+  brief: string;
+  deliverables: string;
+  creative_direction: string;
+  platforms: string[];
+  category: string;
+  audience_type: string;
+  location: string;
+  minimum_followers: number;
+  language_preference: string;
+  content_style: string;
+  brand_requirements: string;
+  start_date: string | null;
+  end_date: string | null;
+  cover_image: string;
+  brand_type: string;
+  creator_requirements: {
+    looking_for: string;
+    audience: string;
+    minimum_followers: number;
+    languages: string;
+    location: string;
+    content_style: string;
+  };
+};
+export type CreatorCampaignListResponse = {
+  campaigns: CreatorCampaignListItemApi[];
+  count: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+};
+export type CreatorCampaignListParams = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  sort?: "recent" | "deadline" | "brand";
+};
 export type CampaignStatusSummaryApi = {
   summary_id: string;
   campaign: string;

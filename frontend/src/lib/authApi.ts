@@ -10,7 +10,9 @@ import type {
   CampaignApplicationApi,
   CampaignPayload,
   CampaignStatusSummaryApi,
-  CreatorCampaignListItemApi,
+  CreatorCampaignDetailApi,
+  CreatorCampaignListParams,
+  CreatorCampaignListResponse,
   CreatorDashboardApi,
   CreatorListItemApi,
   CreatorProfileApi,
@@ -258,9 +260,19 @@ export async function getCampaigns() {
   return Array.isArray(data) ? data : data.results;
 }
 
-export async function getCreatorCampaigns() {
-  const data = await apiRequest<{ campaigns: CreatorCampaignListItemApi[] }>("/creator/campaigns/", {}, true);
-  return data.campaigns;
+export async function getCreatorCampaigns(params: CreatorCampaignListParams = {}) {
+  const query = new URLSearchParams({
+    page: String(params.page ?? 1),
+    page_size: String(params.pageSize ?? 6),
+    sort: params.sort ?? "recent",
+  });
+  if (params.search?.trim()) query.set("search", params.search.trim());
+  return apiRequest<CreatorCampaignListResponse>(`/creator/campaigns/?${query.toString()}`, {}, true);
+}
+
+export async function getCreatorCampaignDetail(campaignId: string) {
+  const data = await apiRequest<{ campaign: CreatorCampaignDetailApi }>(`/creator/campaignds/${campaignId}/`, {}, true);
+  return data.campaign;
 }
 
 export function getBrandCampaigns(page = 1, pageSize = 10) {

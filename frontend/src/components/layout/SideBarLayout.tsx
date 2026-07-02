@@ -153,7 +153,7 @@ export const SideBarLayout = () => {
         ),
       },
       {
-        matches: () => pathname === "/creator/marketplace",
+        matches: () => pathname === "/creator/marketplace" || pathname.startsWith("/creator/marketplace/"),
         render: () => (
           <DashboardTopBar
             title={

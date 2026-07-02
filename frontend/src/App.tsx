@@ -12,7 +12,6 @@ import BrandRegister from './pages/BrandRegister.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import { SideBarLayout } from './components/layout/SideBarLayout.tsx';
 import CreatorDashBoard from './components/Creator/CreatorDashBoard.tsx';
-import { CreatorCampaignMarketplace } from './components/Creator/CampaignMarketplace/CreatorCampaignMarketplace.tsx';
 import CreatorProfile from './components/Creator/CreatorProfile.tsx';
 import BrandDashBoard from './components/Brand/BrandDashBoard.tsx';
 import { BrandCampaigns } from './components/Brand/BrandCampaigns.tsx';
@@ -23,6 +22,7 @@ import type { UserAccount } from './types.ts';
 import { getBrandMe, getCreatorProfile } from './lib/authApi.ts';
 import { CampaignCreateForm } from './components/Brand/Campaigns/CampaignCreateForm.tsx';
 import { DiscoverCreatorsPage } from './pages/DiscoverCreatorsPage.tsx';
+import { CampaignMarketplaceDetail } from './components/Creator/CampaignMarketplace/CampaignMarketplaceDetail.tsx';
 import { CampaignMarketplaceList } from './components/Creator/CampaignMarketplace/CampaignMarketplaceList.tsx';
 
 function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
@@ -92,7 +92,7 @@ const App: React.FC = () => {
                         <Route path="/creator/*" element={<SideBarLayout />}>
                             <Route index element={<CreatorDashBoard />} />
                             <Route path="profile" element={<CreatorProfile />} />
-                            <Route path="campaigns" element={<RequireVerified><CreatorCampaignMarketplace /></RequireVerified>} />
+                            <Route path="marketplace/:campaignId" element={<RequireVerified><CampaignMarketplaceDetail /></RequireVerified>} />
                             <Route path="marketplace" element={<RequireVerified><CampaignMarketplaceList /></RequireVerified>} />
                         </Route>
                     </Route>

@@ -8,6 +8,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import signing
+from django.db.models import Q
 from django.db import transaction
 from django.shortcuts import redirect
 from django.utils import timezone
@@ -193,7 +194,32 @@ class CampaignsListView(APIView):
     permission_classes = [IsAuthenticated, IsCreator]
 
     def get(self, request):
-        campaigns = Campaign.objects.filter(status=CampaignStatus.ACTIVE).order_by("-created_at")
+        page = max(int(request.query_params.get("page", 1) or 1), 1)
+        page_size = min(max(int(request.query_params.get("page_size", 6) or 6), 1), 24)
+        search = (request.query_params.get("search") or "").strip()
+        sort = request.query_params.get("sort") or "recent"
+
+        campaigns = Campaign.objects.select_related("brand").filter(status=CampaignStatus.ACTIVE)
+
+        if search:
+            campaigns = campaigns.filter(
+                Q(title__icontains=search)
+                | Q(objective__icontains=search)
+                | Q(brand__company_name__icontains=search)
+            )
+
+        if sort == "deadline":
+            campaigns = campaigns.order_by("deadline", "-created_at")
+        elif sort == "brand":
+            campaigns = campaigns.order_by("brand__company_name", "-created_at")
+        else:
+            campaigns = campaigns.order_by("-created_at")
+
+        total_count = campaigns.count()
+        start = (page - 1) * page_size
+        end = start + page_size
+        page_campaigns = campaigns[start:end]
+
         data = [
             {
                 "id": str(campaign.campaign_id),
@@ -204,11 +230,61 @@ class CampaignsListView(APIView):
                 "brand_name": campaign.brand.company_name,
                 "brand_logo": request.build_absolute_uri(campaign.brand.logo.url) if campaign.brand.logo else None,
             }
-            for campaign in campaigns
+            for campaign in page_campaigns
         ]
-        return Response({"campaigns": data})
+        return Response({
+            "campaigns": data,
+            "count": total_count,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": max((total_count + page_size - 1) // page_size, 1),
+        })
     
+class CreatorCampaignsView(APIView):
+    permission_classes = [IsAuthenticated, IsCreator]
 
+
+    def get(self, request, campaign_id=None):
+
+        campaign = Campaign.objects.select_related("brand").filter(
+            campaign_id=campaign_id,
+            status=CampaignStatus.ACTIVE,
+        ).first()
+        if not campaign:
+            return Response({"error": "Campaign not found."}, status=status.HTTP_404_NOT_FOUND)
+        data = {
+            "id": str(campaign.campaign_id),
+            "title": campaign.title,
+            "brief": campaign.brief,
+            "objective": campaign.objective,
+            "deliverables": campaign.deliverables,
+            "creative_direction": campaign.creative_direction,
+            "platforms": campaign.platforms,
+            "category": campaign.category,
+            "audience_type": campaign.audience_type,
+            "location": campaign.location,
+            "minimum_followers": campaign.minimum_followers,
+            "language_preference": campaign.language_preference,
+            "content_style": campaign.content_style,
+            "brand_requirements": campaign.brand_requirements,
+            "start_date": campaign.start_date.isoformat() if campaign.start_date else None,
+            "end_date": campaign.end_date.isoformat() if campaign.end_date else None,
+            "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
+            "cover_image": campaign.cover_image,
+            "posted_at": campaign.created_at.isoformat(),
+            "brand_name": campaign.brand.company_name,
+            "brand_type": campaign.brand.industry,
+            "brand_logo": request.build_absolute_uri(campaign.brand.logo.url) if campaign.brand.logo else None,
+            "creator_requirements": {
+                "looking_for": campaign.category or campaign.brand_requirements,
+                "audience": campaign.audience_type,
+                "minimum_followers": campaign.minimum_followers,
+                "languages": campaign.language_preference,
+                "location": campaign.location,
+                "content_style": campaign.content_style,
+            }
+        }
+        return Response({"campaign": data})
 
 class CreatorProfileViewSet(viewsets.ModelViewSet):
     serializer_class = CreatorProfileSerializer

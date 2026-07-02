@@ -1,5 +1,8 @@
-import { ArrowRight, BriefcaseBusiness, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BriefcaseBusiness, CheckCircle2, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
+import { applyToCampaign, getCampaignApplications, getCreatorCampaignDetail } from "../../../lib/authApi";
 import {
   BrandAvatar,
   BrandBlock,
@@ -13,25 +16,98 @@ import {
   TimelineItem,
   timelineIcons,
 } from "./MarketplaceUi";
-import type { MarketplaceCampaign } from "./marketplaceData";
+import { mapCreatorCampaignDetailToMarketplace, type MarketplaceCampaign } from "./marketplaceData";
 
-export function CampaignMarketplaceDetail({
-  campaign,
-  hasApplied,
-  isApplying,
-  applyError,
-  onApply,
-}: {
-  campaign: MarketplaceCampaign;
-  hasApplied: boolean;
-  isApplying: boolean;
-  applyError: string;
-  onApply: () => void;
-}) {
+export function CampaignMarketplaceDetail() {
+  const { campaignId } = useParams();
+  const navigate = useNavigate();
+  const [campaign, setCampaign] = useState<MarketplaceCampaign | null>(null);
+  const [appliedIds, setAppliedIds] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isApplying, setIsApplying] = useState(false);
+  const [error, setError] = useState("");
+  const [applyError, setApplyError] = useState("");
+
+  useEffect(() => {
+    let mounted = true;
+    setIsLoading(true);
+    setError("");
+
+    if (!campaignId) {
+      setError("Campaign id is missing.");
+      setIsLoading(false);
+      return;
+    }
+
+    Promise.all([
+      getCreatorCampaignDetail(campaignId),
+      getCampaignApplications().catch(() => []),
+    ])
+      .then(([detail, applications]) => {
+        if (!mounted) return;
+        setCampaign(mapCreatorCampaignDetailToMarketplace(detail));
+        setAppliedIds(applications.map((application) => application.campaign));
+      })
+      .catch((err) => {
+        if (!mounted) return;
+        setCampaign(null);
+        setError(err instanceof Error ? err.message : "Unable to load campaign.");
+      })
+      .finally(() => {
+        if (mounted) setIsLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [campaignId]);
+
+  const hasApplied = Boolean(campaign && appliedIds.includes(campaign.id));
   const applyLabel = hasApplied ? "Applied" : isApplying ? "Applying..." : "Apply To Campaign";
+
+  const applyForCampaign = async () => {
+    if (!campaign || hasApplied || isApplying) return;
+    setIsApplying(true);
+    setApplyError("");
+    try {
+      const application = await applyToCampaign(campaign.id);
+      setAppliedIds((ids) => ids.includes(application.campaign) ? ids : [...ids, application.campaign]);
+    } catch (err) {
+      setApplyError(err instanceof Error ? err.message : "Unable to apply to this campaign.");
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Panel className="grid min-h-[306px] place-items-center p-8 text-center">
+        <div>
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#5168ff]" />
+          <p className="mt-4 text-sm font-black text-[#1d2430]">Loading campaign...</p>
+        </div>
+      </Panel>
+    );
+  }
+
+  if (error || !campaign) {
+    return (
+      <Panel className="grid min-h-[306px] place-items-center p-8 text-center">
+        <div>
+          <h2 className="text-xl font-black text-[#1d2430]">Campaign could not be loaded</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm font-medium text-[#65758f]">{error || "Campaign not found."}</p>
+          <button type="button" onClick={() => navigate("/creator/marketplace")} className="mt-6 inline-flex h-11 items-center gap-2 rounded-lg bg-[#5168ff] px-5 text-sm font-black text-white">
+            <ArrowLeft className="h-4 w-4" />
+            Back to campaigns
+          </button>
+        </div>
+      </Panel>
+    );
+  }
 
   return (
     <div className="grid gap-7">
+
       <Panel className="p-7">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div className="flex min-w-0 gap-5">
@@ -54,7 +130,7 @@ export function CampaignMarketplaceDetail({
           </div>
           <button
             type="button"
-            onClick={onApply}
+            onClick={applyForCampaign}
             disabled={hasApplied || isApplying}
             className="inline-flex h-12 items-center gap-3 rounded-lg bg-[#5168ff] px-8 text-base font-black text-white shadow-[0_8px_16px_rgba(81,104,255,0.25)] disabled:cursor-not-allowed disabled:opacity-70"
           >
@@ -105,7 +181,7 @@ export function CampaignMarketplaceDetail({
             </div>
           </DetailSection>
 
-          <BrandBlock campaign={campaign} hasApplied={hasApplied} isApplying={isApplying} onApply={onApply} />
+          <BrandBlock campaign={campaign} hasApplied={hasApplied} isApplying={isApplying} onApply={applyForCampaign} />
         </div>
 
         <OverviewCard campaign={campaign} />
