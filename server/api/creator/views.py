@@ -88,6 +88,35 @@ class CreatorRegisterView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+    
+class CreatorDashboardView(APIView):
+    permission_classes = [IsAuthenticated, IsCreator]
+
+    def get(self,request,profile_verified=False):
+        creator = getattr(request.user, "creator_profile", None)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if profile_verified:
+            data= {
+                "profile_view": creator.profile_view_count,
+                "brand_requests": creator.brand_request_count,
+                "campaign_applications": creator.campaign_application_count,
+                "profile_completion": creator.profile_percentage,
+                
+            }
+
+
+        
+        data= {
+            "account_id": str(creator.creator_id),
+            "account_created": True,
+            "Social_media_connected": creator.social_accounts.filter(is_connected=True).exists(),
+            "verification_status": creator.verification_status,
+            "profile_completion": creator.profile_percentage,
+
+        }
+        return Response({"creator": data})
 
 class CreatorProfileViewSet(viewsets.ModelViewSet):
     serializer_class = CreatorProfileSerializer
