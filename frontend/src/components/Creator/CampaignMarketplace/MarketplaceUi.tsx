@@ -39,26 +39,6 @@ export function BrandAvatar({ campaign, size = "h-12 w-12" }: { campaign: Market
   );
 }
 
-export function MarketplaceHeader({ title, userName = "Aakrit Gupta" }: { title: string; userName?: string }) {
-  const initial = userName.trim()[0]?.toUpperCase() || "A";
-
-  return (
-    <header className="mb-12 flex flex-wrap items-center justify-between gap-4">
-      <h1 className="text-[28px] font-black tracking-normal text-[#173ca8]">{title}</h1>
-      <div className="flex items-center gap-6">
-        <span className="inline-flex h-8 items-center gap-2 rounded-md bg-[#cbf8df] px-4 text-sm font-black text-[#00a875]">
-          <CheckCircle2 className="h-4 w-4" />
-          Verified Creator
-        </span>
-        <button type="button" className="inline-flex items-center gap-3 text-[#173ca8]">
-          <span className="grid h-11 w-11 place-items-center rounded-full bg-[#173ca8] text-sm font-black text-white">{initial}</span>
-          <span className="text-base font-black">{userName}</span>
-          <ChevronRight className="h-4 w-4 rotate-90" />
-        </button>
-      </div>
-    </header>
-  );
-}
 
 export function StatusBadge({ children }: { children: ReactNode }) {
   return (

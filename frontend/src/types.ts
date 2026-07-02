@@ -369,6 +369,14 @@ export type CreatorDashboardApi = {
   profile_view?: number;
   brand_requests?: number;
   campaign_applications?: number;
+  campaigns?: Array<{
+    id: string;
+    title: string;
+    objective: string;
+    cover_image: string;
+    deadline: string | null;
+    looking_for: string;
+  }>;
 };
 
 export type OtpChannel = "EMAIL" | "PHONE";

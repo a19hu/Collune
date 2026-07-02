@@ -11,7 +11,6 @@ import {
 import type { CampaignStatusSummaryApi } from "../../../types";
 import { CampaignMarketplaceDetail } from "./CampaignMarketplaceDetail";
 import { CampaignMarketplaceList } from "./CampaignMarketplaceList";
-import { MarketplaceHeader } from "./MarketplaceUi";
 import { applyStatusSummaries, mapCampaignToMarketplace, type MarketplaceCampaign } from "./marketplaceData";
 
 type View = "list" | "detail";
@@ -92,7 +91,6 @@ export function CreatorCampaignMarketplace() {
 
   return (
     <div className="min-h-screen bg-white">
-      <MarketplaceHeader title="Campaign Marketplace" userName={currentUser?.name || "Aakrit Gupta"} />
 
       {view === "detail" && selectedCampaign ? (
         <CampaignMarketplaceDetail

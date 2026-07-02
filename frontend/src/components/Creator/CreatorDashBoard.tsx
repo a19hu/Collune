@@ -22,11 +22,7 @@ import { UnderReviewDashboard } from "./UnderReviewDashboard";
 
 type DashboardContext = { isVerified?: boolean };
 
-const campaignImages = [
-  "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1543353071-873f17a7a088?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=900&q=80",
-];
+const fallbackCampaignImage = "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80";
 
 const metricCards = [
   { label: "Profile Views", value: "127", change: "↑ 18% vs last 7 days", icon: Eye, color: "bg-[#ebe5ff] text-[#4635ff]" },
@@ -44,35 +40,14 @@ function buildMetricCards(dashboard?: CreatorDashboardApi | null) {
   ];
 }
 
-const campaigns = [
-  {
-    title: "Fintech Startup",
-    price: "₹25,000 - ₹40,000",
-    copy: "Looking for creators who can simplify finance for millennials.",
-    tag: "Business & Finance",
-    tagColor: "bg-[#8b74ff]",
-    deadline: "28 May 2024",
-    image: campaignImages[0],
-  },
-  {
-    title: "Food Brand",
-    price: "₹15,000 - ₹30,000",
-    copy: "Promote healthy eating and balanced lifestyle.",
-    tag: "Lifestyle",
-    tagColor: "bg-[#0eb783]",
-    deadline: "26 May 2024",
-    image: campaignImages[1],
-  },
-  {
-    title: "Skincare Brand",
-    price: "₹20,000 - ₹35,000",
-    copy: "Create authentic content for daily skincare routine.",
-    tag: "Beauty",
-    tagColor: "bg-[#ec4899]",
-    deadline: "30 May 2024",
-    image: campaignImages[2],
-  },
-];
+type RecommendedCampaign = NonNullable<CreatorDashboardApi["campaigns"]>[number];
+
+function formatCampaignDeadline(value: string | null) {
+  if (!value) return "Deadline not set";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+}
 
 // const activity = [
 //   { icon: Eye, color: "bg-[#ebe5ff] text-[#4635ff]", text: 'Brand "Fintech Startup" viewed your profile', time: "2 hours ago" },
@@ -102,11 +77,15 @@ function MetricCard({ item }: { item: (typeof metricCards)[number]; key?: string
   );
 }
 
-function CampaignCard({ campaign, index }: { campaign: (typeof campaigns)[number]; index: number; key?: string }) {
+function CampaignCard({ campaign, index }: { campaign: RecommendedCampaign; index: number; key?: string }) {
+  const navigate = useNavigate();
+  const image = campaign.cover_image || fallbackCampaignImage;
+  const deadline = formatCampaignDeadline(campaign.deadline);
+
   return (
     <Panel className="overflow-hidden">
       <div className="relative h-48">
-        <img src={campaign.image} alt="" className="h-full w-full object-cover" />
+        <img src={image} alt="" className="h-full w-full object-cover" />
         {index < 2 ? <span className="absolute left-4 top-4 rounded-full bg-[#2f31e7] px-4 py-2 text-xs font-black text-white">New</span> : null}
         <button className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-white">
           <Bookmark className="h-5 w-5 text-[#6f7889]" />
@@ -114,12 +93,12 @@ function CampaignCard({ campaign, index }: { campaign: (typeof campaigns)[number
       </div>
       <div className="p-6">
         <h3 className="text-xl font-black text-[#1d203a]">{campaign.title}</h3>
-        <p className="mt-2 text-lg font-black text-[#1f22ff]">{campaign.price}</p>
-        <p className="mt-4 min-h-[48px] text-[15px] font-medium leading-snug text-[#6f7889]">{campaign.copy}</p>
-        <span className={`mt-4 inline-flex rounded-full px-4 py-2 text-xs font-black text-white ${campaign.tagColor}`}>{campaign.tag}</span>
+        <p className="mt-2 text-sm font-black uppercase tracking-wide text-[#1f22ff]">Recommended match</p>
+        <p className="mt-4 min-h-[48px] text-[15px] font-medium leading-snug text-[#6f7889]">{campaign.objective || "Campaign objective not provided."}</p>
+        <span className="mt-4 inline-flex rounded-full bg-[#8b74ff] px-4 py-2 text-xs font-black text-white">{campaign.looking_for || "Creators"}</span>
         <div className="mt-5 flex items-end justify-between gap-4">
-          <p className="text-sm font-medium text-[#6f7889]">Deadline: {campaign.deadline}</p>
-          <button className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#2f31e7] px-4 text-sm font-black text-white">
+          <p className="text-sm font-medium text-[#6f7889]">Deadline: {deadline}</p>
+          <button type="button" onClick={() => navigate("/creator/marketplace")} className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#2f31e7] px-4 text-sm font-black text-white">
             Apply <ArrowRight className="h-4 w-4" />
           </button>
         </div>
@@ -131,6 +110,7 @@ function CampaignCard({ campaign, index }: { campaign: (typeof campaigns)[number
 function VerifiedDashboard({ dashboard }: { dashboard?: CreatorDashboardApi | null }) {
   const navigate = useNavigate();
   const cards = buildMetricCards(dashboard);
+  const recommendedCampaigns = dashboard?.campaigns ?? [];
 
   return (
     <div className="grid gap-8">
@@ -145,14 +125,25 @@ function VerifiedDashboard({ dashboard }: { dashboard?: CreatorDashboardApi | nu
             View all campaigns <ArrowRight className="h-4 w-4" />
           </button>
         </div>
-        <div className="grid gap-6 xl:grid-cols-3">
-          {campaigns.map((campaign, index) => <CampaignCard key={campaign.title} campaign={campaign} index={index} />)}
-        </div>
-        <div className="mt-4 flex justify-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-[#2f31e7]" />
-          <span className="h-2 w-2 rounded-full bg-[#dfe5f0]" />
-          <span className="h-2 w-2 rounded-full bg-[#dfe5f0]" />
-        </div>
+        {recommendedCampaigns.length ? (
+          <>
+            <div className="grid gap-6 xl:grid-cols-3">
+              {recommendedCampaigns.map((campaign, index) => <CampaignCard key={campaign.id} campaign={campaign} index={index} />)}
+            </div>
+            <div className="mt-4 flex justify-center gap-2">
+              {recommendedCampaigns.map((campaign, index) => (
+                <span key={campaign.id} className={`h-2 w-2 rounded-full ${index === 0 ? "bg-[#2f31e7]" : "bg-[#dfe5f0]"}`} />
+              ))}
+            </div>
+          </>
+        ) : (
+          <Panel className="p-8 text-center">
+            <h3 className="text-lg font-black text-[#1d203a]">No matching campaigns yet</h3>
+            <p className="mx-auto mt-2 max-w-md text-sm font-medium text-[#6f7889]">
+              We will show recommended campaigns here when active campaigns match your profile.
+            </p>
+          </Panel>
+        )}
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.9fr_0.9fr]">

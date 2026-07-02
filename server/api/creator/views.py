@@ -20,7 +20,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..models import (
-    ApplicationStatus, CampaignApplication, CreatorProfile, CreatorSocialAccount, SocialPlatform, UserRole, VerificationStatus,
+    ApplicationStatus, Campaign, CampaignApplication, CampaignStatus, CreatorProfile, CreatorSocialAccount, SocialPlatform, UserRole, VerificationStatus,
 )
 from ..permissions import IsCreator, IsVerifiedColluneMember
 from ..brand.serializers import CampaignApplicationSerializer
@@ -117,6 +117,48 @@ class CreatorDashboardView(APIView):
 
         return completion
 
+    def get_matching_campaigns(self, creator):
+        creator_terms = {
+            creator.category,
+            creator.location,
+            creator.bio,
+            getattr(creator, "about", ""),
+            *creator.languages,
+            *creator.collaboration_preferences,
+        }
+        normalized_terms = {
+            str(term).strip().lower()
+            for term in creator_terms
+            if str(term).strip()
+        }
+
+        campaigns = Campaign.objects.filter(status=CampaignStatus.ACTIVE).order_by("-created_at")
+
+        def campaign_score(campaign):
+            requirement_text = (campaign.brand_requirements or "").lower()
+            score = sum(1 for term in normalized_terms if term in requirement_text)
+            if creator.audience_size >= campaign.minimum_followers:
+                score += 1
+            if campaign.category and campaign.category.strip().lower() == creator.category.strip().lower():
+                score += 3
+            if campaign.location and campaign.location.strip().lower() == creator.location.strip().lower():
+                score += 2
+            return score
+
+        ranked_campaigns = sorted(campaigns, key=campaign_score, reverse=True)[:3]
+
+        return [
+            {
+                "id": str(campaign.campaign_id),
+                "title": campaign.title,
+                "objective": campaign.objective,
+                "cover_image": campaign.cover_image,
+                "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
+                "looking_for": campaign.category or campaign.brand_requirements,
+            }
+            for campaign in ranked_campaigns
+        ]
+
     def get(self, request, profile_verified=False):
         creator = getattr(request.user, "creator_profile", None)
         if not creator:
@@ -124,6 +166,7 @@ class CreatorDashboardView(APIView):
 
         profile_completion = self.get_profile_completion(creator)
         social_media_connected = creator.social_accounts.filter(is_connected=True).exists()
+        profile_verified = profile_verified or creator.verification_status == VerificationStatus.VERIFIED
 
         if profile_verified:
             data = {
@@ -131,6 +174,7 @@ class CreatorDashboardView(APIView):
                 "brand_requests": getattr(creator, "brand_request_count", 0),
                 "campaign_applications": creator.applications.count(),
                 "profile_completion": profile_completion,
+                "campaigns": self.get_matching_campaigns(creator),
 
             }
             return Response({"creator": data})

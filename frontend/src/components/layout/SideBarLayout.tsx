@@ -152,6 +152,22 @@ export const SideBarLayout = () => {
           />
         ),
       },
+      {
+        matches: () => pathname === "/creator/marketplace",
+        render: () => (
+          <DashboardTopBar
+            title={
+              isVerified
+                ? "Campaign Marketplace"
+                : `Welcome, ${currentUser?.name || "Creator"}. Nice to have you onboard!`
+            }
+            status={isVerified ? "verified-creator" : "under-review"}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+          />
+        ),
+      },
     ];
 
     return topRoutes.find((route) => route.matches())?.render() ?? null;
