@@ -23,9 +23,9 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { getCreatorsList, type CreatorProfileApi } from "../lib/authApi";
 import heroCreator1 from "../assets/collune/hero-creator-1.jpg";
-import heroCreator2 from "../assets/collune/hero-creator-2.png";
-import heroCreator3 from "../assets/collune/hero-creator-3.png";
-import heroCreator4 from "../assets/collune/hero-creator-4.png";
+import heroCreator2 from "../assets/collune/hero-creator-2.jpg";
+import heroCreator3 from "../assets/collune/hero-creator-3.jpg";
+import heroCreator4 from "../assets/collune/hero-creator-4.jpg";
 import HtmlButton from "../HtmlComponents/HtmlButton";
 import { CreatorCard } from "../HtmlComponents/CreatorCard";
 
@@ -197,68 +197,83 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section id="about" className="mx-auto grid max-w-7xl items-center gap-9 px-6 py-20 lg:grid-cols-[1fr_120px_1fr]">
-        <div className="text-center lg:text-left">
-          <SectionLabel>Trust And Accountability</SectionLabel>
-          <h2 className="mb-5 mt-8 text-[clamp(42px,5vw,62px)] font-black leading-none tracking-normal text-[#153fb8]">
-            Trust isn't a Feature.
-            <span className="block italic text-[#ad9bff]">It's the foundation of every collaboration.</span>
-          </h2>
-          <p className="text-[15px] font-extrabold leading-tight text-[#4e5c77]">
-            Collune ensures every collaboration is built on transparency,
-            accountability, and mutual respect, so you can focus on creating impact.
-          </p>
-          <div className="mt-9 inline-grid grid-cols-[auto_1fr] items-center gap-x-4 text-left text-[16px] font-black text-[#8c9af0]">
-            <span className="row-span-2 flex">
-              <i className="h-9 w-9 rounded-full bg-[#9b90ff]" />
-              <i className="-ml-2 h-9 w-9 rounded-full bg-[#88a0ff]" />
-              <i className="-ml-2 h-9 w-9 rounded-full bg-white" />
-            </span>
-            <strong>10,000+ Collaborations</strong>
-            <small className="text-sm font-extrabold text-[#76839e]">powered by trust</small>
+      <section id="about" className="bg-[#f5f7ff] px-6 py-20">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1.08fr_96px_1fr]">
+          <div className="text-center lg:text-left">
+            <div className="inline-flex min-h-7 min-w-[270px] items-center justify-center gap-2 rounded-full border border-[#dce5ff] bg-white/30 px-8 text-[12px] font-black uppercase text-[#3956c8]">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#8095ff] shadow-[0_0_0_5px_rgba(128,149,255,0.16)]" />
+              Trust And Accountability
+            </div>
+            <h3 className="mb-5 mt-8 text-[clamp(30px,5vw,46px)] font-black leading-none tracking-normal text-[#173bb5]">
+              Trust isn't a Feature.
+              <span className="block italic text-[#b4a2ff]">It's the foundation of every collaboration.</span>
+            </h3>
+            <p className="max-w-[535px] text-[15px] font-extrabold leading-tight text-[#3f4d62] lg:max-w-[470px]">
+              Collune ensures every collaboration is built on transparency,
+              accountability, and mutual respect, so you can focus on creating impact.
+            </p>
+            <div className="mt-9 inline-grid grid-cols-[auto_1fr] items-center gap-x-4 text-left text-[16px] font-black text-[#8292ea]">
+              <span className="row-span-2 flex">
+                <i className="h-9 w-9 rounded-full bg-[#7890ff]" />
+                <i className="-ml-3 h-9 w-9 rounded-full bg-[#a995ff]" />
+                <i className="-ml-3 h-9 w-9 rounded-full bg-white" />
+              </span>
+              <strong><span className="text-[#b4a2ff]">10,000+</span> Collaborations</strong>
+              <small className="text-sm font-extrabold text-[#76839e]">powered by trust</small>
+            </div>
+          </div>
+
+          <div className="relative hidden h-[430px] border-l-2 border-[#e1e7fb] lg:block">
+            {[86, 215, 348].map((top) => (
+              <span
+                key={top}
+                style={{ top }}
+                className="absolute -left-[7px] h-3.5 w-3.5 rounded-full border-2 border-[#8da0ff] bg-[#f5f7ff] after:absolute after:left-5 after:top-[5px] after:w-20 after:border-t-2 after:border-dashed after:border-[#a8b7ff] after:content-[''] before:absolute before:left-[96px] before:top-[1px] before:h-2.5 before:w-2.5 before:rounded-full before:bg-[#8195ff] before:content-['']"
+              />
+            ))}
+          </div>
+
+          <div className="grid gap-7">
+            {trustCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <article key={card.title} className="grid min-h-[112px] grid-cols-[64px_1fr_auto] items-center gap-5 rounded-[18px] bg-white px-6 py-5 text-left shadow-[0_10px_28px_rgba(65,85,148,0.07)] md:grid-cols-[78px_1fr_auto]">
+                  <span className="grid h-16 w-16 place-items-center rounded-full bg-[#dfe7ff] text-[#7f94ff] md:h-[74px] md:w-[74px]">
+                    <Icon className="h-8 w-8" />
+                  </span>
+                  <div>
+                    <h3 className="mb-1 text-[17px] font-black leading-tight text-[#465064]">{card.title}</h3>
+                    <p className="max-w-[270px] text-[13px] font-extrabold leading-tight text-[#758097]">{card.text}</p>
+                  </div>
+                  <span className="hidden h-5 w-5 place-items-center rounded-full bg-[#8296ff] text-white sm:grid">
+                    <Check className="h-3.5 w-3.5" />
+                  </span>
+                </article>
+              );
+            })}
           </div>
         </div>
 
-        <div className="relative hidden h-[430px] border-l-2 border-[#cfdcff] lg:block">
-          {[86, 215, 348].map((top) => (
-            <span key={top} style={{ top }} className="absolute -left-[7px] h-3 w-3 rounded-full border-2 border-[#8fa0ff] bg-[#f5f7ff] after:absolute after:left-5 after:top-1 after:w-24 after:border-t-2 after:border-dashed after:border-[#a8b6ff] after:content-[''] before:absolute before:left-28 before:top-0.5 before:h-2 before:w-2 before:rounded-full before:bg-[#8fa0ff] before:content-['']" />
+        <div className="mx-auto mt-14 grid max-w-7xl gap-5 rounded-[18px] bg-white px-6 py-6 text-[13px] font-extrabold text-[#8290aa] shadow-[0_10px_28px_rgba(65,85,148,0.04)] md:grid-cols-2 lg:grid-cols-[1.75fr_repeat(3,auto)] lg:px-10">
+          <p className="flex items-center gap-4">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#dfe7ff] text-[#8296ff]">
+              <ShieldCheck className="h-4.5 w-4.5" />
+            </span>
+            Collune is committed to building the most reliable ecosystem for brands and creators to work together with confidence.
+          </p>
+          {[
+            ["Safe & verified", Check],
+            ["Fair & Secure", Lock],
+            ["Transparent & clear", BadgeCheck],
+          ].map(([label, Icon]) => (
+            <span key={label as string} className="flex items-center gap-4">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#dfe7ff] text-[#8296ff]">
+                <Icon className="h-4.5 w-4.5" />
+              </span>
+              {label as string}
+            </span>
           ))}
         </div>
-
-        <div className="grid gap-8">
-          {trustCards.map((card) => {
-            const Icon = card.icon;
-            return (
-              <article key={card.title} className="grid min-h-[132px] grid-cols-[64px_1fr_auto] items-center gap-5 rounded-lg border border-[#edf1fb] bg-white p-6 shadow-[0_14px_30px_rgba(35,58,124,0.08)] md:grid-cols-[74px_1fr_auto]">
-                <span className="grid h-16 w-16 place-items-center rounded-full bg-[#e6edff] text-[#879aff] md:h-[74px] md:w-[74px]">
-                  <Icon className="h-8 w-8" />
-                </span>
-                <div>
-                  <h3 className="mb-1 text-[17px] font-black text-[#334260]">{card.title}</h3>
-                  <p className="text-[13px] font-extrabold leading-tight text-[#758097]">{card.text}</p>
-                </div>
-                <Check className="hidden h-4 w-4 text-[#8194ff] sm:block" />
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="mx-auto mb-28 grid max-w-7xl gap-5 rounded-[18px] bg-white px-6 py-6 text-[13px] font-extrabold text-[#71809f] md:grid-cols-2 lg:grid-cols-[1.75fr_repeat(3,auto)] lg:px-10">
-        <p className="flex items-center gap-3">
-          <ShieldCheck className="h-5 w-5 shrink-0 text-[#91a1ff]" />
-          Collune is committed to building the most reliable ecosystem for brands and creators to work together with confidence.
-        </p>
-        {[
-          ["Safe & verified", Check],
-          ["Fair & Secure", Lock],
-          ["Transparent & clear", BadgeCheck],
-        ].map(([label, Icon]) => (
-          <span key={label as string} className="flex items-center gap-3">
-            <Icon className="h-4.5 w-4.5 text-[#91a1ff]" />
-            {label as string}
-          </span>
-        ))}
       </section>
 
       <section id="how-it-works" className="px-6 pb-28 text-center">
