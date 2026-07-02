@@ -210,6 +210,7 @@ export function PublicCreatorProfile() {
   const [profile, setProfile] = useState<CreatorProfileApi | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const isBrand = currentUser?.role === "Brand";
 
  useEffect(() => {
     let isMounted = true;
@@ -275,7 +276,7 @@ export function PublicCreatorProfile() {
         <div className="mb-4 text-[13px] font-black text-[#65718a]">
           <Link to="/" className="hover:text-[#1438c8]">Home</Link>
           <span> &gt; </span>
-          <Link to="/#creators" className="hover:text-[#1438c8]">Discover Creators</Link>
+          <Link to="/discover-creators" className="hover:text-[#1438c8]">Discover Creators</Link>
           <span> &gt; {profile?.display_name}</span>
         </div>
 
@@ -340,15 +341,15 @@ export function PublicCreatorProfile() {
             </div>
           </Panel>
 
-          {/* <Panel className="p-5"> */}
-            {/* <SectionTitle
+          <Panel className="p-5">
+            <SectionTitle
               icon={<BarChart3 className="h-4 w-4 text-[#7386ff]" />}
               title="Audience Snapshot"
-              right={isBrand ? <span className="text-[11px] font-semibold text-[#7b8597]">Updated {updatedDate}</span> : null}
-            /> */}
-            {/* <div className={`mt-4 grid gap-3 sm:grid-cols-2 ${isBrand ? "lg:grid-cols-6" : "lg:grid-cols-4"}`}> */}
-              {/* <MetricTile value={profileStats.totalFollowers} label="Total Followers" /> */}
-              {/* {isBrand ? (
+              right={isBrand ? <span className="text-[11px] font-semibold text-[#7b8597]">Updated {profile?.updated_at ? new Date(profile.updated_at).toLocaleDateString() : "N/A"}</span> : null}
+            />
+            <div className={`mt-4 grid gap-3 sm:grid-cols-2 ${isBrand ? "lg:grid-cols-6" : "lg:grid-cols-4"}`}>
+              <MetricTile value={profileStats.totalFollowers} label="Total Followers" />
+              {isBrand ? (
                 <>
                   <MetricTile value={profileStats.engagementRate} label="Avg. Eng. rate" />
                   <MetricTile value={profileStats.reach} label="Avg. Reach" />
@@ -360,11 +361,11 @@ export function PublicCreatorProfile() {
                 <>
                   <LockedMetricTile value={profileStats.engagementRate} label="Avg. Engagement rate" unlocked={false} />
                   <LockedMetricTile value="72%" label="Audience from India" unlocked={false} />
-                  <MetricTile value={profile.languages.length ? profile.languages.map((language) => language.slice(0, 2)).join("/") : "En/Hn"} label="Top Languages" />
+                  <MetricTile value={profile?.languages.length ? profile?.languages.map((language) => language.slice(0, 2)).join("/") : "En/Hn"} label="Top Languages" />
                 </>
-              )} */}
-            {/* </div> */}
-            {/* {isBrand ? <div className="mt-4 grid gap-5 rounded-[6px] bg-[#eaf1ff] p-4 md:grid-cols-2">
+              )}
+            </div>
+            {isBrand ? <div className="mt-4 grid gap-5 rounded-[6px] bg-[#eaf1ff] p-4 md:grid-cols-2">
               <div>
                 <p className="text-[11px] font-semibold text-[#64728c]">Audience from India</p>
                 <div className="mt-2 flex items-center gap-3">
@@ -382,8 +383,8 @@ export function PublicCreatorProfile() {
               <p className="mt-4 text-center text-[13px] font-semibold text-[#64728c]">
                 Login as a brand to unlock detailed audience demographics, locations, age groups, gender split and interests.
               </p>
-            )} */}
-          {/* </Panel> */}
+            )}
+          </Panel>
 
           <Panel className="p-5">
             <SectionTitle title="Platforms" />
@@ -408,7 +409,7 @@ export function PublicCreatorProfile() {
                       </div>
                       <div>
                         <strong className="block text-[15px] font-black text-[#1438c8]">
-                          {/* <span className={isBrand ? "" : "blur-[5px]"}>{isYouTube ? compactNumber(account.view_count || 0) : profileStats.engagementRate}</span> */}
+                          <span className={isBrand ? "" : "blur-[5px]"}>{isYouTube ? compactNumber(account.view_count || 0) : profileStats.engagementRate}</span>
                         </strong>
                         <span className="text-[10px] font-semibold text-[#758198]">{isYouTube ? "Views" : "Eng. Rate"}</span>
                       </div>
@@ -434,7 +435,7 @@ export function PublicCreatorProfile() {
           </Panel>
           </div>
 
-          {/* <aside className="grid content-start gap-5">
+          <aside className="grid content-start gap-5">
             <BrandActions creator={profile} isBrand={isBrand} />
             {isBrand ? (
               <>
@@ -458,7 +459,7 @@ export function PublicCreatorProfile() {
                 </Panel>
               </>
             )}
-          </aside> */}
+          </aside>
         </div>
       </div>
     </main>

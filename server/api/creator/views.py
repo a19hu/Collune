@@ -165,6 +165,8 @@ class CreatorListViewSet(APIView):
                 "verified": creator.verification_status == VerificationStatus.VERIFIED.value,
                 "username": creator.user.username,
                 "profile_image": request.build_absolute_uri(creator.profile_image.url) if creator.profile_image else None,
+                "updated_at": creator.updated_at,
+                "languages": creator.languages,
             }
             return Response({"creator": data})
         creators = CreatorProfile.objects.select_related("user").filter(

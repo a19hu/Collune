@@ -3,16 +3,19 @@ import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 
-function ScrollToHash() {
-    const { hash } = useLocation();
+function ScrollToRoutePosition() {
+    const { hash, pathname } = useLocation();
 
     useEffect(() => {
-        if (!hash) return;
-
         window.requestAnimationFrame(() => {
-            document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: "smooth" });
+            if (hash) {
+                document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: "smooth" });
+                return;
+            }
+
+            window.scrollTo({ top: 0, left: 0 });
         });
-    }, [hash]);
+    }, [hash, pathname]);
 
     return null;
 }
@@ -20,7 +23,7 @@ function ScrollToHash() {
 const MainLayout=()=>{
     return(
         <>
-        <ScrollToHash/>
+        <ScrollToRoutePosition/>
         <Navbar/>
         <Outlet/>
         <Footer/>
