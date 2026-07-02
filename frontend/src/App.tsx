@@ -22,6 +22,7 @@ import LoadingPage from './components/layout/LoadingPage.tsx';
 import type { UserAccount } from './types.ts';
 import { getBrandMe, getCreatorProfile } from './lib/authApi.ts';
 import { CampaignCreateForm } from './components/Brand/Campaigns/CampaignCreateForm.tsx';
+import { DiscoverCreatorsPage } from './pages/DiscoverCreatorsPage.tsx';
 
 function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
     const { currentUser, isAuthLoading } = useAuth();
@@ -77,10 +78,8 @@ const App: React.FC = () => {
                 <Routes>
                     <Route element={<MainLayout />}>
                         <Route path='/' element={<LandingPage />} />
-                        {/* <Route path="discover-creators" element={<ColluneInfoPage page="discover-creators" />} /> */}
-                        {/* <Route path="featured-creators" element={<ColluneInfoPage page="featured-creators" />} /> */}
-                        {/* <Route path="featured-brands" element={<ColluneInfoPage page="featured-brands" />} /> */}
-                        <Route path="creators/:creatorId" element={<PublicCreatorProfile />} />
+                        <Route path="discover-creators" element={<DiscoverCreatorsPage />} />
+                        <Route path="creator_profile/:creatorId" element={<PublicCreatorProfile />} />
                         {/* <Route path="success-stories" element={<ColluneInfoPage page="success-stories" />} /> */}
                         {/* <Route path="blogs" element={<ColluneInfoPage page="blogs" />} /> */}
                         {/* <Route path="faqs" element={<ColluneInfoPage page="faqs" />} /> */}

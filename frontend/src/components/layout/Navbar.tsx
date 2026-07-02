@@ -16,7 +16,7 @@ const navItems = [
     label: "Creators",
     items: [
       { label: "Discover Creators", href: "/discover-creators" },
-      { label: "Featured Creators", href: "/featured-creators" },
+      { label: "Featured Creators", href: "/#featured-creators" },
     ],
   },
   {

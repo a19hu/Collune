@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "../contexts/AuthContext";
-import { getCreatorPublicProfile, type CreatorProfileApi } from "../lib/authApi";
+import { getCreatorPublicProfile, getCreatorsList, type CreatorProfileApi } from "../lib/authApi";
 import { AddCreatorToShortlistModal } from "../components/Brand/Shortlists/AddCreatorToShortlistModal";
 import type { CreatorSocialPlatform } from "../types";
 
@@ -211,35 +211,23 @@ export function PublicCreatorProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    let mounted = true;
-    if (!currentUser) {
-      setIsLoading(false);
-      return () => {
-        mounted = false;
-      };
-    }
-    if (!creatorId) {
-      setError("Creator profile not found.");
-      setIsLoading(false);
-      return;
-    }
+ useEffect(() => {
+    let isMounted = true;
 
     getCreatorPublicProfile(creatorId)
       .then((data) => {
-        if (mounted) setProfile(data);
+        if (isMounted) setProfile(data);
       })
-      .catch((err) => {
-        if (mounted) setError(err instanceof Error ? err.message : "Unable to load creator profile.");
+      .catch((error) => {
+        if (isMounted) setError(error instanceof Error ? error.message : "Could not load creators.");
       })
       .finally(() => {
-        if (mounted) setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       });
-
     return () => {
-      mounted = false;
+      isMounted = false;
     };
-  }, [creatorId, currentUser]);
+  }, [creatorId]);
 
   const profileStats = useMemo(() => {
     const audience = profile?.audience_size || 0;
@@ -254,7 +242,7 @@ export function PublicCreatorProfile() {
 
   const visiblePlatforms = useMemo(() => {
     const accounts = profile?.social_accounts || [];
-    if (accounts.length) return accounts.slice(0, 4);
+    if (accounts?.length) return accounts.slice(0, 4);
     return [
       { account_id: "instagram", platform: "INSTAGRAM" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.5), is_connected: false, created_at: "" },
       { account_id: "youtube", platform: "YOUTUBE" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.3), is_connected: false, created_at: "" },
@@ -271,23 +259,6 @@ export function PublicCreatorProfile() {
     );
   }
 
-  if (!currentUser) {
-    return (
-      <main className="min-h-screen bg-[#f5f7ff] px-6 pb-24 pt-36 text-[#17327c]">
-        <section className="mx-auto max-w-xl rounded-[10px] bg-white p-8 text-center shadow-[0_10px_24px_rgba(40,67,140,0.08)]">
-          <Lock className="mx-auto h-10 w-10 text-[#7288ff]" />
-          <h1 className="mt-4 text-2xl font-black text-[#334260]">Verified member access only</h1>
-          <p className="mx-auto mt-2 max-w-md text-sm font-bold text-[#65718a]">
-            Creator profiles and platform member information are available only after signing in as a verified Collune member.
-          </p>
-          <Link to="/login" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-[6px] bg-[#1438c8] px-6 text-sm font-black text-white">
-            Sign in
-          </Link>
-        </section>
-      </main>
-    );
-  }
-
   if (!profile) {
     return (
       <main className="min-h-[70vh] bg-[#f4f7fb] px-6 py-16">
@@ -298,19 +269,6 @@ export function PublicCreatorProfile() {
     );
   }
 
-  const name = profile.display_name || profile.user?.name || "Creator";
-  const firstName = name.split(" ")[0] || "Creator";
-  const isBrand = currentUser?.role === "Brand";
-  const avatar = profile.profile_image_url;
-  const chips = [
-    profile.category,
-    `${profile.profile_completion || 0}% profile complete`,
-    Number(profile.rate_min) || Number(profile.rate_max) ? `₹${compactNumber(Number(profile.rate_min) || 0)} - ₹${compactNumber(Number(profile.rate_max) || 0)}` : "",
-    ...profile.languages.slice(0, 2),
-    ...profile.collaboration_preferences.slice(0, 3),
-  ].filter(Boolean);
-  const updatedDate = profile.updated_at ? new Date(profile.updated_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "";
-
   return (
     <main className="min-h-screen bg-[#f4f7fb] px-4 pb-10 pt-28 text-[#25304a] sm:px-6">
       <div className="mx-auto max-w-[1200px]">
@@ -318,7 +276,7 @@ export function PublicCreatorProfile() {
           <Link to="/" className="hover:text-[#1438c8]">Home</Link>
           <span> &gt; </span>
           <Link to="/#creators" className="hover:text-[#1438c8]">Discover Creators</Link>
-          <span> &gt; {name}</span>
+          <span> &gt; {profile?.display_name}</span>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
@@ -326,8 +284,8 @@ export function PublicCreatorProfile() {
         <Panel className="overflow-hidden p-5 sm:p-7">
           <div className="grid gap-6 lg:grid-cols-[250px_1fr] lg:items-center">
             <div className="relative h-[210px] w-[210px] overflow-hidden rounded-full bg-[#f3e4d4]">
-              {avatar ? (
-                <img src={avatar} alt={name} className="h-full w-full object-cover" />
+              {profile?.profile_image ? (
+                <img src={profile.profile_image} alt={profile.display_name} className="h-full w-full object-cover" />
               ) : (
                 <div className="grid h-full w-full place-items-center text-[#1438c8]">
                   <UserRound className="h-24 w-24" />
@@ -340,7 +298,7 @@ export function PublicCreatorProfile() {
 
             <div className="pt-3">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-[28px] font-black leading-tight text-[#1438c8]">{name}</h1>
+                <h1 className="text-[28px] font-black leading-tight text-[#1438c8]">{profile?.display_name}</h1>
                 <BadgeCheck className="h-5 w-5 fill-[#6f85ff] text-white" />
               </div>
               <p className="mt-1 text-[13px] font-semibold text-[#6b7891]">
@@ -348,10 +306,10 @@ export function PublicCreatorProfile() {
               </p>
               <p className="mt-1 flex items-center gap-1 text-[12px] font-medium text-[#7b8597]">
                 <MapPin className="h-3.5 w-3.5" />
-                {profile.location || "Location not added"} {profile.languages.length ? ` | ${profile.languages.join(", ")}` : ""}
+                {profile?.location || "Location not added"} {profile?.languages?.length ? ` | ${profile.languages.join(", ")}` : ""}
               </p>
               <p className="mt-4 max-w-[560px] text-[13px] font-medium leading-relaxed text-[#526079]">
-                {profile.bio || "This creator has not added a profile bio yet."}
+                {profile?.bio || "This creator has not added a profile bio yet."}
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
                 {["#e69bf4", "#ff624f", "#8099ff", "#344055", "#d9dee5"].map((color) => (
@@ -367,30 +325,30 @@ export function PublicCreatorProfile() {
         </Panel>
 
           <Panel className="p-5">
-            <SectionTitle icon={<UserRound className="h-4 w-4 text-[#7386ff]" />} title={`About ${firstName}`} />
+            <SectionTitle icon={<UserRound className="h-4 w-4 text-[#7386ff]" />} title={`About ${profile?.display_name || "Creator"}`} />
             <p className="mt-4 text-[13px] font-medium leading-relaxed text-[#536179]">
               {profile.bio || "Profile bio has not been added yet."}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              {chips.map((chip) => (
+              {/* {chips.map((chip) => (
                 <span key={chip} className="rounded-full bg-[#e9edff] px-3 py-1 text-[11px] font-bold text-[#1438c8]">
                   {chip}
                 </span>
-              ))}
+              ))} */}
               {profile.open_to_travel ? <span className="rounded-full bg-[#e8fff3] px-3 py-1 text-[11px] font-bold text-[#067647]">Open to travel</span> : null}
               {profile.preferred_response_time ? <span className="rounded-full bg-[#fff3df] px-3 py-1 text-[11px] font-bold text-[#995c00]">{profile.preferred_response_time}</span> : null}
             </div>
           </Panel>
 
-          <Panel className="p-5">
-            <SectionTitle
+          {/* <Panel className="p-5"> */}
+            {/* <SectionTitle
               icon={<BarChart3 className="h-4 w-4 text-[#7386ff]" />}
               title="Audience Snapshot"
               right={isBrand ? <span className="text-[11px] font-semibold text-[#7b8597]">Updated {updatedDate}</span> : null}
-            />
-            <div className={`mt-4 grid gap-3 sm:grid-cols-2 ${isBrand ? "lg:grid-cols-6" : "lg:grid-cols-4"}`}>
-              <MetricTile value={profileStats.totalFollowers} label="Total Followers" />
-              {isBrand ? (
+            /> */}
+            {/* <div className={`mt-4 grid gap-3 sm:grid-cols-2 ${isBrand ? "lg:grid-cols-6" : "lg:grid-cols-4"}`}> */}
+              {/* <MetricTile value={profileStats.totalFollowers} label="Total Followers" /> */}
+              {/* {isBrand ? (
                 <>
                   <MetricTile value={profileStats.engagementRate} label="Avg. Eng. rate" />
                   <MetricTile value={profileStats.reach} label="Avg. Reach" />
@@ -404,9 +362,9 @@ export function PublicCreatorProfile() {
                   <LockedMetricTile value="72%" label="Audience from India" unlocked={false} />
                   <MetricTile value={profile.languages.length ? profile.languages.map((language) => language.slice(0, 2)).join("/") : "En/Hn"} label="Top Languages" />
                 </>
-              )}
-            </div>
-            {isBrand ? <div className="mt-4 grid gap-5 rounded-[6px] bg-[#eaf1ff] p-4 md:grid-cols-2">
+              )} */}
+            {/* </div> */}
+            {/* {isBrand ? <div className="mt-4 grid gap-5 rounded-[6px] bg-[#eaf1ff] p-4 md:grid-cols-2">
               <div>
                 <p className="text-[11px] font-semibold text-[#64728c]">Audience from India</p>
                 <div className="mt-2 flex items-center gap-3">
@@ -424,8 +382,8 @@ export function PublicCreatorProfile() {
               <p className="mt-4 text-center text-[13px] font-semibold text-[#64728c]">
                 Login as a brand to unlock detailed audience demographics, locations, age groups, gender split and interests.
               </p>
-            )}
-          </Panel>
+            )} */}
+          {/* </Panel> */}
 
           <Panel className="p-5">
             <SectionTitle title="Platforms" />
@@ -450,7 +408,7 @@ export function PublicCreatorProfile() {
                       </div>
                       <div>
                         <strong className="block text-[15px] font-black text-[#1438c8]">
-                          <span className={isBrand ? "" : "blur-[5px]"}>{isYouTube ? compactNumber(account.view_count || 0) : profileStats.engagementRate}</span>
+                          {/* <span className={isBrand ? "" : "blur-[5px]"}>{isYouTube ? compactNumber(account.view_count || 0) : profileStats.engagementRate}</span> */}
                         </strong>
                         <span className="text-[10px] font-semibold text-[#758198]">{isYouTube ? "Views" : "Eng. Rate"}</span>
                       </div>
@@ -476,7 +434,7 @@ export function PublicCreatorProfile() {
           </Panel>
           </div>
 
-          <aside className="grid content-start gap-5">
+          {/* <aside className="grid content-start gap-5">
             <BrandActions creator={profile} isBrand={isBrand} />
             {isBrand ? (
               <>
@@ -500,7 +458,7 @@ export function PublicCreatorProfile() {
                 </Panel>
               </>
             )}
-          </aside>
+          </aside> */}
         </div>
       </div>
     </main>

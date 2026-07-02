@@ -39,7 +39,7 @@ export function CreatorCard({ creator, index }: { creator: CreatorProfileApi; in
           ))}
         </div> */}
       </div>
-      <Link to={`/creators/${creator.creator_id}`} className="flex min-h-10 items-center justify-center gap-1 border-t border-[#edf1fb] text-[13px] font-black text-[#3356c5]">
+      <Link to={`/creator_profile/${creator.creator_id}`} className="flex min-h-10 items-center justify-center gap-1 border-t border-[#edf1fb] text-[13px] font-black text-[#3356c5]">
         View Profile
         <ArrowRight className="h-3.5 w-3.5" />
       </Link>

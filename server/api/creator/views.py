@@ -146,7 +146,27 @@ class CreatorListViewSet(APIView):
     permission_classes = [AllowAny]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
-    def get(self, request):
+    def get(self, request, creator_id=None):
+        if creator_id:
+            try:
+                creator = CreatorProfile.objects.select_related("user").get(
+                    creator_id=creator_id,
+                    verification_status=VerificationStatus.VERIFIED.value,
+                    is_profile_visible=True,
+                )
+            except CreatorProfile.DoesNotExist:
+                return Response({"error": "Creator profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            data = {
+                "id": str(creator.creator_id),
+                "creator_id": str(creator.creator_id),
+                "display_name": creator.display_name,
+                "category": creator.category,
+                "verified": creator.verification_status == VerificationStatus.VERIFIED.value,
+                "username": creator.user.username,
+                "profile_image": request.build_absolute_uri(creator.profile_image.url) if creator.profile_image else None,
+            }
+            return Response({"creator": data})
         creators = CreatorProfile.objects.select_related("user").filter(
             verification_status=VerificationStatus.VERIFIED.value,
             is_profile_visible=True,

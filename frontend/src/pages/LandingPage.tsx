@@ -157,7 +157,7 @@ const LandingPage = () => {
         </a>
       </section>
 
-      <section id="creators" className="px-6 py-20 text-center">
+      <section id="featured-creators" className="px-6 py-20 text-center">
         <SectionLabel>Featured Creators</SectionLabel>
         <p className="mx-auto mt-8 max-w-xl text-[16px] font-extrabold leading-tight text-[#4e5c77]">
           Explore a curated network of verified creators across industries,
