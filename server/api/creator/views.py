@@ -103,14 +103,13 @@ class CreatorDashboardView(APIView):
                 "brand_requests": creator.brand_request_count,
                 "campaign_applications": creator.campaign_application_count,
                 "profile_completion": creator.profile_percentage,
-                
+
             }
-
-
+            return Response({"creator": data})
         
         data= {
             "account_id": str(creator.creator_id),
-            "account_created": True,
+            "account_created": bool(creator.created_at),
             "Social_media_connected": creator.social_accounts.filter(is_connected=True).exists(),
             "verification_status": creator.verification_status,
             "profile_completion": creator.profile_percentage,

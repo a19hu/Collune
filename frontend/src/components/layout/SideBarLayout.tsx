@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { getBrandMe, getCreatorProfile } from "../../lib/authApi";
 import LoadingPage from "./LoadingPage";
 import SideBar from "./SideBar";
 import type { SidebarMode } from "./SideBar";
-import { ChevronDown, Plus } from "lucide-react";
+import { BadgeCheck, ChevronDown, Plus } from "lucide-react";
 import { HeaderButton } from "@/src/HtmlComponents/HtmlButton";
+import type { UserAccount } from "../../types";
 
 function useDashboardState() {
   const location = useLocation();
@@ -16,6 +17,92 @@ function useDashboardState() {
   return { mode, pathname };
 }
 
+type DashboardUserMenuProps = {
+  currentUser: UserAccount | null;
+  logout: () => Promise<void>;
+  profilePath: string;
+};
+
+type DashboardTopBarProps = DashboardUserMenuProps & {
+  title: string;
+  status?: "verified-creator" | "under-review";
+  actions?: ReactNode;
+};
+
+const statusPillStyles = {
+  "verified-creator": {
+    label: "Verified Creator",
+    className: "bg-[#ddfbea] text-[#31b979]",
+    icon: <BadgeCheck className="h-3.5 w-3.5" />,
+  },
+  "under-review": {
+    label: "Under Review",
+    className: "bg-[#fff2df] text-[#f59a23]",
+    icon: <span className="h-2 w-2 rounded-full bg-[#f59a23]" />,
+  },
+};
+
+function getUserInitial(currentUser: UserAccount | null) {
+  return currentUser?.name?.trim().charAt(0).toUpperCase() || currentUser?.email?.trim().charAt(0).toUpperCase() || "U";
+}
+
+function VerificationPill({ status }: { status: NonNullable<DashboardTopBarProps["status"]> }) {
+  const pill = statusPillStyles[status];
+
+  return (
+    <span className={`inline-flex h-9 items-center gap-2 rounded-[7px] px-4 text-[13px] font-black ${pill.className}`}>
+      {pill.icon}
+      {pill.label}
+    </span>
+  );
+}
+
+function DashboardUserMenu({ currentUser, logout, profilePath }: DashboardUserMenuProps) {
+  const userInitial = getUserInitial(currentUser);
+
+  return (
+    <div className="group relative justify-self-end">
+      <button
+        type="button"
+        className="inline-flex min-h-12 items-center justify-center gap-3 rounded-full bg-transparent text-sm font-black text-[#2449bd] transition hover:bg-[#eef3ff]"
+      >
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-[#173fb5] text-white">
+          {userInitial}
+        </span>
+        <span className="hidden max-w-[170px] truncate sm:inline">{currentUser?.name || "User"}</span>
+        <ChevronDown className="h-3.5 w-3.5 transition group-hover:rotate-180" />
+      </button>
+      <div className="invisible absolute right-0 top-12 z-30 w-56 rounded-2xl border border-[#dce5fb] bg-white p-2 opacity-0 shadow-[0_18px_40px_rgba(45,66,140,0.14)] transition group-hover:visible group-hover:opacity-100">
+        <Link to={profilePath} className="block rounded-xl px-4 py-3 text-sm font-black text-[#34466d] transition hover:bg-[#eef3ff] hover:text-[#214bc0]">
+          Profile
+        </Link>
+        <button
+          type="button"
+          onClick={() => void logout()}
+          className="block w-full rounded-xl px-4 py-3 text-left text-sm font-black text-[#b42318] transition hover:bg-[#fff0f0]"
+        >
+          Sign out
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DashboardTopBar({ title, status, actions, currentUser, logout, profilePath }: DashboardTopBarProps) {
+  return (
+    <header className="mb-10 flex min-h-[72px] flex-wrap items-center justify-between gap-5 border-b border-[#eef2fb] bg-white pb-6">
+      <h1 className="text-[22px] font-black tracking-normal text-[#173ca8]">
+        {title}
+      </h1>
+      <div className="flex flex-wrap items-center gap-5">
+        {actions}
+        {status ? <VerificationPill status={status} /> : null}
+        <DashboardUserMenu currentUser={currentUser} logout={logout} profilePath={profilePath} />
+      </div>
+    </header>
+  );
+}
+
 export const SideBarLayout = () => {
   const { currentUser, logout } = useAuth();
   const { mode, pathname } = useDashboardState();
@@ -23,8 +110,7 @@ export const SideBarLayout = () => {
   const [isVerified, setIsVerified] = useState(false);
   const [isVerificationLoading, setIsVerificationLoading] = useState(true);
   const isBrand = mode === "brand";
-  const userInitial = currentUser?.name?.trim().charAt(0).toUpperCase() || currentUser?.email?.trim().charAt(0).toUpperCase() || "U";
-
+  const profilePath = isBrand ? "/brand" : "/creator/profile";
 
   useEffect(() => {
     let mounted = true;
@@ -46,85 +132,24 @@ export const SideBarLayout = () => {
     return () => {
       mounted = false;
     };
-  }, [currentUser?.id, isBrand]);
+  }, [currentUser?.email, isBrand]);
 
-  function TopComponentsCreatorverified() {
+  function TopComponentsCreator() {
     const topRoutes = [
       {
         matches: () => pathname === "/creator",
         render: () => (
-          <header className="mb-12 flex flex-wrap items-center justify-between gap-5">
-            <div>
-              <h1 className="text-[28px] font-semibold tracking-normal text-[#173ca8]">
-                Welcome, {currentUser?.name || "Creator"}. Nice to have you onboard!
-              </h1>
-            </div>
-            <div className="group relative justify-self-end">
-              <Link
-                to={"/"}
-                className="inline-flex min-h-11 items-center justify-center gap-3 rounded-full bg-white/75 text-sm font-black text-[#2449bd] backdrop-blur transition hover:bg-white">
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-[#1438c8] text-white">
-                  {userInitial}
-                </span>
-                <span className="hidden max-w-[150px] truncate sm:inline">{currentUser.name}</span>
-                <ChevronDown className="h-3.5 w-3.5 transition group-hover:rotate-180" />
-              </Link>
-              <div className="invisible absolute right-0 top-12 w-56 rounded-2xl border border-[#dce5fb] bg-white p-2 opacity-0 shadow-[0_18px_40px_rgba(45,66,140,0.14)] transition group-hover:visible group-hover:opacity-100">
-                <Link to={"/creator/profile"} className="block rounded-xl px-4 py-3 text-sm font-black text-[#34466d] transition hover:bg-[#eef3ff] hover:text-[#214bc0]">
-                  Profile
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => void logout()}
-                  className="block w-full rounded-xl px-4 py-3 text-left text-sm font-black text-[#b42318] transition hover:bg-[#fff0f0]"
-                >
-                  Sign out
-                </button>
-              </div>
-            </div>
-          </header>
-        ),
-      },
-    ];
-
-    return topRoutes.find((route) => route.matches())?.render() ?? null;
-  }
-
-  function TopComponentsCreatorunverified() {
-    const topRoutes = [
-      {
-        matches: () => pathname === "/creator",
-        render: () => (
-          <header className="mb-12 flex flex-wrap items-center justify-between gap-5">
-            <div>
-              <h1 className="text-[28px] font-semibold tracking-normal text-[#173ca8]">
-                Welcome, {currentUser?.name || "Creator"}. Nice to have you onboard!
-              </h1>
-            </div>
-            <div className="group relative justify-self-end">
-              <Link
-                to={"/"}
-                className="inline-flex min-h-11 items-center justify-center gap-3 rounded-full bg-white/75 text-sm font-black text-[#2449bd] backdrop-blur transition hover:bg-white">
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-[#1438c8] text-white">
-                  {userInitial}
-                </span>
-                <span className="hidden max-w-[150px] truncate sm:inline">{currentUser.name}</span>
-                <ChevronDown className="h-3.5 w-3.5 transition group-hover:rotate-180" />
-              </Link>
-              <div className="invisible absolute right-0 top-12 w-56 rounded-2xl border border-[#dce5fb] bg-white p-2 opacity-0 shadow-[0_18px_40px_rgba(45,66,140,0.14)] transition group-hover:visible group-hover:opacity-100">
-                <Link to={"/creator/profile"} className="block rounded-xl px-4 py-3 text-sm font-black text-[#34466d] transition hover:bg-[#eef3ff] hover:text-[#214bc0]">
-                  Profile
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => void logout()}
-                  className="block w-full rounded-xl px-4 py-3 text-left text-sm font-black text-[#b42318] transition hover:bg-[#fff0f0]"
-                >
-                  Sign out
-                </button>
-              </div>
-            </div>
-          </header>
+          <DashboardTopBar
+            title={
+              isVerified
+                ? `Hello, ${currentUser?.name || "Creator"}. Hope you're having a nice day!`
+                : `Welcome, ${currentUser?.name || "Creator"}. Nice to have you onboard!`
+            }
+            status={isVerified ? "verified-creator" : "under-review"}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+          />
         ),
       },
     ];
@@ -137,68 +162,68 @@ export const SideBarLayout = () => {
       {
         matches: () => pathname === "/brand",
         render: () => (
-          <header className="mb-12 flex flex-wrap items-center justify-between gap-5">
-            <div>
-              <h1 className="text-[28px] font-semibold tracking-normal text-[#173ca8]">
-                Welcome {currentUser?.name || "Brand"}
-              </h1>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <HeaderButton onClick={() => navigate("/brand/campaigns/new_create")} variant="solid">
-                <Plus className="h-5 w-5" />
-                Create Campaign
-              </HeaderButton>
-              <HeaderButton onClick={() => navigate("/brand/shortlists")} variant="outline">
-                <Plus className="h-5 w-5" />
-                Build Shortlist
-              </HeaderButton>
-            </div>
-          </header>
+          <DashboardTopBar
+            title={`Welcome ${currentUser?.name || "Brand"}`}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+            actions={
+              <>
+                <HeaderButton onClick={() => navigate("/brand/campaigns/new_create")} variant="solid">
+                  <Plus className="h-5 w-5" />
+                  Create Campaign
+                </HeaderButton>
+                <HeaderButton onClick={() => navigate("/brand/shortlists")} variant="outline">
+                  <Plus className="h-5 w-5" />
+                  Build Shortlist
+                </HeaderButton>
+              </>
+            }
+          />
         ),
       },
       {
         matches: () => pathname === "/creator",
         render: () => (
-          <header className="mb-12 flex flex-wrap items-center justify-between gap-5">
-            <div>
-              <h1 className="text-[28px] font-semibold tracking-normal text-[#173ca8]">
-                Welcome {currentUser?.name || "Creator"}
-              </h1>
-            </div>
-            <HeaderButton onClick={() => navigate("/creator/marketplace")} variant="solid">
-              Browse Campaigns
-            </HeaderButton>
-          </header>
+          <DashboardTopBar
+            title={`Welcome ${currentUser?.name || "Creator"}`}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+            actions={
+              <HeaderButton onClick={() => navigate("/creator/marketplace")} variant="solid">
+                Browse Campaigns
+              </HeaderButton>
+            }
+          />
         ),
       },
       {
         matches: () => pathname === "/brand/campaigns/new_create",
         render: () => (
-          <header className="mb-10 flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="text-[28px] font-semibold tracking-normal text-[#173ca8]">
-                Create new campaign
-              </h1>
-            </div>
-          </header>
+          <DashboardTopBar
+            title="Create new campaign"
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+          />
         ),
       },
       {
         matches: () => pathname === "/brand/campaigns",
         render: () => (
-          <header className="mb-12 flex flex-wrap items-center justify-between gap-5">
-            <div>
-              <h1 className="text-[28px] font-semibold tracking-normal text-[#173ca8]">
-                Campaigns
-              </h1>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
+          <DashboardTopBar
+            title="Campaigns"
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+            actions={
               <HeaderButton onClick={() => navigate("/brand/campaigns/new_create")} variant="solid">
                 <Plus className="h-5 w-5" />
                 Create Campaign
               </HeaderButton>
-            </div>
-          </header>
+            }
+          />
         ),
       },
     ];
@@ -218,10 +243,7 @@ export const SideBarLayout = () => {
             {
               isBrand ?
                 <TopComponentsBrand /> :
-                isVerified ?
-                  <TopComponentsCreatorverified />
-               :
-                <TopComponentsCreatorunverified />
+                <TopComponentsCreator />
             }
             <Outlet context={{ isVerified, mode }} />
           </div>
