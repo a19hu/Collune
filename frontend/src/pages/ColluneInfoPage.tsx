@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, BadgeCheck, BookOpenText, Building2, ExternalLink, HelpCircle, Info, Lock, Search, Sparkles, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { getBrandsList, getCreatorsList, type BrandProfileApi, type CreatorProfileApi } from "../lib/authApi";
+import { getBrandsList, getCreatorsList } from "../lib/authApi";
+import type { BrandProfileApi, CreatorProfileApi } from "../types";
 import creator1 from "../assets/collune/creator-1.png";
 import creator2 from "../assets/collune/creator-2.png";
 import creator3 from "../assets/collune/creator-3.png";
@@ -138,7 +139,7 @@ function LockedFilters() {
   );
 }
 
-function FeaturedBrandCard({ brand }: { brand: BrandProfileApi }) {
+function FeaturedBrandCard({ brand }: { brand: BrandProfileApi; key?: string }) {
   const initials = brand.company_name
     .split(/\s+/)
     .filter(Boolean)

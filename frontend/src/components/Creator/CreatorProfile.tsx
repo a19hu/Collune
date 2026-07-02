@@ -24,9 +24,8 @@ import {
   getYouTubeConnectUrl,
   refreshYouTubeVideos,
   updateCreatorProfile,
-  type CreatorProfileApi,
 } from "../../lib/authApi";
-import type { CreatorSocialPlatform } from "../../types";
+import type { CreatorProfileApi, CreatorSocialPlatform } from "../../types";
 
 type EditForm = {
   display_name: string;

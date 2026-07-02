@@ -25,7 +25,8 @@ import {
 import creatorOne from "../../../assets/collune/creator-1.png";
 import creatorTwo from "../../../assets/collune/creator-2.png";
 import creatorThree from "../../../assets/collune/creator-3.png";
-import { getCampaignApplications, type CampaignApplicationApi, type CreatorProfileApi } from "../../../lib/authApi";
+import { getCampaignApplications } from "../../../lib/authApi";
+import type { CampaignApplicationApi, CreatorProfileApi } from "../../../types";
 import { CampaignPanel } from "./CampaignUi";
 import type { CampaignCardItem } from "./campaignData";
 

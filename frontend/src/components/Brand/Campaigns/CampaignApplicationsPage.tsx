@@ -8,10 +8,8 @@ import creatorThree from "../../../assets/collune/creator-3.png";
 import {
   getCampaign,
   getCampaignApplications,
-  type CampaignApi,
-  type CampaignApplicationApi,
-  type CreatorProfileApi,
 } from "../../../lib/authApi";
+import type { CampaignApi, CampaignApplicationApi, CreatorProfileApi } from "../../../types";
 import { AddCreatorToShortlistModal } from "../Shortlists/AddCreatorToShortlistModal";
 import { CampaignPanel } from "./CampaignUi";
 

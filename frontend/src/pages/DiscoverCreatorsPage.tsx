@@ -2,7 +2,8 @@ import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext.tsx";
-import { getCreatorsList, type CreatorProfileApi } from "../lib/authApi.ts";
+import { getCreatorsList } from "../lib/authApi.ts";
+import type { CreatorProfileApi } from "../types";
 import { Lock } from "lucide-react";
 import { CreatorCard } from "../HtmlComponents/CreatorCard.tsx";
 

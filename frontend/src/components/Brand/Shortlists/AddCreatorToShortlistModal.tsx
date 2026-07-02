@@ -4,9 +4,8 @@ import { Check, Loader2, X } from "lucide-react";
 import {
   getBrandShortlists,
   updateBrandShortlist,
-  type BrandShortlistApi,
-  type CreatorProfileApi,
 } from "../../../lib/authApi";
+import type { BrandShortlistApi, CreatorProfileApi } from "../../../types";
 
 function creatorName(creator: CreatorProfileApi) {
   return creator.display_name || creator.user?.name || "Creator";

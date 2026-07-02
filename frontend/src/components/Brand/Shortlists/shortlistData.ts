@@ -4,7 +4,7 @@ import creatorOne from "../../../assets/collune/creator-1.png";
 import creatorTwo from "../../../assets/collune/creator-2.png";
 import creatorThree from "../../../assets/collune/creator-3.png";
 import creatorFour from "../../../assets/collune/creator-4.png";
-import type { BrandShortlistApi, BrandShortlistStatusApi, CreatorProfileApi } from "../../../lib/authApi";
+import type { BrandShortlistApi, BrandShortlistStatusApi, CreatorProfileApi } from "../../../types";
 import { formatUpdatedAt } from "@/src/HtmlComponents/BrandCard";
 
 export type ShortlistStatus = "Draft" | "Submitted" | "Outreach In Progress" | "Completed";

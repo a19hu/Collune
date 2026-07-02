@@ -7,8 +7,8 @@ import {
   getCampaignApplications,
   getCampaigns,
   getCampaignStatusSummaries,
-  type CampaignStatusSummaryApi,
 } from "../../../lib/authApi";
+import type { CampaignStatusSummaryApi } from "../../../types";
 import { CampaignMarketplaceDetail } from "./CampaignMarketplaceDetail";
 import { CampaignMarketplaceList } from "./CampaignMarketplaceList";
 import { MarketplaceHeader } from "./MarketplaceUi";

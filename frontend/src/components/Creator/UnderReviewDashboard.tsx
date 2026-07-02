@@ -1,6 +1,6 @@
 import { Panel } from "@/src/HtmlComponents/BrandCard";
 import { CreatorDashboardApi } from "@/src/types";
-import { CalendarDays, CheckCircle } from "lucide-react";
+import { CalendarDays, CheckCircle,Lock } from "lucide-react";
 
 export const UnderReviewDashboard = ({ dashboard }: { dashboard?: CreatorDashboardApi | null }) => {
 

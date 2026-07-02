@@ -3,7 +3,8 @@ import { Building2, ChevronDown, CircleHelp, FileText, Home, LogOut, Settings, S
 import { Link, NavLink } from "react-router-dom";
 import logo from "../../assets/Logo.svg";
 import { useAuth } from "../../contexts/AuthContext";
-import { getBrandMe, type BrandProfileApi } from "../../lib/authApi";
+import { getBrandMe } from "../../lib/authApi";
+import type { BrandProfileApi } from "../../types";
 
 export type SidebarMode = "creator" | "brand";
 

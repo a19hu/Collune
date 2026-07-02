@@ -3,7 +3,8 @@ import { Eye, Instagram, Linkedin, Megaphone, Star, Youtube } from "lucide-react
 
 import { CampaignPanel, CampaignSection, SelectInput, TextArea, TextInput, UploadBox } from "./CampaignUi";
 import { deliverablePrices, platforms, reviewStats } from "./campaignData";
-import { createCampaign, type CampaignPayload } from "../../../lib/authApi";
+import { createCampaign } from "../../../lib/authApi";
+import type { CampaignPayload } from "../../../types";
 import { RegisterError } from "../../../HtmlComponents/RegisterFormParts";
 
 type CampaignFormState = Omit<CampaignPayload, "minimum_followers" | "deliverable_pricing" | "platforms"> & {

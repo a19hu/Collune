@@ -41,7 +41,7 @@ export type SocialAccountForm = {
   handle: string;
 };
 
-export type CreatorSocialPlatform = "INSTAGRAM" | "YOUTUBE" |"X" | "FACEBOOK";
+export type CreatorSocialPlatform = "INSTAGRAM" | "YOUTUBE" | "LINKEDIN" | "X" | "FACEBOOK" | "TIKTOK" | "SNAPCHAT";
 
 
 export type VerificationState = {
@@ -182,7 +182,7 @@ export type BrandShortlistApi = BrandShortlistPayload & {
   created_at: string;
   updated_at: string;
 };
-type PaginatedResponse<T> = {
+export type PaginatedResponse<T> = {
   count: number;
   next: string | null;
   previous: string | null;
@@ -207,7 +207,7 @@ export type LoginResponse = {
   user: UserAccount;
 };
 
-type RegisterUserPayload = {
+export type RegisterUserPayload = {
   name: string;
   email: string;
   phone_no?: string;
@@ -316,7 +316,7 @@ export type CreatorProfileApi = {
   updated_at: string;
 };
 
-type CreatorListItemApi = Partial<CreatorProfileApi> & {
+export type CreatorListItemApi = CreatorProfileApi & {
   id?: string;
   username?: string;
   verified?: boolean;

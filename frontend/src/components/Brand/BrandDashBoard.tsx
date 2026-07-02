@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { getBrandDashboard, type BrandDashboardApi, type BrandProfileApi } from "../../lib/authApi";
+import { getBrandDashboard } from "../../lib/authApi";
+import type { BrandDashboardApi, BrandProfileApi } from "../../types";
 import { BrandCard, Panel, StatusPill } from "@/src/HtmlComponents/BrandCard";
 
 type Metric = {

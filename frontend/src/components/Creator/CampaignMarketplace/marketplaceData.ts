@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { BookOpen, BriefcaseBusiness, Dumbbell, GraduationCap, Leaf, Shirt, ShoppingBag } from "lucide-react";
 
-import type { CampaignApi, CampaignStatusSummaryApi } from "../../../lib/authApi";
+import type { CampaignApi, CampaignStatusSummaryApi } from "../../../types";
 
 export type MarketplaceCampaign = {
   id: string;

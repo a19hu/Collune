@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { getCreatorDashboard, type CreatorDashboardApi } from "../../lib/authApi";
+import { getCreatorDashboard } from "../../lib/authApi";
+import type { CreatorDashboardApi } from "../../types";
 import { Panel } from "@/src/HtmlComponents/BrandCard";
 import { UnderReviewDashboard } from "./UnderReviewDashboard";
 

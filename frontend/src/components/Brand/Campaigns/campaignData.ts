@@ -8,7 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import type { CampaignApi } from "../../../lib/authApi";
+import type { CampaignApi } from "../../../types";
 import { formatUpdatedAt } from "@/src/HtmlComponents/BrandCard";
 
 export type CampaignStatus = "Active" | "Draft" | "Paused" | "Reviewing" | "Completed";
