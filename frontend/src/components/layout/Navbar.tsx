@@ -22,7 +22,6 @@ const navItems = [
   {
     label: "Brands",
     items: [
-      { label: "Featured Brands", href: "/featured-brands" },
       { label: "Success Stories", href: "/success-stories" },
     ],
   },
@@ -45,7 +44,7 @@ const Navbar = () => {
   return (
     <header className="fixed left-1/2 top-4 z-50 w-[calc(100%-32px)] max-w-7xl -translate-x-1/2 md:top-5">
       <div className="grid grid-cols-[1fr_auto] items-center gap-4 lg:grid-cols-[1fr_auto_1fr]">
-        <ColluneLogo to={currentUser ? dashboardPath : "/"} />
+        <ColluneLogo to={'/#top'} />
 
         <nav className="hidden items-center gap-8 rounded-full border border-[#dce5fb] bg-white/85 px-11 py-4 shadow-[0_16px_34px_rgba(69,96,170,0.1)] backdrop-blur-xl lg:flex">
           {navItems.map((item) =>

@@ -7,6 +7,7 @@ import {
   Check,
   Clock3,
   FileText,
+  Heart,
   Lock,
   MessageCircle,
   Play,
@@ -16,6 +17,7 @@ import {
   Sparkles,
   Star,
   Upload,
+  UsersRound,
   UserRound,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -276,22 +278,29 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section id="how-it-works" className="px-6 pb-28 text-center">
-        <SectionLabel>How It Works</SectionLabel>
-        <h2 className="mb-5 mt-8 text-[clamp(42px,5.4vw,66px)] font-black leading-none tracking-normal text-[#153fb8]">
+      <section id="how-it-works" className="bg-[#f3f6ff] px-6 pb-24 pt-4 text-center">
+        <SectionLabel className="min-w-[235px] bg-white/35">How It Works</SectionLabel>
+        <h2 className="mb-6 mt-7 text-[clamp(42px,5.35vw,66px)] font-black leading-none tracking-normal text-[#153fb8]">
           Two Journeys. <span className="italic text-[#ad9bff]">One collaboration</span>
         </h2>
-        <p className="mx-auto max-w-xl text-[15px] font-extrabold leading-tight text-[#4e5c77]">
+        <p className="mx-auto max-w-xl text-[15px] font-black leading-tight text-[#566179]">
           Whether you're a brand or a creator, Collune makes collaborations simple,
           structured, and successful.
         </p>
-        <div className="mx-auto mt-16 grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_320px_1fr]">
+        <div className="relative mx-auto mt-8 grid max-w-[1088px] items-center gap-10 lg:mt-7 lg:grid-cols-[1fr_250px_1fr] lg:gap-12">
+          <span className="absolute left-[34.5%] top-[128px] hidden h-[398px] w-[56px] rounded-r-[54px] border-y-2 border-r-2 border-dashed border-[#9aaaff] lg:block" />
+          <span className="absolute right-[34.5%] top-[128px] hidden h-[398px] w-[56px] rounded-l-[54px] border-y-2 border-l-2 border-dashed border-[#9aaaff] lg:block" />
           <JourneyColumn title="For Brands" side="left" steps={brandSteps} />
-          <div className="relative order-first grid min-h-[260px] place-items-center lg:order-none lg:min-h-[390px] lg:before:absolute lg:before:right-1/2 lg:before:top-1/2 lg:before:w-36 lg:before:border-t-2 lg:before:border-dashed lg:before:border-[#a8b7ff] lg:before:content-[''] lg:after:absolute lg:after:left-1/2 lg:after:top-1/2 lg:after:w-36 lg:after:border-t-2 lg:after:border-dashed lg:after:border-[#a8b7ff] lg:after:content-['']">
-            <div className="relative z-10 grid h-[220px] w-[220px] place-items-center content-center rounded-full border-[20px] border-[#e9e5ff] bg-white p-10 text-center text-[#8794ff] shadow-[0_20px_42px_rgba(56,72,145,0.08)] md:h-[245px] md:w-[245px]">
-              <Sparkles className="h-9 w-9 fill-current" />
-              <strong className="mt-2 text-[22px] font-black">Collaborate</strong>
-              <span className="text-[11px] font-extrabold leading-tight text-[#8a94ad]">Build meaningful partnerships that create real impact.</span>
+          <div className="relative order-first grid min-h-[230px] place-items-center lg:order-none lg:min-h-[498px]">
+            <span className="absolute left-[-42px] top-1/2 hidden h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-[#8195ff] lg:block" />
+            <span className="absolute right-[-42px] top-1/2 hidden h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-[#8195ff] lg:block" />
+            <div className="relative z-10 grid h-[198px] w-[198px] place-items-center content-center rounded-full border-[18px] border-[#eeeaff] bg-white p-9 text-center text-[#8294ff] shadow-[0_18px_45px_rgba(129,149,255,0.16),0_0_0_16px_rgba(255,255,255,0.42)] md:h-[216px] md:w-[216px]">
+              <span className="relative mb-1 grid h-[48px] w-[66px] place-items-center">
+                <UsersRound className="h-10 w-10 stroke-[3]" />
+                <Heart className="absolute -top-1 right-2 h-6 w-6 fill-white stroke-[3]" />
+              </span>
+              <strong className="text-[20px] font-black leading-none">Collaborate</strong>
+              <span className="mt-1 max-w-[124px] text-[10px] font-black leading-[1.05] text-[#8b96ab]">Build meaningful partnerships that create real impact.</span>
             </div>
           </div>
           <JourneyColumn title="For Creators" side="right" steps={creatorSteps} />
@@ -319,9 +328,9 @@ const LandingPage = () => {
   );
 };
 
-function SectionLabel({ children }: { children: string }) {
+function SectionLabel({ children, className = "" }: { children: string; className?: string }) {
   return (
-    <div className="inline-flex min-h-7 min-w-[min(330px,100%)] items-center justify-center gap-2 rounded-full border border-[#dae3ff] bg-white/60 px-8 text-[12px] font-black uppercase text-[#2a54cf]">
+    <div className={`inline-flex min-h-7 min-w-[min(330px,100%)] items-center justify-center gap-2 rounded-full border border-[#dae3ff] bg-white/60 px-8 text-[12px] font-black uppercase text-[#2a54cf] ${className}`}>
       <span className="h-2 w-2 rounded-full bg-[#8195ff] shadow-[0_0_0_4px_rgba(129,149,255,0.13)]" />
       {children}
     </div>
@@ -406,25 +415,34 @@ function JourneyColumn({
   steps: typeof brandSteps;
 }) {
   return (
-    <div>
-      <div className="mb-8 inline-flex min-w-[220px] items-center justify-center gap-2 rounded-full border border-[#dce5ff] px-5 py-2.5 text-[13px] font-black uppercase text-[#3558c9]">
+    <div className="relative z-10 mx-auto w-full max-w-[354px] lg:mx-0">
+      <div className="mb-6 inline-flex min-w-[205px] items-center justify-center gap-2 rounded-full border border-[#dce5ff] bg-white/20 px-5 py-2 text-[13px] font-black uppercase text-[#3558c9]">
         {side === "left" ? <Star className="h-3.5 w-3.5" /> : <UserRound className="h-3.5 w-3.5" />}
         {title}
       </div>
-      <div className="relative grid gap-7 before:absolute before:bottom-9 before:top-9 before:border-l-2 before:border-dashed before:border-[#b1bdff] before:content-[''] before:left-0 lg:before:left-3">
+      <div
+        className={`relative grid gap-8 before:absolute before:bottom-10 before:top-10 before:border-l-2 before:border-dashed before:border-[#9aaaff] before:content-[''] ${
+          side === "left" ? "before:left-[-27px]" : "before:right-[-27px]"
+        }`}
+      >
         {steps.map((step, index) => {
           const Icon = step.icon;
           return (
-            <article key={step.title} className="relative grid min-h-[116px] grid-cols-[64px_1fr] items-center gap-4 rounded-lg border border-[#edf1fb] bg-white p-5 text-left shadow-[0_14px_30px_rgba(35,58,124,0.08)] md:grid-cols-[84px_1fr]">
-              <span className={`absolute top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border-2 border-[#93a4ff] bg-[#f5f7ff] text-xs font-black text-[#7e91ff] ${side === "left" ? "-left-3 lg:-left-12" : "-left-3 lg:-right-12 lg:left-auto"}`}>
+            <article key={step.title} className="relative grid min-h-[98px] grid-cols-[72px_1fr] items-center gap-3 rounded-[18px] bg-white px-4 py-4 text-left shadow-[0_10px_22px_rgba(45,63,132,0.07)] md:grid-cols-[80px_1fr]">
+              <span
+                className={`absolute top-1/2 hidden h-px w-5 -translate-y-1/2 border-t-2 border-dashed border-[#9aaaff] lg:block ${
+                  side === "left" ? "-left-5" : "-right-5"
+                }`}
+              />
+              <span className={`absolute top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border-2 border-[#8ea1ff] bg-[#f3f6ff] text-[13px] font-black leading-none text-[#8094ff] ${side === "left" ? "-left-[39px]" : "-right-[39px]"}`}>
                 {index + 1}
               </span>
-              <span className="grid h-16 w-16 place-items-center rounded-lg bg-[#e7edff] text-[#8194ff] md:h-[76px] md:w-[76px]">
-                <Icon className="h-8 w-8" />
+              <span className="grid h-[60px] w-[60px] place-items-center rounded-[7px] bg-[#e0e8ff] text-[#8194ff] md:h-[72px] md:w-[72px]">
+                <Icon className="h-8 w-8 stroke-[2.6]" />
               </span>
               <div>
-                <h3 className="mb-1 text-[17px] font-black text-[#3a4864]">{step.title}</h3>
-                <p className="text-[13px] font-extrabold leading-tight text-[#7c879d]">{step.text}</p>
+                <h3 className="mb-1 text-[17px] font-black leading-none text-[#3f485a]">{step.title}</h3>
+                <p className="text-[12px] font-black leading-tight text-[#748098]">{step.text}</p>
               </div>
             </article>
           );
