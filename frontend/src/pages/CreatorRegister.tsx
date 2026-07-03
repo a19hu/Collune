@@ -1,6 +1,6 @@
 import type { ChangeEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { HtmlProgess } from "../HtmlComponents/HtmlProgress";
 import { AuthSwitchLink, RegisterError, RegisterSubmitButtons } from "../HtmlComponents/RegisterFormParts";
@@ -10,6 +10,7 @@ import { authStorage } from "../contexts/authStorage";
 import {
   checkEmailAvailability,
   getFacebookConnectUrl,
+  getCreatorProfile,
   getInstagramConnectUrl,
   getXConnectUrl,
   getYouTubeConnectUrl,
@@ -44,6 +45,24 @@ const initialSocialAccounts: SocialAccountForm[] = [
   { platform: "X", title: "X (Twitter)", handle: "" },
 ];
 
+const initialConnectedPlatforms: Record<CreatorSocialPlatform, boolean> = {
+  INSTAGRAM: false,
+  YOUTUBE: false,
+  FACEBOOK: false,
+  X: false,
+};
+
+const socialConnectOptions: Array<{
+  platform: CreatorSocialPlatform;
+  oauth: "instagram" | "youtube" | "facebook" | "x";
+  label: string;
+}> = [
+  { platform: "INSTAGRAM", oauth: "instagram", label: "Instagram" },
+  { platform: "YOUTUBE", oauth: "youtube", label: "YouTube" },
+  { platform: "FACEBOOK", oauth: "facebook", label: "Facebook" },
+  { platform: "X", oauth: "x", label: "X" },
+];
+
 const initialVerification: VerificationState = {
   emailSent: false,
   emailVerified: false,
@@ -59,14 +78,12 @@ const initialVerification: VerificationState = {
 
 const CreatorRegister = () => {
   const navigate = useNavigate();
-  const { step: stepParam } = useParams();
   const { setSessionUser } = useAuth();
-  const initialStep = Math.min(totalSteps, Math.max(1, Number(stepParam) || 1));
-  const [step, setStepState] = useState(initialStep);
+  const [step, setStepState] = useState(1);
   const [form, setForm] = useState<CreatorRegisterForm>(initialCreatorForm);
   const [showPassword, setShowPassword] = useState(false);
   const [phoneOtp, setPhoneOtp] = useState("");
-  const [socialAccounts, setSocialAccounts] = useState<SocialAccountForm[]>(initialSocialAccounts);
+  const socialAccounts = initialSocialAccounts;
   const [verification, setVerification] = useState<VerificationState>(initialVerification);
   const [selectedSocialPlatform, setSelectedSocialPlatform] = useState<CreatorSocialPlatform | "">(
     () => (localStorage.getItem("creatorRegisterSocialPlatform") as CreatorSocialPlatform | null) || "",
@@ -74,6 +91,7 @@ const CreatorRegister = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConnecting, setIsConnecting] = useState("");
   const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [connectedPlatforms, setConnectedPlatforms] = useState<Record<CreatorSocialPlatform, boolean>>(initialConnectedPlatforms);
   const [submitError, setSubmitError] = useState("");
 
   const onFieldChange = (field: keyof CreatorRegisterForm) => (
@@ -101,15 +119,50 @@ const CreatorRegister = () => {
   const setStep = (updater: (current: number) => number) => {
     setStepState((current) => {
       const next = Math.min(totalSteps, Math.max(1, updater(current)));
-      navigate(`/creator-register/${next}`, { replace: true });
       return next;
     });
   };
 
+  const loadSocialConnectionStatus = async () => {
+    const profile = await getCreatorProfile();
+    const next = { ...initialConnectedPlatforms };
+    profile.social_accounts.forEach((account) => {
+      if (account.is_connected) next[account.platform] = true;
+    });
+    setConnectedPlatforms(next);
+  };
+
   useEffect(() => {
-    const next = Math.min(totalSteps, Math.max(1, Number(stepParam) || 1));
-    setStepState(next);
-  }, [stepParam]);
+    const params = new URLSearchParams(window.location.search);
+    const socialStatus = socialConnectOptions.find(({ oauth }) => params.has(oauth));
+    const shouldShowSocialStep = params.get("social_step") === "1" || Boolean(socialStatus);
+
+    if (!shouldShowSocialStep) return;
+
+    if (authStorage.getAccessToken()) {
+      setRegistrationComplete(true);
+      void loadSocialConnectionStatus().catch(() => {
+        setSubmitError("Could not refresh social connection status.");
+      });
+    } else {
+      setStepState(3);
+    }
+
+    if (socialStatus && params.get(socialStatus.oauth) === "connected") {
+      localStorage.removeItem("creatorRegisterSocialPlatform");
+    }
+
+    if (socialStatus && params.get(socialStatus.oauth) === "error") {
+      setSubmitError(`Could not connect ${socialStatus.label}. Please try again.`);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!registrationComplete || !authStorage.getAccessToken()) return;
+    void loadSocialConnectionStatus().catch(() => {
+      setSubmitError("Could not refresh social connection status.");
+    });
+  }, [registrationComplete]);
 
   const canContinue = useMemo(() => {
     if (step === 1) return Boolean(form.name.trim() && form.email.trim() && form.phone_no.trim() && form.password);
@@ -212,6 +265,7 @@ const CreatorRegister = () => {
       }
       localStorage.removeItem("creatorRegisterSocialPlatform");
       setRegistrationComplete(true);
+      void loadSocialConnectionStatus();
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Could not create your creator account.");
       setIsConnecting("");
@@ -256,22 +310,24 @@ const CreatorRegister = () => {
           </p>
           <RegisterError message={submitError} />
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
-            {[
-              ["instagram", "Connect Instagram"],
-              ["youtube", "Connect YouTube"],
-              ["facebook", "Connect Facebook"],
-              ["x", "Connect X"],
-            ].map(([platform, label]) => (
-              <button
-                key={platform}
-                type="button"
-                disabled={Boolean(isConnecting)}
-                onClick={() => void connectOAuth(platform as "instagram" | "youtube" | "facebook" | "x")}
-                className="h-12 rounded-xl border border-[#d8e2fb] bg-white px-4 text-sm font-black text-[#173ca8] disabled:opacity-60"
-              >
-                {isConnecting === platform ? "Opening..." : label}
-              </button>
-            ))}
+            {socialConnectOptions.map(({ platform, oauth, label }) => {
+              const isConnected = connectedPlatforms[platform];
+              return (
+                <button
+                  key={platform}
+                  type="button"
+                  disabled={isConnected || Boolean(isConnecting)}
+                  onClick={() => void connectOAuth(oauth)}
+                  className={`h-12 rounded-xl border px-4 text-sm font-black disabled:opacity-60 ${
+                    isConnected
+                      ? "border-[#bdebd9] bg-[#effbf6] text-[#067647]"
+                      : "border-[#d8e2fb] bg-white text-[#173ca8]"
+                  }`}
+                >
+                  {isConnected ? "Connected" : isConnecting === oauth ? "Opening..." : `Connect ${label}`}
+                </button>
+              );
+            })}
           </div>
           <button
             type="button"

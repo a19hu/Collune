@@ -51,6 +51,7 @@ def auth_user_payload(user):
         "name": user.name or user.profile_name,
         "email": user.email,
         "role": role_map.get(user.role, "Super Admin"),
+        "verification_status":user.verification_status
     }
 
 

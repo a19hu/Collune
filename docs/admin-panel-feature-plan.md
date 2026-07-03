@@ -172,7 +172,6 @@ Existing support:
 
 - `Campaign.status`: `DRAFT`, `ACTIVE`, `REVIEWING`, `PAUSED`, `COMPLETED`.
 - `CampaignApplication`
-- `CampaignStatusSummary`
 
 Backend needed:
 
@@ -222,10 +221,8 @@ New model recommended:
   - `campaign`
   - `creator`
   - `assigned_by`
-  - `status`: `SHORTLISTED`, `INVITED`, `ACCEPTED`, `REJECTED`, `NEGOTIATING`, `CONFIRMED`
   - `admin_notes`
   - `creator_response`
-  - `quoted_rate`
   - `created_at`
   - `updated_at`
 

@@ -1,18 +1,17 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   BadgeCheck,
-  BarChart3,
-  Check,
+  Camera,
+  CheckCircle2,
+  ExternalLink,
   Globe2,
   Instagram,
   Loader2,
   MapPin,
-  Pencil,
   Save,
   Twitter,
   Upload,
   UserRound,
-  X,
   Youtube,
 } from "lucide-react";
 import {
@@ -21,46 +20,45 @@ import {
   getInstagramConnectUrl,
   getXConnectUrl,
   getYouTubeConnectUrl,
-  refreshYouTubeVideos,
   updateCreatorProfile,
 } from "../../lib/authApi";
-import type { CreatorProfileApi, CreatorSocialPlatform } from "../../types";
+import type { CreatorListPlatformApi, CreatorProfileApi, CreatorSocialPlatform } from "../../types";
 
 type EditForm = {
-  display_name: string;
   category: string;
   location: string;
   languages: string;
   collaboration_preferences: string;
+  work_with: string;
   bio: string;
-  portfolio_url?: string;
-  is_profile_visible: boolean;
-  audience_size: string;
-  rate_min?: string;
-  rate_max: string;
+  about: string;
+  gender: string;
   profile_image: File | null;
 };
 
-const fallbackPortfolio = [
-  "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=480&q=80",
-  "https://images.unsplash.com/photo-1492724441997-5dc865305da7?auto=format&fit=crop&w=480&q=80",
-  "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=480&q=80",
-  "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=480&q=80",
-  "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=480&q=80",
-];
-
 const platformMeta: Record<CreatorSocialPlatform, { label: string; color: string; Icon: typeof Instagram }> = {
-  INSTAGRAM: { label: "Instagram", color: "bg-[#f4a5ff]", Icon: Instagram },
-  YOUTUBE: { label: "Youtube", color: "bg-[#ff624f]", Icon: Youtube },
-  X: { label: "X / Twitter", color: "bg-[#344055]", Icon: Twitter },
-  FACEBOOK: { label: "Facebook", color: "bg-[#4f7cff]", Icon: Globe2 },
+  INSTAGRAM: { label: "Instagram", color: "bg-[#e1306c]", Icon: Instagram },
+  YOUTUBE: { label: "YouTube", color: "bg-[#ff0000]", Icon: Youtube },
+  FACEBOOK: { label: "Facebook", color: "bg-[#1877f2]", Icon: Globe2 },
+  X: { label: "X", color: "bg-[#111827]", Icon: Twitter },
 };
 
-function compactNumber(value: number) {
-  if (!Number.isFinite(value)) return "0";
-  if (value >= 1000000) return `${(value / 1000000).toFixed(value % 1000000 === 0 ? 0 : 1)}M`;
-  if (value >= 1000) return `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}K`;
-  return String(value);
+const profileSections = [
+  { id: "profile", label: "Profile data" },
+  { id: "content", label: "Content" },
+  { id: "social", label: "Social accounts" },
+  { id: "preview", label: "Public preview" },
+];
+
+function compactNumber(value?: number) {
+  const safeValue = Number(value || 0);
+  if (safeValue >= 1000000) return `${(safeValue / 1000000).toFixed(safeValue % 1000000 === 0 ? 0 : 1)}M`;
+  if (safeValue >= 1000) return `${(safeValue / 1000).toFixed(safeValue % 1000 === 0 ? 0 : 1)}K`;
+  return String(safeValue);
+}
+
+function listToCsv(value?: string[]) {
+  return (value || []).join(", ");
 }
 
 function csvToList(value: string) {
@@ -72,103 +70,113 @@ function csvToList(value: string) {
 
 function toEditForm(profile: CreatorProfileApi): EditForm {
   return {
-    display_name: profile.display_name || "",
     category: profile.category || "",
     location: profile.location || "",
-    languages: (profile.languages || []).join(", "),
-    collaboration_preferences: (profile.collaboration_preferences || []).join(", "),
+    languages: listToCsv(profile.languages),
+    collaboration_preferences: listToCsv(profile.collaboration_preferences),
+    work_with: listToCsv(profile.work_with),
     bio: profile.bio || "",
-    portfolio_url: profile.portfolio_url || "",
-    is_profile_visible: Boolean(profile.is_profile_visible),
-    audience_size: String(profile.audience_size || 0),
-    rate_min: String(profile.rate_min || "0"),
-    rate_max: String(profile.rate_max || "0"),
+    about: profile.about || "",
+    gender: profile.gender || "",
     profile_image: null,
   };
 }
 
-function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-[8px] border border-[#dce4f0] bg-white ${className}`}>{children}</section>;
+function Card({ children, className = "", id }: { children: ReactNode; className?: string; id?: string }) {
+  return <section id={id} className={`rounded-[8px] border border-[#dce4f0] bg-white ${className}`}>{children}</section>;
 }
 
-function SectionTitle({ icon, title, right }: { icon?: ReactNode; title: string; right?: ReactNode }) {
+function FieldLabel({ children }: { children: ReactNode }) {
+  return <span className="text-xs font-black uppercase tracking-wide text-[#63708a]">{children}</span>;
+}
+
+function TextInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
   return (
-    <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center gap-2 text-[13px] font-bold text-[#65718a]">
-        {icon}
-        <span>{title}</span>
-      </div>
-      {right}
-    </div>
+    <label className="grid gap-2">
+      <FieldLabel>{label}</FieldLabel>
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="h-11 rounded-[6px] border border-[#d7deea] bg-white px-3 text-sm font-semibold text-[#25304a] outline-none focus:border-[#3659d7] focus:ring-4 focus:ring-[#3659d7]/10"
+      />
+    </label>
   );
 }
 
-function MetricTile({ value, label }: { value: string; label: string }) {
+function TextArea({
+  label,
+  value,
+  onChange,
+  rows = 4,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  rows?: number;
+  placeholder?: string;
+}) {
   return (
-    <div className="grid min-h-[82px] place-items-center rounded-[6px] bg-[#eef4ff] px-3 text-center">
-      <strong className="text-[24px] font-black leading-none text-[#1438c8]">{value}</strong>
-      <span className="mt-1 text-[11px] font-semibold text-[#6c7790]">{label}</span>
-    </div>
+    <label className="grid gap-2">
+      <FieldLabel>{label}</FieldLabel>
+      <textarea
+        rows={rows}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="resize-none rounded-[6px] border border-[#d7deea] bg-white px-3 py-2 text-sm font-semibold leading-relaxed text-[#25304a] outline-none focus:border-[#3659d7] focus:ring-4 focus:ring-[#3659d7]/10"
+      />
+    </label>
   );
 }
 
+function getPlatformRows(profile: CreatorProfileApi): CreatorListPlatformApi[] {
+  if (profile.platform_data?.length) return profile.platform_data;
+  return (profile.social_accounts || []).map((account) => ({
+    name: account.platform,
+    followers: account.followers || 0,
+    engagement_rate: account.engagement_rate,
+    view_count: account.view_count,
+    media_count: account.media_count,
+  }));
+}
 
 export function CreatorProfile() {
   const [profile, setProfile] = useState<CreatorProfileApi | null>(null);
   const [form, setForm] = useState<EditForm | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [activeSection, setActiveSection] = useState("profile");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isConnectingInstagram, setIsConnectingInstagram] = useState(false);
-  const [isConnectingYouTube, setIsConnectingYouTube] = useState(false);
-  const [isConnectingFacebook, setIsConnectingFacebook] = useState(false);
-  const [isConnectingX, setIsConnectingX] = useState(false);
-  const [isRefreshingYouTube, setIsRefreshingYouTube] = useState(false);
-  const [error, setError] = useState("");
+  const [connectingPlatform, setConnectingPlatform] = useState("");
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let mounted = true;
     setIsLoading(true);
+
     getCreatorProfile()
       .then((data) => {
         if (!mounted) return;
         setProfile(data);
         setForm(toEditForm(data));
-        const callbackParams = new URLSearchParams(window.location.search);
-        const instagramStatus = callbackParams.get("instagram");
-        const instagramReason = callbackParams.get("instagram_reason");
-        const youtubeStatus = callbackParams.get("youtube");
-        const facebookStatus = callbackParams.get("facebook");
-        const facebookReason = callbackParams.get("facebook_reason");
-        const xStatus = callbackParams.get("x");
-        if (instagramStatus === "connected") setMessage("Instagram connected.");
-        if (instagramStatus === "error") {
-          const reasonMessage = instagramReason === "token"
-            ? "Instagram token exchange failed. Check the Instagram client secret and exact redirect URI."
-            : instagramReason === "profile"
-              ? "Instagram profile fetch failed. Check app permissions and Instagram account type."
-              : instagramReason === "state"
-                ? "Instagram session expired. Start the connect flow again."
-                : "Instagram connection failed. Please try again.";
-          setError(reasonMessage);
-        }
-        if (youtubeStatus === "connected") setMessage("YouTube connected.");
-        if (youtubeStatus === "no_channel") setError("No YouTube channel found for this Google account.");
-        if (youtubeStatus === "error") setError("YouTube connection failed. Please try again.");
-        if (facebookStatus === "connected") setMessage("Facebook connected.");
-        if (facebookStatus === "error") {
-          const reasonMessage = facebookReason === "token"
-            ? "Facebook token exchange failed. Check the app secret and exact redirect URI."
-            : facebookReason === "profile"
-              ? "Facebook profile fetch failed. Check app permissions and Graph API fields."
-              : facebookReason === "state"
-                ? "Facebook session expired. Start the connect flow again."
-                : "Facebook connection failed. Please try again.";
-          setError(reasonMessage);
-        }
-        if (xStatus === "connected") setMessage("X connected.");
-        if (xStatus === "error") setError("X connection failed. Please try again.");
+
+        const params = new URLSearchParams(window.location.search);
+        const connected = ["instagram", "youtube", "facebook", "x"].find((key) => params.get(key) === "connected");
+        const failed = ["instagram", "youtube", "facebook", "x"].find((key) => params.get(key) === "error");
+        if (connected) setMessage(`${connected.toUpperCase()} connected.`);
+        if (failed) setError(`${failed.toUpperCase()} connection failed. Please try again.`);
       })
       .catch((err: Error) => {
         if (mounted) setError(err.message || "Unable to load creator profile.");
@@ -182,31 +190,10 @@ export function CreatorProfile() {
     };
   }, []);
 
-  const profileStats = useMemo(() => {
-    const audience = profile?.audience_size || 0;
-    return {
-      totalFollowers: compactNumber(audience),
-      engagementRate: audience ? "5.1%" : "0%",
-      reach: compactNumber(Math.max(Math.round(audience * 0.5), audience ? 1200 : 0)),
-      comments: compactNumber(Math.max(Math.round(audience * 0.1), audience ? 250 : 0)),
-      shares: compactNumber(Math.max(Math.round(audience * 0.06), audience ? 140 : 0)),
-    };
-  }, [profile]);
-
-  const visiblePlatforms = useMemo(() => {
-    const accounts = profile?.social_accounts || [];
-    if (accounts.length) return accounts.slice(0, 4);
-    return [
-      { account_id: "instagram", platform: "INSTAGRAM" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.5), is_connected: false, created_at: "" },
-      { account_id: "youtube", platform: "YOUTUBE" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.3), is_connected: false, created_at: "" },
-      { account_id: "facebook", platform: "FACEBOOK" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.2), is_connected: false, created_at: "" },
-      { account_id: "x", platform: "X" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.12), is_connected: false, created_at: "" },
-    ];
-  }, [profile]);
-  const youtubeAccount = useMemo(
-    () => profile?.social_accounts.find((account) => account.platform === "YOUTUBE" && account.is_connected),
-    [profile],
-  );
+  const platformRows = useMemo(() => (profile ? getPlatformRows(profile) : []), [profile]);
+  const totalFollowers = profile?.total_followers ?? platformRows.reduce((sum, item) => sum + (item.followers || 0), 0);
+  const avatar = profile?.profile_image_url || profile?.profile_image || "";
+  const publicProfileUrl = profile ? `/creators/${profile.creator_id}` : "";
 
   function updateField<K extends keyof EditForm>(key: K, value: EditForm[K]) {
     setForm((current) => (current ? { ...current, [key]: value } : current));
@@ -219,24 +206,20 @@ export function CreatorProfile() {
     setMessage("");
 
     const body = new FormData();
-    body.append("display_name", form.display_name);
     body.append("category", form.category);
     body.append("location", form.location);
     body.append("languages", JSON.stringify(csvToList(form.languages)));
     body.append("collaboration_preferences", JSON.stringify(csvToList(form.collaboration_preferences)));
+    body.append("work_with", JSON.stringify(csvToList(form.work_with)));
     body.append("bio", form.bio);
-    body.append("portfolio_url", form.portfolio_url);
-    body.append("is_profile_visible", String(form.is_profile_visible));
-    body.append("audience_size", form.audience_size || "0");
-    body.append("rate_min", form.rate_min || "0");
-    body.append("rate_max", form.rate_max || "0");
+    body.append("about", form.about);
+    body.append("gender", form.gender);
     if (form.profile_image) body.append("profile_image", form.profile_image);
 
     try {
       const updated = await updateCreatorProfile(body);
       setProfile(updated);
       setForm(toEditForm(updated));
-      setIsEditing(false);
       setMessage("Profile updated.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to update creator profile.");
@@ -245,415 +228,262 @@ export function CreatorProfile() {
     }
   }
 
-  async function connectInstagram() {
-    setIsConnectingInstagram(true);
+  async function connectSocial(platform: "instagram" | "youtube" | "facebook" | "x") {
+    setConnectingPlatform(platform);
     setError("");
     try {
-      const data = await getInstagramConnectUrl();
-      window.location.href = data.auth_url;
+      const response =
+        platform === "instagram"
+          ? await getInstagramConnectUrl()
+          : platform === "youtube"
+            ? await getYouTubeConnectUrl()
+            : platform === "facebook"
+              ? await getFacebookConnectUrl()
+              : await getXConnectUrl();
+      window.location.href = response.auth_url;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to start Instagram OAuth.");
-      setIsConnectingInstagram(false);
-    }
-  }
-
-  async function connectYouTube() {
-    setIsConnectingYouTube(true);
-    setError("");
-    try {
-      const data = await getYouTubeConnectUrl();
-      window.location.href = data.auth_url;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to start YouTube OAuth.");
-      setIsConnectingYouTube(false);
-    }
-  }
-
-  async function connectFacebook() {
-    setIsConnectingFacebook(true);
-    setError("");
-    try {
-      const data = await getFacebookConnectUrl();
-      window.location.href = data.auth_url;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to start Facebook OAuth.");
-      setIsConnectingFacebook(false);
-    }
-  }
-
-  async function connectX() {
-    setIsConnectingX(true);
-    setError("");
-    try {
-      const data = await getXConnectUrl();
-      window.location.href = data.auth_url;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to start X OAuth.");
-      setIsConnectingX(false);
-    }
-  }
-
-  async function refreshYouTube() {
-    setIsRefreshingYouTube(true);
-    setError("");
-    setMessage("");
-    try {
-      const updated = await refreshYouTubeVideos();
-      setProfile(updated);
-      setForm(toEditForm(updated));
-      setMessage("YouTube videos refreshed.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to refresh YouTube videos.");
-    } finally {
-      setIsRefreshingYouTube(false);
+      setError(err instanceof Error ? err.message : `Unable to connect ${platform}.`);
+      setConnectingPlatform("");
     }
   }
 
   if (isLoading) {
     return (
       <div className="grid min-h-[420px] place-items-center rounded-[8px] border border-[#dce4f0] bg-white">
-        <Loader2 className="h-9 w-9 animate-spin text-[#1438c8]" />
+        <Loader2 className="h-9 w-9 animate-spin text-[#2447bd]" />
       </div>
     );
   }
 
   if (!profile || !form) {
-    return <Panel className="p-6 text-sm font-semibold text-[#b42318]">{error || "No creator profile found."}</Panel>;
+    return <Card className="p-6 text-sm font-semibold text-[#b42318]">{error || "No creator profile found."}</Card>;
   }
 
-  const name = profile.display_name || profile.user?.name || "Creator";
-  const avatar = profile.profile_image_url;
-  const chips = [
-    profile.category,
-    `${profile.profile_completion || 0}% profile complete`,
-    Number(profile.rate_min) || Number(profile.rate_max) ? `₹${compactNumber(Number(profile.rate_min) || 0)} - ₹${compactNumber(Number(profile.rate_max) || 0)}` : "",
-    ...profile.languages.slice(0, 2),
-    ...profile.collaboration_preferences.slice(0, 3),
-  ].filter(Boolean);
-  const updatedDate = profile.updated_at ? new Date(profile.updated_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "";
-
   return (
-    <div className="mx-auto max-w-[980px] bg-[#f4f7fb] p-2 text-[#25304a] sm:p-3">
-      <Panel className="overflow-hidden p-5 sm:p-7">
-        <div className="grid gap-6 lg:grid-cols-[250px_1fr_auto] lg:items-start">
-          <div className="relative h-[210px] w-[210px] overflow-hidden rounded-full bg-[#f3e4d4]">
-            {avatar ? (
-              <img src={avatar} alt={name} className="h-full w-full object-cover" />
-            ) : (
-              <div className="grid h-full w-full place-items-center text-[#1438c8]">
-                <UserRound className="h-24 w-24" />
-              </div>
-            )}
-            <span className="absolute bottom-5 right-6 grid h-11 w-11 place-items-center rounded-full bg-[#7486ff] text-white ring-4 ring-white">
-              <Check className="h-6 w-6" />
-            </span>
-          </div>
-
-          <div className="pt-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-[28px] font-black leading-tight text-[#1438c8]">{name}</h1>
-              <BadgeCheck className="h-5 w-5 fill-[#6f85ff] text-white" />
+    <div className="min-h-screen bg-[#f4f7fb] p-3 text-[#25304a]">
+      <div className="mx-auto grid max-w-[1280px] gap-4 xl:grid-cols-[210px_minmax(0,1fr)_390px]">
+        <aside className="xl:sticky xl:top-4 xl:h-fit">
+          <Card className="overflow-hidden">
+            <div className="border-b border-[#e3e9f2] px-4 py-4">
+              <p className="text-xs font-black uppercase tracking-wide text-[#63708a]">Creator profile</p>
+              <h1 className="mt-1 text-lg font-black text-[#172554]">{profile.display_name || "Creator"}</h1>
             </div>
-            <p className="mt-1 text-[13px] font-semibold text-[#6b7891]">
-              {profile.category || "Creator"} {profile.location ? <span> | {profile.location}</span> : null}
-            </p>
-            <p className="mt-1 flex items-center gap-1 text-[12px] font-medium text-[#7b8597]">
-              <MapPin className="h-3.5 w-3.5" />
-              {profile.location || "Location not added"} {profile.languages.length ? ` | ${profile.languages.join(", ")}` : ""}
-            </p>
-            <p className="mt-4 max-w-[560px] text-[13px] font-medium leading-relaxed text-[#526079]">
-              {profile.bio || "Add a short bio so brands can understand your content style, audience, and collaboration strengths."}
-            </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              {["#f29bff", "#ff6a5c", "#7995ff", "#344055", "#d9dee5"].map((color) => (
-                <span key={color} className="h-9 w-9 rounded-full" style={{ backgroundColor: color }} />
+            <nav className="grid p-2">
+              {profileSections.map((section) => (
+                <button
+                  key={section.id}
+                  type="button"
+                  onClick={() => setActiveSection(section.id)}
+                  className={`rounded-[6px] px-3 py-2 text-left text-sm font-black ${
+                    activeSection === section.id ? "bg-[#eaf0ff] text-[#173ca8]" : "text-[#63708a] hover:bg-[#f3f6fb]"
+                  }`}
+                >
+                  {section.label}
+                </button>
               ))}
-            </div>
-          </div>
-
-          <div className="flex flex-col items-start gap-3 lg:items-end">
-            <button
-              type="button"
-              onClick={() => setIsEditing(true)}
-              className="inline-flex h-11 items-center gap-2 rounded-[6px] bg-[#1438c8] px-4 text-sm font-black text-white shadow-sm"
-            >
-              <Pencil className="h-4 w-4" />
-              Update Profile
-            </button>
-            <div className="rounded-[6px] border border-[#d8e0ec] bg-white px-5 py-3 text-center">
-              <strong className="block text-[24px] font-black leading-none text-[#1438c8]">{profileStats.totalFollowers}</strong>
-              <span className="text-[11px] font-semibold text-[#6c7790]">Followers across Platforms</span>
-            </div>
-          </div>
-        </div>
-      </Panel>
-
-      {error ? <div className="mt-3 rounded-[6px] border border-[#f3b7b7] bg-[#fff5f5] px-4 py-3 text-sm font-semibold text-[#b42318]">{error}</div> : null}
-      {message ? <div className="mt-3 rounded-[6px] border border-[#b7ebca] bg-[#f0fff5] px-4 py-3 text-sm font-semibold text-[#067647]">{message}</div> : null}
-
-      <div className="mt-4 grid gap-4">
-        <Panel className="p-5">
-          <SectionTitle icon={<UserRound className="h-4 w-4 text-[#7386ff]" />} title={`About ${name.split(" ")[0] || "Creator"}`} />
-          <p className="mt-4 text-[13px] font-medium leading-relaxed text-[#536179]">
-            {profile.bio || "Profile bio has not been added yet."}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {chips.map((chip) => (
-              <span key={chip} className="rounded-full bg-[#e9edff] px-3 py-1 text-[11px] font-bold text-[#1438c8]">
-                {chip}
-              </span>
-            ))}
-          </div>
-        </Panel>
-
-        <Panel className="p-5">
-          <SectionTitle
-            icon={<BarChart3 className="h-4 w-4 text-[#7386ff]" />}
-            title="Audience Snapshot"
-            right={<span className="text-[11px] font-semibold text-[#7b8597]">Updated {updatedDate}</span>}
-          />
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
-            <MetricTile value={profileStats.totalFollowers} label="Total Followers" />
-            <MetricTile value={profileStats.engagementRate} label="Avg. Eng. rate" />
-            <MetricTile value={profileStats.reach} label="Avg. Reach" />
-            <MetricTile value={profileStats.reach} label="Avg. Reach" />
-            <MetricTile value={profileStats.comments} label="Avg. Comments" />
-            <MetricTile value={profileStats.shares} label="Avg. Shares" />
-          </div>
-        </Panel>
-
-        <Panel className="p-5">
-          <SectionTitle
-            title="Platforms"
-            right={
-              <div className="flex flex-wrap justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={connectYouTube}
-                  disabled={isConnectingYouTube}
-                  className="inline-flex h-9 items-center gap-2 rounded-[6px] bg-[#ff2f2f] px-3 text-[12px] font-black text-white disabled:opacity-60"
-                >
-                  {isConnectingYouTube ? <Loader2 className="h-4 w-4 animate-spin" /> : <Youtube className="h-4 w-4" />}
-                  Connect YouTube
-                </button>
-                <button
-                  type="button"
-                  onClick={connectInstagram}
-                  disabled={isConnectingInstagram}
-                  className="inline-flex h-9 items-center gap-2 rounded-[6px] bg-[#1438c8] px-3 text-[12px] font-black text-white disabled:opacity-60"
-                >
-                  {isConnectingInstagram ? <Loader2 className="h-4 w-4 animate-spin" /> : <Instagram className="h-4 w-4" />}
-                  Connect Instagram
-                </button>
-                <button
-                  type="button"
-                  onClick={connectFacebook}
-                  disabled={isConnectingFacebook}
-                  className="inline-flex h-9 items-center gap-2 rounded-[6px] bg-[#1877f2] px-3 text-[12px] font-black text-white disabled:opacity-60"
-                >
-                  {isConnectingFacebook ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe2 className="h-4 w-4" />}
-                  Connect Facebook
-                </button>
-                <button
-                  type="button"
-                  onClick={connectX}
-                  disabled={isConnectingX}
-                  className="inline-flex h-9 items-center gap-2 rounded-[6px] bg-[#111827] px-3 text-[12px] font-black text-white disabled:opacity-60"
-                >
-                  {isConnectingX ? <Loader2 className="h-4 w-4 animate-spin" /> : <Twitter className="h-4 w-4" />}
-                  Connect X
-                </button>
-              </div>
-            }
-          />
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {visiblePlatforms.map((account) => {
-              const meta = platformMeta[account.platform] || platformMeta.INSTAGRAM;
-              const Icon = meta.Icon;
-              const followers = account.followers || Math.round((profile.audience_size || 0) / Math.max(visiblePlatforms.length, 1));
-              const isYouTube = account.platform === "YOUTUBE";
-              return (
-                <div key={account.account_id} className="rounded-[6px] border border-[#dbe3ee] bg-white p-4">
-                  <div className="flex items-center gap-2">
-                    <span className={`grid h-7 w-7 place-items-center rounded-[4px] ${meta.color} text-white`}>
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <span className="text-[12px] font-bold text-[#526079]">{meta.label}</span>
-                  </div>
-                  <div className="mt-5 grid grid-cols-2 gap-2">
-                    <div>
-                      <strong className="block text-[15px] font-black text-[#1438c8]">{compactNumber(followers)}</strong>
-                      <span className="text-[10px] font-semibold text-[#758198]">{isYouTube ? "Subscribers" : "Followers"}</span>
-                    </div>
-                    <div>
-                      <strong className="block text-[15px] font-black text-[#1438c8]">
-                        {isYouTube ? compactNumber(account.view_count || 0) : profileStats.engagementRate}
-                      </strong>
-                      <span className="text-[10px] font-semibold text-[#758198]">{isYouTube ? "Views" : "Eng. Rate"}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Panel>
-
-        {youtubeAccount ? (
-          <Panel className="p-5">
-            <SectionTitle
-              title="YouTube Analytics"
-              right={
-                <button
-                  type="button"
-                  onClick={refreshYouTube}
-                  disabled={isRefreshingYouTube}
-                  className="inline-flex h-9 items-center gap-2 rounded-[6px] bg-[#ff2f2f] px-3 text-[12px] font-black text-white disabled:opacity-60"
-                >
-                  {isRefreshingYouTube ? <Loader2 className="h-4 w-4 animate-spin" /> : <Youtube className="h-4 w-4" />}
-                  Refresh Videos
-                </button>
-              }
-            />
-            <div className="mt-4 grid gap-3 sm:grid-cols-4">
-              <MetricTile value={compactNumber(youtubeAccount.youtube_short_video_count || 0)} label="Shorts" />
-              <MetricTile value={compactNumber(youtubeAccount.youtube_long_video_count || 0)} label="Long Videos" />
-              <MetricTile value={compactNumber(youtubeAccount.view_count || 0)} label="Total Views" />
-              <MetricTile value={compactNumber(youtubeAccount.media_count || 0)} label="Videos" />
-            </div>
-            {youtubeAccount.youtube_videos?.length ? (
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                {youtubeAccount.youtube_videos.slice(0, 6).map((video) => (
-                  <div key={video.video_id} className="overflow-hidden rounded-[6px] border border-[#dbe3ee] bg-white">
-                    <iframe
-                      src={`https://www.youtube.com/embed/${video.video_id}`}
-                      title={video.title}
-                      className="aspect-video w-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                    />
-                    <div className="p-3">
-                      <p className="line-clamp-2 text-[13px] font-black text-[#25304a]">{video.title}</p>
-                      <p className="mt-1 text-[11px] font-semibold text-[#64728c]">
-                        {video.content_type === "SHORT" ? "Short" : "Long video"} • {compactNumber(video.view_count)} views • {compactNumber(video.like_count)} likes • {compactNumber(video.comment_count)} comments
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="mt-5 rounded-[6px] border border-[#dbe3ee] bg-[#f8fbff] p-4 text-sm font-semibold text-[#64728c]">
-                No YouTube videos stored yet. Click Refresh Videos, or reconnect YouTube if you recently added the analytics scope.
-              </div>
-            )}
-          </Panel>
-        ) : null}
-
-        <Panel className="p-5">
-          <SectionTitle
-            title="Portfolio"
-            right={profile.portfolio_url ? (
-              <button
-                type="button"
-                onClick={() => window.open(profile.portfolio_url, "_blank", "noopener,noreferrer")}
-                className="text-[12px] font-black text-[#1438c8]"
-              >
-                Open portfolio
-              </button>
-            ) : null}
-          />
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {fallbackPortfolio.map((src, index) => (
-              <div key={src} className="relative aspect-[1.18] overflow-hidden rounded-[6px] bg-[#dfe7f2]">
-                <img src={src} alt="" className="h-full w-full object-cover" />
-                <span className="absolute bottom-2 left-2 rounded-full bg-black/55 px-2 py-1 text-[10px] font-bold text-white">
-                  {index % 2 ? "391.5K" : "870.5K"}
-                </span>
-              </div>
-            ))}
-          </div>
-        </Panel>
-
-      </div>
-
-      {isEditing ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-[#111827]/50 p-4">
-          <div className="max-h-[92vh] w-full max-w-[760px] overflow-y-auto rounded-[8px] bg-white p-5 shadow-2xl">
-            <div className="flex items-center justify-between gap-4 border-b border-[#e3e9f2] pb-4">
-              <h2 className="text-xl font-black text-[#172554]">Update Profile</h2>
-              <button type="button" onClick={() => setIsEditing(false)} className="grid h-9 w-9 place-items-center rounded-[6px] border border-[#dbe3ee]">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <label className="grid gap-1 text-sm font-bold text-[#526079]">
-                Display name
-                <input value={form.display_name} onChange={(event) => updateField("display_name", event.target.value)} className="h-11 rounded-[6px] border border-[#dbe3ee] px-3 font-semibold text-[#25304a]" />
-              </label>
-              <label className="grid gap-1 text-sm font-bold text-[#526079]">
-                Category
-                <input value={form.category} onChange={(event) => updateField("category", event.target.value)} className="h-11 rounded-[6px] border border-[#dbe3ee] px-3 font-semibold text-[#25304a]" />
-              </label>
-              <label className="grid gap-1 text-sm font-bold text-[#526079]">
-                Location
-                <input value={form.location} onChange={(event) => updateField("location", event.target.value)} className="h-11 rounded-[6px] border border-[#dbe3ee] px-3 font-semibold text-[#25304a]" />
-              </label>
-              <label className="grid gap-1 text-sm font-bold text-[#526079]">
-                Audience size
-                <input type="number" min="0" value={form.audience_size} onChange={(event) => updateField("audience_size", event.target.value)} className="h-11 rounded-[6px] border border-[#dbe3ee] px-3 font-semibold text-[#25304a]" />
-              </label>
-              <label className="grid gap-1 text-sm font-bold text-[#526079]">
-                Minimum rate
-                <input type="number" min="0" value={form.rate_min} onChange={(event) => updateField("rate_min", event.target.value)} className="h-11 rounded-[6px] border border-[#dbe3ee] px-3 font-semibold text-[#25304a]" />
-              </label>
-              <label className="grid gap-1 text-sm font-bold text-[#526079]">
-                Maximum rate
-                <input type="number" min="0" value={form.rate_max} onChange={(event) => updateField("rate_max", event.target.value)} className="h-11 rounded-[6px] border border-[#dbe3ee] px-3 font-semibold text-[#25304a]" />
-              </label>
-              <label className="grid gap-1 text-sm font-bold text-[#526079]">
-                Languages
-                <input value={form.languages} onChange={(event) => updateField("languages", event.target.value)} className="h-11 rounded-[6px] border border-[#dbe3ee] px-3 font-semibold text-[#25304a]" placeholder="Hindi, English" />
-              </label>
-              <label className="grid gap-1 text-sm font-bold text-[#526079]">
-                Collaboration preferences
-                <input value={form.collaboration_preferences} onChange={(event) => updateField("collaboration_preferences", event.target.value)} className="h-11 rounded-[6px] border border-[#dbe3ee] px-3 font-semibold text-[#25304a]" placeholder="Politics, Policy" />
-              </label>
-              <label className="grid gap-1 text-sm font-bold text-[#526079]">
-                Portfolio URL
-                <input value={form.portfolio_url} onChange={(event) => updateField("portfolio_url", event.target.value)} className="h-11 rounded-[6px] border border-[#dbe3ee] px-3 font-semibold text-[#25304a]" />
-              </label>
-              <label className="md:col-span-2 grid gap-1 text-sm font-bold text-[#526079]">
-                Bio
-                <textarea value={form.bio} onChange={(event) => updateField("bio", event.target.value)} rows={4} className="rounded-[6px] border border-[#dbe3ee] px-3 py-2 font-semibold text-[#25304a]" />
-              </label>
-              <label className="flex items-center gap-3 text-sm font-bold text-[#526079]">
-                <input type="checkbox" checked={form.is_profile_visible} onChange={(event) => updateField("is_profile_visible", event.target.checked)} className="h-4 w-4 accent-[#1438c8]" />
-                Feature my profile on Collune
-              </label>
-              <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-[6px] border border-[#dbe3ee] px-4 py-3 text-sm font-black text-[#1438c8]">
-                <Upload className="h-4 w-4" />
-                {form.profile_image ? form.profile_image.name : "Upload profile image"}
-                <input type="file" accept="image/*" className="hidden" onChange={(event) => updateField("profile_image", event.target.files?.[0] || null)} />
-              </label>
-            </div>
-
-            <div className="mt-6 flex justify-end gap-3">
-              <button type="button" onClick={() => setIsEditing(false)} className="h-11 rounded-[6px] border border-[#dbe3ee] px-5 text-sm font-black text-[#526079]">
-                Cancel
-              </button>
+            </nav>
+            <div className="border-t border-[#e3e9f2] p-3">
               <button
                 type="button"
                 onClick={saveProfile}
                 disabled={isSaving}
-                className="inline-flex h-11 items-center gap-2 rounded-[6px] bg-[#1438c8] px-5 text-sm font-black text-white disabled:opacity-60"
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[6px] bg-[#2447bd] px-4 text-sm font-black text-white disabled:opacity-60"
               >
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                Save Profile
+                Update Profile
               </button>
             </div>
-          </div>
-        </div>
-      ) : null}
+          </Card>
+        </aside>
+
+        <main className="grid gap-4">
+          {error ? <div className="rounded-[6px] border border-[#f3b7b7] bg-[#fff5f5] px-4 py-3 text-sm font-semibold text-[#b42318]">{error}</div> : null}
+          {message ? <div className="rounded-[6px] border border-[#b7ebca] bg-[#f0fff5] px-4 py-3 text-sm font-semibold text-[#067647]">{message}</div> : null}
+
+          <Card className="p-5" id="profile">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-black text-[#172554]">Profile data</h2>
+                <p className="mt-1 text-sm font-semibold text-[#63708a]">Only fields accepted by CreatorProfileView are editable here.</p>
+              </div>
+              <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-[6px] border border-[#d7deea] bg-white px-3 text-sm font-black text-[#173ca8]">
+                <Upload className="h-4 w-4" />
+                {form.profile_image ? "Image selected" : "Profile image"}
+                <input type="file" accept="image/*" className="hidden" onChange={(event) => updateField("profile_image", event.target.files?.[0] || null)} />
+              </label>
+            </div>
+
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <TextInput label="Category" value={form.category} onChange={(value) => updateField("category", value)} placeholder="Political Commentary" />
+              <TextInput label="Languages" value={form.languages} onChange={(value) => updateField("languages", value)} placeholder="Hindi, English" />
+              <TextInput label="Collaboration preferences" value={form.collaboration_preferences} onChange={(value) => updateField("collaboration_preferences", value)} placeholder="Sponsored Posts, UGC Content" />
+            </div>
+          </Card>
+
+          <Card className="p-5" id="content">
+            <h2 className="text-xl font-black text-[#172554]">Content</h2>
+            <div className="mt-5 grid gap-4">
+              <TextArea label="Bio" value={form.bio} onChange={(value) => updateField("bio", value)} rows={4} placeholder="Short summary shown on your profile." />
+              <TextArea label="About" value={form.about} onChange={(value) => updateField("about", value)} rows={6} placeholder="Longer profile story, audience, and content direction." />
+            </div>
+          </Card>
+
+          <Card className="p-5" id="social">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-black text-[#172554]">Social accounts</h2>
+                <p className="mt-1 text-sm font-semibold text-[#63708a]">Connected metrics are read from the backend profile response.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(["instagram", "youtube", "facebook", "x"] as const).map((platform) => (
+                  <button
+                    key={platform}
+                    type="button"
+                    disabled={Boolean(connectingPlatform)}
+                    onClick={() => void connectSocial(platform)}
+                    className="inline-flex h-9 items-center gap-2 rounded-[6px] bg-[#172554] px-3 text-xs font-black uppercase text-white disabled:opacity-60"
+                  >
+                    {connectingPlatform === platform ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                    Connect {platform}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {platformRows.length ? platformRows.map((item) => {
+                const meta = platformMeta[item.name] || platformMeta.INSTAGRAM;
+                const Icon = meta.Icon;
+                return (
+                  <div key={item.name} className="rounded-[6px] border border-[#dbe3ee] bg-[#fbfcff] p-4">
+                    <div className="flex items-center gap-2">
+                      <span className={`grid h-8 w-8 place-items-center rounded-[6px] text-white ${meta.color}`}>
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <strong className="text-sm font-black text-[#25304a]">{meta.label}</strong>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="block text-xs font-bold text-[#63708a]">Followers</span>
+                        <strong className="text-lg font-black text-[#173ca8]">{compactNumber(item.followers)}</strong>
+                      </div>
+                      <div>
+                        <span className="block text-xs font-bold text-[#63708a]">Engagement</span>
+                        <strong className="text-lg font-black text-[#173ca8]">{Number(item.engagement_rate || 0).toFixed(1)}%</strong>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }) : (
+                <div className="rounded-[6px] border border-dashed border-[#cbd5e1] bg-[#fbfcff] p-5 text-sm font-semibold text-[#63708a] sm:col-span-2 lg:col-span-4">
+                  No social accounts connected yet.
+                </div>
+              )}
+            </div>
+          </Card>
+        </main>
+
+        <aside className="xl:sticky xl:top-4 xl:h-fit" id="preview">
+          <Card className="overflow-hidden">
+            <div className="border-b border-[#e3e9f2] px-5 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wide text-[#63708a]">Public preview</p>
+                  <h2 className="mt-1 text-lg font-black text-[#172554]">How brands see you</h2>
+                </div>
+                <a
+                  href={publicProfileUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="grid h-9 w-9 place-items-center rounded-[6px] border border-[#d7deea] text-[#173ca8]"
+                  aria-label="Open public profile"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+            </div>
+
+            <div className="p-5">
+              <div className="flex items-start gap-4">
+                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-[#eaf0ff]">
+                  {avatar ? <img src={avatar} alt={profile.display_name} className="h-full w-full object-cover" /> : <UserRound className="m-5 h-10 w-10 text-[#173ca8]" />}
+                  <span className="absolute bottom-0 right-0 grid h-7 w-7 place-items-center rounded-full bg-white text-[#067647]">
+                    {profile.verified ? <BadgeCheck className="h-5 w-5 fill-[#067647] text-white" /> : <Camera className="h-4 w-4" />}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <h3 className="truncate text-xl font-black text-[#172554]">{profile.display_name || "Creator"}</h3>
+                  <p className="mt-1 text-sm font-bold text-[#63708a]">{form.category || "Category not added"}</p>
+                  <p className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#63708a]">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {form.location || "Location not added"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 grid grid-cols-3 gap-2">
+                <div className="rounded-[6px] bg-[#eef4ff] p-3 text-center">
+                  <strong className="block text-lg font-black text-[#173ca8]">{compactNumber(totalFollowers)}</strong>
+                  <span className="text-[10px] font-bold text-[#63708a]">Followers</span>
+                </div>
+                <div className="rounded-[6px] bg-[#eef4ff] p-3 text-center">
+                  <strong className="block text-lg font-black text-[#173ca8]">{Number(profile.avg_eng_rate || 0).toFixed(1)}%</strong>
+                  <span className="text-[10px] font-bold text-[#63708a]">Avg. Eng.</span>
+                </div>
+                <div className="rounded-[6px] bg-[#eef4ff] p-3 text-center">
+                  <strong className="block text-lg font-black text-[#173ca8]">{compactNumber(profile.total_media_count)}</strong>
+                  <span className="text-[10px] font-bold text-[#63708a]">Posts</span>
+                </div>
+              </div>
+
+              <p className="mt-5 text-sm font-semibold leading-relaxed text-[#4b5873]">
+                {form.bio || "Your bio preview will appear here."}
+              </p>
+              {form.about ? <p className="mt-3 text-sm leading-relaxed text-[#63708a]">{form.about}</p> : null}
+
+              <div className="mt-5 flex flex-wrap gap-2">
+                {[
+                  ...csvToList(form.languages).slice(0, 3),
+                  ...csvToList(form.collaboration_preferences).slice(0, 3),
+                  ...csvToList(form.work_with).slice(0, 2),
+                ].map((chip) => (
+                  <span key={chip} className="rounded-full bg-[#eaf0ff] px-3 py-1 text-xs font-black text-[#173ca8]">
+                    {chip}
+                  </span>
+                ))}
+              </div>
+
+              <div className="mt-5 grid gap-2">
+                {platformRows.slice(0, 4).map((item) => {
+                  const meta = platformMeta[item.name] || platformMeta.INSTAGRAM;
+                  const Icon = meta.Icon;
+                  return (
+                    <div key={item.name} className="flex items-center justify-between rounded-[6px] border border-[#e3e9f2] px-3 py-2">
+                      <span className="inline-flex items-center gap-2 text-sm font-black text-[#25304a]">
+                        <span className={`grid h-7 w-7 place-items-center rounded-[5px] text-white ${meta.color}`}>
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        {meta.label}
+                      </span>
+                      <span className="text-sm font-black text-[#173ca8]">{compactNumber(item.followers)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                onClick={saveProfile}
+                disabled={isSaving}
+                className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[6px] bg-[#2447bd] text-sm font-black text-white disabled:opacity-60"
+              >
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                Update Profile
+              </button>
+            </div>
+          </Card>
+        </aside>
+      </div>
     </div>
   );
 }

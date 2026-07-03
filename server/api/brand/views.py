@@ -253,8 +253,6 @@ class CampaignViewSet(viewsets.ModelViewSet):
             campaign=campaign,
             creator=request.user.creator_profile,
             defaults={
-                "pitch": request.data.get("pitch", ""),
-                "quoted_rate": request.data.get("quoted_rate") or 0,
                 "status": ApplicationStatus.APPLIED,
             },
         )

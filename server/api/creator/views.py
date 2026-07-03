@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import json
 import secrets
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -352,11 +353,8 @@ class CreatorProfileView(APIView):
 
         allowed_creator_fields = {
             "about",
-            "gender",
-            "work_with",
             "bio",
             "category",
-            "location",
             "languages",
             "collaboration_preferences",
         }
@@ -364,7 +362,14 @@ class CreatorProfileView(APIView):
         # Update CreatorProfile fields
         for field in allowed_creator_fields:
             if field in request.data:
-                setattr(creator, field, request.data.get(field))
+                value = request.data.get(field)
+                if field in {"work_with", "languages", "collaboration_preferences"} and isinstance(value, str):
+                    try:
+                        parsed_value = json.loads(value)
+                        value = parsed_value if isinstance(parsed_value, list) else []
+                    except json.JSONDecodeError:
+                        value = [item.strip() for item in value.split(",") if item.strip()]
+                setattr(creator, field, value)
 
         # Update profile image
         if "profile_image" in request.FILES:
@@ -386,41 +391,17 @@ class CreatorProfileView(APIView):
 
 class CampaignApplicationViewSet(viewsets.ModelViewSet):
     serializer_class = CampaignApplicationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,IsCreator]
 
-    def get_queryset(self):
-        queryset = CampaignApplication.objects.select_related("campaign", "campaign__brand", "creator", "creator__user")
-        if self.request.user.role == UserRole.BRAND:
-            return queryset.filter(campaign__brand__user=self.request.user)
-        if self.request.user.role == UserRole.CREATOR:
-            return queryset.filter(creator__user=self.request.user)
-        return queryset.all()
-
-    def create(self, request, *args, **kwargs):
-        if request.user.role != UserRole.CREATOR:
-            raise PermissionDenied("Only creators can apply to campaigns.")
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        campaign = serializer.validated_data["campaign"]
-        application, _ = CampaignApplication.objects.update_or_create(
-            campaign=campaign,
-            creator=request.user.creator_profile,
-            defaults={
-                "pitch": serializer.validated_data.get("pitch", ""),
-                "quoted_rate": serializer.validated_data.get("quoted_rate") or 0,
-                "status": ApplicationStatus.APPLIED,
-            },
+    def create(self, request):
+        creator = request.user
+        campaign = request.data.get("campaign")
+        CampaignApplication.objects.update_or_create(
+            campaign= campaign,
+            creator=  creator,
+            status =  ApplicationStatus.APPLIED
         )
-        response_serializer = self.get_serializer(application)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-
-    def perform_update(self, serializer):
-        serializer.save()
-
-    def perform_destroy(self, instance):
-        instance.delete()
-
+        return Response({"message": "Added successfully"})
 
 class CreatorListViewSet(APIView):
     permission_classes = [AllowAny]
@@ -603,8 +584,9 @@ class InstagramCallbackView(APIView):
         frontend_url = settings.FRONTEND_URL.rstrip("/")
 
         def instagram_error(reason, registration=False):
-            path = "creator-register/3" if registration else "creator/profile"
-            return redirect(f"{frontend_url}/{path}?instagram=error&instagram_reason={reason}")
+            if registration:
+                return redirect(f"{frontend_url}/creator-register?social_step=1&instagram=error&instagram_reason={reason}")
+            return redirect(f"{frontend_url}/creator/profile?instagram=error&instagram_reason={reason}")
 
         if not code or not state:
             return instagram_error("missing_code")
@@ -689,6 +671,8 @@ class InstagramCallbackView(APIView):
         )
         creator.save(update_fields=["updated_at"])
 
+        if registration_return:
+            return redirect(f"{frontend_url}/creator-register?social_step=1&instagram=connected&account={account.account_id}")
         return redirect(f"{frontend_url}/creator/profile?instagram=connected&account={account.account_id}")
 
 class FacebookConnectView(APIView):
@@ -728,8 +712,9 @@ class FacebookCallbackView(APIView):
         frontend_url = settings.FRONTEND_URL.rstrip("/")
 
         def facebook_error(reason, registration=False):
-            path = "creator-register/3" if registration else "creator/profile"
-            return redirect(f"{frontend_url}/{path}?facebook=error&facebook_reason={reason}")
+            if registration:
+                return redirect(f"{frontend_url}/creator-register?social_step=1&facebook=error&facebook_reason={reason}")
+            return redirect(f"{frontend_url}/creator/profile?facebook=error&facebook_reason={reason}")
 
         if not code or not state:
             return facebook_error("missing_code")
@@ -841,6 +826,8 @@ class FacebookCallbackView(APIView):
         )
         creator.save(update_fields=["updated_at"])
 
+        if registration_return:
+            return redirect(f"{frontend_url}/creator-register?social_step=1&facebook=connected&account={account.account_id}")
         return redirect(f"{frontend_url}/creator/profile?facebook=connected&account={account.account_id}")
 
 class YouTubeConnectView(APIView):
@@ -881,8 +868,9 @@ class YouTubeCallbackView(APIView):
         frontend_url = settings.FRONTEND_URL.rstrip("/")
 
         def youtube_redirect(status_value, registration=False):
-            path = "creator-register/3" if registration else "creator/profile"
-            return redirect(f"{frontend_url}/{path}?youtube={status_value}")
+            if registration:
+                return redirect(f"{frontend_url}/creator-register?social_step=1&youtube={status_value}")
+            return redirect(f"{frontend_url}/creator/profile?youtube={status_value}")
 
         if not code or not state:
             return youtube_redirect("error")
@@ -991,6 +979,8 @@ class YouTubeCallbackView(APIView):
         )
         creator.save(update_fields=["updated_at"])
 
+        if registration_return:
+            return redirect(f"{frontend_url}/creator-register?social_step=1&youtube=connected&account={account.account_id}")
         return redirect(f"{frontend_url}/creator/profile?youtube=connected&account={account.account_id}")
 
 class YouTubeRefreshView(APIView):
@@ -1056,8 +1046,9 @@ class XCallbackView(APIView):
         frontend_url = settings.FRONTEND_URL.rstrip("/")
 
         def x_error(registration=False):
-            path = "creator-register/3" if registration else "creator/profile"
-            return redirect(f"{frontend_url}/{path}?x=error")
+            if registration:
+                return redirect(f"{frontend_url}/creator-register?social_step=1&x=error")
+            return redirect(f"{frontend_url}/creator/profile?x=error")
 
         if not code or not state:
             return x_error()
@@ -1150,4 +1141,6 @@ class XCallbackView(APIView):
         )
         creator.save(update_fields=["updated_at"])
 
+        if registration_return:
+            return redirect(f"{frontend_url}/creator-register?social_step=1&x=connected&account={account.account_id}")
         return redirect(f"{frontend_url}/creator/profile?x=connected&account={account.account_id}")

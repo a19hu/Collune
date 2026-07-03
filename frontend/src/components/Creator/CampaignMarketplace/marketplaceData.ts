@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { BookOpen, BriefcaseBusiness, Dumbbell, GraduationCap, Leaf, Shirt, ShoppingBag } from "lucide-react";
 
-import type { CampaignApi, CampaignStatusSummaryApi, CreatorCampaignDetailApi, CreatorCampaignListItemApi } from "../../../types";
+import type { CampaignApi, CreatorCampaignDetailApi, CreatorCampaignListItemApi } from "../../../types";
 
 export type MarketplaceCampaign = {
   id: string;
@@ -44,15 +44,6 @@ const brandIconRules: Array<{ match: string[]; icon: LucideIcon; className: stri
   { match: ["beverage", "brew", "coffee"], icon: ShoppingBag, className: "bg-[#8d0013] text-white", type: "Beverage Brand" },
   { match: ["fitness", "sport"], icon: Dumbbell, className: "bg-[#7f16c5] text-white", type: "Fitness Brand" },
 ];
-
-export function applyStatusSummaries(campaigns: CampaignApi[], summaries: CampaignStatusSummaryApi[]) {
-  if (!summaries.length) return campaigns;
-  const summariesByCampaign = new Map(summaries.map((summary) => [summary.campaign, summary]));
-  return campaigns.map((campaign) => ({
-    ...campaign,
-    status_summary: campaign.status_summary || summariesByCampaign.get(campaign.campaign_id) || null,
-  }));
-}
 
 export function mapCampaignToMarketplace(campaign: CampaignApi): MarketplaceCampaign {
   const brandName = campaign.brand_detail?.company_name || "Brand";

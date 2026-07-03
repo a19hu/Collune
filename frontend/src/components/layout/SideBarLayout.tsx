@@ -1,8 +1,6 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { getBrandMe, getCreatorProfile } from "../../lib/authApi";
-import LoadingPage from "./LoadingPage";
 import SideBar from "./SideBar";
 import type { SidebarMode } from "./SideBar";
 import { BadgeCheck, ChevronDown, Plus } from "lucide-react";
@@ -107,32 +105,9 @@ export const SideBarLayout = () => {
   const { currentUser, logout } = useAuth();
   const { mode, pathname } = useDashboardState();
   const navigate = useNavigate();
-  const [isVerified, setIsVerified] = useState(false);
-  const [isVerificationLoading, setIsVerificationLoading] = useState(true);
   const isBrand = mode === "brand";
   const profilePath = isBrand ? "/brand" : "/creator/profile";
-
-  useEffect(() => {
-    let mounted = true;
-    setIsVerificationLoading(true);
-
-    const loadVerificationStatus = isBrand ? getBrandMe : getCreatorProfile;
-    loadVerificationStatus()
-      .then((profile) => {
-        if (!mounted) return;
-        setIsVerified(String(profile.verification_status || "").toUpperCase() === "VERIFIED");
-      })
-      .catch(() => {
-        if (mounted) setIsVerified(false);
-      })
-      .finally(() => {
-        if (mounted) setIsVerificationLoading(false);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, [currentUser?.email, isBrand]);
+  const isVerified = currentUser.verification_status === "VERIFIED"
 
   function TopComponentsCreator() {
     const topRoutes = [
@@ -161,6 +136,18 @@ export const SideBarLayout = () => {
                 ? "Campaign Marketplace"
                 : `Welcome, ${currentUser?.name || "Creator"}. Nice to have you onboard!`
             }
+            status={isVerified ? "verified-creator" : "under-review"}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+          />
+        ),
+      },
+      {
+        matches: () => pathname === "/creator/profile",
+        render: () => (
+          <DashboardTopBar
+            title={"Profile"}
             status={isVerified ? "verified-creator" : "under-review"}
             currentUser={currentUser}
             logout={logout}
@@ -246,8 +233,6 @@ export const SideBarLayout = () => {
 
     return topRoutes.find((route) => route.matches())?.render() ?? null;
   }
-
-  if (isVerificationLoading) return <LoadingPage />;
 
   return (
     <div className="min-h-screen bg-white font-sans text-[#1d203a]">

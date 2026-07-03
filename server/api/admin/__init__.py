@@ -6,7 +6,6 @@ from ..models import (
     BrandShortlist,
     Campaign,
     CampaignApplication,
-    CampaignStatusSummary,
     CreatorProfile,
     CreatorSocialAccount,
     User,
@@ -21,7 +20,7 @@ class UserAdmin(BaseUserAdmin):
     list_filter = ("role", "is_staff", "is_active")
     ordering = ("username",)
     fieldsets = BaseUserAdmin.fieldsets + (
-        ("Collune Profile", {"fields": ("user_id", "name", "phone_no", "role", "status", "last_login_at", "created_at")}),
+        ("Collune Profile", {"fields": ("user_id", "name", "phone_no", "role","verification_status", "last_login_at", "created_at")}),
     )
     readonly_fields = ("user_id", "created_at")
 
@@ -56,15 +55,9 @@ class CampaignAdmin(admin.ModelAdmin):
 
 @admin.register(CampaignApplication)
 class CampaignApplicationAdmin(admin.ModelAdmin):
-    list_display = ("campaign", "creator", "quoted_rate", "status", "created_at")
+    list_display = ("campaign", "creator", "status", "created_at")
     search_fields = ("campaign__title", "creator__display_name")
     list_filter = ("status",)
-
-
-@admin.register(CampaignStatusSummary)
-class CampaignStatusSummaryAdmin(admin.ModelAdmin):
-    list_display = ("campaign", "applications_received", "recommended_creators", "collaborations_started", "updated_at")
-    search_fields = ("campaign__title", "campaign__brand__company_name")
 
 
 @admin.register(BrandShortlist)

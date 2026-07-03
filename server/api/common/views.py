@@ -23,8 +23,6 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data.get("user")
-        if not user.is_active or not user.status:
-            return Response({"error": "This account is inactive."}, status=status.HTTP_403_FORBIDDEN)
         user.last_login_at = timezone.now()
         user.save(update_fields=["last_login_at"])
         return Response(auth_response(user))

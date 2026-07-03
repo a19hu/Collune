@@ -17,7 +17,6 @@ const fallbackImages = [creatorOne, creatorTwo, creatorThree];
 
 const statusClasses: Record<CampaignApplicationApi["status"], string> = {
   APPLIED: "bg-[#eaf0ff] text-[#173ca8]",
-  SHORTLISTED: "bg-[#fff5d8] text-[#a66c00]",
   ACCEPTED: "bg-[#e8f8ef] text-[#12a563]",
   REJECTED: "bg-[#ffe9e9] text-[#d23b3b]",
 };
@@ -104,12 +103,7 @@ function ApplicationProfileCard({
           <div className="mt-5 grid gap-4 sm:grid-cols-3">
             <CreatorStat value={formatFollowers(creator?.audience_size)} label="Followers" />
             <CreatorStat value={getEngagement(creator)} label="Eng. Rate" />
-            <CreatorStat value={application.quoted_rate ? `$${Number(application.quoted_rate).toLocaleString()}` : "N/A"} label="Quoted Rate" />
           </div>
-
-          <p className="mt-5 line-clamp-3 text-sm font-medium leading-relaxed text-[#65758f]">
-            {application.pitch || creator?.bio || "No application pitch added yet."}
-          </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
             {creator?.portfolio_url ? (

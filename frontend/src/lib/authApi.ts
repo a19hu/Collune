@@ -217,8 +217,8 @@ export async function getCreatorPublicProfile(creatorId: string) {
 }
 
 export async function updateCreatorProfile(payload: FormData) {
-  const data = await apiPatchForm<{ creator: CreatorProfileApi }>("/auth/creator/profile/", payload, true);
-  return data.creator;
+  await apiPatchForm<{ message: string }>("/auth/creator/profile/", payload, true);
+  return getCreatorProfile();
 }
 
 function oauthReturnQuery(returnTo?: "registration") {

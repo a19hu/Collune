@@ -19,7 +19,6 @@ import { CampaignApplicationsPage } from './components/Brand/Campaigns/CampaignA
 import { BrandShortlists } from './components/Brand/BrandShortlists.tsx';
 import LoadingPage from './components/layout/LoadingPage.tsx';
 import type { UserAccount } from './types.ts';
-import { getBrandMe, getCreatorProfile } from './lib/authApi.ts';
 import { CampaignCreateForm } from './components/Brand/Campaigns/CampaignCreateForm.tsx';
 import { DiscoverCreatorsPage } from './pages/DiscoverCreatorsPage.tsx';
 import { CampaignMarketplaceDetail } from './components/Creator/CampaignMarketplace/CampaignMarketplaceDetail.tsx';
@@ -39,33 +38,10 @@ function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
 
 function RequireVerified({ children }: { children: React.ReactElement }) {
     const { currentUser } = useAuth();
-    const [isVerified, setIsVerified] = useState(false);
-    const [isVerificationLoading, setIsVerificationLoading] = useState(true);
     const isBrand = currentUser?.role === 'Brand';
+    const isVerified = currentUser.verification_status === "VERIFIED"
 
-    useEffect(() => {
-        let mounted = true;
-        setIsVerificationLoading(true);
 
-        const loadVerificationStatus = isBrand ? getBrandMe : getCreatorProfile;
-        loadVerificationStatus()
-            .then((profile) => {
-                if (!mounted) return;
-                setIsVerified(String(profile.verification_status || "").toUpperCase() === "VERIFIED");
-            })
-            .catch(() => {
-                if (mounted) setIsVerified(false);
-            })
-            .finally(() => {
-                if (mounted) setIsVerificationLoading(false);
-            });
-
-        return () => {
-            mounted = false;
-        };
-    }, [currentUser?.id, isBrand]);
-
-    if (isVerificationLoading) return <LoadingPage />;
     if (!isVerified) return <Navigate to={isBrand ? "/brand" : "/creator"} replace />;
 
     return children;
@@ -110,7 +86,6 @@ const App: React.FC = () => {
                         </Route>
                     </Route>
                     <Route path="/creator-register" element={<CreatorRegister />} />
-                    <Route path="/creator-register/:step" element={<CreatorRegister />} />
                     <Route path="/brand-register" element={<BrandRegister />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="*" element={<NotFoundPage />} />

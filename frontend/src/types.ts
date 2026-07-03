@@ -2,6 +2,7 @@ export type UserAccount = {
   name: string;
   email: string;
   role: 'Admin' | 'Creator' | 'Brand';
+  verification_status:string;
 };
 
 
@@ -161,25 +162,13 @@ export type CreatorCampaignListParams = {
   search?: string;
   sort?: "recent" | "deadline" | "brand";
 };
-export type CampaignStatusSummaryApi = {
-  summary_id: string;
-  campaign: string;
-  applications_received: number;
-  recommended_creators: number;
-  collaborations_started: number;
-  applications_close_in_days: number;
-  created_at: string;
-  updated_at: string;
-};
 export type CampaignApplicationApi = {
   application_id: string;
   campaign: string;
   campaign_detail?: CampaignApi;
   creator: string;
   creator_detail?: CreatorProfileApi;
-  pitch: string;
-  quoted_rate: string;
-  status: "APPLIED" | "SHORTLISTED" | "ACCEPTED" | "REJECTED";
+  status: "APPLIED" | "ACCEPTED" | "REJECTED";
   created_at: string;
   updated_at: string;
 };
@@ -303,19 +292,29 @@ export type CreatorProfileApi = {
   user?: LoginApiUser;
   display_name: string;
   category: string;
+  username?: string;
+  verified?: boolean;
   location: string;
   languages: string[];
   collaboration_preferences: string[];
   bio: string;
+  about?: string;
+  gender?: string;
+  work_with?: string[];
   portfolio_url?: string;
   profile_image: string | null;
-  profile_image_url: string;
-  is_profile_visible: boolean;
+  profile_image_url?: string;
+  is_profile_visible?: boolean;
   audience_size?: number;
-  rate_min: string;
-  rate_max: string;
-  verification_status: string;
-  profile_completion: number;
+  rate_min?: string;
+  rate_max?: string;
+  verification_status?: string;
+  profile_completion?: number;
+  total_followers?: number;
+  total_view_count?: number;
+  total_media_count?: number;
+  avg_eng_rate?: number;
+  platform_data?: CreatorListPlatformApi[];
   social_accounts: Array<{
     account_id: string;
     platform: CreatorSocialPlatform;
