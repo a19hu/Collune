@@ -114,8 +114,6 @@ type StepContentProps = {
   onPhoneOtpChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onSocialAccountChange: (index: number, field: keyof Pick<SocialAccountForm, "handle">) => (event: ChangeEvent<HTMLInputElement>) => void;
   onToggleFormArrayValue: (field: "languages" | "collaboration_preferences", value: string) => void;
-  onResponseTimeChange: (value: string) => void;
-  onTravelToggle: () => void;
   onTogglePassword: () => void;
   onVerifyEmailOtp: () => void;
   onVerifyPhoneOtp: () => void;

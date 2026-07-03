@@ -8,12 +8,11 @@ import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import signing
-from django.db.models import Q,Prefetch
+from django.db.models import Q
 from django.db import transaction
 from django.shortcuts import redirect
 from django.utils import timezone
 from rest_framework import status, viewsets
-from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -26,7 +25,7 @@ from ..models import (
 from ..permissions import IsCreator,IsBrand
 from ..brand.serializers import CampaignApplicationSerializer
 from ..common.services import auth_response, create_user, parse_payload
-from .serializers import CreatorProfileSerializer, CreatorRegisterSerializer, CreatorSocialAccountSerializer
+from .serializers import CreatorProfileSerializer, CreatorRegisterSerializer
 from .services import fetch_youtube_analytics, fetch_youtube_videos, sync_youtube_account
 
 User = get_user_model()
@@ -48,7 +47,6 @@ class CreatorRegisterView(APIView):
     permission_classes = [AllowAny]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
-    @transaction.atomic
     def post(self, request):
         serializer = CreatorRegisterSerializer(data=parse_payload(request))
         serializer.is_valid(raise_exception=True)
@@ -433,7 +431,7 @@ class CreatorListViewSet(APIView):
     def get(self, request, creator_id=None):
         is_brand = (
             request.user.is_authenticated
-            and getattr(request.user, "role", "") == "Brand"
+            and getattr(request.user, "role", "") == UserRole.BRAND
         )
 
         if creator_id:
@@ -448,8 +446,8 @@ class CreatorListViewSet(APIView):
                 .prefetch_related("social_accounts")
                 .get(
                     creator_id=creator_id,
-                    verification_status=VerificationStatus.VERIFIED.value,
-                    is_profile_visible=True,
+                    user__verification_status=VerificationStatus.VERIFIED.value,
+                    user__is_profile_visible=True,
                 )
             )
         except CreatorProfile.DoesNotExist:
@@ -527,8 +525,8 @@ class CreatorListViewSet(APIView):
             CreatorProfile.objects.select_related("user")
             .prefetch_related("social_accounts")
             .filter(
-                verification_status=VerificationStatus.VERIFIED.value,
-                is_profile_visible=True,
+                user__is_profile_visible=True,
+                user__verification_status=VerificationStatus.PENDING.value,
             )
             .order_by("-created_at")
         )

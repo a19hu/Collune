@@ -14,6 +14,7 @@ import type {
   CreatorCampaignListResponse,
   CreatorDashboardApi,
   CreatorListItemApi,
+  CreatorPublicProfileApi,
   CreatorProfileApi,
   CreatorRegisterPayload,
   CreatorRegisterResponse,
@@ -196,7 +197,6 @@ export async function getBrandsList() {
   return data.brands;
 }
 
-
 export async function getCreatorProfile() {
   const data = await apiRequest<{ creator: CreatorProfileApi }>("/auth/creator/profile/", {}, true);
   return data.creator;
@@ -206,13 +206,13 @@ export async function getCreatorsList() {
   const data = await apiRequest<{ creators: CreatorListItemApi[] }>(
     "/creators/list/",
     {},
-    false,
+    true,
   );
   return data.creators
 }
 
 export async function getCreatorPublicProfile(creatorId: string) {
-  const data = await apiRequest<{ creator: CreatorProfileApi }>(`/creator/${creatorId}/`, {}, false);
+  const data = await apiRequest<{ creator: CreatorPublicProfileApi }>(`/creator/${creatorId}/`, {}, true);
   return data.creator;
 }
 

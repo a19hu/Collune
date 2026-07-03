@@ -4,7 +4,7 @@ import creatorOne from "../../../assets/collune/creator-1.png";
 import creatorTwo from "../../../assets/collune/creator-2.png";
 import creatorThree from "../../../assets/collune/creator-3.png";
 import creatorFour from "../../../assets/collune/creator-4.png";
-import type { BrandShortlistApi, BrandShortlistStatusApi, CreatorProfileApi } from "../../../types";
+import type { BrandShortlistApi, BrandShortlistStatusApi, CreatorListItemApi, CreatorProfileApi } from "../../../types";
 import { formatUpdatedAt } from "@/src/HtmlComponents/BrandCard";
 
 export type ShortlistStatus = "Draft" | "Submitted" | "Outreach In Progress" | "Completed";
@@ -47,6 +47,8 @@ const apiStatusLabels: Record<BrandShortlistStatusApi, ShortlistStatus> = {
 export const statusApiValues: Record<ShortlistStatus, BrandShortlistStatusApi> = {
   Draft: "DRAFT",
   Submitted: "SUBMITTED",
+  "Outreach In Progress": "SUBMITTED",
+  Completed: "SUBMITTED",
 };
 
 const iconRules: Array<{ match: ShortlistStatus; icon: LucideIcon; className: string }> = [
@@ -77,22 +79,31 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(date);
 }
 
-function getEngagement(creator: CreatorProfileApi) {
-  const engagement = creator.social_accounts?.find((account) => typeof account.engagement_rate === "number")?.engagement_rate;
+type ShortlistCreatorApi = CreatorProfileApi | CreatorListItemApi;
+
+function getPlatformData(creator: ShortlistCreatorApi) {
+  if ("platform_data" in creator) return creator.platform_data || [];
+  return (creator as CreatorProfileApi).social_accounts || [];
+}
+
+function getEngagement(creator: ShortlistCreatorApi) {
+  const engagement = getPlatformData(creator).find((account) => typeof account.engagement_rate === "number")?.engagement_rate;
   return typeof engagement === "number" ? `${engagement.toFixed(1)}%` : "N/A";
 }
 
-export function mapCreatorApiToShortlistCreator(creator: CreatorProfileApi, index: number): ShortlistCreator {
-  const platform = creator.social_accounts?.find((account) => account.is_connected)?.platform || creator.social_accounts?.[0]?.platform;
+export function mapCreatorApiToShortlistCreator(creator: ShortlistCreatorApi, index: number): ShortlistCreator {
+  const platforms = getPlatformData(creator);
+  const platform = platforms[0] ? ("name" in platforms[0] ? platforms[0].name : platforms[0].platform) : undefined;
+  const followers = "total_followers" in creator ? creator.total_followers : creator.audience_size;
   return {
     id: creator.creator_id,
-    name: creator.display_name || creator.user?.name || "Creator",
+    name: creator.display_name || ("user" in creator ? creator.user?.name : "") || "Creator",
     category: creator.category || "Creator",
-    followers: formatFollowers(creator.audience_size),
+    followers: formatFollowers(followers),
     engagement: getEngagement(creator),
     added: "Added to shortlist",
     platform: normalizePlatform(platform),
-    image: creator.profile_image_url || fallbackImages[index % fallbackImages.length],
+    image: ("profile_image_url" in creator ? creator.profile_image_url : creator.profile_image) || fallbackImages[index % fallbackImages.length],
   };
 }
 

@@ -355,10 +355,38 @@ export type CreatorProfileApi = {
   updated_at: string;
 };
 
-export type CreatorListItemApi = CreatorProfileApi & {
-  id?: string;
-  username?: string;
+export type CreatorListPlatformApi = {
+  name: CreatorSocialPlatform;
+  followers: number;
+  engagement_rate?: number;
+  view_count?: number;
+  media_count?: number;
+};
+
+export type CreatorListItemApi = {
+  creator_id: string;
+  display_name: string;
+  category: string;
   verified?: boolean;
+  username?: string;
+  profile_image: string | null;
+  work_with?: string[];
+  total_followers: number;
+  platform_data?: CreatorListPlatformApi[];
+  location?: string;
+  gender?: string;
+  created_at?: string;
+};
+
+export type CreatorPublicProfileApi = CreatorListItemApi & {
+  updated_at?: string;
+  languages?: string[];
+  bio?: string;
+  about?: string;
+  avg_eng_rate?: number;
+  total_view_count?: number;
+  total_media_count?: number;
+  collaboration_preferences?: string[];
 };
 
 export type BrandRegisterPayload = {

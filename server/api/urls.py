@@ -6,7 +6,6 @@ from .admin.views import VerificationView
 from .brand.views import (
     BrandDetailDashboardView,
     BrandProfileViewSet,
-    BrandsListView,
     BrandRegisterView,
     BrandShortlistViewSet,
     CampaignsViewSet,
@@ -65,8 +64,6 @@ urlpatterns = [
 
 
     path("brands/campaigns/", CampaignsViewSet.as_view(), name="brand_campaigns"),
-    path("brands/list/", BrandsListView.as_view(), name="brands_list"),
-    path("brands/list/<uuid:brand_id>/", BrandsListView.as_view(), name="brand_detail"),
     path("creators/list/", CreatorListViewSet.as_view(), name="creators_list"),
     path("creator/<uuid:creator_id>/", CreatorListViewSet.as_view(), name="creator_detail"),
 

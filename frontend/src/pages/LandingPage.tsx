@@ -24,7 +24,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { getCreatorsList } from "../lib/authApi";
-import type { CreatorProfileApi } from "../types";
+import type { CreatorListItemApi } from "../types";
 import heroCreator1 from "../assets/collune/hero-creator-1.jpg";
 import heroCreator2 from "../assets/collune/hero-creator-2.jpg";
 import heroCreator3 from "../assets/collune/hero-creator-3.jpg";
@@ -68,7 +68,7 @@ const creatorSteps = [
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [creators, setCreators] = useState<CreatorProfileApi[]>([]);
+  const [creators, setCreators] = useState<CreatorListItemApi[]>([]);
   const [isLoadingCreators, setIsLoadingCreators] = useState(true);
   const [creatorError, setCreatorError] = useState("");
   const [selectedCreatorCategory, setSelectedCreatorCategory] = useState("All Creators");

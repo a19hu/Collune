@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext.tsx";
 import { getCreatorsList } from "../lib/authApi.ts";
-import type { CreatorProfileApi } from "../types";
+import type { CreatorListItemApi } from "../types";
 import { Lock } from "lucide-react";
 import { CreatorCard } from "../HtmlComponents/CreatorCard.tsx";
 
@@ -27,7 +27,7 @@ const platformValueMap: Record<string, string[]> = {
 
 export const DiscoverCreatorsPage = () => {
   const { currentUser } = useAuth();
-  const [creators, setCreators] = useState<CreatorProfileApi[]>([]);
+  const [creators, setCreators] = useState<CreatorListItemApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -70,38 +70,34 @@ export const DiscoverCreatorsPage = () => {
   const filteredCreators = useMemo(() => {
     const text = query.trim().toLowerCase();
     const next = creators.filter((creator) => {
-      const socialAccounts = creator.social_accounts ?? [];
-      const languages = creator.languages ?? [];
-      const collaborationPreferences = creator.collaboration_preferences ?? [];
+      const platformData = creator.platform_data ?? [];
+      const workWith = creator.work_with ?? [];
       const matchesText = !text || [
         creator.display_name,
         creator.username,
         creator.category,
         creator.location,
-        creator.bio,
-        ...languages,
-        ...collaborationPreferences,
-        ...socialAccounts.flatMap((account) => [account.platform, account.handle, account.username]),
+        ...workWith,
+        ...platformData.map((account) => account.name),
       ].filter(Boolean).some((value) => String(value).toLowerCase().includes(text));
 
       if (!isBrand) return matchesText;
 
       const matchesCategory = !selectedCategories.length || selectedCategories.includes(creator.category);
-      const matchesPlatform = !selectedPlatforms.length || socialAccounts.some((account) => {
-        const accountPlatform = String(account.platform).toUpperCase();
+      const matchesPlatform = !selectedPlatforms.length || platformData.some((account) => {
+        const accountPlatform = String(account.name).toUpperCase();
         return selectedPlatforms.some((platform) => platformValueMap[platform]?.includes(accountPlatform));
       });
-      const followerCount = creator.audience_size || socialAccounts.reduce((total, account) => total + (account.followers || 0), 0);
-      const matchesFollowers = followerCount >= minFollowers;
+      const matchesFollowers = (creator.total_followers || 0) >= minFollowers;
       const matchesLocation = !location || creator.location === location;
       return matchesText && matchesCategory && matchesPlatform && matchesFollowers && matchesLocation;
     });
 
     return [...next].sort((a, b) => {
       if (!isBrand) return 0;
-      if (sortBy === "followers") return (b.audience_size || 0) - (a.audience_size || 0);
+      if (sortBy === "followers") return (b.total_followers || 0) - (a.total_followers || 0);
       if (sortBy === "newest") return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-      return (b.profile_completion || 0) - (a.profile_completion || 0);
+      return (b.total_followers || 0) - (a.total_followers || 0);
     });
   }, [creators, isBrand, location, minFollowers, query, selectedCategories, selectedPlatforms, sortBy]);
   const visibleCreators = isBrand ? filteredCreators : filteredCreators.slice(0, 12);

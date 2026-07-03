@@ -5,10 +5,15 @@ import {
   getBrandShortlists,
   updateBrandShortlist,
 } from "../../../lib/authApi";
-import type { BrandShortlistApi, CreatorProfileApi } from "../../../types";
+import type { BrandShortlistApi } from "../../../types";
 
-function creatorName(creator: CreatorProfileApi) {
-  return creator.display_name || creator.user?.name || "Creator";
+type ShortlistCreatorRef = {
+  creator_id: string;
+  display_name?: string;
+};
+
+function creatorName(creator: ShortlistCreatorRef) {
+  return creator.display_name || "Creator";
 }
 
 function shortlistCreatorIds(shortlist: BrandShortlistApi) {
@@ -20,7 +25,7 @@ export function AddCreatorToShortlistModal({
   isOpen,
   onClose,
 }: {
-  creator: CreatorProfileApi;
+  creator: ShortlistCreatorRef;
   isOpen: boolean;
   onClose: () => void;
 }) {

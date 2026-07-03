@@ -3,7 +3,7 @@ import { ArrowRight, BadgeCheck, BookOpenText, Building2, ExternalLink, HelpCirc
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { getBrandsList, getCreatorsList } from "../lib/authApi";
-import type { BrandProfileApi, CreatorProfileApi } from "../types";
+import type { BrandProfileApi, CreatorListItemApi } from "../types";
 import creator1 from "../assets/collune/creator-1.png";
 import creator2 from "../assets/collune/creator-2.png";
 import creator3 from "../assets/collune/creator-3.png";
@@ -62,21 +62,20 @@ const fallbackImages = [creator1, heroCreator1, creator2, creator4, heroCreator2
 const categoryOptions = ["Politics", "Lifestyle", "Education", "Fashion", "Travel", "Food"];
 const platformOptions = ["INSTAGRAM", "YOUTUBE", "X", "LINKEDIN"];
 
-function creatorHandle(creator: CreatorProfileApi) {
-  const account = creator.social_accounts.find((item) => item.handle || item.username);
-  const handle = account?.handle || account?.username || creator.user?.username || "";
+function creatorHandle(creator: CreatorListItemApi) {
+  const handle = creator.username || "";
   return handle ? `@${handle.replace(/^@/, "")}` : "";
 }
 
-function creatorChips(creator: CreatorProfileApi) {
-  const platforms = creator.social_accounts.map((account) => account.platform).filter(Boolean);
-  const preferences = creator.collaboration_preferences.filter(Boolean);
-  return [...platforms, ...preferences, ...creator.languages].slice(0, 3);
+function creatorChips(creator: CreatorListItemApi) {
+  const platforms = (creator.platform_data || []).map((account) => account.name).filter(Boolean);
+  const workWith = creator.work_with || [];
+  return [...platforms, ...workWith].slice(0, 3);
 }
 
-function DiscoverCreatorCard({ creator, index }: { creator: CreatorProfileApi; index: number; key?: string }) {
-  const image = creator.profile_image_url || fallbackImages[index % fallbackImages.length];
-  const name = creator.display_name || creator.user?.name || "Creator";
+function DiscoverCreatorCard({ creator, index }: { creator: CreatorListItemApi; index: number; key?: string }) {
+  const image = creator.profile_image || fallbackImages[index % fallbackImages.length];
+  const name = creator.display_name || "Creator";
   const handle = creatorHandle(creator);
   const chips = creatorChips(creator);
 
@@ -243,7 +242,7 @@ function FeaturedBrandsPage() {
 
 function DiscoverCreatorsPage() {
   const { currentUser } = useAuth();
-  const [creators, setCreators] = useState<CreatorProfileApi[]>([]);
+  const [creators, setCreators] = useState<CreatorListItemApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -280,25 +279,23 @@ function DiscoverCreatorsPage() {
       const handle = creatorHandle(creator).toLowerCase();
       const matchesText = !text || [
         creator.display_name,
-        creator.user?.name,
         creator.category,
         creator.location,
         handle,
-        creator.bio,
-        ...creator.languages,
-        ...creator.collaboration_preferences,
+        ...(creator.work_with || []),
+        ...(creator.platform_data || []).map((account) => account.name),
       ].filter(Boolean).some((value) => String(value).toLowerCase().includes(text));
       const matchesCategory = !selectedCategories.length || selectedCategories.includes(creator.category);
-      const matchesPlatform = !selectedPlatforms.length || creator.social_accounts.some((account) => selectedPlatforms.includes(account.platform));
-      const matchesFollowers = creator.audience_size >= minFollowers;
+      const matchesPlatform = !selectedPlatforms.length || (creator.platform_data || []).some((account) => selectedPlatforms.includes(account.name));
+      const matchesFollowers = (creator.total_followers || 0) >= minFollowers;
       const matchesLocation = !location || creator.location === location;
       return matchesText && matchesCategory && matchesPlatform && matchesFollowers && matchesLocation && gender;
     });
 
     return [...next].sort((a, b) => {
-      if (sortBy === "followers") return b.audience_size - a.audience_size;
-      if (sortBy === "newest") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      return (b.profile_completion || 0) - (a.profile_completion || 0);
+      if (sortBy === "followers") return (b.total_followers || 0) - (a.total_followers || 0);
+      if (sortBy === "newest") return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      return (b.total_followers || 0) - (a.total_followers || 0);
     });
   }, [creators, gender, location, minFollowers, query, selectedCategories, selectedPlatforms, sortBy]);
 

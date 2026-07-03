@@ -7,7 +7,7 @@ type CreatorProfileApi = {
     display_name?: string;
     category?: string;
     profile_image?: string;
-    verified?: string;
+    verified?: boolean | string;
     username?: string;
 }
 
@@ -15,7 +15,7 @@ type CreatorProfileApi = {
 export function CreatorCard({ creator, index }: { creator: CreatorProfileApi; index: number}) {
   const imageUrl =  creator.profile_image || `https://i.pravatar.cc/640?img=${(index % 70) + 1}`;
   const username = creator.username ;
-  const isVerified = creator.verified || creator.verified === "VERIFIED";
+  const isVerified = creator.verified === true || creator.verified === "VERIFIED";
 
   return (
     <article className="overflow-hidden rounded-lg border border-[#e0e7fb] bg-white text-left shadow-[0_14px_32px_rgba(41,64,132,0.09)]">

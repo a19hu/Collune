@@ -63,29 +63,6 @@ class BrandRegisterView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
-
-class BrandsListView(APIView):
-    permission_classes = [IsAuthenticated, IsVerifiedColluneMember]
-    parser_classes = [JSONParser, MultiPartParser, FormParser]
-
-    def get_queryset(self):
-        return BrandProfile.objects.select_related("user").filter(
-            verification_status=VerificationStatus.VERIFIED,
-            is_profile_visible=True,
-        )
-
-    def get(self, request, brand_id=None):
-        if brand_id:
-            try:
-                brand = self.get_queryset().get(brand_id=brand_id)
-            except BrandProfile.DoesNotExist:
-                return Response({"error": "Brand profile not found."}, status=status.HTTP_404_NOT_FOUND)
-            serializer = BrandProfileSerializer(brand, context={"request": request})
-            return Response({"brand": serializer.data})
-
-        brands = self.get_queryset().order_by("-created_at")
-        serializer = BrandProfileSerializer(brands, many=True, context={"request": request})
-        return Response({"brands": serializer.data})
     
 class BrandDetailDashboardView(APIView):
     permission_classes = [IsAuthenticated, IsBrand]

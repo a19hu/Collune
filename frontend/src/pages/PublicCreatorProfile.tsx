@@ -18,9 +18,9 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "../contexts/AuthContext";
-import { getCreatorPublicProfile, getCreatorsList } from "../lib/authApi";
+import { getCreatorPublicProfile } from "../lib/authApi";
 import { AddCreatorToShortlistModal } from "../components/Brand/Shortlists/AddCreatorToShortlistModal";
-import type { CreatorProfileApi, CreatorSocialPlatform } from "../types";
+import type { CreatorPublicProfileApi, CreatorSocialPlatform } from "../types";
 import { formatUpdatedAt } from "../HtmlComponents/BrandCard";
 
 const fallbackPortfolio = [
@@ -87,7 +87,7 @@ function LockedMetricTile({ value, label, unlocked }: { value: string; label: st
   );
 }
 
-function BrandActions({ creator, isBrand }: { creator: CreatorProfileApi; isBrand: boolean }) {
+function BrandActions({ creator, isBrand }: { creator: CreatorPublicProfileApi; isBrand: boolean }) {
   const [isShortlistModalOpen, setIsShortlistModalOpen] = useState(false);
 
   if (isBrand) {
@@ -151,7 +151,7 @@ function VerifiedCard() {
 export function PublicCreatorProfile() {
   const { creatorId } = useParams();
   const { currentUser } = useAuth();
-  const [profile, setProfile] = useState<CreatorProfileApi | null>(null);
+  const [profile, setProfile] = useState<CreatorPublicProfileApi | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const isBrand = currentUser?.role === "Brand";
@@ -175,24 +175,32 @@ export function PublicCreatorProfile() {
   }, [creatorId]);
 
   const profileStats = useMemo(() => {
-    const audience = profile?.audience_size || 0;
+    const audience = profile?.total_followers || 0;
+    const engagementRate = profile?.avg_eng_rate || 0;
     return {
       totalFollowers: compactNumber(audience),
-      engagementRate: audience ? "5.1%" : "0%",
-      reach: compactNumber(Math.max(Math.round(audience * 0.5), audience ? 1200 : 0)),
+      engagementRate: engagementRate ? `${engagementRate}%` : "0%",
+      reach: compactNumber(profile?.total_view_count || Math.max(Math.round(audience * 0.5), audience ? 1200 : 0)),
       comments: compactNumber(Math.max(Math.round(audience * 0.1), audience ? 250 : 0)),
       shares: compactNumber(Math.max(Math.round(audience * 0.06), audience ? 140 : 0)),
     };
   }, [profile]);
 
   const visiblePlatforms = useMemo(() => {
-    const accounts = profile?.social_accounts || [];
-    if (accounts?.length) return accounts.slice(0, 4);
+    const accounts = profile?.platform_data || [];
+    if (accounts.length) {
+      return accounts.slice(0, 4).map((account) => ({
+        platform: account.name,
+        followers: account.followers || 0,
+        view_count: account.view_count || 0,
+        engagement_rate: account.engagement_rate || 0,
+      }));
+    }
     return [
-      { account_id: "instagram", platform: "INSTAGRAM" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.5), is_connected: false, created_at: "" },
-      { account_id: "youtube", platform: "YOUTUBE" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.3), is_connected: false, created_at: "" },
-      { account_id: "Facebook", platform: "FACEBOOK" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.2), is_connected: false, created_at: "" },
-      { account_id: "x", platform: "X" as CreatorSocialPlatform, handle: "", followers: Math.round((profile?.audience_size || 0) * 0.12), is_connected: false, created_at: "" },
+      { platform: "INSTAGRAM" as CreatorSocialPlatform, followers: Math.round((profile?.total_followers || 0) * 0.5), view_count: 0, engagement_rate: 0 },
+      { platform: "YOUTUBE" as CreatorSocialPlatform, followers: Math.round((profile?.total_followers || 0) * 0.3), view_count: 0, engagement_rate: 0 },
+      { platform: "FACEBOOK" as CreatorSocialPlatform, followers: Math.round((profile?.total_followers || 0) * 0.2), view_count: 0, engagement_rate: 0 },
+      { platform: "X" as CreatorSocialPlatform, followers: Math.round((profile?.total_followers || 0) * 0.12), view_count: 0, engagement_rate: 0 },
     ];
   }, [profile]);
 
@@ -262,7 +270,7 @@ export function PublicCreatorProfile() {
                 ))}
               </div>
               <div className="mt-5 max-w-[210px] rounded-[6px] border border-[#d8e0ec] bg-white px-4 py-2 text-center lg:ml-auto">
-                <strong className="block text-[24px] font-black leading-none text-[#1438c8]">{(profile?.total_flowers).toLocaleString() || 0}</strong>
+                <strong className="block text-[24px] font-black leading-none text-[#1438c8]">{(profile?.total_followers || 0).toLocaleString()}</strong>
                 <span className="text-[11px] font-semibold text-[#6c7790]">Followers across Platforms</span>
               </div>
             </div>
@@ -290,7 +298,7 @@ export function PublicCreatorProfile() {
               right={isBrand ? <span className="text-[11px] font-semibold text-[#7b8597]">{formatUpdatedAt(profile?.updated_at)}</span> : null}
             />
             <div className={`mt-4 grid gap-3 sm:grid-cols-2 ${isBrand ? "lg:grid-cols-6" : "lg:grid-cols-4"}`}>
-              <MetricTile value={ (profile?.total_flowers).toLocaleString() || 0 } label="Total Followers" />
+              <MetricTile value={(profile?.total_followers || 0).toLocaleString()} label="Total Followers" />
               {isBrand ? (
                 <>
                   <MetricTile value={profileStats.engagementRate} label="Avg. Eng. rate" />
@@ -303,7 +311,7 @@ export function PublicCreatorProfile() {
                 <>
                   <LockedMetricTile value={profileStats.engagementRate} label="Avg. Engagement rate" unlocked={false} />
                   <LockedMetricTile value="72%" label="Audience from India" unlocked={false} />
-                  <MetricTile value={profile?.languages.length ? profile?.languages.map((language) => language.slice(0, 2)).join("/") : "En/Hn"} label="Top Languages" />
+                  <MetricTile value={profile?.languages?.length ? profile.languages.map((language) => language.slice(0, 2)).join("/") : "En/Hn"} label="Top Languages" />
                 </>
               )}
             </div>
@@ -315,10 +323,10 @@ export function PublicCreatorProfile() {
               {visiblePlatforms.map((account) => {
                 const meta = platformMeta[account.platform] || platformMeta.INSTAGRAM;
                 const Icon = meta.Icon;
-                const followers = account.followers || Math.round((profile.audience_size || 0) / Math.max(visiblePlatforms.length, 1));
+                const followers = account.followers || Math.round((profile.total_followers || 0) / Math.max(visiblePlatforms.length, 1));
                 const isYouTube = account.platform === "YOUTUBE";
                 return (
-                  <div key={account.account_id} className="rounded-[6px] border border-[#dbe3ee] bg-white p-4">
+                  <div key={account.platform} className="rounded-[6px] border border-[#dbe3ee] bg-white p-4">
                     <div className="flex items-center gap-2">
                       <span className={`grid h-7 w-7 place-items-center rounded-[4px] ${meta.color} text-white`}>
                         <Icon className="h-4 w-4" />
@@ -332,7 +340,7 @@ export function PublicCreatorProfile() {
                       </div>
                       <div>
                         <strong className="block text-[15px] font-black text-[#1438c8]">
-                          <span className={isBrand ? "" : "blur-[5px]"}>{isYouTube ? compactNumber(account.view_count || 0) : profileStats.engagementRate}</span>
+                          <span className={isBrand ? "" : "blur-[5px]"}>{isYouTube ? compactNumber(account.view_count || 0) : `${account.engagement_rate || profile?.avg_eng_rate || 0}%`}</span>
                         </strong>
                         <span className="text-[10px] font-semibold text-[#758198]">{isYouTube ? "Views" : "Eng. Rate"}</span>
                       </div>
@@ -344,7 +352,7 @@ export function PublicCreatorProfile() {
           </Panel>
 
           <Panel className="p-5">
-            <SectionTitle title="Portfolio" right={profile.portfolio_url ? <a href={profile.portfolio_url} className="text-[12px] font-black text-[#1438c8]">Open portfolio</a> : null} />
+            <SectionTitle title="Portfolio" />
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               {fallbackPortfolio.map((src, index) => (
                 <div key={src} className="relative aspect-[1.18] overflow-hidden rounded-[6px] bg-[#dfe7f2]">
