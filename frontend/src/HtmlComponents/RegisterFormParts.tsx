@@ -35,6 +35,7 @@ export function RegisterError({ message, className = "mt-5" }: { message?: strin
 export function RegisterSubmitButtons({
   isFinalStep,
   isSubmitting,
+  disabled = false,
   onSkip,
   submitLabel = "Continue",
   finalLabel = "Continue to Dashboard",
@@ -45,6 +46,7 @@ export function RegisterSubmitButtons({
 }: {
   isFinalStep: boolean;
   isSubmitting: boolean;
+  disabled?: boolean;
   onSkip?: () => void;
   submitLabel?: string;
   finalLabel?: string;
@@ -55,7 +57,7 @@ export function RegisterSubmitButtons({
 }) {
   return (
     <div className={`${className} ${isFinalStep && onSkip ? "grid gap-3" : "flex"}`}>
-      <button type="submit" disabled={isSubmitting} className={buttonClassName}>
+      <button type="submit" disabled={isSubmitting || disabled} className={buttonClassName}>
         {isFinalStep && isSubmitting ? submittingLabel : isFinalStep ? finalLabel : submitLabel}
         <ArrowRight className="h-5 w-5" />
       </button>

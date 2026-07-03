@@ -1,6 +1,6 @@
 import type { ChangeEvent } from "react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { HtmlProgess } from "../HtmlComponents/HtmlProgress";
 import { AuthSwitchLink, RegisterError, RegisterSubmitButtons } from "../HtmlComponents/RegisterFormParts";
@@ -35,7 +35,6 @@ const initialCreatorForm: CreatorRegisterForm = {
   bio: "",
   about: "",
   gender: "",
-  work_with: [],
 };
 
 const initialSocialAccounts: SocialAccountForm[] = [
@@ -60,13 +59,18 @@ const initialVerification: VerificationState = {
 
 const CreatorRegister = () => {
   const navigate = useNavigate();
+  const { step: stepParam } = useParams();
   const { setSessionUser } = useAuth();
-  const [step, setStep] = useState(1);
+  const initialStep = Math.min(totalSteps, Math.max(1, Number(stepParam) || 1));
+  const [step, setStepState] = useState(initialStep);
   const [form, setForm] = useState<CreatorRegisterForm>(initialCreatorForm);
   const [showPassword, setShowPassword] = useState(false);
   const [phoneOtp, setPhoneOtp] = useState("");
   const [socialAccounts, setSocialAccounts] = useState<SocialAccountForm[]>(initialSocialAccounts);
   const [verification, setVerification] = useState<VerificationState>(initialVerification);
+  const [selectedSocialPlatform, setSelectedSocialPlatform] = useState<CreatorSocialPlatform | "">(
+    () => (localStorage.getItem("creatorRegisterSocialPlatform") as CreatorSocialPlatform | null) || "",
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConnecting, setIsConnecting] = useState("");
   const [registrationComplete, setRegistrationComplete] = useState(false);
@@ -93,6 +97,28 @@ const CreatorRegister = () => {
   const setVerificationStatus = (patch: Partial<VerificationState>) => {
     setVerification((current) => ({ ...current, ...patch }));
   };
+
+  const setStep = (updater: (current: number) => number) => {
+    setStepState((current) => {
+      const next = Math.min(totalSteps, Math.max(1, updater(current)));
+      navigate(`/creator-register/${next}`, { replace: true });
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const next = Math.min(totalSteps, Math.max(1, Number(stepParam) || 1));
+    setStepState(next);
+  }, [stepParam]);
+
+  const canContinue = useMemo(() => {
+    if (step === 1) return Boolean(form.name.trim() && form.email.trim() && form.phone_no.trim() && form.password);
+    if (step === 2) return verification.emailVerified;
+    if (step === 3) return Boolean(selectedSocialPlatform);
+    if (step === 4) return Boolean(form.category && form.location.trim() && form.bio.trim());
+    if (step === 5) return Boolean(form.languages.length && form.collaboration_preferences.length);
+    return true;
+  }, [form, selectedSocialPlatform, step, verification.emailVerified]);
 
   const validateAccountStep = async () => {
     setSubmitError("");
@@ -174,7 +200,6 @@ const CreatorRegister = () => {
         bio: form.bio.trim(),
         about: form.about.trim(),
         gender: form.gender,
-        work_with: form.work_with,
         social_accounts: [],
       });
 
@@ -185,6 +210,7 @@ const CreatorRegister = () => {
         await connectOAuth(connectPlatform);
         return;
       }
+      localStorage.removeItem("creatorRegisterSocialPlatform");
       setRegistrationComplete(true);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Could not create your creator account.");
@@ -195,12 +221,9 @@ const CreatorRegister = () => {
   };
 
   const connectSocialDuringRegistration = async (platform: CreatorSocialPlatform) => {
-    if (!verification.emailVerified) {
-      setVerificationStatus({ error: "Email OTP is not verified.", message: "" });
-      return;
-    }
-    setIsConnecting(platform);
-    await submitCreatorRegistration(socialPlatformToOAuth(platform));
+    setSelectedSocialPlatform(platform);
+    localStorage.setItem("creatorRegisterSocialPlatform", platform);
+    setVerificationStatus({ message: `${platform} selected. Continue to complete setup.`, error: "" });
   };
 
   const connectOAuth = async (platform: "instagram" | "youtube" | "facebook" | "x") => {
@@ -209,16 +232,17 @@ const CreatorRegister = () => {
     try {
       const response =
         platform === "instagram"
-          ? await getInstagramConnectUrl()
+          ? await getInstagramConnectUrl("registration")
           : platform === "youtube"
-            ? await getYouTubeConnectUrl()
+            ? await getYouTubeConnectUrl("registration")
             : platform === "facebook"
-              ? await getFacebookConnectUrl()
-              : await getXConnectUrl();
+              ? await getFacebookConnectUrl("registration")
+              : await getXConnectUrl("registration");
       window.location.href = response.auth_url;
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : `Could not connect ${platform}.`);
       setIsConnecting("");
+      setStep(() => 3);
     }
   };
 
@@ -275,7 +299,9 @@ const CreatorRegister = () => {
             verification,
             setStep,
             setVerificationStatus,
-            submitCreatorRegistration,
+            submitCreatorRegistration: () => submitCreatorRegistration(
+              selectedSocialPlatform ? socialPlatformToOAuth(selectedSocialPlatform) : undefined,
+            ),
           });
         }}
       >
@@ -289,6 +315,7 @@ const CreatorRegister = () => {
             phoneOtp={phoneOtp}
             socialAccounts={socialAccounts}
             verification={verification}
+            selectedSocialPlatform={selectedSocialPlatform}
             connectingPlatform={isConnecting}
             onFieldChange={onFieldChange}
             onEmailOtpChange={(event) => setForm((current) => ({ ...current, emailOtp: event.target.value.replace(/\D/g, "").slice(0, 6) }))}
@@ -306,6 +333,7 @@ const CreatorRegister = () => {
         <RegisterSubmitButtons
           isFinalStep={step === totalSteps}
           isSubmitting={isSubmitting}
+          disabled={!canContinue}
           onSkip={() => void submitCreatorRegistration()}
         />
 

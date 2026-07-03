@@ -62,7 +62,6 @@ class CreatorRegisterView(APIView):
             bio=data.get("bio", ""),
             about=data.get("about", ""),
             gender=data.get("gender", ""),
-            work_with=data.get("work_with", []),
             profile_image=data.get("profile_image"),
         )
         CreatorSocialAccount.objects.bulk_create(
@@ -577,6 +576,7 @@ class InstagramConnectView(APIView):
             {
                 "user_id": str(request.user.user_id),
                 "nonce": secrets.token_urlsafe(16),
+                "return_to": "registration" if request.query_params.get("return_to") == "registration" else "",
             },
             salt="instagram-oauth",
         )
@@ -602,8 +602,9 @@ class InstagramCallbackView(APIView):
         state = request.query_params.get("state")
         frontend_url = settings.FRONTEND_URL.rstrip("/")
 
-        def instagram_error(reason):
-            return redirect(f"{frontend_url}/creator/profile?instagram=error&instagram_reason={reason}")
+        def instagram_error(reason, registration=False):
+            path = "creator-register/3" if registration else "creator/profile"
+            return redirect(f"{frontend_url}/{path}?instagram=error&instagram_reason={reason}")
 
         if not code or not state:
             return instagram_error("missing_code")
@@ -612,6 +613,7 @@ class InstagramCallbackView(APIView):
             state_data = signing.loads(state, salt="instagram-oauth", max_age=600)
             user = User.objects.get(user_id=state_data["user_id"], role=UserRole.CREATOR)
             creator = user.creator_profile
+            registration_return = state_data.get("return_to") == "registration"
         except (signing.BadSignature, signing.SignatureExpired, User.DoesNotExist, CreatorProfile.DoesNotExist, KeyError):
             return instagram_error("state")
 
@@ -627,12 +629,12 @@ class InstagramCallbackView(APIView):
             timeout=20,
         )
         if not token_response.ok:
-            return instagram_error("token")
+            return instagram_error("token", registration_return)
 
         token_data = token_response.json()
         access_token = token_data.get("access_token", "")
         if not access_token:
-            return instagram_error("token")
+            return instagram_error("token", registration_return)
         instagram_user_id = token_data.get("user_id") or token_data.get("id") or ""
         expires_at = None
 
@@ -661,7 +663,7 @@ class InstagramCallbackView(APIView):
             timeout=20,
         )
         if not profile_response.ok:
-            return instagram_error("profile")
+            return instagram_error("profile", registration_return)
 
         profile_data = profile_response.json()
         social_id = str(profile_data.get("user_id") or profile_data.get("id") or instagram_user_id)
@@ -703,6 +705,7 @@ class FacebookConnectView(APIView):
             {
                 "user_id": str(request.user.user_id),
                 "nonce": secrets.token_urlsafe(16),
+                "return_to": "registration" if request.query_params.get("return_to") == "registration" else "",
             },
             salt="facebook-oauth",
         )
@@ -724,8 +727,9 @@ class FacebookCallbackView(APIView):
         state = request.query_params.get("state")
         frontend_url = settings.FRONTEND_URL.rstrip("/")
 
-        def facebook_error(reason):
-            return redirect(f"{frontend_url}/creator/profile?facebook=error&facebook_reason={reason}")
+        def facebook_error(reason, registration=False):
+            path = "creator-register/3" if registration else "creator/profile"
+            return redirect(f"{frontend_url}/{path}?facebook=error&facebook_reason={reason}")
 
         if not code or not state:
             return facebook_error("missing_code")
@@ -734,6 +738,7 @@ class FacebookCallbackView(APIView):
             state_data = signing.loads(state, salt="facebook-oauth", max_age=600)
             user = User.objects.get(user_id=state_data["user_id"], role=UserRole.CREATOR)
             creator = user.creator_profile
+            registration_return = state_data.get("return_to") == "registration"
         except (signing.BadSignature, signing.SignatureExpired, User.DoesNotExist, CreatorProfile.DoesNotExist, KeyError):
             return facebook_error("state")
 
@@ -749,12 +754,12 @@ class FacebookCallbackView(APIView):
             timeout=20,
         )
         if not token_response.ok:
-            return facebook_error("token")
+            return facebook_error("token", registration_return)
 
         token_data = token_response.json()
         access_token = token_data.get("access_token", "")
         if not access_token:
-            return facebook_error("token")
+            return facebook_error("token", registration_return)
         expires_at = None
         expires_in = token_data.get("expires_in")
         if expires_in:
@@ -786,7 +791,7 @@ class FacebookCallbackView(APIView):
             timeout=20,
         )
         if not profile_response.ok:
-            return facebook_error("profile")
+            return facebook_error("profile", registration_return)
 
         profile_data = profile_response.json()
         pages = []
@@ -852,6 +857,7 @@ class YouTubeConnectView(APIView):
             {
                 "user_id": str(request.user.user_id),
                 "nonce": secrets.token_urlsafe(16),
+                "return_to": "registration" if request.query_params.get("return_to") == "registration" else "",
             },
             salt="youtube-oauth",
         )
@@ -874,15 +880,20 @@ class YouTubeCallbackView(APIView):
         state = request.query_params.get("state")
         frontend_url = settings.FRONTEND_URL.rstrip("/")
 
+        def youtube_redirect(status_value, registration=False):
+            path = "creator-register/3" if registration else "creator/profile"
+            return redirect(f"{frontend_url}/{path}?youtube={status_value}")
+
         if not code or not state:
-            return redirect(f"{frontend_url}/creator/profile?youtube=error")
+            return youtube_redirect("error")
 
         try:
             state_data = signing.loads(state, salt="youtube-oauth", max_age=600)
             user = User.objects.get(user_id=state_data["user_id"], role=UserRole.CREATOR)
             creator = user.creator_profile
+            registration_return = state_data.get("return_to") == "registration"
         except (signing.BadSignature, signing.SignatureExpired, User.DoesNotExist, CreatorProfile.DoesNotExist, KeyError):
-            return redirect(f"{frontend_url}/creator/profile?youtube=error")
+            return youtube_redirect("error")
 
         token_response = requests.post(
             GOOGLE_TOKEN_URL,
@@ -896,7 +907,7 @@ class YouTubeCallbackView(APIView):
             timeout=20,
         )
         if not token_response.ok:
-            return redirect(f"{frontend_url}/creator/profile?youtube=error")
+            return youtube_redirect("error", registration_return)
 
         token_data = token_response.json()
         access_token = token_data.get("access_token", "")
@@ -913,12 +924,12 @@ class YouTubeCallbackView(APIView):
             timeout=20,
         )
         if not channel_response.ok:
-            return redirect(f"{frontend_url}/creator/profile?youtube=error")
+            return youtube_redirect("error", registration_return)
 
         channel_data = channel_response.json()
         items = channel_data.get("items", [])
         if not items:
-            return redirect(f"{frontend_url}/creator/profile?youtube=no_channel")
+            return youtube_redirect("no_channel", registration_return)
 
         channel = items[0]
         snippet = channel.get("snippet", {})
@@ -1021,6 +1032,7 @@ class XConnectView(APIView):
                 "user_id": str(request.user.user_id),
                 "nonce": secrets.token_urlsafe(16),
                 "code_verifier": code_verifier,
+                "return_to": "registration" if request.query_params.get("return_to") == "registration" else "",
             },
             salt="x-oauth",
         )
@@ -1043,16 +1055,21 @@ class XCallbackView(APIView):
         state = request.query_params.get("state")
         frontend_url = settings.FRONTEND_URL.rstrip("/")
 
+        def x_error(registration=False):
+            path = "creator-register/3" if registration else "creator/profile"
+            return redirect(f"{frontend_url}/{path}?x=error")
+
         if not code or not state:
-            return redirect(f"{frontend_url}/creator/profile?x=error")
+            return x_error()
 
         try:
             state_data = signing.loads(state, salt="x-oauth", max_age=600)
             user = User.objects.get(user_id=state_data["user_id"], role=UserRole.CREATOR)
             creator = user.creator_profile
             code_verifier = state_data["code_verifier"]
+            registration_return = state_data.get("return_to") == "registration"
         except (signing.BadSignature, signing.SignatureExpired, User.DoesNotExist, CreatorProfile.DoesNotExist, KeyError):
-            return redirect(f"{frontend_url}/creator/profile?x=error")
+            return x_error()
 
         token_data = {
             "code": code,
@@ -1067,7 +1084,7 @@ class XCallbackView(APIView):
 
         token_response = requests.post(X_TOKEN_URL, **token_kwargs)
         if not token_response.ok:
-            return redirect(f"{frontend_url}/creator/profile?x=error")
+            return x_error(registration_return)
 
         token_json = token_response.json()
         access_token = token_json.get("access_token", "")
@@ -1084,7 +1101,7 @@ class XCallbackView(APIView):
             timeout=20,
         )
         if not user_response.ok:
-            return redirect(f"{frontend_url}/creator/profile?x=error")
+            return x_error(registration_return)
 
         x_user = user_response.json().get("data", {})
         metrics = x_user.get("public_metrics", {})

@@ -28,7 +28,6 @@ class CreatorRegisterSerializer(serializers.Serializer):
     bio = serializers.CharField(required=False, allow_blank=True)
     about = serializers.CharField(required=False, allow_blank=True)
     gender = serializers.CharField(max_length=120, required=False, allow_blank=True)
-    work_with = serializers.ListField(child=serializers.CharField(max_length=120), required=False)
     profile_image = serializers.ImageField(required=False, allow_null=True)
 
     def validate(self, attrs):

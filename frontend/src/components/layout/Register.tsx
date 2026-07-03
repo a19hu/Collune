@@ -6,7 +6,7 @@ import creator1 from "../../assets/collune/hero-creator-1.png";
 import creator2 from "../../assets/collune/hero-creator-2.png";
 import creator3 from "../../assets/collune/hero-creator-4.png";
 import heroCreator from "../../assets/collune/hero-creator-5.jpg";
-import socialCreator from "../../assets/collune/hero-creator-4.png";
+import socialCreator from "../../assets/collune/hero-creator-6.jpg";
 import handshakeImage from "../../assets/collune/creator-2.png";
 
 type RegisterProps = {

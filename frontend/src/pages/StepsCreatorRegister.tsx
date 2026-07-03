@@ -25,12 +25,14 @@ const collaborationOptions = [
 function SocialCard({
   icon,
   title,
+  isSelected,
   isConnecting,
   onConnect,
 }: {
   key?: string;
   icon: ReactNode;
   title: string;
+  isSelected?: boolean;
   isConnecting?: boolean;
   onConnect: () => void;
 }) {
@@ -39,15 +41,17 @@ function SocialCard({
       <span>{icon}</span>
       <div className="min-w-0 flex-1">
         <h3 className="text-sm font-black text-[#202337]">{title}</h3>
-        <p className="mt-1 text-xs font-semibold text-[#707b91]">Create your account and connect with OAuth.</p>
+        <p className="mt-1 text-xs font-semibold text-[#707b91]">
+          {isSelected ? "Selected for OAuth after setup." : "Connect with OAuth after setup is complete."}
+        </p>
       </div>
       <button
         type="button"
         disabled={isConnecting}
         onClick={onConnect}
-        className="h-10 rounded-lg bg-[#2447bd] px-5 text-sm font-black text-white disabled:opacity-60"
+        className={`h-10 rounded-lg px-5 text-sm font-black text-white disabled:opacity-60 ${isSelected ? "bg-[#04b981]" : "bg-[#2447bd]"}`}
       >
-        {isConnecting ? "Opening..." : "Connect"}
+        {isConnecting ? "Opening..." : isSelected ? "Selected" : "Connect"}
       </button>
     </article>
   );
@@ -110,6 +114,7 @@ type StepContentProps = {
   phoneOtp: string;
   socialAccounts: SocialAccountForm[];
   verification: VerificationState;
+  selectedSocialPlatform: SocialAccountForm["platform"] | "";
   connectingPlatform: string;
   onFieldChange: (field: keyof CreatorRegisterForm) => (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   onEmailOtpChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -128,6 +133,7 @@ export const StepsCreatorRegister=({
   phoneOtp,
   socialAccounts,
   verification,
+  selectedSocialPlatform,
   connectingPlatform,
   onFieldChange,
   onEmailOtpChange,
@@ -212,6 +218,7 @@ export const StepsCreatorRegister=({
             <SocialCard
               key={account.platform}
               title={account.title}
+              isSelected={selectedSocialPlatform === account.platform}
               isConnecting={connectingPlatform === account.platform}
               onConnect={() => onConnectSocial(account.platform)}
               icon={getSocialIcon(account.platform)}
@@ -237,20 +244,6 @@ export const StepsCreatorRegister=({
               <ChevronDown className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#707b91]" />
             </span>
           </label>
-          <div>
-            <span className="mb-2 block text-xs font-semibold text-[#202337]">Languages</span>
-            <div className="flex flex-wrap gap-2">
-              {languageOptions.map((language) => (
-                <SelectablePill
-                  key={language}
-                  active={form.languages.includes(language)}
-                  onClick={() => onToggleFormArrayValue("languages", language)}
-                >
-                  {language}
-                </SelectablePill>
-              ))}
-            </div>
-          </div>
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Location" icon={<MapPin className="h-5 w-5" />} value={form.location} onChange={onFieldChange("location")} placeholder="New Delhi, India" />
           <label className="block">
             <span className="mb-2 block text-xs font-semibold text-[#202337]">Gender</span>

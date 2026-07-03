@@ -110,6 +110,7 @@ const App: React.FC = () => {
                         </Route>
                     </Route>
                     <Route path="/creator-register" element={<CreatorRegister />} />
+                    <Route path="/creator-register/:step" element={<CreatorRegister />} />
                     <Route path="/brand-register" element={<BrandRegister />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="*" element={<NotFoundPage />} />

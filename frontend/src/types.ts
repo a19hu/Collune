@@ -18,7 +18,6 @@ export type CreatorRegisterForm = {
   bio: string;
   about: string;
   gender: string;
-  work_with: string[];
 };
 
 export type BrandRegisterForm = {
@@ -281,7 +280,6 @@ export type CreatorRegisterPayload = {
   bio?: string;
   about?: string;
   gender?: string;
-  work_with?: string[];
 };
 
 export type CreatorRegisterResponse = LoginResponse & {
@@ -295,7 +293,6 @@ export type CreatorRegisterResponse = LoginResponse & {
     bio: string;
     about?: string;
     gender?: string;
-    work_with?: string[];
     verification_status: string;
     profile_completion: number;
   };

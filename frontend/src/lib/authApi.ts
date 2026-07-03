@@ -221,20 +221,24 @@ export async function updateCreatorProfile(payload: FormData) {
   return data.creator;
 }
 
-export async function getInstagramConnectUrl() {
-  return apiRequest<{ auth_url: string }>("/auth/instagram/connect/", {}, true);
+function oauthReturnQuery(returnTo?: "registration") {
+  return returnTo ? `?return_to=${encodeURIComponent(returnTo)}` : "";
 }
 
-export async function getFacebookConnectUrl() {
-  return apiRequest<{ auth_url: string }>("/auth/facebook/connect/", {}, true);
+export async function getInstagramConnectUrl(returnTo?: "registration") {
+  return apiRequest<{ auth_url: string }>(`/auth/instagram/connect/${oauthReturnQuery(returnTo)}`, {}, true);
 }
 
-export async function getYouTubeConnectUrl() {
-  return apiRequest<{ auth_url: string }>("/auth/youtube/connect/", {}, true);
+export async function getFacebookConnectUrl(returnTo?: "registration") {
+  return apiRequest<{ auth_url: string }>(`/auth/facebook/connect/${oauthReturnQuery(returnTo)}`, {}, true);
 }
 
-export async function getXConnectUrl() {
-  return apiRequest<{ auth_url: string }>("/auth/x/connect/", {}, true);
+export async function getYouTubeConnectUrl(returnTo?: "registration") {
+  return apiRequest<{ auth_url: string }>(`/auth/youtube/connect/${oauthReturnQuery(returnTo)}`, {}, true);
+}
+
+export async function getXConnectUrl(returnTo?: "registration") {
+  return apiRequest<{ auth_url: string }>(`/auth/x/connect/${oauthReturnQuery(returnTo)}`, {}, true);
 }
 
 export async function refreshYouTubeVideos() {
