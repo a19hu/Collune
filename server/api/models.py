@@ -125,16 +125,17 @@ class CreatorSocialAccount(models.Model):
     username = models.CharField(max_length=255, blank=True, default="")
     handle = models.CharField(max_length=120)
     url = models.URLField(blank=True, default="")
+
     followers = models.PositiveIntegerField(default=0)
     media_count = models.PositiveIntegerField(default=0)
     view_count = models.PositiveBigIntegerField(default=0)
     engagement_rate = models.FloatField(default=0)
-    audience_country = models.JSONField(default=dict, blank=True)
-    youtube_short_video_count = models.PositiveIntegerField(default=0)
-    youtube_long_video_count = models.PositiveIntegerField(default=0)
-    youtube_videos = models.JSONField(default=list, blank=True)
-    youtube_analytics = models.JSONField(default=dict, blank=True)
+
+    video_count = models.PositiveIntegerField(default=0)
+    videos = models.JSONField(default=list, blank=True)
+    analytics = models.JSONField(default=dict, blank=True)
     provider_data = models.JSONField(default=dict, blank=True)
+
     access_token = models.TextField(blank=True, default="")
     refresh_token = models.TextField(blank=True, default="")
     expires_at = models.DateTimeField(null=True, blank=True)

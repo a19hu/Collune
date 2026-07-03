@@ -28,16 +28,16 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(BrandProfile)
 class BrandProfileAdmin(admin.ModelAdmin):
-    list_display = ("company_name", "industry", "is_profile_visible", "verification_status", "profile_completion", "created_at")
+    list_display = ("company_name", "industry", "website", "created_at")
     search_fields = ("company_name", "industry", "user__email", "user__name")
-    list_filter = ("verification_status", "is_profile_visible", "industry")
+    list_filter = ("industry",)
 
 
 @admin.register(CreatorProfile)
 class CreatorProfileAdmin(admin.ModelAdmin):
-    list_display = ("display_name", "category", "audience_size", "is_profile_visible", "verification_status", "profile_completion")
+    list_display = ("display_name", "category", "location", "profile_completion")
     search_fields = ("display_name", "category", "user__email", "user__name")
-    list_filter = ("verification_status", "is_profile_visible", "category")
+    list_filter = ("category",)
 
 
 @admin.register(CreatorSocialAccount)
@@ -49,9 +49,9 @@ class CreatorSocialAccountAdmin(admin.ModelAdmin):
 
 @admin.register(Campaign)
 class CampaignAdmin(admin.ModelAdmin):
-    list_display = ("title", "brand", "category", "status", "deadline", "created_at")
+    list_display = ("title", "brand", "category", "deadline", "created_at")
     search_fields = ("title", "brand__company_name", "category")
-    list_filter = ("status", "category")
+    list_filter = ("category",)
 
 
 @admin.register(CampaignApplication)

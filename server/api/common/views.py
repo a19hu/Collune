@@ -8,10 +8,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..models import (
-    BrandProfile, BrandShortlist, Campaign, CampaignApplication, CampaignStatus,
-    CreatorProfile, CreatorSocialAccount, OtpVerification, UserRole,
+    OtpVerification,
 )
-from .serializers import AuthUserSerializer, EmailAvailabilitySerializer, LoginSerializer, OtpSendSerializer, OtpVerifySerializer
+from .serializers import AuthUserSerializer, LoginSerializer, OtpSendSerializer, OtpVerifySerializer
 from .services import OTP_EXPIRY_MINUTES, OTP_MAX_ATTEMPTS, auth_response, create_otp, normalize_otp_target, send_otp_message
 
 User = get_user_model()
@@ -34,12 +33,19 @@ class EmailAvailabilityView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        serializer = EmailAvailabilitySerializer(data=request.query_params)
-        serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data["email"]
+        email = request.query_params.get("email")
+
+        if not email:
+            return Response(
+                {"error": "Email is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        available = not User.objects.filter(email__iexact=email).exists()
+
         return Response({
             "email": email,
-            "available": not User.objects.filter(email__iexact=email).exists(),
+            "available": available,
         })
 
 class ProfileView(APIView):

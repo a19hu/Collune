@@ -24,7 +24,6 @@ from .creator.views import (
     CampaignApplicationViewSet,
     CreatorProfileView,
     CreatorRegisterView,
-    CreatorSocialAccountViewSet,
     FacebookCallbackView,
     FacebookConnectView,
     InstagramCallbackView,
@@ -42,7 +41,6 @@ from .creator.views import (
 
 router = DefaultRouter()
 router.register("brands", BrandProfileViewSet, basename="brands")
-router.register("creator-social-accounts", CreatorSocialAccountViewSet, basename="creator_social_accounts")
 router.register("campaigns", CampaignViewSet, basename="campaigns")
 router.register("campaign-applications", CampaignApplicationViewSet, basename="campaign_applications")
 router.register("brand-shortlists", BrandShortlistViewSet, basename="brand_shortlists")
