@@ -375,6 +375,8 @@ class CreatorProfileView(APIView):
             "location": creator.location,
             "bio": creator.bio,
             "about": creator.about,
+            "gender": creator.gender,
+            "is_profile_visible": creator.user.is_profile_visible,
             "total_followers": total_followers,
             "platform_data": platforms,
             "avg_eng_rate": (
@@ -403,8 +405,11 @@ class CreatorProfileView(APIView):
             "about",
             "bio",
             "category",
+            "gender",
+            "location",
             "languages",
             "collaboration_preferences",
+            "work_with",
         }
 
         # Update CreatorProfile fields
@@ -429,6 +434,11 @@ class CreatorProfileView(APIView):
         if "phone_no" in request.data:
             creator.user.phone_no = request.data.get("phone_no")
             creator.user.save(update_fields=["phone_no"])
+
+        if "is_profile_visible" in request.data:
+            visible_value = request.data.get("is_profile_visible")
+            creator.user.is_profile_visible = str(visible_value).lower() in {"true", "1", "yes", "on"}
+            creator.user.save(update_fields=["is_profile_visible"])
 
         return Response(
             {
@@ -483,6 +493,36 @@ class CampaignApplicationViewSet(APIView):
                 "massage":"sucussfully created"
             },
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+    def delete(self, request):
+        creator = self.get_creator(request)
+
+        if not creator:
+            return Response(
+                {"error": "Creator profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        campaign_id = request.data.get("campaign_id")
+
+        if not campaign_id:
+            return Response(
+                {"campaign_id": ["This field is required."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        deleted, _ = CampaignApplication.objects.filter(
+            campaign_id=campaign_id,
+            creator=creator,
+        ).delete()
+
+        return Response(
+            {
+                "message": "application removed",
+                "removed": deleted > 0,
+            },
+            status=status.HTTP_200_OK,
         )
     
 class CreatorSavedCampaignView(APIView):
@@ -573,6 +613,37 @@ class CreatorSavedCampaignView(APIView):
                 "saved": True,
             },
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+    def delete(self, request):
+        creator = self.get_creator(request)
+
+        if not creator:
+            return Response(
+                {"error": "Creator profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        campaign_id = request.data.get("campaign_id")
+
+        if not campaign_id:
+            return Response(
+                {"campaign_id": ["This field is required."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        deleted, _ = CreatorSavedCampaign.objects.filter(
+            campaign_id=campaign_id,
+            creator=creator,
+        ).delete()
+
+        return Response(
+            {
+                "message": "campaign removed from saved",
+                "saved": False,
+                "removed": deleted > 0,
+            },
+            status=status.HTTP_200_OK,
         )
 
 class CreatorAppliedCampaignsView(APIView):

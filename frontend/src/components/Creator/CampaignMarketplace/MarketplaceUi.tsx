@@ -323,7 +323,7 @@ export function BrandBlock({
   const applyLabel = hasApplied ? "Applied" : isApplying ? "Applying..." : "Apply To Campaign";
 
   return (
-    <DetailSection title="7. About the Brand">
+    <DetailSection title="6. About the Brand">
       <div className="flex flex-wrap items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <BrandAvatar campaign={campaign} size="h-14 w-14" />

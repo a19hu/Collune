@@ -33,6 +33,7 @@ type EditForm = {
   bio: string;
   about: string;
   gender: string;
+  is_profile_visible: boolean;
   profile_image: File | null;
 };
 
@@ -71,6 +72,7 @@ function toEditForm(profile: CreatorProfileApi): EditForm {
     bio: profile.bio || "",
     about: profile.about || "",
     gender: profile.gender || "",
+    is_profile_visible: profile.is_profile_visible ?? true,
     profile_image: null,
   };
 }
@@ -207,6 +209,7 @@ export function CreatorProfile() {
     body.append("bio", form.bio);
     body.append("about", form.about);
     body.append("gender", form.gender);
+    body.append("is_profile_visible", String(form.is_profile_visible));
     if (form.profile_image) body.append("profile_image", form.profile_image);
 
     try {
@@ -254,10 +257,51 @@ export function CreatorProfile() {
 
   return (
     <div className="min-h-screen bg-[#f4f7fb] p-3 text-[#25304a]">
-      <div className="mx-auto grid max-w-[1280px] gap-4 xl:grid-cols-[210px_minmax(0,1fr)_390px]">
+      <div className="mx-auto grid max-w-[1280px] gap-4 xl:grid-cols-[minmax(0,1fr)_390px]">
         <main className="grid gap-4">
           {error ? <div className="rounded-[6px] border border-[#f3b7b7] bg-[#fff5f5] px-4 py-3 text-sm font-semibold text-[#b42318]">{error}</div> : null}
           {message ? <div className="rounded-[6px] border border-[#b7ebca] bg-[#f0fff5] px-4 py-3 text-sm font-semibold text-[#067647]">{message}</div> : null}
+
+          <Card className="overflow-hidden">
+            <div className="bg-[#172554] px-6 py-6 text-white">
+              <div className="flex flex-wrap items-center justify-between gap-5">
+                <div className="flex items-center gap-4">
+                  <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-white/15">
+                    {avatar ? <img src={avatar} alt={profile.display_name} className="h-full w-full object-cover" /> : <UserRound className="h-8 w-8 text-white" />}
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-black">{profile.display_name || "Creator"}</h1>
+                    <p className="mt-1 text-sm font-semibold text-white/75">{form.category || "Category not added"} · {form.location || "Location not added"}</p>
+                  </div>
+                </div>
+                <div className="rounded-[8px] bg-white/10 p-1">
+                  <button
+                    type="button"
+                    onClick={() => updateField("is_profile_visible", !form.is_profile_visible)}
+                    className={`h-10 rounded-[6px] px-4 text-sm font-black ${form.is_profile_visible ? "bg-[#ddfbea] text-[#067647]" : "bg-[#fee4e2] text-[#b42318]"}`}
+                  >
+                    {form.is_profile_visible ? "Profile Visible" : "Profile Hidden"}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="grid gap-4 p-5 md:grid-cols-3">
+              <div className="rounded-[8px] bg-[#eef4ff] p-4">
+                <span className="text-xs font-black uppercase text-[#63708a]">Visibility</span>
+                <p className="mt-2 text-sm font-semibold text-[#25304a]">
+                  {form.is_profile_visible ? "Brands and visitors can discover this profile." : "This profile is hidden from public and brand discovery."}
+                </p>
+              </div>
+              <div className="rounded-[8px] bg-[#eef4ff] p-4">
+                <span className="text-xs font-black uppercase text-[#63708a]">Followers</span>
+                <strong className="mt-2 block text-2xl font-black text-[#173ca8]">{compactNumber(totalFollowers)}</strong>
+              </div>
+              <div className="rounded-[8px] bg-[#eef4ff] p-4">
+                <span className="text-xs font-black uppercase text-[#63708a]">Profile State</span>
+                <strong className="mt-2 block text-lg font-black text-[#173ca8]">{profile.verified ? "Verified" : "Under Review"}</strong>
+              </div>
+            </div>
+          </Card>
 
           <Card className="p-5" id="profile">
             <div className="flex flex-wrap items-start justify-between gap-4">

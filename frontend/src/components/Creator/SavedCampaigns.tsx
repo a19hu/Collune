@@ -1,9 +1,9 @@
-import { AlertCircle, ArrowRight, Bookmark, Calendar, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowRight, Bookmark, Calendar, Loader2, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Panel } from "../../HtmlComponents/BrandCard";
-import { getCreatorSavedCampaigns } from "../../lib/authApi";
+import { getCreatorSavedCampaigns, removeSavedCampaign } from "../../lib/authApi";
 import type { CreatorSavedCampaignApi } from "../../types";
 
 function formatDate(value?: string | null) {
@@ -13,7 +13,16 @@ function formatDate(value?: string | null) {
   return new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" }).format(date);
 }
 
-function SavedCampaignCard({ savedCampaign }: { key?: string; savedCampaign: CreatorSavedCampaignApi }) {
+function SavedCampaignCard({
+  savedCampaign,
+  onRemove,
+  isRemoving,
+}: {
+  key?: string;
+  savedCampaign: CreatorSavedCampaignApi;
+  onRemove: (savedCampaign: CreatorSavedCampaignApi) => void;
+  isRemoving?: boolean;
+}) {
   const navigate = useNavigate();
   const campaign = savedCampaign.campaign;
 
@@ -53,6 +62,15 @@ function SavedCampaignCard({ savedCampaign }: { key?: string; savedCampaign: Cre
         >
           View Campaign <ArrowRight className="h-4 w-4" />
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(savedCampaign)}
+          disabled={isRemoving}
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#f3b7b7] px-4 text-sm font-black text-[#b42318] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isRemoving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+          Remove
+        </button>
       </div>
     </Panel>
   );
@@ -61,6 +79,7 @@ function SavedCampaignCard({ savedCampaign }: { key?: string; savedCampaign: Cre
 export function SavedCampaigns() {
   const [savedCampaigns, setSavedCampaigns] = useState<CreatorSavedCampaignApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [removingId, setRemovingId] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -86,6 +105,19 @@ export function SavedCampaigns() {
       mounted = false;
     };
   }, []);
+
+  const removeCampaign = async (savedCampaign: CreatorSavedCampaignApi) => {
+    setRemovingId(savedCampaign.saved_id);
+    setError("");
+    try {
+      await removeSavedCampaign(savedCampaign.campaign.id);
+      setSavedCampaigns((items) => items.filter((item) => item.saved_id !== savedCampaign.saved_id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to remove saved campaign.");
+    } finally {
+      setRemovingId("");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -127,7 +159,12 @@ export function SavedCampaigns() {
   return (
     <div className="grid gap-6 xl:grid-cols-3">
       {savedCampaigns.map((savedCampaign) => (
-        <SavedCampaignCard key={savedCampaign.saved_id} savedCampaign={savedCampaign} />
+        <SavedCampaignCard
+          key={savedCampaign.saved_id}
+          savedCampaign={savedCampaign}
+          onRemove={removeCampaign}
+          isRemoving={removingId === savedCampaign.saved_id}
+        />
       ))}
     </div>
   );

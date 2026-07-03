@@ -151,7 +151,7 @@ class CampaignApplicationSerializer(serializers.ModelSerializer):
 
 class BrandShortlistSerializer(serializers.ModelSerializer):
     creator_details = CreatorProfileSerializer(source="creators", many=True, read_only=True)
-    creators = serializers.PrimaryKeyRelatedField(queryset=CreatorProfile.objects.all(), many=True, required=False)
+    creators = serializers.PrimaryKeyRelatedField(queryset=CreatorProfile.objects.filter(user__is_profile_visible=True), many=True, required=False)
 
     class Meta:
         model = BrandShortlist

@@ -244,7 +244,6 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
             <TextInput label="Start Date" required placeholder="Start date" type="date" value={form.start_date} onChange={onFieldChange("start_date")} />
             <TextInput label="End Date" required placeholder="End date" type="date" value={form.end_date} onChange={onFieldChange("end_date")} />
           </div>
-          <TextArea label="Content References (Optional)" placeholder="Add links to reference content." value={form.content_references} onChange={onFieldChange("content_references")} />
         </div>
       </CampaignSection>
 

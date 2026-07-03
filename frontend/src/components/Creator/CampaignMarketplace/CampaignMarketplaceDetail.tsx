@@ -179,11 +179,11 @@ export function CampaignMarketplaceDetail() {
             </div>
           </DetailSection>
 
-          <DetailSection title="6. Content References">
+          {/* <DetailSection title="6. Content References">
             <div className="grid gap-4 md:grid-cols-4">
               {campaign.references.map((item) => <ReferenceCard key={`${item.title}-${item.image}`} item={item} />)}
             </div>
-          </DetailSection>
+          </DetailSection> */}
 
           <BrandBlock campaign={campaign} hasApplied={hasApplied} isApplying={isApplying} onApply={applyForCampaign} />
         </div>

@@ -1,8 +1,8 @@
-import { AlertCircle, ArrowRight, Calendar, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowRight, Calendar, CheckCircle2, Loader2, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { getCreatorAppliedCampaigns } from "../../lib/authApi";
+import { getCreatorAppliedCampaigns, removeCampaignApplication } from "../../lib/authApi";
 import type { CreatorAppliedCampaignApi } from "../../types";
 import { Panel } from "../../HtmlComponents/BrandCard";
 
@@ -21,7 +21,16 @@ function statusClass(status: CreatorAppliedCampaignApi["application_status"]) {
   return status === "ACCEPTED" ? "bg-[#ddfbea] text-[#189661]" : "bg-[#eef2ff] text-[#5168ff]";
 }
 
-function AppliedCampaignCard({ application }: { key?: string; application: CreatorAppliedCampaignApi }) {
+function AppliedCampaignCard({
+  application,
+  onRemove,
+  isRemoving,
+}: {
+  key?: string;
+  application: CreatorAppliedCampaignApi;
+  onRemove: (application: CreatorAppliedCampaignApi) => void;
+  isRemoving?: boolean;
+}) {
   const navigate = useNavigate();
   const campaign = application.campaign;
 
@@ -61,6 +70,15 @@ function AppliedCampaignCard({ application }: { key?: string; application: Creat
         >
           View Campaign <ArrowRight className="h-4 w-4" />
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(application)}
+          disabled={isRemoving}
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#f3b7b7] px-4 text-sm font-black text-[#b42318] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isRemoving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+          Remove
+        </button>
       </div>
     </Panel>
   );
@@ -69,6 +87,7 @@ function AppliedCampaignCard({ application }: { key?: string; application: Creat
 export function AppliedCampaigns() {
   const [applications, setApplications] = useState<CreatorAppliedCampaignApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [removingId, setRemovingId] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -94,6 +113,19 @@ export function AppliedCampaigns() {
       mounted = false;
     };
   }, []);
+
+  const removeApplication = async (application: CreatorAppliedCampaignApi) => {
+    setRemovingId(application.application_id);
+    setError("");
+    try {
+      await removeCampaignApplication(application.campaign.id);
+      setApplications((items) => items.filter((item) => item.application_id !== application.application_id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to remove campaign application.");
+    } finally {
+      setRemovingId("");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -135,7 +167,12 @@ export function AppliedCampaigns() {
   return (
     <div className="grid gap-6 xl:grid-cols-3">
       {applications.map((application) => (
-        <AppliedCampaignCard key={application.application_id} application={application} />
+        <AppliedCampaignCard
+          key={application.application_id}
+          application={application}
+          onRemove={removeApplication}
+          isRemoving={removingId === application.application_id}
+        />
       ))}
     </div>
   );

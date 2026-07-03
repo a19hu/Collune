@@ -116,6 +116,17 @@ function apiPatch<T>(path: string, body: unknown, authed = false) {
   );
 }
 
+function apiDelete<T>(path: string, body: unknown, authed = false) {
+  return apiRequest<T>(
+    path,
+    {
+      method: "DELETE",
+      body: JSON.stringify(body),
+    },
+    authed,
+  );
+}
+
 function apiPostForm<T>(path: string, body: FormData, authed = false) {
   return apiRequest<T>(
     path,
@@ -306,6 +317,10 @@ export function applyToCampaign(campaignId: string) {
   );
 }
 
+export function removeCampaignApplication(campaignId: string) {
+  return apiDelete<{ message: string; removed: boolean }>("/campaign-applications/", { campaign_id: campaignId }, true);
+}
+
 export function getCreatorAppliedCampaigns() {
   return apiRequest<CreatorAppliedCampaignsResponse>("/creator/applied-campaigns/", {}, true);
 }
@@ -316,6 +331,10 @@ export function saveCreatorCampaign(campaignId: string) {
 
 export function getCreatorSavedCampaigns() {
   return apiRequest<CreatorSavedCampaignsResponse>("/creator/saved-campaigns/", {}, true);
+}
+
+export function removeSavedCampaign(campaignId: string) {
+  return apiDelete<{ message: string; saved: boolean; removed: boolean }>("/creator/saved-campaigns/", { campaign_id: campaignId }, true);
 }
 
 export async function getBrandShortlists() {

@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, Prefetch, Q
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..models import (
-    ApplicationStatus, BrandProfile, BrandShortlist, Campaign, CampaignApplication, ShortlistStatus, UserRole, VerificationStatus,
+    ApplicationStatus, BrandProfile, BrandShortlist, Campaign, CampaignApplication, CreatorProfile, ShortlistStatus, UserRole, VerificationStatus,
 )
 from ..permissions import IsBrand, IsCreator, IsVerifiedColluneMember
 from ..common.services import auth_response, create_user, parse_payload
@@ -265,8 +265,11 @@ class BrandShortlistViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsBrand]
 
     def get_queryset(self):
-        return BrandShortlist.objects.select_related("brand").prefetch_related("creators", "creators__user").filter(
-            brand__user=self.request.user
+        visible_creators = CreatorProfile.objects.select_related("user").filter(user__is_profile_visible=True)
+        return (
+            BrandShortlist.objects.select_related("brand")
+            .prefetch_related(Prefetch("creators", queryset=visible_creators))
+            .filter(brand__user=self.request.user)
         )
 
     def perform_create(self, serializer):
