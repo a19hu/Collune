@@ -45,8 +45,12 @@ export function CampaignMarketplaceDetail() {
     ])
       .then(([detail, applications]) => {
         if (!mounted) return;
-        setCampaign(mapCreatorCampaignDetailToMarketplace(detail));
-        setAppliedIds(applications.map((application) => application.campaign));
+        const mappedCampaign = mapCreatorCampaignDetailToMarketplace(detail);
+        setCampaign(mappedCampaign);
+        setAppliedIds([
+          ...applications.map((application) => application.campaign),
+          ...(mappedCampaign.applied ? [mappedCampaign.id] : []),
+        ]);
       })
       .catch((err) => {
         if (!mounted) return;

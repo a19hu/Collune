@@ -274,9 +274,10 @@ class CreatorCampaignsView(APIView):
         applied = CampaignApplication.objects.filter(
             campaign=campaign,
             creator=getattr(request.user, "creator_profile", None),
-        )
+        ).exists()
         data = {
             "id": str(campaign.campaign_id),
+            "brand_id": str(campaign.brand.brand_id),
             "title": campaign.title,
             "brief": campaign.brief,
             "objective": campaign.objective,
@@ -306,7 +307,7 @@ class CreatorCampaignsView(APIView):
                 "location": campaign.location,
                 "content_style": campaign.content_style,
             },
-            "applied":bool(applied)
+            "applied": applied
 
         }
         return Response({"campaign": data})

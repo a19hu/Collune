@@ -237,9 +237,11 @@ export function BrandBlock({
             <p className="mt-1 text-sm font-medium text-[#65758f]">Helping young Indians make better financial decisions.</p>
           </div>
         </div>
-        <button type="button" className="inline-flex h-11 items-center gap-3 rounded-lg border border-[#5168ff] px-8 text-sm font-black text-[#5168ff]">
-          View Brand Profile <ArrowRight className="h-4 w-4" />
-        </button>
+        {campaign.brandId ? (
+          <span className="inline-flex h-11 max-w-full items-center rounded-lg border border-[#dfe6f0] px-4 text-xs font-black text-[#65758f]">
+            Brand ID: <span className="ml-2 truncate text-[#1d2430]">{campaign.brandId}</span>
+          </span>
+        ) : null}
       </div>
 
       <div className="mt-7 flex flex-wrap items-center justify-between gap-5 rounded-md bg-[#f7f8fb] p-5">

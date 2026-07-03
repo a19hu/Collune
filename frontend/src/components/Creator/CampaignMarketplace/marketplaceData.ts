@@ -5,6 +5,7 @@ import type { CampaignApi, CreatorCampaignDetailApi, CreatorCampaignListItemApi 
 
 export type MarketplaceCampaign = {
   id: string;
+  brandId?: string;
   brandName: string;
   brandType: string;
   brandLogoUrl: string;
@@ -26,6 +27,7 @@ export type MarketplaceCampaign = {
   requirements: Array<{ label: string; value: string; icon: LucideIcon }>;
   creativeDirection: string[];
   references: Array<{ title: string; image: string }>;
+  applied?: boolean;
   source: "api";
 };
 
@@ -55,6 +57,7 @@ export function mapCampaignToMarketplace(campaign: CampaignApi): MarketplaceCamp
 
   return {
     id: campaign.campaign_id,
+    brandId: campaign.brand,
     brandName,
     brandType: campaign.brand_detail?.industry || brand.type,
     brandLogoUrl: campaign.brand_detail?.logo_url || "",
@@ -93,6 +96,7 @@ export function mapCampaignToMarketplace(campaign: CampaignApi): MarketplaceCamp
       image,
       title: index === 1 ? "Instagram Carousel" : index === 3 ? "YouTube Video" : "Instagram Reel",
     })),
+    applied: false,
     source: "api",
   };
 }
@@ -104,6 +108,7 @@ export function mapCreatorCampaignToMarketplace(campaign: CreatorCampaignListIte
 
   return {
     id: campaign.id,
+    brandId: campaign.brand_id,
     brandName,
     brandType: brand.type,
     brandLogoUrl: campaign.brand_logo || "",
@@ -144,6 +149,7 @@ export function mapCreatorCampaignToMarketplace(campaign: CreatorCampaignListIte
       image,
       title: index === 1 ? "Instagram Carousel" : index === 3 ? "YouTube Video" : "Instagram Reel",
     })),
+    applied: false,
     source: "api",
   };
 }
@@ -156,6 +162,7 @@ export function mapCreatorCampaignDetailToMarketplace(campaign: CreatorCampaignD
 
   return {
     id: campaign.id,
+    brandId: campaign.brand_id,
     brandName,
     brandType: campaign.brand_type || brand.type,
     brandLogoUrl: campaign.brand_logo || "",
@@ -194,6 +201,7 @@ export function mapCreatorCampaignDetailToMarketplace(campaign: CreatorCampaignD
       image,
       title: index === 1 ? "Instagram Carousel" : index === 3 ? "YouTube Video" : "Instagram Reel",
     })),
+    applied: Boolean(campaign.applied),
     source: "api",
   };
 }

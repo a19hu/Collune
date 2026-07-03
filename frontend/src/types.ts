@@ -121,6 +121,7 @@ export type CreatorCampaignListItemApi = {
   objective: string;
   deadline: string | null;
   posted_at: string;
+  brand_id?: string;
   brand_name: string;
   brand_logo: string | null;
 };
@@ -140,6 +141,7 @@ export type CreatorCampaignDetailApi = CreatorCampaignListItemApi & {
   end_date: string | null;
   cover_image: string;
   brand_type: string;
+  applied?: boolean;
   creator_requirements: {
     looking_for: string;
     audience: string;

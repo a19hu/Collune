@@ -85,9 +85,9 @@ function formatCampaignDeadline(value: string | null) {
 // ];
 
 const quickActions = [
-  { icon: UserRound, title: "Edit Profile", copy: "Update your information" },
-  { icon: Eye, title: "View Public Profile", copy: "See how brands see you" },
-  { icon: ShoppingBag, title: "Browse Campaigns", copy: "Explore new opportunities" },
+  { icon: UserRound, title: "Edit Profile", copy: "Update your information", path: "/creator/profile" },
+  { icon: Eye, title: "View Public Profile", copy: "See how brands see you", path: "/creator/profile" },
+  { icon: ShoppingBag, title: "Browse Campaigns", copy: "Explore new opportunities", path: "/creator/marketplace" },
 ];
 
 
@@ -238,7 +238,7 @@ function VerifiedDashboard({
             {quickActions.map((item) => {
               const Icon = item.icon;
               return (
-                <button key={item.title} className="flex items-center gap-4 text-left">
+                <button key={item.title} type="button" onClick={() => navigate(item.path)} className="flex items-center gap-4 text-left">
                   <span className="grid h-9 w-9 place-items-center rounded-full bg-[#ebe5ff] text-[#4635ff]">
                     <Icon className="h-5 w-5" />
                   </span>
