@@ -40,14 +40,6 @@ function buildMetricCards(dashboard?: CreatorDashboardApi | null) {
   ];
 }
 
-function buildOpportunityMetrics(dashboard?: CreatorDashboardApi | null) {
-  return [
-    ["Recommended Campaigns", String(dashboard?.campaigns?.length ?? 0), "Available to apply"],
-    ["Connected Platforms", String(dashboard?.connected_platforms ?? 0), "Linked to your profile"],
-    ["Applications Sent", String(dashboard?.campaign_applications ?? 0), "Submitted by you"],
-  ];
-}
-
 const chartPeriods = [
   { label: "Last 7 days", value: "7d" },
   { label: "Last 30 days", value: "30d" },
@@ -171,11 +163,6 @@ function VerifiedDashboard({
             <div className="grid gap-6 xl:grid-cols-3">
               {recommendedCampaigns.map((campaign, index) => <CampaignCard key={campaign.id} campaign={campaign} index={index} />)}
             </div>
-            <div className="mt-4 flex justify-center gap-2">
-              {recommendedCampaigns.map((campaign, index) => (
-                <span key={campaign.id} className={`h-2 w-2 rounded-full ${index === 0 ? "bg-[#2f31e7]" : "bg-[#dfe5f0]"}`} />
-              ))}
-            </div>
           </>
         ) : (
           <Panel className="p-8 text-center">
@@ -202,16 +189,7 @@ function VerifiedDashboard({
               ))}
             </select>
           </div>
-          <div className="mt-6 grid grid-cols-3 gap-4">
-            {buildOpportunityMetrics(dashboard).map(([label, value, change]) => (
-              <div key={label}>
-                <p className="text-sm text-[#6f7889]">{label}</p>
-                <strong className="mt-3 block text-[32px] font-black text-[#1d203a]">{value}</strong>
-                <p className="text-sm text-[#00a875]">{change}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-14 h-44 rounded-lg px-6 pb-4">
+          <div className="mt-1 h-60 rounded-lg px-6 pb-4">
             <svg viewBox="0 0 520 170" className="h-full w-full">
               <path d="M35 135 H500" stroke="#dfe5f0" strokeWidth="2" />
               <path d="M35 20 V135" stroke="#dfe5f0" strokeWidth="2" />

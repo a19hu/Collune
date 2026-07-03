@@ -158,6 +158,21 @@ export type CreatorCampaignListResponse = {
   page_size: number;
   total_pages: number;
 };
+export type CreatorAppliedCampaignApi = {
+  application_id: string;
+  application_status: "APPLIED" | "ACCEPTED";
+  applied_at: string;
+  updated_at: string;
+  campaign: CreatorCampaignListItemApi & {
+    cover_image: string;
+    brand_id: string;
+    brand_type: string;
+  };
+};
+export type CreatorAppliedCampaignsResponse = {
+  campaigns: CreatorAppliedCampaignApi[];
+  count: number;
+};
 export type CreatorCampaignListParams = {
   page?: number;
   pageSize?: number;

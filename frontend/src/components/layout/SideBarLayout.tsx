@@ -144,6 +144,18 @@ export const SideBarLayout = () => {
         ),
       },
       {
+        matches: () => pathname === "/creator/applied-campaigns",
+        render: () => (
+          <DashboardTopBar
+            title="Applied Campaigns"
+            status={isVerified ? "verified-creator" : "under-review"}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+          />
+        ),
+      },
+      {
         matches: () => pathname === "/creator/profile",
         render: () => (
           <DashboardTopBar

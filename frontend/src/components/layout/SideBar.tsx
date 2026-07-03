@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Building2, ChevronDown, CircleHelp, FileText, Home, LogOut, Settings, ShoppingBag, Star, UserRound, Users } from "lucide-react";
+import { BadgeCheck, Building2, ChevronDown, CircleHelp, FileText, Home, LogOut, Settings, ShoppingBag, Star, UserRound, Users } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import logo from "../../assets/Logo.svg";
 import { useAuth } from "../../contexts/AuthContext";
@@ -13,6 +13,7 @@ const navByMode = {
     { label: "Dashboard", to: "/creator", icon: Home },
     { label: "Profile", to: "/creator/profile", icon: UserRound },
     { label: "Campaign Marketplace", to: "/creator/marketplace", icon: ShoppingBag, lockedWhenUnverified: true },
+    { label: "Applied Campaigns", to: "/creator/applied-campaigns", icon: BadgeCheck, lockedWhenUnverified: true },
   ],
   brand: [
     { label: "Dashboard", to: "/brand", icon: Home },

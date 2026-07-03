@@ -9,6 +9,7 @@ import type {
   CampaignApi,
   CampaignApplicationApi,
   CampaignPayload,
+  CreatorAppliedCampaignsResponse,
   CreatorCampaignDetailApi,
   CreatorCampaignListParams,
   CreatorCampaignListResponse,
@@ -302,6 +303,10 @@ export function applyToCampaign(campaignId: string) {
     { campaign_id: campaignId},
     true,
   );
+}
+
+export function getCreatorAppliedCampaigns() {
+  return apiRequest<CreatorAppliedCampaignsResponse>("/creator/applied-campaigns/", {}, true);
 }
 
 export async function getBrandShortlists() {

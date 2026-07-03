@@ -473,6 +473,63 @@ class CampaignApplicationViewSet(APIView):
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
         )
     
+class CreatorAppliedCampaignsView(APIView):
+    permission_classes = [IsAuthenticated, IsCreator]
+
+    def get_creator(self, request):
+        return getattr(request.user, "creator_profile", None)
+
+    def get(self, request):
+        creator = self.get_creator(request)
+
+        if not creator:
+            return Response(
+                {"error": "Creator profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        applications = (
+            CampaignApplication.objects.select_related("campaign", "campaign__brand")
+            .filter(
+                creator=creator,
+                status__in=[ApplicationStatus.APPLIED, ApplicationStatus.ACCEPTED],
+            )
+            .order_by("-updated_at", "-created_at")
+        )
+
+        data = []
+        for application in applications:
+            campaign = application.campaign
+            brand = campaign.brand
+            data.append(
+                {
+                    "application_id": str(application.application_id),
+                    "application_status": application.status,
+                    "applied_at": application.created_at.isoformat(),
+                    "updated_at": application.updated_at.isoformat(),
+                    "campaign": {
+                        "id": str(campaign.campaign_id),
+                        "title": campaign.title,
+                        "objective": campaign.objective,
+                        "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
+                        "posted_at": campaign.created_at.isoformat(),
+                        "cover_image": campaign.cover_image,
+                        "brand_id": str(brand.brand_id),
+                        "brand_name": brand.company_name,
+                        "brand_type": brand.industry,
+                        "brand_logo": request.build_absolute_uri(brand.logo.url) if brand.logo else None,
+                    },
+                }
+            )
+
+        return Response(
+            {
+                "campaigns": data,
+                "count": len(data),
+            },
+            status=status.HTTP_200_OK,
+        )
+
 class CreatorListViewSet(APIView):
     permission_classes = [AllowAny]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
