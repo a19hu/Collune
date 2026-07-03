@@ -24,8 +24,6 @@ const initialCreatorForm: CreatorRegisterForm = {
   location: "",
   languages: ["Hindi", "English"],
   collaboration_preferences: ["Sponsored Posts", "Long-Term Partnerships", "Product Launches", "UGC Content"],
-  preferred_response_time: "Within 24 Hours",
-  open_to_travel: true,
   bio: "",
 };
 
@@ -161,8 +159,6 @@ const CreatorRegister = () => {
         location: form.location.trim(),
         languages: form.languages,
         collaboration_preferences: form.collaboration_preferences,
-        preferred_response_time: form.preferred_response_time,
-        open_to_travel: form.open_to_travel,
         bio: form.bio.trim(),
         social_accounts: socialAccounts
           .filter((account) => account.handle.trim())
@@ -217,8 +213,6 @@ const CreatorRegister = () => {
             onPhoneOtpChange={(event) => setPhoneOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
             onSocialAccountChange={onSocialAccountChange}
             onToggleFormArrayValue={onToggleFormArrayValue}
-            onResponseTimeChange={(value) => setForm((current) => ({ ...current, preferred_response_time: value }))}
-            onTravelToggle={() => setForm((current) => ({ ...current, open_to_travel: !current.open_to_travel }))}
             onTogglePassword={() => setShowPassword((current) => !current)}
             onVerifyEmailOtp={() => void verifyEmailOtp()}
             onVerifyPhoneOtp={() => void verifyPhoneOtp()}

@@ -42,15 +42,11 @@ export type ShortlistItem = {
 const apiStatusLabels: Record<BrandShortlistStatusApi, ShortlistStatus> = {
   DRAFT: "Draft",
   SUBMITTED: "Submitted",
-  OUTREACH_IN_PROGRESS: "Outreach In Progress",
-  COMPLETED: "Completed",
 };
 
 export const statusApiValues: Record<ShortlistStatus, BrandShortlistStatusApi> = {
   Draft: "DRAFT",
   Submitted: "SUBMITTED",
-  "Outreach In Progress": "OUTREACH_IN_PROGRESS",
-  Completed: "COMPLETED",
 };
 
 const iconRules: Array<{ match: ShortlistStatus; icon: LucideIcon; className: string }> = [

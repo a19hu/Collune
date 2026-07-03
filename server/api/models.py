@@ -12,19 +12,8 @@ class UserRole(models.TextChoices):
 
 
 class VerificationStatus(models.TextChoices):
-    DRAFT = "DRAFT", "Draft"
     PENDING = "PENDING", "Pending review"
     VERIFIED = "VERIFIED", "Verified"
-    REJECTED = "REJECTED", "Rejected"
-
-
-class CampaignStatus(models.TextChoices):
-    DRAFT = "DRAFT", "Draft"
-    ACTIVE = "ACTIVE", "Active"
-    REVIEWING = "REVIEWING", "Reviewing"
-    PAUSED = "PAUSED", "Paused"
-    COMPLETED = "COMPLETED", "Completed"
-
 
 class ApplicationStatus(models.TextChoices):
     APPLIED = "APPLIED", "Applied"
@@ -32,15 +21,15 @@ class ApplicationStatus(models.TextChoices):
     ACCEPTED = "ACCEPTED", "Accepted"
     REJECTED = "REJECTED", "Rejected"
 
+class ShortlistStatus(models.TextChoices):
+    DRAFT = "DRAFT", "Draft"
+    SUBMITTED = "SUBMITTED", "Submitted"
 
 class SocialPlatform(models.TextChoices):
     INSTAGRAM = "INSTAGRAM", "Instagram"
     YOUTUBE = "YOUTUBE", "YouTube"
-    LINKEDIN = "LINKEDIN", "LinkedIn"
     X = "X", "X"
     FACEBOOK = "FACEBOOK", "Facebook"
-    TIKTOK = "TIKTOK", "TikTok"
-    SNAPCHAT = "SNAPCHAT", "Snapchat"
 
 
 class OtpChannel(models.TextChoices):
@@ -54,9 +43,15 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     phone_no = models.CharField(max_length=20, unique=True, null=True, blank=True)
     role = models.CharField(max_length=32, choices=UserRole.choices, default=UserRole.CREATOR)
-    status = models.BooleanField(default=True)
+    verification_status = models.CharField(
+        max_length=24,
+        choices=VerificationStatus.choices,
+        default=VerificationStatus.PENDING,
+    )
     last_login_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
+    is_profile_visible = models.BooleanField(default=True)
+
 
     @property
     def profile_name(self):
@@ -94,13 +89,6 @@ class BrandProfile(models.Model):
     company_size = models.CharField(max_length=64, blank=True, default="")
     linkedin_url = models.URLField(blank=True, default="")
     logo = models.ImageField(upload_to="brands/logos/", blank=True, null=True)
-    is_profile_visible = models.BooleanField(default=True)
-    verification_status = models.CharField(
-        max_length=24,
-        choices=VerificationStatus.choices,
-        default=VerificationStatus.PENDING,
-    )
-    profile_completion = models.PositiveSmallIntegerField(default=90)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -116,22 +104,12 @@ class CreatorProfile(models.Model):
     location = models.CharField(max_length=160, blank=True, default="")
     languages = models.JSONField(default=list, blank=True)
     collaboration_preferences = models.JSONField(default=list, blank=True)
-    preferred_response_time = models.CharField(max_length=80, blank=True, default="")
-    open_to_travel = models.BooleanField(default=False)
     bio = models.TextField(blank=True, default="")
     about=models.TextField(blank=True, default="")
-    portfolio_url = models.URLField(blank=True, default="")
+    gender = models.CharField(max_length=120, blank=True, default="")
     profile_image = models.ImageField(upload_to="creators/profiles/", blank=True, null=True)
-    is_profile_visible = models.BooleanField(default=True)
-    audience_size = models.PositiveIntegerField(default=0)
-    rate_min = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    rate_max = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    verification_status = models.CharField(
-        max_length=24,
-        choices=VerificationStatus.choices,
-        default=VerificationStatus.PENDING,
-    )
     profile_completion = models.PositiveSmallIntegerField(default=85)
+    work_with = models.JSONField(default=list,blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -197,7 +175,6 @@ class Campaign(models.Model):
     end_date = models.DateField(null=True, blank=True)
     deadline = models.DateField(null=True, blank=True)
     cover_image = models.URLField(blank=True, default="")
-    status = models.CharField(max_length=24, choices=CampaignStatus.choices, default=CampaignStatus.DRAFT)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -225,34 +202,6 @@ class CampaignStatusSummary(models.Model):
         return f"{self.campaign.title} status summary"
 
 
-class CampaignProgressStatus(models.TextChoices):
-    COMPLETED = "COMPLETED", "Completed"
-    IN_PROGRESS = "IN_PROGRESS", "In progress"
-    UPCOMING = "UPCOMING", "Upcoming"
-
-
-class CampaignProgress(models.Model):
-    progress_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="progress_steps")
-    title = models.CharField(max_length=120)
-    status = models.CharField(
-        max_length=24,
-        choices=CampaignProgressStatus.choices,
-        default=CampaignProgressStatus.UPCOMING,
-    )
-    display_date = models.CharField(max_length=80, blank=True, default="")
-    sort_order = models.PositiveSmallIntegerField(default=0)
-    created_at = models.DateTimeField(default=timezone.now)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ("sort_order", "created_at")
-        unique_together = ("campaign", "title")
-        verbose_name_plural = "campaign progress"
-
-    def __str__(self):
-        return f"{self.campaign.title} - {self.title}"
-
 
 class CampaignApplication(models.Model):
     application_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -270,14 +219,6 @@ class CampaignApplication(models.Model):
 
     def __str__(self):
         return f"{self.creator.display_name} -> {self.campaign.title}"
-
-
-class ShortlistStatus(models.TextChoices):
-    DRAFT = "DRAFT", "Draft"
-    SUBMITTED = "SUBMITTED", "Submitted"
-    OUTREACH_IN_PROGRESS = "OUTREACH_IN_PROGRESS", "Outreach In Progress"
-    COMPLETED = "COMPLETED", "Completed"
-
 
 class BrandShortlist(models.Model):
     shortlist_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

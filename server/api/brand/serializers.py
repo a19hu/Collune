@@ -6,8 +6,6 @@ from ..models import (
     BrandShortlist,
     Campaign,
     CampaignApplication,
-    CampaignProgress,
-    CampaignProgressStatus,
     CreatorProfile,
     ShortlistStatus,
 )
@@ -129,32 +127,11 @@ class CampaignStatusSummarySerializer(serializers.Serializer):
         summary = self._summary(obj)
         return (summary.updated_at if summary else self._campaign(obj).updated_at).isoformat()
 
-class CampaignProgressSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CampaignProgress
-        fields = [
-            "progress_id",
-            "campaign",
-            "title",
-            "status",
-            "display_date",
-            "sort_order",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = ["progress_id", "created_at", "updated_at"]
-
-    def validate_status(self, value):
-        if value not in CampaignProgressStatus.values:
-            raise serializers.ValidationError("Invalid campaign progress status.")
-        return value
-
 class CampaignSerializer(serializers.ModelSerializer):
     brand_detail = BrandProfileSerializer(source="brand", read_only=True)
     applications_count = serializers.IntegerField(source="applications.count", read_only=True)
     brand_guidelines_url = serializers.SerializerMethodField()
     status_summary = serializers.SerializerMethodField()
-    progress_steps = CampaignProgressSerializer(many=True, read_only=True)
 
     class Meta:
         model = Campaign

@@ -15,8 +15,6 @@ export type CreatorRegisterForm = {
   location: string;
   languages: string[];
   collaboration_preferences: string[];
-  preferred_response_time: string;
-  open_to_travel: boolean;
   bio: string;
 };
 
@@ -200,7 +198,7 @@ export type BrandCampaignListResponse = {
   page_size: number;
   campaigns: BrandCampaignListItemApi[];
 };
-export type BrandShortlistStatusApi = "DRAFT" | "SUBMITTED" | "OUTREACH_IN_PROGRESS" | "COMPLETED";
+export type BrandShortlistStatusApi = "DRAFT" | "SUBMITTED" ;
 export type BrandShortlistPayload = {
   title: string;
   creators?: string[];
@@ -276,8 +274,6 @@ export type CreatorRegisterPayload = {
   location?: string;
   languages?: string[];
   collaboration_preferences?: string[];
-  preferred_response_time?: string;
-  open_to_travel?: boolean;
   social_accounts?: CreatorSocialAccountPayload[];
   bio?: string;
   portfolio_url?: string;
@@ -294,13 +290,11 @@ export type CreatorRegisterResponse = LoginResponse & {
     location: string;
     languages: string[];
     collaboration_preferences: string[];
-    preferred_response_time: string;
-    open_to_travel: boolean;
     bio: string;
-    portfolio_url: string;
-    audience_size: number;
-    rate_min: string;
-    rate_max: string;
+    portfolio_url?: string;
+    audience_size?: number;
+    rate_min?: string;
+    rate_max?: string;
     verification_status: string;
     profile_completion: number;
   };
@@ -314,14 +308,12 @@ export type CreatorProfileApi = {
   location: string;
   languages: string[];
   collaboration_preferences: string[];
-  preferred_response_time: string;
-  open_to_travel: boolean;
   bio: string;
-  portfolio_url: string;
+  portfolio_url?: string;
   profile_image: string | null;
   profile_image_url: string;
   is_profile_visible: boolean;
-  audience_size: number;
+  audience_size?: number;
   rate_min: string;
   rate_max: string;
   verification_status: string;

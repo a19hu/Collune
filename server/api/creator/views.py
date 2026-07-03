@@ -21,12 +21,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..models import (
-    ApplicationStatus, Campaign, CampaignApplication, CampaignStatus, CreatorProfile, CreatorSocialAccount, SocialPlatform, UserRole, VerificationStatus,
+    ApplicationStatus, Campaign, CampaignApplication, CreatorProfile, CreatorSocialAccount, SocialPlatform, UserRole, VerificationStatus,
 )
-from ..permissions import IsCreator, IsVerifiedColluneMember
+from ..permissions import IsCreator,IsBrand
 from ..brand.serializers import CampaignApplicationSerializer
 from ..common.services import auth_response, create_user, parse_payload
-from .serializers import CreatorsProfileListSerializer, CreatorProfileSerializer, CreatorRegisterSerializer, CreatorSocialAccountSerializer
+from .serializers import, CreatorProfileSerializer, CreatorRegisterSerializer, CreatorSocialAccountSerializer
 from .services import fetch_youtube_analytics, fetch_youtube_videos, sync_youtube_account
 
 User = get_user_model()
@@ -61,14 +61,8 @@ class CreatorRegisterView(APIView):
             location=data.get("location", ""),
             languages=data.get("languages", []),
             collaboration_preferences=data.get("collaboration_preferences", []),
-            preferred_response_time=data.get("preferred_response_time", ""),
-            open_to_travel=data.get("open_to_travel", False),
             bio=data.get("bio", ""),
-            portfolio_url=data.get("portfolio_url", ""),
             profile_image=data.get("profile_image"),
-            audience_size=data.get("audience_size", 0),
-            rate_min=data.get("rate_min", 0),
-            rate_max=data.get("rate_max", 0),
         )
         CreatorSocialAccount.objects.bulk_create(
             [
@@ -102,14 +96,9 @@ class CreatorDashboardView(APIView):
             bool(creator.location.strip()),
             bool(creator.languages),
             bool(creator.collaboration_preferences),
-            bool(creator.preferred_response_time.strip()),
             bool(creator.bio.strip()),
             bool(getattr(creator, "about", "").strip()),
-            bool(creator.portfolio_url.strip()),
             bool(creator.profile_image),
-            creator.audience_size > 0,
-            creator.rate_min > 0,
-            creator.rate_max > 0 and creator.rate_max >= creator.rate_min,
             creator.social_accounts.filter(is_connected=True).exists(),
         ]
         completion = round((sum(checks) / len(checks)) * 100)
@@ -135,13 +124,11 @@ class CreatorDashboardView(APIView):
             if str(term).strip()
         }
 
-        campaigns = Campaign.objects.filter(status=CampaignStatus.ACTIVE).order_by("-created_at")
+        campaigns = Campaign.objects.all().order_by("-created_at")
 
         def campaign_score(campaign):
             requirement_text = (campaign.brand_requirements or "").lower()
             score = sum(1 for term in normalized_terms if term in requirement_text)
-            if creator.audience_size >= campaign.minimum_followers:
-                score += 1
             if campaign.category and campaign.category.strip().lower() == creator.category.strip().lower():
                 score += 3
             if campaign.location and campaign.location.strip().lower() == creator.location.strip().lower():
@@ -201,7 +188,7 @@ class CampaignsListView(APIView):
         search = (request.query_params.get("search") or "").strip()
         sort = request.query_params.get("sort") or "recent"
 
-        campaigns = Campaign.objects.select_related("brand").filter(status=CampaignStatus.ACTIVE)
+        campaigns = Campaign.objects.select_related("brand")
 
         if search:
             campaigns = campaigns.filter(
@@ -245,12 +232,10 @@ class CampaignsListView(APIView):
 class CreatorCampaignsView(APIView):
     permission_classes = [IsAuthenticated, IsCreator]
 
-
     def get(self, request, campaign_id=None):
 
         campaign = Campaign.objects.select_related("brand").filter(
             campaign_id=campaign_id,
-            status=CampaignStatus.ACTIVE,
         ).first()
         if not campaign:
             return Response({"error": "Campaign not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -287,36 +272,44 @@ class CreatorCampaignsView(APIView):
             }
         }
         return Response({"campaign": data})
-
-class CreatorProfileViewSet(viewsets.ModelViewSet):
-    serializer_class = CreatorProfileSerializer
-    permission_classes = [IsAuthenticated]
+    
+class CreatorProfileView(APIView):
+    permission_classes = [IsAuthenticated,IsCreator]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
-    def get_queryset(self):
-        queryset = CreatorProfile.objects.select_related("user").prefetch_related("social_accounts")
-        if self.request.user.role == UserRole.CREATOR:
-            return queryset.filter(user=self.request.user)
-        if self.request.user.role == UserRole.BRAND:
-            return queryset.filter(verification_status=VerificationStatus.VERIFIED, is_profile_visible=True)
-        return queryset.all()
+    def get_object(self, request):
+        return getattr(request.user, "creator_profile", None)
 
-    def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            return [IsAuthenticated(), IsVerifiedColluneMember()]
-        return super().get_permissions()
-
-    @action(detail=False, methods=["get", "patch"], url_path="me")
-    def me(self, request):
-        creator = getattr(request.user, "creator_profile", None)
+    def get(self, request):
+        creator = getattr(request.user,"creator_profile",None)
         if not creator:
             return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
-        if request.method == "PATCH":
-            serializer = self.get_serializer(creator, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response({"creator": serializer.data})
-        return Response({"creator": self.get_serializer(creator).data})
+        data = {
+            "id": str(creator.CreatorProfile.creator_id),
+            "name":creator.CreatorProfile.display_name,
+            "category":creator.CreatorProfile.category,
+            ""
+
+            
+        }
+        print(data)
+        serializer = CreatorProfileSerializer(creator, context={"request": request})
+        return Response({"creator": serializer.data})
+
+    def patch(self, request):
+        creator = self.get_object(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CreatorProfileSerializer(
+            creator,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"creator": serializer.data})
+    
 
 class CreatorSocialAccountViewSet(viewsets.ModelViewSet):
     serializer_class = CreatorSocialAccountSerializer
@@ -365,37 +358,59 @@ class CampaignApplicationViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         instance.delete()
 
-class CreatorProfileView(APIView):
-    permission_classes = [IsAuthenticated]
-    parser_classes = [JSONParser, MultiPartParser, FormParser]
-
-    def get_object(self, request):
-        return getattr(request.user, "creator_profile", None)
-
-    def get(self, request):
-        creator = self.get_object(request)
-        if not creator:
-            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = CreatorProfileSerializer(creator, context={"request": request})
-        return Response({"creator": serializer.data})
-
-    def patch(self, request):
-        creator = self.get_object(request)
-        if not creator:
-            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = CreatorProfileSerializer(
-            creator,
-            data=request.data,
-            partial=True,
-            context={"request": request},
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({"creator": serializer.data})
-
 
 class CreatorListViewSet(APIView):
     permission_classes = [AllowAny]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request, creator_id=None):
+        IsBrand = getattr()
+        if creator_id:
+            try:
+                creator = CreatorProfile.objects.select_related("user").get(
+                    creator_id=creator_id,
+                    verification_status=VerificationStatus.VERIFIED.value,
+                    is_profile_visible=True,
+                )
+            except CreatorProfile.DoesNotExist:
+                return Response({"error": "Creator profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            data = {
+                "creator_id": str(creator.creator_id),
+                "display_name": creator.display_name,
+                "category": creator.category,
+                "verified": creator.user.verification_status == VerificationStatus.VERIFIED.value,
+                "username": creator.user.username,
+                "profile_image": request.build_absolute_uri(creator.profile_image.url) if creator.profile_image else None,
+                "updated_at": creator.updated_at,
+                "languages": creator.languages,
+                "location": creator.location,
+                "bio": creator.bio,
+                "total_flowers":0,
+                "about": creator.about,
+            }
+            return Response({"creator": data})
+        creators = CreatorProfile.objects.select_related("user").filter(
+            verification_status=VerificationStatus.VERIFIED.value,
+            is_profile_visible=True,
+        ).order_by("-created_at")
+
+        data = [
+            {
+                "creator_id": str(creator.creator_id),
+                "display_name": creator.display_name,
+                "category": creator.category,
+                "verified": creator.user.verification_status == VerificationStatus.VERIFIED.value,
+                "username": creator.user.username,
+                "work_with":creator.work_with,
+                "profile_image": request.build_absolute_uri(creator.profile_image.url) if creator.profile_image else None,
+            }
+            for creator in creators
+        ]
+        return Response({"creators": data})
+    
+class CreatorListBrandViewSet(APIView):
+    permission_classes = [IsAuthenticated,IsBrand]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get(self, request, creator_id=None):
@@ -410,18 +425,17 @@ class CreatorListViewSet(APIView):
                 return Response({"error": "Creator profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
             data = {
-                "id": str(creator.creator_id),
                 "creator_id": str(creator.creator_id),
                 "display_name": creator.display_name,
                 "category": creator.category,
-                "verified": creator.verification_status == VerificationStatus.VERIFIED.value,
+                "verified": creator.user.verification_status == VerificationStatus.VERIFIED.value,
                 "username": creator.user.username,
                 "profile_image": request.build_absolute_uri(creator.profile_image.url) if creator.profile_image else None,
                 "updated_at": creator.updated_at,
                 "languages": creator.languages,
                 "location": creator.location,
                 "bio": creator.bio,
-                "total_flowers": creator.audience_size,
+                "total_flowers":0,
                 "about": creator.about,
             }
             return Response({"creator": data})
@@ -432,12 +446,15 @@ class CreatorListViewSet(APIView):
 
         data = [
             {
-                "id": str(creator.creator_id),
                 "creator_id": str(creator.creator_id),
                 "display_name": creator.display_name,
                 "category": creator.category,
-                "verified": creator.verification_status == VerificationStatus.VERIFIED.value,
+                "verified": creator.user.verification_status == VerificationStatus.VERIFIED.value,
                 "username": creator.user.username,
+                "work_with":creator.work_with,
+                "location": creator.location,
+                "gender":creator.gender,
+                "total_flowers":0,
                 "profile_image": request.build_absolute_uri(creator.profile_image.url) if creator.profile_image else None,
             }
             for creator in creators
@@ -566,7 +583,6 @@ class InstagramCallbackView(APIView):
                 "last_synced_at": timezone.now(),
             },
         )
-        creator.audience_size = max(creator.audience_size, followers)
         creator.save(update_fields=["audience_size", "updated_at"])
 
         return redirect(f"{frontend_url}/creator/profile?instagram=connected&account={account.account_id}")
@@ -716,7 +732,6 @@ class FacebookCallbackView(APIView):
                 },
             },
         )
-        creator.audience_size = max(creator.audience_size, followers)
         creator.save(update_fields=["audience_size", "updated_at"])
 
         return redirect(f"{frontend_url}/creator/profile?facebook=connected&account={account.account_id}")
@@ -1021,7 +1036,6 @@ class XCallbackView(APIView):
                 },
             },
         )
-        creator.audience_size = max(creator.audience_size, followers)
         creator.save(update_fields=["audience_size", "updated_at"])
 
         return redirect(f"{frontend_url}/creator/profile?x=connected&account={account.account_id}")

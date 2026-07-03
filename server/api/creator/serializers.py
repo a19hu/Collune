@@ -24,15 +24,9 @@ class CreatorRegisterSerializer(serializers.Serializer):
     location = serializers.CharField(max_length=160, required=False, allow_blank=True)
     languages = serializers.ListField(child=serializers.CharField(max_length=80), required=False)
     collaboration_preferences = serializers.ListField(child=serializers.CharField(max_length=120), required=False)
-    preferred_response_time = serializers.CharField(max_length=80, required=False, allow_blank=True)
-    open_to_travel = serializers.BooleanField(required=False)
     social_accounts = CreatorSocialAccountInputSerializer(many=True, required=False)
     bio = serializers.CharField(required=False, allow_blank=True)
-    portfolio_url = serializers.URLField(required=False, allow_blank=True)
     profile_image = serializers.ImageField(required=False, allow_null=True)
-    audience_size = serializers.IntegerField(min_value=0, required=False)
-    rate_min = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=0, required=False)
-    rate_max = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=0, required=False)
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
@@ -120,16 +114,10 @@ class CreatorProfileSerializer(serializers.ModelSerializer):
             "location",
             "languages",
             "collaboration_preferences",
-            "preferred_response_time",
-            "open_to_travel",
             "bio",
-            "portfolio_url",
             "profile_image",
             "profile_image_url",
             "is_profile_visible",
-            "audience_size",
-            "rate_min",
-            "rate_max",
             "verification_status",
             "profile_completion",
             "social_accounts",
@@ -159,16 +147,10 @@ class CreatorsProfileListSerializer(serializers.ModelSerializer):
             "location",
             "languages",
             "collaboration_preferences",
-            "preferred_response_time",
-            "open_to_travel",
             "bio",
-            "portfolio_url",
             "profile_image",
             "profile_image_url",
             "is_profile_visible",
-            "audience_size",
-            "rate_min",
-            "rate_max",
             "verification_status",
             "profile_completion",
             "social_accounts",

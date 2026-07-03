@@ -133,8 +133,6 @@ export const StepsCreatorRegister=({
   onPhoneOtpChange,
   onSocialAccountChange,
   onToggleFormArrayValue,
-  onResponseTimeChange,
-  onTravelToggle,
   onTogglePassword,
   onVerifyEmailOtp,
   onVerifyPhoneOtp,
@@ -287,28 +285,6 @@ export const StepsCreatorRegister=({
               />
             ))}
           </div>
-          <span className="mb-3 mt-5 block text-xs font-semibold text-[#202337]">Preferred response time</span>
-          <div className="grid grid-cols-3 gap-3">
-            {responseTimeOptions.map((item) => {
-              const isActive = form.preferred_response_time === item;
-              return (
-              <button key={item} type="button" onClick={() => onResponseTimeChange(item)} className={`flex h-10 items-center justify-center gap-2 rounded-md border text-sm font-medium ${isActive ? "border-[#2930ff] text-[#2930ff]" : "border-[#cfd6df] text-[#4c566b]"}`}>
-                <span className={`h-4 w-4 rounded-full border ${isActive ? "border-[#2930ff] bg-[#2930ff] ring-2 ring-white" : "border-[#cfd6df]"}`} />
-                {item}
-              </button>
-              );
-            })}
-          </div>
-          <button type="button" onClick={onTravelToggle} className="mt-5 flex w-full items-center gap-4 rounded-lg bg-[#eef3ff] px-4 py-4 text-left">
-            <Plane className="h-6 w-6 text-[#776bff]" />
-            <div className="flex-1">
-              <h3 className="text-sm font-black text-[#202337]">Open to travel for campaigns</h3>
-              <p className="text-[11px] font-medium text-[#707b91]">Brands can invite you for in-person collaborations</p>
-            </div>
-            <span className={`flex h-6 w-10 items-center rounded-full p-1 ${form.open_to_travel ? "justify-end bg-[#3430e2]" : "justify-start bg-[#cfd6df]"}`}>
-              <span className="h-4 w-4 rounded-full bg-white" />
-            </span>
-          </button>
           <span className="mb-3 mt-5 block text-xs font-semibold text-[#202337]">Content language</span>
           <div className="flex flex-wrap gap-2">
             {languageOptions.map((language) => (

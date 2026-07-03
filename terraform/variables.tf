@@ -160,3 +160,13 @@ variable "x_bearer_token" {
   default   = ""
   sensitive = true
 }
+variable "facebook_app_id" {
+  type = string
+  default = ""
+  sensitive = true
+}
+variable "facebook_app_secret" {
+  type = string
+  default = ""
+  sensitive = true
+}

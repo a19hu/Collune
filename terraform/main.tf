@@ -58,6 +58,9 @@ locals {
     X_REDIRECT_URI  = "https://collune-backend-350157158342.asia-south1.run.app/api/v1/auth/x/callback/"
     X_OAUTH_SCOPES  = "tweet.read users.read follows.read offline.access"
     X_BEARER_TOKEN  = var.x_bearer_token
+
+    FACEBOOK_APP_ID = var.facebook_app_id
+    FACEBOOK_APP_SECRET = var.facebook_app_secret
   }
 }
 

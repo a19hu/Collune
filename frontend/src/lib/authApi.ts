@@ -9,7 +9,6 @@ import type {
   CampaignApi,
   CampaignApplicationApi,
   CampaignPayload,
-  CampaignStatusSummaryApi,
   CreatorCampaignDetailApi,
   CreatorCampaignListParams,
   CreatorCampaignListResponse,
@@ -197,10 +196,6 @@ export async function getBrandsList() {
   return data.brands;
 }
 
-export async function updateBrandProfile(payload: Partial<BrandProfileApi>) {
-  const data = await apiPatch<{ brand: BrandProfileApi }>("/brands/me/", payload, true);
-  return data.brand;
-}
 
 export async function getCreatorProfile() {
   const data = await apiRequest<{ creator: CreatorProfileApi }>("/auth/creator/profile/", {}, true);
@@ -259,10 +254,6 @@ export function createCampaign(payload: CampaignPayload) {
   return apiPost<CampaignApi>("/campaigns/", payload, true);
 }
 
-export async function getCampaigns() {
-  const data = await apiRequest<CampaignApi[] | PaginatedResponse<CampaignApi>>("/campaigns/", {}, true);
-  return Array.isArray(data) ? data : data.results;
-}
 
 export async function getCreatorCampaigns(params: CreatorCampaignListParams = {}) {
   const query = new URLSearchParams({
@@ -289,15 +280,6 @@ export function getBrandCampaigns(page = 1, pageSize = 10) {
 
 export function getCampaign(campaignId: string) {
   return apiRequest<CampaignApi>(`/campaigns/${campaignId}/`, {}, true);
-}
-
-export async function getCampaignStatusSummaries() {
-  const data = await apiRequest<CampaignStatusSummaryApi[] | PaginatedResponse<CampaignStatusSummaryApi>>(
-    "/campaign-status-summaries/",
-    {},
-    true,
-  );
-  return Array.isArray(data) ? data : data.results;
 }
 
 export async function getCampaignApplications() {

@@ -34,13 +34,11 @@ type EditForm = {
   location: string;
   languages: string;
   collaboration_preferences: string;
-  preferred_response_time: string;
-  open_to_travel: boolean;
   bio: string;
-  portfolio_url: string;
+  portfolio_url?: string;
   is_profile_visible: boolean;
   audience_size: string;
-  rate_min: string;
+  rate_min?: string;
   rate_max: string;
   profile_image: File | null;
 };
@@ -84,8 +82,6 @@ function toEditForm(profile: CreatorProfileApi): EditForm {
     location: profile.location || "",
     languages: (profile.languages || []).join(", "),
     collaboration_preferences: (profile.collaboration_preferences || []).join(", "),
-    preferred_response_time: profile.preferred_response_time || "",
-    open_to_travel: Boolean(profile.open_to_travel),
     bio: profile.bio || "",
     portfolio_url: profile.portfolio_url || "",
     is_profile_visible: Boolean(profile.is_profile_visible),
@@ -233,8 +229,6 @@ export function CreatorProfile() {
     body.append("location", form.location);
     body.append("languages", JSON.stringify(csvToList(form.languages)));
     body.append("collaboration_preferences", JSON.stringify(csvToList(form.collaboration_preferences)));
-    body.append("preferred_response_time", form.preferred_response_time);
-    body.append("open_to_travel", String(form.open_to_travel));
     body.append("bio", form.bio);
     body.append("portfolio_url", form.portfolio_url);
     body.append("is_profile_visible", String(form.is_profile_visible));
@@ -414,8 +408,6 @@ export function CreatorProfile() {
                 {chip}
               </span>
             ))}
-            {profile.open_to_travel ? <span className="rounded-full bg-[#e8fff3] px-3 py-1 text-[11px] font-bold text-[#067647]">Open to travel</span> : null}
-            {profile.preferred_response_time ? <span className="rounded-full bg-[#fff3df] px-3 py-1 text-[11px] font-bold text-[#995c00]">{profile.preferred_response_time}</span> : null}
           </div>
         </Panel>
 
@@ -632,20 +624,12 @@ export function CreatorProfile() {
                 <input value={form.collaboration_preferences} onChange={(event) => updateField("collaboration_preferences", event.target.value)} className="h-11 rounded-[6px] border border-[#dbe3ee] px-3 font-semibold text-[#25304a]" placeholder="Politics, Policy" />
               </label>
               <label className="grid gap-1 text-sm font-bold text-[#526079]">
-                Response time
-                <input value={form.preferred_response_time} onChange={(event) => updateField("preferred_response_time", event.target.value)} className="h-11 rounded-[6px] border border-[#dbe3ee] px-3 font-semibold text-[#25304a]" />
-              </label>
-              <label className="grid gap-1 text-sm font-bold text-[#526079]">
                 Portfolio URL
                 <input value={form.portfolio_url} onChange={(event) => updateField("portfolio_url", event.target.value)} className="h-11 rounded-[6px] border border-[#dbe3ee] px-3 font-semibold text-[#25304a]" />
               </label>
               <label className="md:col-span-2 grid gap-1 text-sm font-bold text-[#526079]">
                 Bio
                 <textarea value={form.bio} onChange={(event) => updateField("bio", event.target.value)} rows={4} className="rounded-[6px] border border-[#dbe3ee] px-3 py-2 font-semibold text-[#25304a]" />
-              </label>
-              <label className="flex items-center gap-3 text-sm font-bold text-[#526079]">
-                <input type="checkbox" checked={form.open_to_travel} onChange={(event) => updateField("open_to_travel", event.target.checked)} className="h-4 w-4 accent-[#1438c8]" />
-                Open to travel
               </label>
               <label className="flex items-center gap-3 text-sm font-bold text-[#526079]">
                 <input type="checkbox" checked={form.is_profile_visible} onChange={(event) => updateField("is_profile_visible", event.target.checked)} className="h-4 w-4 accent-[#1438c8]" />
