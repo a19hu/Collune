@@ -16,6 +16,9 @@ export type CreatorRegisterForm = {
   languages: string[];
   collaboration_preferences: string[];
   bio: string;
+  about: string;
+  gender: string;
+  work_with: string[];
 };
 
 export type BrandRegisterForm = {
@@ -39,7 +42,7 @@ export type SocialAccountForm = {
   handle: string;
 };
 
-export type CreatorSocialPlatform = "INSTAGRAM" | "YOUTUBE" | "LINKEDIN" | "X" | "FACEBOOK" | "TIKTOK" | "SNAPCHAT";
+export type CreatorSocialPlatform = "INSTAGRAM" | "YOUTUBE" | "X" | "FACEBOOK";
 
 
 export type VerificationState = {
@@ -276,10 +279,9 @@ export type CreatorRegisterPayload = {
   collaboration_preferences?: string[];
   social_accounts?: CreatorSocialAccountPayload[];
   bio?: string;
-  portfolio_url?: string;
-  audience_size?: number;
-  rate_min?: number | string;
-  rate_max?: number | string;
+  about?: string;
+  gender?: string;
+  work_with?: string[];
 };
 
 export type CreatorRegisterResponse = LoginResponse & {
@@ -291,10 +293,9 @@ export type CreatorRegisterResponse = LoginResponse & {
     languages: string[];
     collaboration_preferences: string[];
     bio: string;
-    portfolio_url?: string;
-    audience_size?: number;
-    rate_min?: string;
-    rate_max?: string;
+    about?: string;
+    gender?: string;
+    work_with?: string[];
     verification_status: string;
     profile_completion: number;
   };
@@ -329,10 +330,8 @@ export type CreatorProfileApi = {
     media_count?: number;
     view_count?: number;
     engagement_rate?: number;
-    audience_country?: Record<string, number>;
-    youtube_short_video_count?: number;
-    youtube_long_video_count?: number;
-    youtube_videos?: Array<{
+    video_count?: number;
+    videos?: Array<{
       video_id: string;
       title: string;
       published_at: string;
@@ -344,7 +343,7 @@ export type CreatorProfileApi = {
       like_count: number;
       comment_count: number;
     }>;
-    youtube_analytics?: Record<string, unknown>;
+    analytics?: Record<string, unknown>;
     provider_data?: Record<string, unknown>;
     expires_at?: string | null;
     is_connected: boolean;

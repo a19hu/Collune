@@ -1,4 +1,4 @@
-import { CalendarDays, Check, ChevronDown, CloudUpload, Eye, EyeClosed, Globe, Grid2X2, Instagram, Linkedin, Lock, Mail, MapPin, Megaphone, Phone, Plane, Play, Rocket, User, Users, X, Youtube } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, CloudUpload, Eye, EyeClosed, Globe, Grid2X2, Instagram, Lock, Mail, MapPin, Megaphone, Phone, Play, Rocket, User, Users, X, Youtube } from "lucide-react";
 import HtmlInput from "../HtmlComponents/HtmlInput";
 import { RegisterError, RegisterStepHeader, SelectablePill, VerificationBlock } from "../HtmlComponents/RegisterFormParts";
 import { CreatorRegisterForm, SocialAccountForm, VerificationState } from "../types";
@@ -10,8 +10,8 @@ const inputClass =
 const labelClass = "mb-2 block text-xs font-semibold text-[#6e7d99]";
 
 const languageOptions = ["Hindi", "English", "Punjabi", "Tamil", "Telugu", "Bengali", "Marathi", "Gujarati", "Kannada", "Malayalam"];
-const responseTimeOptions = ["Within 24 Hours", "Within 48 Hours", "Flexible"];
 const categoryOptions = ["Political Commentary", "Business & Finance", "Lifestyle", "Technology", "Beauty", "Travel", "Education"];
+const genderOptions = ["", "Female", "Male", "other"];
 
 const collaborationOptions = [
   { title: "Sponsored Posts", copy: "Promote your content through sponsored posts", icon: <Megaphone className="h-7 w-7" /> },
@@ -25,29 +25,30 @@ const collaborationOptions = [
 function SocialCard({
   icon,
   title,
-  handle,
-  onHandleChange,
+  isConnecting,
+  onConnect,
 }: {
   key?: string;
   icon: ReactNode;
   title: string;
-  handle: string;
-  onHandleChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  isConnecting?: boolean;
+  onConnect: () => void;
 }) {
   return (
     <article className="grid gap-4 rounded-xl border border-[#e0e0e0] bg-white p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center">
       <span>{icon}</span>
       <div className="min-w-0 flex-1">
         <h3 className="text-sm font-black text-[#202337]">{title}</h3>
-        <div className="mt-3 grid gap-2 sm:grid-cols-[1.2fr_0.8fr]">
-          <input
-            value={handle}
-            onChange={onHandleChange}
-            placeholder="@handle"
-            className="h-10 rounded-lg border border-[#dfe4ed] px-3 text-sm font-semibold text-[#202337] outline-none focus:border-[#7082f9]"
-          />
-        </div>
+        <p className="mt-1 text-xs font-semibold text-[#707b91]">Create your account and connect with OAuth.</p>
       </div>
+      <button
+        type="button"
+        disabled={isConnecting}
+        onClick={onConnect}
+        className="h-10 rounded-lg bg-[#2447bd] px-5 text-sm font-black text-white disabled:opacity-60"
+      >
+        {isConnecting ? "Opening..." : "Connect"}
+      </button>
     </article>
   );
 }
@@ -94,8 +95,8 @@ function getSocialIcon(platform: SocialAccountForm["platform"]) {
     return <span className={`${iconWrapperClass} bg-[#ff0303]`}><Youtube className={`${iconClass} fill-current`} /></span>;
   }
 
-  if (platform === "LINKEDIN") {
-    return <span className={`${iconWrapperClass} bg-[#116bc1]`}><Linkedin className={`${iconClass} fill-current`} /></span>;
+  if (platform === "FACEBOOK") {
+    return <span className={`${iconWrapperClass} bg-[#1877f2]`}><Globe className={iconClass} /></span>;
   }
 
   return <span className={`${iconWrapperClass} bg-black`}><X className={iconClass} /></span>;
@@ -109,10 +110,11 @@ type StepContentProps = {
   phoneOtp: string;
   socialAccounts: SocialAccountForm[];
   verification: VerificationState;
+  connectingPlatform: string;
   onFieldChange: (field: keyof CreatorRegisterForm) => (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   onEmailOtpChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onPhoneOtpChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  onSocialAccountChange: (index: number, field: keyof Pick<SocialAccountForm, "handle">) => (event: ChangeEvent<HTMLInputElement>) => void;
+  onConnectSocial: (platform: SocialAccountForm["platform"]) => void;
   onToggleFormArrayValue: (field: "languages" | "collaboration_preferences", value: string) => void;
   onTogglePassword: () => void;
   onVerifyEmailOtp: () => void;
@@ -126,10 +128,11 @@ export const StepsCreatorRegister=({
   phoneOtp,
   socialAccounts,
   verification,
+  connectingPlatform,
   onFieldChange,
   onEmailOtpChange,
   onPhoneOtpChange,
-  onSocialAccountChange,
+  onConnectSocial,
   onToggleFormArrayValue,
   onTogglePassword,
   onVerifyEmailOtp,
@@ -203,14 +206,14 @@ export const StepsCreatorRegister=({
   if (step === 3) {
     return (
       <>
-        <RegisterStepHeader title="Connect your social accounts" copy="We'll only import public profile information and performance metrics." />
+        <RegisterStepHeader title="Connect your social accounts" copy="Choose a platform to create your account and continue with OAuth." />
         <div className="mx-auto mt-9 grid max-w-[430px] gap-3.5">
-          {socialAccounts.map((account, index) => (
+          {socialAccounts.map((account) => (
             <SocialCard
               key={account.platform}
               title={account.title}
-              handle={account.handle}
-              onHandleChange={onSocialAccountChange(index, "handle")}
+              isConnecting={connectingPlatform === account.platform}
+              onConnect={() => onConnectSocial(account.platform)}
               icon={getSocialIcon(account.platform)}
             />
           ))}
@@ -250,6 +253,16 @@ export const StepsCreatorRegister=({
           </div>
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Location" icon={<MapPin className="h-5 w-5" />} value={form.location} onChange={onFieldChange("location")} placeholder="New Delhi, India" />
           <label className="block">
+            <span className="mb-2 block text-xs font-semibold text-[#202337]">Gender</span>
+            <span className="relative block">
+              <User className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#707b91]" />
+              <select value={form.gender} onChange={onFieldChange("gender")} className="h-12 w-full appearance-none rounded-xl border border-[#e0e0e0] bg-white px-10 text-sm font-medium text-[#202337] outline-none">
+                {genderOptions.map((gender) => <option key={gender} value={gender}>{gender || "Select gender"}</option>)}
+              </select>
+              <ChevronDown className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#707b91]" />
+            </span>
+          </label>
+          <label className="block">
             <span className="mb-2 block text-xs font-semibold text-[#202337]">Short Bio</span>
             <textarea
               className="h-36 w-full resize-none rounded-xl border border-[#e0e0e0] bg-white p-4 text-sm font-medium leading-relaxed text-[#202337] outline-none focus:border-[#7082f9] focus:ring-4 focus:ring-[#7082f9]/10"
@@ -259,6 +272,16 @@ export const StepsCreatorRegister=({
               placeholder="Political commentator helping young audiences understand policy and governance."
             />
             <span className="-mt-7 mr-4 block text-right text-xs font-medium text-[#9aa7bf]">{form.bio.length} / 200</span>
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-xs font-semibold text-[#202337]">About</span>
+            <textarea
+              className="h-32 w-full resize-none rounded-xl border border-[#e0e0e0] bg-white p-4 text-sm font-medium leading-relaxed text-[#202337] outline-none focus:border-[#7082f9] focus:ring-4 focus:ring-[#7082f9]/10"
+              value={form.about}
+              onChange={onFieldChange("about")}
+              maxLength={400}
+              placeholder="Share more about your content style, audience, and creator journey."
+            />
           </label>
         </div>
       </>

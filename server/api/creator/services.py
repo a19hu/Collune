@@ -216,8 +216,6 @@ def sync_youtube_account(account):
     content_details = channel.get("contentDetails", {})
     uploads_playlist_id = content_details.get("relatedPlaylists", {}).get("uploads", "")
     youtube_videos = fetch_youtube_videos(access_token, uploads_playlist_id)
-    youtube_short_video_count = sum(1 for video in youtube_videos if video.get("content_type") == "SHORT")
-    youtube_long_video_count = sum(1 for video in youtube_videos if video.get("content_type") == "LONG")
     youtube_analytics = fetch_youtube_analytics(access_token)
     subscribers = int(statistics.get("subscriberCount") or 0)
     videos = int(statistics.get("videoCount") or 0)
@@ -238,10 +236,9 @@ def sync_youtube_account(account):
     account.followers = subscribers
     account.media_count = videos
     account.view_count = views
-    account.youtube_short_video_count = youtube_short_video_count
-    account.youtube_long_video_count = youtube_long_video_count
-    account.youtube_videos = youtube_videos
-    account.youtube_analytics = youtube_analytics
+    account.video_count = videos
+    account.videos = youtube_videos
+    account.analytics = youtube_analytics
     account.last_synced_at = timezone.now()
     account.provider_data = {
         **(account.provider_data or {}),

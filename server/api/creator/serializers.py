@@ -12,7 +12,7 @@ from ..common.serializers import AuthUserSerializer, RegisterUserSerializer
 
 class CreatorSocialAccountInputSerializer(serializers.Serializer):
     platform = serializers.ChoiceField(choices=SocialPlatform.choices)
-    handle = serializers.CharField(max_length=120)
+    handle = serializers.CharField(max_length=120, required=False, allow_blank=True)
     url = serializers.URLField(required=False, allow_blank=True)
     followers = serializers.IntegerField(min_value=0, required=False)
     is_connected = serializers.BooleanField(required=False)
@@ -26,6 +26,9 @@ class CreatorRegisterSerializer(serializers.Serializer):
     collaboration_preferences = serializers.ListField(child=serializers.CharField(max_length=120), required=False)
     social_accounts = CreatorSocialAccountInputSerializer(many=True, required=False)
     bio = serializers.CharField(required=False, allow_blank=True)
+    about = serializers.CharField(required=False, allow_blank=True)
+    gender = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    work_with = serializers.ListField(child=serializers.CharField(max_length=120), required=False)
     profile_image = serializers.ImageField(required=False, allow_null=True)
 
     def validate(self, attrs):
@@ -68,11 +71,9 @@ class CreatorSocialAccountSerializer(serializers.ModelSerializer):
             "media_count",
             "view_count",
             "engagement_rate",
-            "audience_country",
-            "youtube_short_video_count",
-            "youtube_long_video_count",
-            "youtube_videos",
-            "youtube_analytics",
+            "video_count",
+            "videos",
+            "analytics",
             "provider_data",
             "expires_at",
             "is_connected",
@@ -88,11 +89,9 @@ class CreatorSocialAccountSerializer(serializers.ModelSerializer):
             "media_count",
             "view_count",
             "engagement_rate",
-            "audience_country",
-            "youtube_short_video_count",
-            "youtube_long_video_count",
-            "youtube_videos",
-            "youtube_analytics",
+            "video_count",
+            "videos",
+            "analytics",
             "provider_data",
             "expires_at",
             "last_synced_at",
@@ -103,6 +102,8 @@ class CreatorProfileSerializer(serializers.ModelSerializer):
     user = AuthUserSerializer(read_only=True)
     social_accounts = CreatorSocialAccountSerializer(many=True, read_only=True)
     profile_image_url = serializers.SerializerMethodField()
+    is_profile_visible = serializers.BooleanField(source="user.is_profile_visible", read_only=True)
+    verification_status = serializers.CharField(source="user.verification_status", read_only=True)
 
     class Meta:
         model = CreatorProfile
@@ -115,6 +116,9 @@ class CreatorProfileSerializer(serializers.ModelSerializer):
             "languages",
             "collaboration_preferences",
             "bio",
+            "about",
+            "gender",
+            "work_with",
             "profile_image",
             "profile_image_url",
             "is_profile_visible",
@@ -136,6 +140,8 @@ class CreatorsProfileListSerializer(serializers.ModelSerializer):
     user = AuthUserSerializer(read_only=True)
     social_accounts = CreatorSocialAccountSerializer(many=True, read_only=True)
     profile_image_url = serializers.SerializerMethodField()
+    is_profile_visible = serializers.BooleanField(source="user.is_profile_visible", read_only=True)
+    verification_status = serializers.CharField(source="user.verification_status", read_only=True)
 
     class Meta:
         model = CreatorProfile
@@ -148,6 +154,9 @@ class CreatorsProfileListSerializer(serializers.ModelSerializer):
             "languages",
             "collaboration_preferences",
             "bio",
+            "about",
+            "gender",
+            "work_with",
             "profile_image",
             "profile_image_url",
             "is_profile_visible",

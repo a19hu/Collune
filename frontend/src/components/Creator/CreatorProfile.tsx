@@ -2,11 +2,9 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   BadgeCheck,
   BarChart3,
-  Camera,
   Check,
   Globe2,
   Instagram,
-  Linkedin,
   Loader2,
   MapPin,
   Pencil,
@@ -54,11 +52,8 @@ const fallbackPortfolio = [
 const platformMeta: Record<CreatorSocialPlatform, { label: string; color: string; Icon: typeof Instagram }> = {
   INSTAGRAM: { label: "Instagram", color: "bg-[#f4a5ff]", Icon: Instagram },
   YOUTUBE: { label: "Youtube", color: "bg-[#ff624f]", Icon: Youtube },
-  LINKEDIN: { label: "Linkedin", color: "bg-[#8099ff]", Icon: Linkedin },
   X: { label: "X / Twitter", color: "bg-[#344055]", Icon: Twitter },
   FACEBOOK: { label: "Facebook", color: "bg-[#4f7cff]", Icon: Globe2 },
-  TIKTOK: { label: "Tiktok", color: "bg-[#111827]", Icon: Camera },
-  SNAPCHAT: { label: "Snapchat", color: "bg-[#ffe85c]", Icon: Camera },
 };
 
 function compactNumber(value: number) {

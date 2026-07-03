@@ -60,6 +60,9 @@ class CreatorRegisterView(APIView):
             languages=data.get("languages", []),
             collaboration_preferences=data.get("collaboration_preferences", []),
             bio=data.get("bio", ""),
+            about=data.get("about", ""),
+            gender=data.get("gender", ""),
+            work_with=data.get("work_with", []),
             profile_image=data.get("profile_image"),
         )
         CreatorSocialAccount.objects.bulk_create(
@@ -154,7 +157,7 @@ class CreatorDashboardView(APIView):
 
         profile_completion = self.get_profile_completion(creator)
         social_media_connected = creator.social_accounts.filter(is_connected=True).exists()
-        profile_verified = profile_verified or creator.verification_status == VerificationStatus.VERIFIED
+        profile_verified = profile_verified or request.user.verification_status == VerificationStatus.VERIFIED
 
         if profile_verified:
             data = {
@@ -171,7 +174,7 @@ class CreatorDashboardView(APIView):
             "account_id": str(creator.creator_id),
             "account_created": bool(creator.created_at),
             "social_media_connected": social_media_connected,
-            "verification_status": creator.verification_status,
+            "verification_status": request.user.verification_status,
             "profile_completion": profile_completion,
 
         }
@@ -279,15 +282,9 @@ class CreatorProfileView(APIView):
         return getattr(request.user, "creator_profile", None)
 
     def get(self, request):
-        creator = (
-                CreatorProfile.objects.select_related("user")
-                .prefetch_related("social_accounts")
-                .get(
-                    creator_id=creator_id,
-                    verification_status=VerificationStatus.VERIFIED.value,
-                    is_profile_visible=True,
-                )
-            )
+        creator = self.get_object(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
 
         platforms = []
         total_followers = 0
@@ -308,8 +305,8 @@ class CreatorProfileView(APIView):
                 "view_count": account.view_count,
                 "media_count": account.media_count,
                 "provider_data":account.provider_data,
-                "analytics":account.analytics,
-                "url":account.url
+                    "analytics": account.analytics,
+                    "url": account.url,
             }
             platforms.append(item)
 
@@ -356,6 +353,8 @@ class CreatorProfileView(APIView):
 
         allowed_creator_fields = {
             "about",
+            "gender",
+            "work_with",
             "bio",
             "category",
             "location",
@@ -446,7 +445,6 @@ class CreatorListViewSet(APIView):
                 .prefetch_related("social_accounts")
                 .get(
                     creator_id=creator_id,
-                    user__verification_status=VerificationStatus.VERIFIED.value,
                     user__is_profile_visible=True,
                 )
             )
@@ -526,7 +524,6 @@ class CreatorListViewSet(APIView):
             .prefetch_related("social_accounts")
             .filter(
                 user__is_profile_visible=True,
-                user__verification_status=VerificationStatus.PENDING.value,
             )
             .order_by("-created_at")
         )
@@ -688,7 +685,7 @@ class InstagramCallbackView(APIView):
                 "last_synced_at": timezone.now(),
             },
         )
-        creator.save(update_fields=["audience_size", "updated_at"])
+        creator.save(update_fields=["updated_at"])
 
         return redirect(f"{frontend_url}/creator/profile?instagram=connected&account={account.account_id}")
 
@@ -837,7 +834,7 @@ class FacebookCallbackView(APIView):
                 },
             },
         )
-        creator.save(update_fields=["audience_size", "updated_at"])
+        creator.save(update_fields=["updated_at"])
 
         return redirect(f"{frontend_url}/creator/profile?facebook=connected&account={account.account_id}")
 
@@ -942,8 +939,6 @@ class YouTubeCallbackView(APIView):
             or ""
         )
         youtube_videos = fetch_youtube_videos(access_token, uploads_playlist_id)
-        youtube_short_video_count = sum(1 for video in youtube_videos if video.get("content_type") == "SHORT")
-        youtube_long_video_count = sum(1 for video in youtube_videos if video.get("content_type") == "LONG")
         youtube_analytics = fetch_youtube_analytics(access_token)
         existing_account = CreatorSocialAccount.objects.filter(
             creator=creator,
@@ -961,10 +956,9 @@ class YouTubeCallbackView(APIView):
                 "followers": subscribers,
                 "media_count": videos,
                 "view_count": views,
-                "youtube_short_video_count": youtube_short_video_count,
-                "youtube_long_video_count": youtube_long_video_count,
-                "youtube_videos": youtube_videos,
-                "youtube_analytics": youtube_analytics,
+                "video_count": videos,
+                "videos": youtube_videos,
+                "analytics": youtube_analytics,
                 "access_token": access_token,
                 "refresh_token": refresh_token or (existing_account.refresh_token if existing_account else ""),
                 "expires_at": expires_at,
@@ -984,8 +978,7 @@ class YouTubeCallbackView(APIView):
                 },
             },
         )
-        creator.audience_size = max(creator.audience_size, subscribers)
-        creator.save(update_fields=["audience_size", "updated_at"])
+        creator.save(update_fields=["updated_at"])
 
         return redirect(f"{frontend_url}/creator/profile?youtube=connected&account={account.account_id}")
 
@@ -1005,8 +998,7 @@ class YouTubeRefreshView(APIView):
             return Response({"error": "Unable to refresh YouTube videos."}, status=status.HTTP_400_BAD_REQUEST)
 
         creator = request.user.creator_profile
-        creator.audience_size = max(creator.audience_size, account.followers)
-        creator.save(update_fields=["audience_size", "updated_at"])
+        creator.save(update_fields=["updated_at"])
         serializer = CreatorProfileSerializer(creator, context={"request": request})
         return Response({"creator": serializer.data})
 
@@ -1139,6 +1131,6 @@ class XCallbackView(APIView):
                 },
             },
         )
-        creator.save(update_fields=["audience_size", "updated_at"])
+        creator.save(update_fields=["updated_at"])
 
         return redirect(f"{frontend_url}/creator/profile?x=connected&account={account.account_id}")

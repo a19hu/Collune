@@ -7,8 +7,16 @@ import { AuthSwitchLink, RegisterError, RegisterSubmitButtons } from "../HtmlCom
 import Register from "../components/layout/Register";
 import { useAuth } from "../contexts/AuthContext";
 import { authStorage } from "../contexts/authStorage";
-import { checkEmailAvailability, registerCreator, verifyOtp } from "../lib/authApi";
-import { CreatorRegisterForm, SocialAccountForm, VerificationState } from "../types";
+import {
+  checkEmailAvailability,
+  getFacebookConnectUrl,
+  getInstagramConnectUrl,
+  getXConnectUrl,
+  getYouTubeConnectUrl,
+  registerCreator,
+  verifyOtp,
+} from "../lib/authApi";
+import { CreatorRegisterForm, CreatorSocialPlatform, SocialAccountForm, VerificationState } from "../types";
 import { StepsCreatorRegister } from "./StepsCreatorRegister";
 import { formButton, normalizePhoneNumber } from "../lib/function";
 
@@ -25,12 +33,15 @@ const initialCreatorForm: CreatorRegisterForm = {
   languages: ["Hindi", "English"],
   collaboration_preferences: ["Sponsored Posts", "Long-Term Partnerships", "Product Launches", "UGC Content"],
   bio: "",
+  about: "",
+  gender: "",
+  work_with: [],
 };
 
 const initialSocialAccounts: SocialAccountForm[] = [
   { platform: "INSTAGRAM", title: "Instagram", handle: "" },
   { platform: "YOUTUBE", title: "YouTube", handle: "" },
-  { platform: "LINKEDIN", title: "LinkedIn", handle: "" },
+  { platform: "FACEBOOK", title: "Facebook", handle: "" },
   { platform: "X", title: "X (Twitter)", handle: "" },
 ];
 
@@ -57,20 +68,14 @@ const CreatorRegister = () => {
   const [socialAccounts, setSocialAccounts] = useState<SocialAccountForm[]>(initialSocialAccounts);
   const [verification, setVerification] = useState<VerificationState>(initialVerification);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConnecting, setIsConnecting] = useState("");
+  const [registrationComplete, setRegistrationComplete] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
   const onFieldChange = (field: keyof CreatorRegisterForm) => (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => {
     setForm((current) => ({ ...current, [field]: event.target.value }));
-  };
-
-  const onSocialAccountChange = (index: number, field: keyof Pick<SocialAccountForm, "handle">) => (
-    event: ChangeEvent<HTMLInputElement>,
-  ) => {
-    setSocialAccounts((current) => current.map((account, itemIndex) => (
-      itemIndex === index ? { ...account, [field]: event.target.value } : account
-    )));
   };
 
   const onToggleFormArrayValue = (field: "languages" | "collaboration_preferences", value: string) => {
@@ -133,7 +138,14 @@ const CreatorRegister = () => {
     }
   };
 
-  const submitCreatorRegistration = async () => {
+  const socialPlatformToOAuth = (platform: CreatorSocialPlatform): "instagram" | "youtube" | "facebook" | "x" => {
+    if (platform === "INSTAGRAM") return "instagram";
+    if (platform === "YOUTUBE") return "youtube";
+    if (platform === "FACEBOOK") return "facebook";
+    return "x";
+  };
+
+  const submitCreatorRegistration = async (connectPlatform?: "instagram" | "youtube" | "facebook" | "x") => {
     setSubmitError("");
 
     const missingOtp: string[] = [];
@@ -160,25 +172,94 @@ const CreatorRegister = () => {
         languages: form.languages,
         collaboration_preferences: form.collaboration_preferences,
         bio: form.bio.trim(),
-        social_accounts: socialAccounts
-          .filter((account) => account.handle.trim())
-          .map((account) => ({
-            platform: account.platform,
-            handle: account.handle.trim(),
-            is_connected: true,
-          })),
+        about: form.about.trim(),
+        gender: form.gender,
+        work_with: form.work_with,
+        social_accounts: [],
       });
 
       authStorage.setTokens(response.access, response.refresh, response.token);
       authStorage.setUser(response.user);
       setSessionUser(response.user);
-      navigate("/creator", { replace: true });
+      if (connectPlatform) {
+        await connectOAuth(connectPlatform);
+        return;
+      }
+      setRegistrationComplete(true);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Could not create your creator account.");
+      setIsConnecting("");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const connectSocialDuringRegistration = async (platform: CreatorSocialPlatform) => {
+    if (!verification.emailVerified) {
+      setVerificationStatus({ error: "Email OTP is not verified.", message: "" });
+      return;
+    }
+    setIsConnecting(platform);
+    await submitCreatorRegistration(socialPlatformToOAuth(platform));
+  };
+
+  const connectOAuth = async (platform: "instagram" | "youtube" | "facebook" | "x") => {
+    setSubmitError("");
+    setIsConnecting(platform);
+    try {
+      const response =
+        platform === "instagram"
+          ? await getInstagramConnectUrl()
+          : platform === "youtube"
+            ? await getYouTubeConnectUrl()
+            : platform === "facebook"
+              ? await getFacebookConnectUrl()
+              : await getXConnectUrl();
+      window.location.href = response.auth_url;
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : `Could not connect ${platform}.`);
+      setIsConnecting("");
+    }
+  };
+
+  if (registrationComplete) {
+    return (
+      <Register totalSteps={totalSteps} step={totalSteps}>
+        <section className="w-full max-w-[622px] rounded-2xl border border-[#e0e7fb] bg-white px-7 py-10 shadow-[0_0_0_1px_rgba(95,119,190,0.04),0_12px_34px_rgba(46,64,120,0.08)] md:px-10">
+          <h1 className="text-2xl font-black text-[#173ca8]">Connect your creator accounts</h1>
+          <p className="mt-3 text-sm font-semibold leading-relaxed text-[#6e7d99]">
+            Your account is created. Connect Instagram, YouTube, Facebook, or X now to import public metrics automatically.
+          </p>
+          <RegisterError message={submitError} />
+          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            {[
+              ["instagram", "Connect Instagram"],
+              ["youtube", "Connect YouTube"],
+              ["facebook", "Connect Facebook"],
+              ["x", "Connect X"],
+            ].map(([platform, label]) => (
+              <button
+                key={platform}
+                type="button"
+                disabled={Boolean(isConnecting)}
+                onClick={() => void connectOAuth(platform as "instagram" | "youtube" | "facebook" | "x")}
+                className="h-12 rounded-xl border border-[#d8e2fb] bg-white px-4 text-sm font-black text-[#173ca8] disabled:opacity-60"
+              >
+                {isConnecting === platform ? "Opening..." : label}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/creator/profile", { replace: true })}
+            className="mt-7 h-12 w-full rounded-xl bg-[#2447bd] text-sm font-black text-white"
+          >
+            Go to Creator Profile
+          </button>
+        </section>
+      </Register>
+    );
+  }
 
   return (
     <Register totalSteps={totalSteps} step={step}>
@@ -208,10 +289,11 @@ const CreatorRegister = () => {
             phoneOtp={phoneOtp}
             socialAccounts={socialAccounts}
             verification={verification}
+            connectingPlatform={isConnecting}
             onFieldChange={onFieldChange}
             onEmailOtpChange={(event) => setForm((current) => ({ ...current, emailOtp: event.target.value.replace(/\D/g, "").slice(0, 6) }))}
             onPhoneOtpChange={(event) => setPhoneOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
-            onSocialAccountChange={onSocialAccountChange}
+            onConnectSocial={(platform) => void connectSocialDuringRegistration(platform)}
             onToggleFormArrayValue={onToggleFormArrayValue}
             onTogglePassword={() => setShowPassword((current) => !current)}
             onVerifyEmailOtp={() => void verifyEmailOtp()}
