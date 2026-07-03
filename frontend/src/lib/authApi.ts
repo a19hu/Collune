@@ -309,6 +309,10 @@ export function getCreatorAppliedCampaigns() {
   return apiRequest<CreatorAppliedCampaignsResponse>("/creator/applied-campaigns/", {}, true);
 }
 
+export function saveCreatorCampaign(campaignId: string) {
+  return apiPost<{ message: string; saved: boolean }>("/creator/saved-campaigns/", { campaign_id: campaignId }, true);
+}
+
 export async function getBrandShortlists() {
   const data = await apiRequest<BrandShortlistApi[] | PaginatedResponse<BrandShortlistApi>>(
     "/brand-shortlists/",

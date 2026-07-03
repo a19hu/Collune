@@ -189,6 +189,8 @@ class CampaignApplication(models.Model):
     application_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="applications")
     creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="applications")
+    pitch = models.TextField(blank=True, default="")
+    quoted_rate = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     status = models.CharField(max_length=24, choices=ApplicationStatus.choices, default=ApplicationStatus.APPLIED)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
@@ -199,6 +201,21 @@ class CampaignApplication(models.Model):
 
     def __str__(self):
         return f"{self.creator.display_name} -> {self.campaign.title}"
+
+
+class CreatorSavedCampaign(models.Model):
+    saved_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="saved_by")
+    creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="saved_campaigns")
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ("campaign", "creator")
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.creator.display_name} saved {self.campaign.title}"
+
 
 class BrandShortlist(models.Model):
     shortlist_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

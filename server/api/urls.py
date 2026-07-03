@@ -37,6 +37,7 @@ from .creator.views import (
     CampaignsListView,
     CreatorCampaignsView,
     CreatorAppliedCampaignsView,
+    CreatorSavedCampaignView,
 )
 
 router = DefaultRouter()
@@ -62,6 +63,7 @@ urlpatterns = [
     path("creator/campaigns/", CampaignsListView.as_view(), name="creator_campaigns"),
     path("creator/campaignds/<uuid:campaign_id>/", CreatorCampaignsView.as_view(), name="creator_campaigns_profile"),
     path("creator/applied-campaigns/", CreatorAppliedCampaignsView.as_view(), name="creator_applied_campaigns"),
+    path("creator/saved-campaigns/", CreatorSavedCampaignView.as_view(), name="creator_saved_campaigns"),
     path("campaign-applications/", CampaignApplicationViewSet.as_view(), name="campaign_applications"),
 
 

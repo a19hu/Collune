@@ -21,7 +21,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..models import (
-    ApplicationStatus, Campaign, CampaignApplication, CreatorProfile, CreatorSocialAccount, SocialPlatform, UserRole, VerificationStatus,
+    ApplicationStatus, Campaign, CampaignApplication, CreatorProfile, CreatorSavedCampaign, CreatorSocialAccount, SocialPlatform, UserRole, VerificationStatus,
 )
 from ..permissions import IsCreator,IsBrand
 from ..common.services import auth_response, create_user, parse_payload
@@ -153,6 +153,8 @@ class CreatorDashboardView(APIView):
                 "cover_image": campaign.cover_image,
                 "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
                 "looking_for": campaign.category or campaign.brand_requirements,
+                "applied": CampaignApplication.objects.filter(campaign=campaign, creator=creator).exists(),
+                "saved": CreatorSavedCampaign.objects.filter(campaign=campaign, creator=creator).exists(),
             }
             for campaign in ranked_campaigns
         ]
@@ -244,12 +246,15 @@ class CampaignsListView(APIView):
         data = [
             {
                 "id": str(campaign.campaign_id),
+                "brand_id": str(campaign.brand.brand_id),
                 "title": campaign.title,
                 "objective": campaign.objective,
                 "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
                 "posted_at": campaign.created_at.isoformat(),
                 "brand_name": campaign.brand.company_name,
                 "brand_logo": request.build_absolute_uri(campaign.brand.logo.url) if campaign.brand.logo else None,
+                "applied": CampaignApplication.objects.filter(campaign=campaign, creator=request.user.creator_profile).exists(),
+                "saved": CreatorSavedCampaign.objects.filter(campaign=campaign, creator=request.user.creator_profile).exists(),
             }
             for campaign in page_campaigns
         ]
@@ -272,6 +277,10 @@ class CreatorCampaignsView(APIView):
         if not campaign:
             return Response({"error": "Campaign not found."}, status=status.HTTP_404_NOT_FOUND)
         applied = CampaignApplication.objects.filter(
+            campaign=campaign,
+            creator=getattr(request.user, "creator_profile", None),
+        ).exists()
+        saved = CreatorSavedCampaign.objects.filter(
             campaign=campaign,
             creator=getattr(request.user, "creator_profile", None),
         ).exists()
@@ -307,7 +316,8 @@ class CreatorCampaignsView(APIView):
                 "location": campaign.location,
                 "content_style": campaign.content_style,
             },
-            "applied": applied
+            "applied": applied,
+            "saved": saved
 
         }
         return Response({"campaign": data})
@@ -462,6 +472,8 @@ class CampaignApplicationViewSet(APIView):
             campaign=campaign,
             creator=creator,
             defaults={
+                "pitch": request.data.get("pitch", ""),
+                "quoted_rate": request.data.get("quoted_rate", 0) or 0,
                 "status": ApplicationStatus.APPLIED,
             },
         )
@@ -473,6 +485,50 @@ class CampaignApplicationViewSet(APIView):
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
         )
     
+class CreatorSavedCampaignView(APIView):
+    permission_classes = [IsAuthenticated, IsCreator]
+
+    def get_creator(self, request):
+        return getattr(request.user, "creator_profile", None)
+
+    def post(self, request):
+        creator = self.get_creator(request)
+
+        if not creator:
+            return Response(
+                {"error": "Creator profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        campaign_id = request.data.get("campaign_id")
+
+        if not campaign_id:
+            return Response(
+                {"campaign_id": ["This field is required."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            campaign = Campaign.objects.get(campaign_id=campaign_id)
+        except Campaign.DoesNotExist:
+            return Response(
+                {"error": "Campaign not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        _, created = CreatorSavedCampaign.objects.get_or_create(
+            campaign=campaign,
+            creator=creator,
+        )
+
+        return Response(
+            {
+                "message": "saved successfully",
+                "saved": True,
+            },
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
 class CreatorAppliedCampaignsView(APIView):
     permission_classes = [IsAuthenticated, IsCreator]
 

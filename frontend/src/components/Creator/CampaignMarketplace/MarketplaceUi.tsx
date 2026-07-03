@@ -1,7 +1,8 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
+  Bookmark,
   BriefcaseBusiness,
   Calendar,
   CheckCircle2,
@@ -72,6 +73,98 @@ export function CampaignCard({ campaign }: { key?: string; campaign: Marketplace
 
       <div className="mt-6">
         <StatusBadge>New</StatusBadge>
+      </div>
+      <h2 className="mt-5 text-[22px] font-black leading-tight text-[#1d2430]">{campaign.title}</h2>
+      <p className="mt-3 min-h-[48px] text-base font-medium leading-relaxed text-[#65758f]">{campaign.description}</p>
+
+      <div className="mt-3 flex items-center justify-between gap-5 border-t border-[#edf1f6] pt-4">
+        <p className="inline-flex items-center gap-2 text-sm font-medium leading-tight text-[#65758f]">
+          <Calendar className="h-4 w-4" />
+          Apply before {campaign.deadlineShort}
+        </p>
+        <button type="button" onClick={handleClick} className="inline-flex h-14 min-w-[152px] items-center justify-center gap-3 rounded-lg border-2 border-[#5168ff] px-5 text-base font-black text-[#3048ff]">
+          View<br />Campaign
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      </div>
+    </Panel>
+  );
+}
+
+export function CampaignActionCard({
+  campaign,
+  onApply,
+  onSave,
+  isApplying,
+  isSaving,
+}: {
+  key?: string;
+  campaign: MarketplaceCampaign;
+  onApply: (campaign: MarketplaceCampaign) => void;
+  onSave: (campaign: MarketplaceCampaign) => void;
+  isApplying?: boolean;
+  isSaving?: boolean;
+}) {
+  const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const handleClick = () => navigate(`/creator/marketplace/${campaign.id}`);
+  const applyLabel = campaign.applied ? "Applied" : isApplying ? "Applying..." : "Apply";
+  const saveLabel = campaign.saved ? "Saved" : isSaving ? "Saving..." : "Save";
+
+  return (
+    <Panel className="relative min-h-[306px] p-6">
+      <div className="flex items-start justify-between gap-4">
+        <button type="button" onClick={handleClick} className="flex min-w-0 items-center gap-4 text-left">
+          <BrandAvatar campaign={campaign} />
+          <span className="min-w-0">
+            <strong className="block truncate text-base font-black text-[#1d2430]">{campaign.brandName}</strong>
+            <span className="mt-1 block text-sm font-medium text-[#65758f]">{campaign.postedAt}</span>
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            setIsMenuOpen((open) => !open);
+          }}
+          className="grid h-9 w-9 place-items-center rounded-full text-[#65758f] hover:bg-[#f1f4f8]"
+          aria-label={`${campaign.title} actions`}
+        >
+          <MoreHorizontal className="h-5 w-5" />
+        </button>
+      </div>
+
+      {isMenuOpen ? (
+        <div className="absolute right-5 top-14 z-10 w-40 rounded-lg border border-[#dfe6f0] bg-white p-2 shadow-[0_12px_28px_rgba(20,30,60,0.12)]">
+          <button
+            type="button"
+            disabled={campaign.saved || isSaving}
+            onClick={() => {
+              setIsMenuOpen(false);
+              onSave(campaign);
+            }}
+            className="flex h-10 w-full items-center gap-3 rounded-md px-3 text-left text-sm font-black text-[#1d2430] hover:bg-[#f7f8fb] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Bookmark className="h-4 w-4" />
+            {saveLabel}
+          </button>
+          <button
+            type="button"
+            disabled={campaign.applied || isApplying}
+            onClick={() => {
+              setIsMenuOpen(false);
+              onApply(campaign);
+            }}
+            className="flex h-10 w-full items-center gap-3 rounded-md px-3 text-left text-sm font-black text-[#1d2430] hover:bg-[#f7f8fb] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            {applyLabel}
+          </button>
+        </div>
+      ) : null}
+
+      <div className="mt-6">
+        <StatusBadge>{campaign.applied ? "Applied" : "Open Applications"}</StatusBadge>
       </div>
       <h2 className="mt-5 text-[22px] font-black leading-tight text-[#1d2430]">{campaign.title}</h2>
       <p className="mt-3 min-h-[48px] text-base font-medium leading-relaxed text-[#65758f]">{campaign.description}</p>

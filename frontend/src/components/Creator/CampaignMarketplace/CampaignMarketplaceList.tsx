@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 
 import { AlertCircle, Loader2, Search } from "lucide-react";
 
-import { getCreatorCampaigns } from "@/src/lib/authApi";
+import { applyToCampaign, getCreatorCampaigns, saveCreatorCampaign } from "@/src/lib/authApi";
 import type { CreatorCampaignListParams } from "@/src/types";
-import { CampaignCard, Panel } from "./MarketplaceUi";
+import { CampaignActionCard, Panel } from "./MarketplaceUi";
 import { mapCreatorCampaignToMarketplace, type MarketplaceCampaign } from "./marketplaceData";
 
 type SortKey = NonNullable<CreatorCampaignListParams["sort"]>;
@@ -44,6 +44,8 @@ export function CampaignMarketplaceList() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [applyingId, setApplyingId] = useState("");
+  const [savingId, setSavingId] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -82,6 +84,36 @@ export function CampaignMarketplaceList() {
   const onSortChange = (value: SortKey) => {
     setSort(value);
     setPage(1);
+  };
+
+  const updateCampaign = (campaignId: string, updates: Partial<MarketplaceCampaign>) => {
+    setCampaigns((items) => items.map((item) => item.id === campaignId ? { ...item, ...updates } : item));
+  };
+
+  const onApply = async (campaign: MarketplaceCampaign) => {
+    if (campaign.applied || applyingId) return;
+    setApplyingId(campaign.id);
+    try {
+      await applyToCampaign(campaign.id);
+      updateCampaign(campaign.id, { applied: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to apply to this campaign.");
+    } finally {
+      setApplyingId("");
+    }
+  };
+
+  const onSave = async (campaign: MarketplaceCampaign) => {
+    if (campaign.saved || savingId) return;
+    setSavingId(campaign.id);
+    try {
+      await saveCreatorCampaign(campaign.id);
+      updateCampaign(campaign.id, { saved: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to save this campaign.");
+    } finally {
+      setSavingId("");
+    }
   };
 
   return (
@@ -141,7 +173,14 @@ export function CampaignMarketplaceList() {
       ) : (
         <div className="grid gap-6 xl:grid-cols-3">
           {campaigns.map((campaign) => (
-            <CampaignCard key={campaign.id} campaign={campaign} />
+            <CampaignActionCard
+              key={campaign.id}
+              campaign={campaign}
+              onApply={onApply}
+              onSave={onSave}
+              isApplying={applyingId === campaign.id}
+              isSaving={savingId === campaign.id}
+            />
           ))}
         </div>
       )}

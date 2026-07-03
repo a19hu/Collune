@@ -124,6 +124,8 @@ export type CreatorCampaignListItemApi = {
   brand_id?: string;
   brand_name: string;
   brand_logo: string | null;
+  applied?: boolean;
+  saved?: boolean;
 };
 export type CreatorCampaignDetailApi = CreatorCampaignListItemApi & {
   brief: string;
@@ -142,6 +144,7 @@ export type CreatorCampaignDetailApi = CreatorCampaignListItemApi & {
   cover_image: string;
   brand_type: string;
   applied?: boolean;
+  saved?: boolean;
   creator_requirements: {
     looking_for: string;
     audience: string;
@@ -454,6 +457,8 @@ export type CreatorDashboardApi = {
     cover_image: string;
     deadline: string | null;
     looking_for: string;
+    applied?: boolean;
+    saved?: boolean;
   }>;
   recommended_campaigns_chart?: Array<{
     date: string;

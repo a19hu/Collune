@@ -28,6 +28,7 @@ export type MarketplaceCampaign = {
   creativeDirection: string[];
   references: Array<{ title: string; image: string }>;
   applied?: boolean;
+  saved?: boolean;
   source: "api";
 };
 
@@ -97,6 +98,7 @@ export function mapCampaignToMarketplace(campaign: CampaignApi): MarketplaceCamp
       title: index === 1 ? "Instagram Carousel" : index === 3 ? "YouTube Video" : "Instagram Reel",
     })),
     applied: false,
+    saved: false,
     source: "api",
   };
 }
@@ -149,7 +151,8 @@ export function mapCreatorCampaignToMarketplace(campaign: CreatorCampaignListIte
       image,
       title: index === 1 ? "Instagram Carousel" : index === 3 ? "YouTube Video" : "Instagram Reel",
     })),
-    applied: false,
+    applied: Boolean(campaign.applied),
+    saved: Boolean(campaign.saved),
     source: "api",
   };
 }
@@ -202,6 +205,7 @@ export function mapCreatorCampaignDetailToMarketplace(campaign: CreatorCampaignD
       title: index === 1 ? "Instagram Carousel" : index === 3 ? "YouTube Video" : "Instagram Reel",
     })),
     applied: Boolean(campaign.applied),
+    saved: Boolean(campaign.saved),
     source: "api",
   };
 }
