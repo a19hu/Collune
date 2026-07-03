@@ -25,19 +25,48 @@ type DashboardContext = { isVerified?: boolean };
 const fallbackCampaignImage = "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80";
 
 const metricCards = [
-  { label: "Profile Views", value: "127", change: "↑ 18% vs last 7 days", icon: Eye, color: "bg-[#ebe5ff] text-[#4635ff]" },
-  { label: "Brand Requests", value: "4", change: "↑ 33% vs last 7 days", icon: Users, color: "bg-[#cbf8df] text-[#00b980]" },
-  { label: "Campaign Applications", value: "8", change: "↑ 14% vs last 7 days", icon: Send, color: "bg-[#fff0dd] text-[#ff9f1c]" },
-  { label: "Profile Completion", value: "100%", change: "Excellent! 🎉", icon: CheckCircle, color: "bg-[#ebe5ff] text-[#4635ff]" },
+  { label: "Recommended Campaigns", value: "0", icon: ShoppingBag, color: "bg-[#ebe5ff] text-[#4635ff]" },
+  { label: "Connected Platforms", value: "0", icon: Users, color: "bg-[#cbf8df] text-[#00b980]" },
+  { label: "Campaign Applications", value: "8", icon: Send, color: "bg-[#fff0dd] text-[#ff9f1c]" },
+  { label: "Profile Completion", value: "100%", icon: CheckCircle, color: "bg-[#ebe5ff] text-[#4635ff]" },
 ];
 
 function buildMetricCards(dashboard?: CreatorDashboardApi | null) {
   return [
-    { ...metricCards[0], value: String(dashboard?.profile_view ?? 0) },
-    { ...metricCards[1], value: String(dashboard?.brand_requests ?? 0) },
+    { ...metricCards[0], value: String(dashboard?.campaigns?.length ?? 0) },
+    { ...metricCards[1], value: String(dashboard?.connected_platforms ?? 0) },
     { ...metricCards[2], value: String(dashboard?.campaign_applications ?? 0) },
     { ...metricCards[3], value: `${dashboard?.profile_completion ?? 0}%` },
   ];
+}
+
+function buildOpportunityMetrics(dashboard?: CreatorDashboardApi | null) {
+  return [
+    ["Recommended Campaigns", String(dashboard?.campaigns?.length ?? 0), "Available to apply"],
+    ["Connected Platforms", String(dashboard?.connected_platforms ?? 0), "Linked to your profile"],
+    ["Applications Sent", String(dashboard?.campaign_applications ?? 0), "Submitted by you"],
+  ];
+}
+
+const chartPeriods = [
+  { label: "Last 7 days", value: "7d" },
+  { label: "Last 30 days", value: "30d" },
+  { label: "Last 90 days", value: "90d" },
+];
+
+function buildChartPolyline(points: NonNullable<CreatorDashboardApi["recommended_campaigns_chart"]>) {
+  if (!points.length) return "";
+  const maxValue = Math.max(...points.map((point) => point.recommended_campaigns), 1);
+  const width = 465;
+  const step = points.length > 1 ? width / (points.length - 1) : 0;
+
+  return points
+    .map((point, index) => {
+      const x = 35 + step * index;
+      const y = 135 - (point.recommended_campaigns / maxValue) * 105;
+      return `${x},${y}`;
+    })
+    .join(" ");
 }
 
 type RecommendedCampaign = NonNullable<CreatorDashboardApi["campaigns"]>[number];
@@ -59,20 +88,18 @@ const quickActions = [
   { icon: UserRound, title: "Edit Profile", copy: "Update your information" },
   { icon: Eye, title: "View Public Profile", copy: "See how brands see you" },
   { icon: ShoppingBag, title: "Browse Campaigns", copy: "Explore new opportunities" },
-  { icon: UserRound, title: "Update Portfolio", copy: "Add or edit your work" },
 ];
 
 
 function MetricCard({ item }: { item: (typeof metricCards)[number]; key?: string }) {
   const Icon = item.icon;
   return (
-    <Panel className="min-h-[238px] p-6">
+    <Panel className="min-h-[200px] p-6">
       <span className={`grid h-11 w-11 place-items-center rounded-full ${item.color}`}>
         <Icon className="h-5 w-5" />
       </span>
       <p className="mt-5 text-sm font-medium text-[#6f7889]">{item.label}</p>
       <strong className="mt-3 block text-[42px] font-black leading-none text-[#1d203a]">{item.value}</strong>
-      <p className="mt-5 text-sm font-medium text-[#00a875]">{item.change}</p>
     </Panel>
   );
 }
@@ -107,10 +134,24 @@ function CampaignCard({ campaign, index }: { campaign: RecommendedCampaign; inde
   );
 }
 
-function VerifiedDashboard({ dashboard }: { dashboard?: CreatorDashboardApi | null }) {
+function VerifiedDashboard({
+  dashboard,
+  chartPeriod,
+  onChartPeriodChange,
+}: {
+  dashboard?: CreatorDashboardApi | null;
+  chartPeriod: string;
+  onChartPeriodChange: (period: string) => void;
+}) {
   const navigate = useNavigate();
   const cards = buildMetricCards(dashboard);
   const recommendedCampaigns = dashboard?.campaigns ?? [];
+  const chartData = dashboard?.recommended_campaigns_chart ?? [];
+  const chartPolyline = buildChartPolyline(chartData);
+  const chartLabels = chartData.filter((_, index) => {
+    if (chartData.length <= 7) return true;
+    return index === 0 || index === chartData.length - 1 || index % Math.ceil(chartData.length / 4) === 0;
+  });
 
   return (
     <div className="grid gap-8">
@@ -150,15 +191,19 @@ function VerifiedDashboard({ dashboard }: { dashboard?: CreatorDashboardApi | nu
 
         <Panel className="p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-black text-[#1d203a]">Profile Performance</h2>
-            <button className="rounded-lg border border-[#dfe4ed] px-4 py-2 text-sm text-[#6f7889]">Last 7 days⌄</button>
+            <h2 className="text-xl font-black text-[#1d203a]">Opportunity Pipeline</h2>
+            <select
+              value={chartPeriod}
+              onChange={(event) => onChartPeriodChange(event.target.value)}
+              className="rounded-lg border border-[#dfe4ed] bg-white px-4 py-2 text-sm font-medium text-[#6f7889]"
+            >
+              {chartPeriods.map((period) => (
+                <option key={period.value} value={period.value}>{period.label}</option>
+              ))}
+            </select>
           </div>
           <div className="mt-6 grid grid-cols-3 gap-4">
-            {[
-              ["Profile Views", "127", "↑ 18%"],
-              ["Unique Visitors", "89", "↑ 23%"],
-              ["Avg. Profile Time", "1m 42s", "↑ 12%"],
-            ].map(([label, value, change]) => (
+            {buildOpportunityMetrics(dashboard).map(([label, value, change]) => (
               <div key={label}>
                 <p className="text-sm text-[#6f7889]">{label}</p>
                 <strong className="mt-3 block text-[32px] font-black text-[#1d203a]">{value}</strong>
@@ -170,9 +215,18 @@ function VerifiedDashboard({ dashboard }: { dashboard?: CreatorDashboardApi | nu
             <svg viewBox="0 0 520 170" className="h-full w-full">
               <path d="M35 135 H500" stroke="#dfe5f0" strokeWidth="2" />
               <path d="M35 20 V135" stroke="#dfe5f0" strokeWidth="2" />
-              <path d="M35 76 C90 95,112 92,150 70 C202 38,240 45,280 36 C332 18,360 18,402 33 C440 45,470 47,500 49" fill="none" stroke="#8b7cff" strokeDasharray="8 8" strokeWidth="4" />
-              {["10 May", "11 May", "12 May", "13 May"].map((label, index) => (
-                <text key={label} x={70 + index * 120} y="158" fontSize="13" fill="#6f7889">{label}</text>
+              {chartPolyline ? (
+                <polyline points={chartPolyline} fill="none" stroke="#8b7cff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+              ) : null}
+              {chartData.map((point, index) => {
+                const maxValue = Math.max(...chartData.map((item) => item.recommended_campaigns), 1);
+                const step = chartData.length > 1 ? 465 / (chartData.length - 1) : 0;
+                const x = 35 + step * index;
+                const y = 135 - (point.recommended_campaigns / maxValue) * 105;
+                return <circle key={point.date} cx={x} cy={y} r="4" fill="#2f31e7" />;
+              })}
+              {chartLabels.map((point) => (
+                <text key={point.date} x={35 + (chartData.findIndex((item) => item.date === point.date) * (chartData.length > 1 ? 465 / (chartData.length - 1) : 0))} y="158" fontSize="13" fill="#6f7889">{point.label}</text>
               ))}
             </svg>
           </div>
@@ -209,11 +263,12 @@ const CreatorDashBoard = () => {
   const [dashboard, setDashboard] = useState<CreatorDashboardApi | null>(null);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
   const [dashboardError, setDashboardError] = useState("");
+  const [chartPeriod, setChartPeriod] = useState("7d");
 
   useEffect(() => {
     let mounted = true;
 
-    getCreatorDashboard()
+    getCreatorDashboard(chartPeriod)
       .then((data) => {
         if (mounted) setDashboard(data);
       })
@@ -227,7 +282,7 @@ const CreatorDashBoard = () => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [chartPeriod]);
 
   if (isLoadingDashboard) {
     return <Panel className="p-8 text-sm font-black text-[#6f7889]">Loading dashboard...</Panel>;
@@ -237,7 +292,11 @@ const CreatorDashBoard = () => {
     return <Panel className="p-8 text-sm font-black text-[#b42318]">{dashboardError}</Panel>;
   }
 
-  return isVerified ? <VerifiedDashboard dashboard={dashboard} /> : <UnderReviewDashboard dashboard={dashboard} />;
+  return isVerified ? (
+    <VerifiedDashboard dashboard={dashboard} chartPeriod={chartPeriod} onChartPeriodChange={setChartPeriod} />
+  ) : (
+    <UnderReviewDashboard dashboard={dashboard} />
+  );
 };
 
 export default CreatorDashBoard;

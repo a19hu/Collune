@@ -90,6 +90,12 @@ class CreatorRegisterView(APIView):
 class CreatorDashboardView(APIView):
     permission_classes = [IsAuthenticated, IsCreator]
 
+    chart_period_days = {
+        "7d": 7,
+        "30d": 30,
+        "90d": 90,
+    }
+
     def get_profile_completion(self, creator):
         checks = [
             bool(creator.display_name.strip()),
@@ -110,7 +116,7 @@ class CreatorDashboardView(APIView):
 
         return completion
 
-    def get_matching_campaigns(self, creator):
+    def get_campaign_score(self, creator, campaign):
         creator_terms = {
             creator.category,
             creator.location,
@@ -125,18 +131,20 @@ class CreatorDashboardView(APIView):
             if str(term).strip()
         }
 
+        requirement_text = (campaign.brand_requirements or "").lower()
+        score = sum(1 for term in normalized_terms if term in requirement_text)
+        if campaign.category and campaign.category.strip().lower() == creator.category.strip().lower():
+            score += 3
+        if campaign.location and campaign.location.strip().lower() == creator.location.strip().lower():
+            score += 2
+        return score
+
+    def get_ranked_campaigns(self, creator):
         campaigns = Campaign.objects.all().order_by("-created_at")
+        return sorted(campaigns, key=lambda campaign: self.get_campaign_score(creator, campaign), reverse=True)
 
-        def campaign_score(campaign):
-            requirement_text = (campaign.brand_requirements or "").lower()
-            score = sum(1 for term in normalized_terms if term in requirement_text)
-            if campaign.category and campaign.category.strip().lower() == creator.category.strip().lower():
-                score += 3
-            if campaign.location and campaign.location.strip().lower() == creator.location.strip().lower():
-                score += 2
-            return score
-
-        ranked_campaigns = sorted(campaigns, key=campaign_score, reverse=True)[:3]
+    def get_matching_campaigns(self, creator):
+        ranked_campaigns = self.get_ranked_campaigns(creator)[:3]
 
         return [
             {
@@ -150,6 +158,30 @@ class CreatorDashboardView(APIView):
             for campaign in ranked_campaigns
         ]
 
+    def get_recommended_campaign_chart(self, request, creator):
+        period = request.query_params.get("period", "7d")
+        days = self.chart_period_days.get(period, self.chart_period_days["7d"])
+        today = timezone.localdate()
+        start_date = today - timedelta(days=days - 1)
+        buckets = {
+            start_date + timedelta(days=index): 0
+            for index in range(days)
+        }
+
+        for campaign in self.get_ranked_campaigns(creator):
+            campaign_date = timezone.localtime(campaign.created_at).date()
+            if start_date <= campaign_date <= today:
+                buckets[campaign_date] += 1
+
+        return [
+            {
+                "date": bucket_date.isoformat(),
+                "label": bucket_date.strftime("%d %b"),
+                "recommended_campaigns": count,
+            }
+            for bucket_date, count in buckets.items()
+        ]
+
     def get(self, request, profile_verified=False):
         creator = getattr(request.user, "creator_profile", None)
         if not creator:
@@ -161,11 +193,11 @@ class CreatorDashboardView(APIView):
 
         if profile_verified:
             data = {
-                "profile_view": getattr(creator, "profile_view_count", 0),
-                "brand_requests": getattr(creator, "brand_request_count", 0),
+                "connected_platforms": creator.social_accounts.filter(is_connected=True).count(),
                 "campaign_applications": creator.applications.count(),
                 "profile_completion": profile_completion,
                 "campaigns": self.get_matching_campaigns(creator),
+                "recommended_campaigns_chart": self.get_recommended_campaign_chart(request, creator),
 
             }
             return Response({"creator": data})

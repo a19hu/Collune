@@ -181,8 +181,9 @@ export async function getBrandDashboard() {
   return data.brand_dashboard;
 }
 
-export async function getCreatorDashboard() {
-  const data = await apiRequest<{ creator: CreatorDashboardApi }>("/creators/dashboard/", {}, true);
+export async function getCreatorDashboard(period = "7d") {
+  const params = new URLSearchParams({ period });
+  const data = await apiRequest<{ creator: CreatorDashboardApi }>(`/creators/dashboard/?${params.toString()}`, {}, true);
   return data.creator;
 }
 

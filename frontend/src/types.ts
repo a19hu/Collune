@@ -428,8 +428,7 @@ export type CreatorDashboardApi = {
   Social_media_connected?: boolean;
   verification_status?: string;
   profile_completion: number;
-  profile_view?: number;
-  brand_requests?: number;
+  connected_platforms?: number;
   campaign_applications?: number;
   campaigns?: Array<{
     id: string;
@@ -438,6 +437,11 @@ export type CreatorDashboardApi = {
     cover_image: string;
     deadline: string | null;
     looking_for: string;
+  }>;
+  recommended_campaigns_chart?: Array<{
+    date: string;
+    label: string;
+    recommended_campaigns: number;
   }>;
 };
 
