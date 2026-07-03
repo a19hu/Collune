@@ -297,7 +297,11 @@ export async function getCampaignApplications() {
 }
 
 export function applyToCampaign(campaignId: string) {
-  return apiPost<CampaignApplicationApi>("/campaign-applications/", { campaign: campaignId }, true);
+  return apiPost<{ massage: string }>(
+    "/campaign-applications/",
+    { campaign_id: campaignId},
+    true,
+  );
 }
 
 export async function getBrandShortlists() {

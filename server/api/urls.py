@@ -41,7 +41,6 @@ from .creator.views import (
 router = DefaultRouter()
 router.register("brands", BrandProfileViewSet, basename="brands")
 router.register("campaigns", CampaignViewSet, basename="campaigns")
-router.register("campaign-applications", CampaignApplicationViewSet, basename="campaign_applications")
 router.register("brand-shortlists", BrandShortlistViewSet, basename="brand_shortlists")
 
 urlpatterns = [
@@ -61,6 +60,7 @@ urlpatterns = [
     path("creators/dashboard/", CreatorDashboardView.as_view(), name="creator_dashboard"),
     path("creator/campaigns/", CampaignsListView.as_view(), name="creator_campaigns"),
     path("creator/campaignds/<uuid:campaign_id>/", CreatorCampaignsView.as_view(), name="creator_campaigns_profile"),
+    path("campaign-applications/", CampaignApplicationViewSet.as_view(), name="campaign_applications"),
 
 
     path("brands/campaigns/", CampaignsViewSet.as_view(), name="brand_campaigns"),

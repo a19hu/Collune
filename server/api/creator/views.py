@@ -24,7 +24,6 @@ from ..models import (
     ApplicationStatus, Campaign, CampaignApplication, CreatorProfile, CreatorSocialAccount, SocialPlatform, UserRole, VerificationStatus,
 )
 from ..permissions import IsCreator,IsBrand
-from ..brand.serializers import CampaignApplicationSerializer
 from ..common.services import auth_response, create_user, parse_payload
 from .serializers import CreatorProfileSerializer, CreatorRegisterSerializer
 from .services import fetch_youtube_analytics, fetch_youtube_videos, sync_youtube_account
@@ -272,6 +271,10 @@ class CreatorCampaignsView(APIView):
         ).first()
         if not campaign:
             return Response({"error": "Campaign not found."}, status=status.HTTP_404_NOT_FOUND)
+        applied = CampaignApplication.objects.filter(
+            campaign=campaign,
+            creator=getattr(request.user, "creator_profile", None),
+        )
         data = {
             "id": str(campaign.campaign_id),
             "title": campaign.title,
@@ -302,7 +305,9 @@ class CreatorCampaignsView(APIView):
                 "languages": campaign.language_preference,
                 "location": campaign.location,
                 "content_style": campaign.content_style,
-            }
+            },
+            "applied":bool(applied)
+
         }
         return Response({"campaign": data})
     
@@ -421,20 +426,52 @@ class CreatorProfileView(APIView):
             status=status.HTTP_200_OK,
         )
 
-class CampaignApplicationViewSet(viewsets.ModelViewSet):
-    serializer_class = CampaignApplicationSerializer
+class CampaignApplicationViewSet(APIView):
     permission_classes = [IsAuthenticated,IsCreator]
 
-    def create(self, request):
-        creator = request.user
-        campaign = request.data.get("campaign")
-        CampaignApplication.objects.update_or_create(
-            campaign= campaign,
-            creator=  creator,
-            status =  ApplicationStatus.APPLIED
-        )
-        return Response({"message": "Added successfully"})
+    def get_creator(self, request):
+        return getattr(request.user, "creator_profile", None)
 
+    def post(self, request):
+        creator = self.get_creator(request)
+
+        if not creator:
+            return Response(
+                {"error": "Creator profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        campaign_id = request.data.get("campaign_id")
+
+        if not campaign_id:
+            return Response(
+                {"campaign_id": ["This field is required."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            campaign = Campaign.objects.get(campaign_id=campaign_id)
+        except Campaign.DoesNotExist:
+            return Response(
+                {"error": "Campaign not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        _, created = CampaignApplication.objects.get_or_create(
+            campaign=campaign,
+            creator=creator,
+            defaults={
+                "status": ApplicationStatus.APPLIED,
+            },
+        )
+
+        return Response(
+            {
+                "massage":"sucussfully created"
+            },
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+    
 class CreatorListViewSet(APIView):
     permission_classes = [AllowAny]
     parser_classes = [JSONParser, MultiPartParser, FormParser]

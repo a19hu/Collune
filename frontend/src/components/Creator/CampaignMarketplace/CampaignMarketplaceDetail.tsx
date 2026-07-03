@@ -70,8 +70,8 @@ export function CampaignMarketplaceDetail() {
     setIsApplying(true);
     setApplyError("");
     try {
-      const application = await applyToCampaign(campaign.id);
-      setAppliedIds((ids) => ids.includes(application.campaign) ? ids : [...ids, application.campaign]);
+      await applyToCampaign(campaign.id);
+      setAppliedIds((ids) => ids.includes(campaign.id) ? ids : [...ids, campaign.id]);
     } catch (err) {
       setApplyError(err instanceof Error ? err.message : "Unable to apply to this campaign.");
     } finally {
