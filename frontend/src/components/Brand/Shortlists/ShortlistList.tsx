@@ -74,7 +74,7 @@ export function ShortlistList({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        <NewShortlistCard onCreate={onCreate} />
+        {/* <NewShortlistCard onCreate={onCreate} /> */}
         {visibleShortlists.map((shortlist) => (
           <ShortlistCard key={shortlist.id} item={shortlist} onOpen={onOpen} />
         ))}

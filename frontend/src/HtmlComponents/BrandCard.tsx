@@ -12,13 +12,8 @@ type itemapi = {
 }
 
 const statusClasses: Record<string, string> = {
-    Open: "bg-[#cbf8df] text-[#009b67]",
     Draft: "bg-[#dce9ff] text-[#2f6df6]",
     Submitted: "bg-[#dce9ff] text-[#2f6df6]",
-    "Outreach In Progress": "bg-[#ffd7a8] text-[#cf4e00]",
-    Completed: "bg-[#ccf8e0] text-[#009b67]",
-    "Creator Outreach In Progress": "bg-[#ffd7a8] text-[#cf4e00]",
-    "Deal Discussion Ongoing": "bg-[#e9d5ff] text-[#7c2cff]",
 };
 
 const campaignIconStyles = [

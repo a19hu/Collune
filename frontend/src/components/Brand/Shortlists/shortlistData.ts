@@ -7,7 +7,7 @@ import creatorFour from "../../../assets/collune/creator-4.png";
 import type { BrandShortlistApi, BrandShortlistStatusApi, CreatorListItemApi, CreatorProfileApi } from "../../../types";
 import { formatUpdatedAt } from "@/src/HtmlComponents/BrandCard";
 
-export type ShortlistStatus = "Draft" | "Submitted" | "Outreach In Progress" | "Completed";
+export type ShortlistStatus = "Draft" | "Submitted";
 
 export type ShortlistCreator = {
   id: string;
@@ -47,15 +47,11 @@ const apiStatusLabels: Record<BrandShortlistStatusApi, ShortlistStatus> = {
 export const statusApiValues: Record<ShortlistStatus, BrandShortlistStatusApi> = {
   Draft: "DRAFT",
   Submitted: "SUBMITTED",
-  "Outreach In Progress": "SUBMITTED",
-  Completed: "SUBMITTED",
 };
 
 const iconRules: Array<{ match: ShortlistStatus; icon: LucideIcon; className: string }> = [
   { match: "Draft", icon: FileText, className: "bg-[#ebe5ff] text-[#6a75ff]" },
   { match: "Submitted", icon: Send, className: "bg-[#dbeafe] text-[#2f6df6]" },
-  { match: "Outreach In Progress", icon: Send, className: "bg-[#ccf8e0] text-[#00a875]" },
-  { match: "Completed", icon: CheckCircle2, className: "bg-[#ccf8e0] text-[#00a875]" },
 ];
 
 const fallbackImages = [creatorOne, creatorTwo, creatorThree, creatorFour];
@@ -136,6 +132,4 @@ export const shortlistStatusOptions: Array<"All Shortlists" | ShortlistStatus> =
   "All Shortlists",
   "Draft",
   "Submitted",
-  "Outreach In Progress",
-  "Completed",
 ];

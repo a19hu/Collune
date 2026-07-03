@@ -4,7 +4,6 @@ import './index.css';
 import CreatorRegister from './pages/CreatorRegister.tsx';
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
 import LandingPage from "./pages/LandingPage.tsx";
-import ColluneInfoPage from "./pages/ColluneInfoPage.tsx";
 import PublicCreatorProfile from "./pages/PublicCreatorProfile.tsx";
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
 import MainLayout from './components/layout/MainLayout.tsx';
@@ -60,9 +59,6 @@ const App: React.FC = () => {
                         <Route path="discover-creators" element={<DiscoverCreatorsPage />} />
                         <Route path="creator_profile/:creatorId" element={<PublicCreatorProfile />} />
                         <Route path="creators/:creatorId" element={<PublicCreatorProfile />} />
-                        {/* <Route path="success-stories" element={<ColluneInfoPage page="success-stories" />} /> */}
-                        {/* <Route path="blogs" element={<ColluneInfoPage page="blogs" />} /> */}
-                        {/* <Route path="faqs" element={<ColluneInfoPage page="faqs" />} /> */}
 
 
                     </Route>
@@ -82,7 +78,6 @@ const App: React.FC = () => {
                             <Route index element={<BrandDashBoard />} />
                             <Route path="shortlists" element={<BrandShortlists />} />
                             <Route path="shortlists/:shortlistId" element={<BrandShortlists />} />
-                            <Route path="creators" element={<ColluneInfoPage page="discover-creators" />} />
                             <Route path="campaigns" element={<BrandCampaigns />} />
                             <Route path="campaigns/new_create" element={<CampaignCreateForm />} />
                             <Route path="campaigns/:campaignId" element={<CampaignApplicationsPage />} />

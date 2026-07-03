@@ -76,11 +76,6 @@ export function ShortlistDetail({
 
   return (
     <div className="grid gap-8">
-      <button type="button" onClick={onBack} className="inline-flex w-max items-center gap-2 text-sm font-black text-[#2f16ff]">
-        <ArrowLeft className="h-4 w-4" />
-        Back to Shortlists
-      </button>
-
       <div className="flex flex-wrap items-start justify-between gap-5">
         <div className="flex min-w-0 items-start gap-6">
           <IconTile icon={shortlist.icon} className={shortlist.iconClassName} size="h-20 w-20" />

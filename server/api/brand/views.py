@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.db.models import Count, Prefetch, Q
+from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -68,37 +69,81 @@ class BrandDetailDashboardView(APIView):
     permission_classes = [IsAuthenticated, IsBrand]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
+    @staticmethod
+    def _campaign_status(campaign, today):
+        if campaign.end_date and campaign.end_date < today:
+            return "Completed"
+        return "Open"
+
+    @staticmethod
+    def _brand_logo_url(request, brand):
+        if not brand.logo:
+            return ""
+        return request.build_absolute_uri(brand.logo.url)
+
     def get(self, request):
         brand = getattr(request.user, "brand_profile", None)
         if not brand:
             return Response({"error": "No brand profile found."}, status=status.HTTP_404_NOT_FOUND)
-        
-        brand_campaigns = Campaign.objects.filter(brand=brand)
-        brand_shortlists = BrandShortlist.objects.filter(brand=brand)
-        active_campaigns = brand_campaigns.all().order_by("-created_at")
-        active_shortlists = brand_shortlists.filter(status=ShortlistStatus.SUBMITTED).order_by("-created_at")
+
+        today = timezone.localdate()
+        active_campaigns = (
+            Campaign.objects.filter(brand=brand)
+            .filter(Q(end_date__isnull=True) | Q(end_date__gte=today))
+            .annotate(
+                applications_received_count=Count("applications", distinct=True),
+                recommended_creators_count=Count(
+                    "applications",
+                    filter=Q(applications__status=ApplicationStatus.ACCEPTED),
+                    distinct=True,
+                ),
+            )
+            .order_by("-created_at")
+        )
+        active_shortlists = (
+            BrandShortlist.objects.filter(brand=brand, status=ShortlistStatus.SUBMITTED)
+            .annotate(creators_count=Count("creators", distinct=True))
+            .order_by("-created_at")
+        )
+        collaborations_active = CampaignApplication.objects.filter(
+            campaign__brand=brand,
+            status=ApplicationStatus.ACCEPTED,
+        ).count()
+
         result = {
+            "brand": {
+                "brand_id": str(brand.brand_id),
+                "company_name": brand.company_name,
+                "industry": brand.industry,
+                "website": brand.website,
+                "company_size": brand.company_size,
+                "linkedin_url": brand.linkedin_url,
+                "logo_url": self._brand_logo_url(request, brand),
+            },
             "no_of_active_campaigns": active_campaigns.count(),
             "no_of_active_shortlists": active_shortlists.count(),
-            "collaborations_active": 0,
+            "no_of_submitted_shortlists": active_shortlists.count(),
+            "collaborations_active": collaborations_active,
             "active_campaigns": [
                 {
-                    "id": campaign.campaign_id,
+                    "id": str(campaign.campaign_id),
                     "name": campaign.title,
-                    "status": campaign.status,
-                    "applications_received_count": CampaignApplication.objects.filter(campaign=campaign).count(),
-                    "recommended_creators_count": CampaignApplication.objects.filter(campaign=campaign, status=ApplicationStatus.ACCEPTED).count(),
+                    "status": self._campaign_status(campaign, today),
+                    "applications_received_count": campaign.applications_received_count,
+                    "recommended_creators_count": campaign.recommended_creators_count,
+                    "updated_at": campaign.updated_at.isoformat(),
                 }
-                for campaign in active_campaigns[:3]
+                for campaign in active_campaigns[:4]
             ],
             "active_shortlists": [
                 {
-                    "id": shortlist.shortlist_id,
+                    "id": str(shortlist.shortlist_id),
                     "name": shortlist.title,
-                    "status": shortlist.status,
-                    "creators_count": shortlist.creators.count(),
+                    "status": shortlist.get_status_display(),
+                    "creators_count": shortlist.creators_count,
+                    "updated_at": shortlist.updated_at.isoformat(),
                 }
-                for shortlist in active_shortlists[:3]
+                for shortlist in active_shortlists[:4]
             ],
 
         }
@@ -146,6 +191,12 @@ class CampaignsViewSet(APIView):
         if page is not None:
             return paginator.get_paginated_response(data)
         return Response({"campaigns": data})
+    
+    def post(self,request):
+
+
+
+        return Response({"message":"sucessfully created"})
 
 class ShortlistViewSet(APIView):
     permission_classes = [IsAuthenticated, IsBrand]

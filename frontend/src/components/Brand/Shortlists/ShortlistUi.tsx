@@ -6,8 +6,6 @@ import type { ShortlistCreator, ShortlistItem, ShortlistStatus } from "./shortli
 const statusClasses: Record<ShortlistStatus, string> = {
   Draft: "bg-[#dce9ff] text-[#2f6df6]",
   Submitted: "bg-[#dce9ff] text-[#2f6df6]",
-  "Outreach In Progress": "bg-[#ffd7a8] text-[#cf4e00]",
-  Completed: "bg-[#ccf8e0] text-[#009b67]",
 };
 
 const platformClasses: Record<ShortlistCreator["platform"], string> = {

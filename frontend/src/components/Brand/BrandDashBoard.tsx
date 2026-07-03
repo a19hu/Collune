@@ -88,12 +88,6 @@ const BrandDashBoard = () => {
             brand?.active_campaigns?.map((campaign, index) => (
                 <BrandCard item={campaign} index={index} />
             ))}
-          <CreateCard
-            title="Create New Campaign"
-            copy="Launch a campaign and find the right creators."
-            action="Get Started"
-            onClick={() => navigate("/brand/campaigns")}
-          />
         </div>
       </section>
 
@@ -115,12 +109,6 @@ const BrandDashBoard = () => {
             brand?.active_shortlists?.map((shortlist, index) => (
                 <BrandCard item={shortlist} index={index} shortlist={true} />
             ))}
-          <CreateCard
-            title="Build a Shortlist"
-            copy="Discover creators and build your custom shortlist."
-            action="Discover Creators"
-            onClick={() => navigate("/brand/shortlists")}
-          />
         </div>
       </section>
     </>
@@ -138,33 +126,4 @@ function SectionHeader({ title, path }: { title: string; path: string }) {
   );
 }
 
-
-function CreateCard({
-  title,
-  copy,
-  action,
-  onClick,
-}: {
-  title: string;
-  copy: string;
-  action: string;
-  onClick: () => void;
-}) {
-  return (
-    <button type="button" onClick={onClick} className="text-left">
-      <Panel className="grid min-h-[294px] place-items-center p-8 text-center transition hover:border-[#7b83ff] hover:shadow-sm">
-        <div>
-          <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#ebe5ff] text-[#7b83ff]">
-            <Plus className="h-8 w-8" />
-          </span>
-          <h3 className="mt-7 text-[21px] font-black text-black">{title}</h3>
-          <p className="mx-auto mt-4 max-w-[250px] text-base font-medium leading-snug text-[#657084]">{copy}</p>
-          <span className="mt-6 inline-flex items-center gap-2 text-base font-black text-[#7b83ff]">
-            {action} <ArrowRight className="h-4 w-4" />
-          </span>
-        </div>
-      </Panel>
-    </button>
-  );
-}
 export default BrandDashBoard;

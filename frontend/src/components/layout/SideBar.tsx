@@ -19,7 +19,7 @@ const navByMode = {
   brand: [
     { label: "Dashboard", to: "/brand", icon: Home },
     { label: "Campaigns", to: "/brand/campaigns", icon: FileText, lockedWhenUnverified: true },
-    { label: "Discover Creators", to: "/brand/creators", icon: Users, lockedWhenUnverified: true },
+    { label: "Discover Creators", to: "/discover-creators", icon: Users, lockedWhenUnverified: true },
     { label: "Shortlists", to: "/brand/shortlists", icon: Star },
   ],
 };

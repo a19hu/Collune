@@ -94,8 +94,8 @@ function DashboardTopBar({ title, status, actions, currentUser, logout, profileP
       </h1>
       <div className="flex flex-wrap items-center gap-5">
         {actions}
-        {status ? <VerificationPill status={status} /> : null}
-        <DashboardUserMenu currentUser={currentUser} logout={logout} profilePath={profilePath} />
+        {status && currentUser.role == "Creator" ? <VerificationPill status={status} /> : null}
+        {currentUser.role == "Creator" ? <DashboardUserMenu currentUser={currentUser} logout={logout} profilePath={profilePath} /> : null}
       </div>
     </header>
   );
