@@ -491,6 +491,52 @@ class CreatorSavedCampaignView(APIView):
     def get_creator(self, request):
         return getattr(request.user, "creator_profile", None)
 
+    def get(self, request):
+        creator = self.get_creator(request)
+
+        if not creator:
+            return Response(
+                {"error": "Creator profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        saved_campaigns = (
+            CreatorSavedCampaign.objects.select_related("campaign", "campaign__brand")
+            .filter(creator=creator)
+            .order_by("-created_at")
+        )
+
+        data = []
+        for saved_campaign in saved_campaigns:
+            campaign = saved_campaign.campaign
+            brand = campaign.brand
+            data.append(
+                {
+                    "saved_id": str(saved_campaign.saved_id),
+                    "saved_at": saved_campaign.created_at.isoformat(),
+                    "campaign": {
+                        "id": str(campaign.campaign_id),
+                        "title": campaign.title,
+                        "objective": campaign.objective,
+                        "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
+                        "posted_at": campaign.created_at.isoformat(),
+                        "cover_image": campaign.cover_image,
+                        "brand_id": str(brand.brand_id),
+                        "brand_name": brand.company_name,
+                        "brand_type": brand.industry,
+                        "brand_logo": request.build_absolute_uri(brand.logo.url) if brand.logo else None,
+                    },
+                }
+            )
+
+        return Response(
+            {
+                "campaigns": data,
+                "count": len(data),
+            },
+            status=status.HTTP_200_OK,
+        )
+
     def post(self, request):
         creator = self.get_creator(request)
 

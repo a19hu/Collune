@@ -14,6 +14,7 @@ const navByMode = {
     { label: "Profile", to: "/creator/profile", icon: UserRound },
     { label: "Campaign Marketplace", to: "/creator/marketplace", icon: ShoppingBag, lockedWhenUnverified: true },
     { label: "Applied Campaigns", to: "/creator/applied-campaigns", icon: BadgeCheck, lockedWhenUnverified: true },
+    { label: "Saved Campaigns", to: "/creator/saved-campaigns", icon: Star, lockedWhenUnverified: true },
   ],
   brand: [
     { label: "Dashboard", to: "/brand", icon: Home },

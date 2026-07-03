@@ -46,6 +46,7 @@ export function CampaignMarketplaceList() {
   const [isLoading, setIsLoading] = useState(true);
   const [applyingId, setApplyingId] = useState("");
   const [savingId, setSavingId] = useState("");
+  const [openMenuId, setOpenMenuId] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -75,6 +76,13 @@ export function CampaignMarketplaceList() {
       mounted = false;
     };
   }, [page, search, sort]);
+
+  useEffect(() => {
+    if (!openMenuId) return;
+    const closeMenu = () => setOpenMenuId("");
+    window.addEventListener("click", closeMenu);
+    return () => window.removeEventListener("click", closeMenu);
+  }, [openMenuId]);
 
   const onSearchChange = (value: string) => {
     setSearch(value);
@@ -180,6 +188,8 @@ export function CampaignMarketplaceList() {
               onSave={onSave}
               isApplying={applyingId === campaign.id}
               isSaving={savingId === campaign.id}
+              isMenuOpen={openMenuId === campaign.id}
+              onMenuToggle={(campaignId) => setOpenMenuId((current) => campaignId && current !== campaignId ? campaignId : "")}
             />
           ))}
         </div>

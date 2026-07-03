@@ -176,6 +176,19 @@ export type CreatorAppliedCampaignsResponse = {
   campaigns: CreatorAppliedCampaignApi[];
   count: number;
 };
+export type CreatorSavedCampaignApi = {
+  saved_id: string;
+  saved_at: string;
+  campaign: CreatorCampaignListItemApi & {
+    cover_image: string;
+    brand_id: string;
+    brand_type: string;
+  };
+};
+export type CreatorSavedCampaignsResponse = {
+  campaigns: CreatorSavedCampaignApi[];
+  count: number;
+};
 export type CreatorCampaignListParams = {
   page?: number;
   pageSize?: number;

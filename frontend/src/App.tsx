@@ -24,6 +24,7 @@ import { DiscoverCreatorsPage } from './pages/DiscoverCreatorsPage.tsx';
 import { CampaignMarketplaceDetail } from './components/Creator/CampaignMarketplace/CampaignMarketplaceDetail.tsx';
 import { CampaignMarketplaceList } from './components/Creator/CampaignMarketplace/CampaignMarketplaceList.tsx';
 import AppliedCampaigns from './components/Creator/AppliedCampaigns.tsx';
+import SavedCampaigns from './components/Creator/SavedCampaigns.tsx';
 
 function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
     const { currentUser, isAuthLoading } = useAuth();
@@ -73,6 +74,7 @@ const App: React.FC = () => {
                             <Route path="marketplace/:campaignId" element={<RequireVerified><CampaignMarketplaceDetail /></RequireVerified>} />
                             <Route path="marketplace" element={<RequireVerified><CampaignMarketplaceList /></RequireVerified>} />
                             <Route path="applied-campaigns" element={<RequireVerified><AppliedCampaigns /></RequireVerified>} />
+                            <Route path="saved-campaigns" element={<RequireVerified><SavedCampaigns /></RequireVerified>} />
                         </Route>
                     </Route>
                     <Route element={<RequireAuth allowedRole="Brand" />}>

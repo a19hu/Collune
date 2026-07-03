@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -97,6 +97,8 @@ export function CampaignActionCard({
   onSave,
   isApplying,
   isSaving,
+  isMenuOpen,
+  onMenuToggle,
 }: {
   key?: string;
   campaign: MarketplaceCampaign;
@@ -104,9 +106,10 @@ export function CampaignActionCard({
   onSave: (campaign: MarketplaceCampaign) => void;
   isApplying?: boolean;
   isSaving?: boolean;
+  isMenuOpen?: boolean;
+  onMenuToggle: (campaignId: string) => void;
 }) {
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const handleClick = () => navigate(`/creator/marketplace/${campaign.id}`);
   const applyLabel = campaign.applied ? "Applied" : isApplying ? "Applying..." : "Apply";
   const saveLabel = campaign.saved ? "Saved" : isSaving ? "Saving..." : "Save";
@@ -125,7 +128,7 @@ export function CampaignActionCard({
           type="button"
           onClick={(event) => {
             event.stopPropagation();
-            setIsMenuOpen((open) => !open);
+            onMenuToggle(campaign.id);
           }}
           className="grid h-9 w-9 place-items-center rounded-full text-[#65758f] hover:bg-[#f1f4f8]"
           aria-label={`${campaign.title} actions`}
@@ -135,24 +138,27 @@ export function CampaignActionCard({
       </div>
 
       {isMenuOpen ? (
-        <div className="absolute right-5 top-14 z-10 w-40 rounded-lg border border-[#dfe6f0] bg-white p-2 shadow-[0_12px_28px_rgba(20,30,60,0.12)]">
+        <div
+          className="absolute right-5 top-14 z-10 w-40 rounded-lg border border-[#dfe6f0] bg-white p-2 shadow-[0_12px_28px_rgba(20,30,60,0.12)]"
+          onClick={(event) => event.stopPropagation()}
+        >
           <button
             type="button"
             disabled={campaign.saved || isSaving}
             onClick={() => {
-              setIsMenuOpen(false);
+              onMenuToggle("");
               onSave(campaign);
             }}
             className="flex h-10 w-full items-center gap-3 rounded-md px-3 text-left text-sm font-black text-[#1d2430] hover:bg-[#f7f8fb] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <Bookmark className="h-4 w-4" />
+            <Bookmark className={`h-4 w-4 ${campaign.saved ? "fill-current text-[#5168ff]" : ""}`} />
             {saveLabel}
           </button>
           <button
             type="button"
             disabled={campaign.applied || isApplying}
             onClick={() => {
-              setIsMenuOpen(false);
+              onMenuToggle("");
               onApply(campaign);
             }}
             className="flex h-10 w-full items-center gap-3 rounded-md px-3 text-left text-sm font-black text-[#1d2430] hover:bg-[#f7f8fb] disabled:cursor-not-allowed disabled:opacity-60"

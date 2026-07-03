@@ -19,6 +19,7 @@ import type {
   CreatorProfileApi,
   CreatorRegisterPayload,
   CreatorRegisterResponse,
+  CreatorSavedCampaignsResponse,
   EmailAvailabilityResponse,
   LoginApiUser,
   LoginResponse,
@@ -311,6 +312,10 @@ export function getCreatorAppliedCampaigns() {
 
 export function saveCreatorCampaign(campaignId: string) {
   return apiPost<{ message: string; saved: boolean }>("/creator/saved-campaigns/", { campaign_id: campaignId }, true);
+}
+
+export function getCreatorSavedCampaigns() {
+  return apiRequest<CreatorSavedCampaignsResponse>("/creator/saved-campaigns/", {}, true);
 }
 
 export async function getBrandShortlists() {

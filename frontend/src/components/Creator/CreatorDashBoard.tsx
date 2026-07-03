@@ -139,7 +139,7 @@ function CampaignCard({
           }}
           className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-white disabled:opacity-70"
         >
-          <Bookmark className="h-5 w-5 text-[#6f7889]" />
+          <Bookmark className={`h-5 w-5 text-[#4635ff] ${campaign.saved ? "fill-current" : ""}`} />
         </button>
       </div>
       <div className="p-6">

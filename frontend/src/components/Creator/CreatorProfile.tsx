@@ -43,13 +43,6 @@ const platformMeta: Record<CreatorSocialPlatform, { label: string; color: string
   X: { label: "X", color: "bg-[#111827]", Icon: Twitter },
 };
 
-const profileSections = [
-  { id: "profile", label: "Profile data" },
-  { id: "content", label: "Content" },
-  { id: "social", label: "Social accounts" },
-  { id: "preview", label: "Public preview" },
-];
-
 function compactNumber(value?: number) {
   const safeValue = Number(value || 0);
   if (safeValue >= 1000000) return `${(safeValue / 1000000).toFixed(safeValue % 1000000 === 0 ? 0 : 1)}M`;
@@ -262,40 +255,6 @@ export function CreatorProfile() {
   return (
     <div className="min-h-screen bg-[#f4f7fb] p-3 text-[#25304a]">
       <div className="mx-auto grid max-w-[1280px] gap-4 xl:grid-cols-[210px_minmax(0,1fr)_390px]">
-        <aside className="xl:sticky xl:top-4 xl:h-fit">
-          <Card className="overflow-hidden">
-            <div className="border-b border-[#e3e9f2] px-4 py-4">
-              <p className="text-xs font-black uppercase tracking-wide text-[#63708a]">Creator profile</p>
-              <h1 className="mt-1 text-lg font-black text-[#172554]">{profile.display_name || "Creator"}</h1>
-            </div>
-            <nav className="grid p-2">
-              {profileSections.map((section) => (
-                <button
-                  key={section.id}
-                  type="button"
-                  onClick={() => setActiveSection(section.id)}
-                  className={`rounded-[6px] px-3 py-2 text-left text-sm font-black ${
-                    activeSection === section.id ? "bg-[#eaf0ff] text-[#173ca8]" : "text-[#63708a] hover:bg-[#f3f6fb]"
-                  }`}
-                >
-                  {section.label}
-                </button>
-              ))}
-            </nav>
-            <div className="border-t border-[#e3e9f2] p-3">
-              <button
-                type="button"
-                onClick={saveProfile}
-                disabled={isSaving}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[6px] bg-[#2447bd] px-4 text-sm font-black text-white disabled:opacity-60"
-              >
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                Update Profile
-              </button>
-            </div>
-          </Card>
-        </aside>
-
         <main className="grid gap-4">
           {error ? <div className="rounded-[6px] border border-[#f3b7b7] bg-[#fff5f5] px-4 py-3 text-sm font-semibold text-[#b42318]">{error}</div> : null}
           {message ? <div className="rounded-[6px] border border-[#b7ebca] bg-[#f0fff5] px-4 py-3 text-sm font-semibold text-[#067647]">{message}</div> : null}
