@@ -9,6 +9,7 @@ import type {
   CampaignApi,
   CampaignApplicationApi,
   CampaignPayload,
+  CampaignReviewResponse,
   CreatorAppliedCampaignsResponse,
   CreatorCampaignDetailApi,
   CreatorCampaignListParams,
@@ -268,8 +269,31 @@ export async function verifyOtp(channel: OtpChannel, target: string, code: strin
   return apiPost<OtpResponse>("/auth/otp/verify/", { channel, target, code });
 }
 
-export function createCampaign(payload: CampaignPayload) {
-  return apiPost<{ message: string }>("/brands/campaigns/", payload, true);
+function appendCampaignPayload(body: FormData, payload: CampaignPayload) {
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === "") return;
+    if (key === "platforms" && Array.isArray(value)) {
+      value.forEach((platform) => body.append("platforms", platform));
+      return;
+    }
+    if (key === "deliverable_pricing") {
+      body.append(key, JSON.stringify(value));
+      return;
+    }
+    body.append(key, String(value));
+  });
+}
+
+export function createCampaign(payload: CampaignPayload, brandGuidelines?: File | null, coverImage?: File | null) {
+  const body = new FormData();
+  appendCampaignPayload(body, payload);
+  if (brandGuidelines) body.append("brand_guidelines", brandGuidelines, brandGuidelines.name);
+  if (coverImage) body.append("cover_image", coverImage, coverImage.name);
+  return apiPostForm<{ message: string }>("/brands/campaigns/", body, true);
+}
+
+export function reviewCampaign(payload: CampaignPayload) {
+  return apiPost<CampaignReviewResponse>("/brands/campaigns/review/", payload, true);
 }
 
 

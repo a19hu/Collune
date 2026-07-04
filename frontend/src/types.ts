@@ -87,6 +87,14 @@ export type CampaignPayload = {
   status?: "DRAFT" | "ACTIVE" | "REVIEWING" | "PAUSED" | "COMPLETED";
 };
 
+export type CampaignReviewResponse = {
+  estimated_creator_matches: number;
+  suggested_creator_categories: Array<{
+    name: string;
+    matches: number;
+  }>;
+};
+
 export type CampaignApi = CampaignPayload & {
   campaign_id: string;
   brand: string;

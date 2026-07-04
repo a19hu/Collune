@@ -71,6 +71,7 @@ class CampaignSerializer(serializers.ModelSerializer):
     brand_detail = BrandProfileSerializer(source="brand", read_only=True)
     applications_count = serializers.IntegerField(source="applications.count", read_only=True)
     brand_guidelines_url = serializers.SerializerMethodField()
+    cover_image = serializers.SerializerMethodField()
     status_summary = serializers.SerializerMethodField()
 
     class Meta:
@@ -120,6 +121,12 @@ class CampaignSerializer(serializers.ModelSerializer):
         if not obj.brand_guidelines:
             return ""
         return request.build_absolute_uri(obj.brand_guidelines.url) if request else obj.brand_guidelines.url
+
+    def get_cover_image(self, obj):
+        request = self.context.get("request")
+        if not obj.cover_image:
+            return ""
+        return request.build_absolute_uri(obj.cover_image.url) if request else obj.cover_image.url
 
     def validate(self, attrs):
         attrs = super().validate(attrs)

@@ -1,10 +1,10 @@
-import { useState, type ChangeEvent } from "react";
-import { Eye, Instagram, Linkedin, Megaphone, Star, Youtube } from "lucide-react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { Boxes, Eye, Instagram, Megaphone, Radio, Star, Youtube } from "lucide-react";
 
 import { CampaignPanel, CampaignSection, SelectInput, TextArea, TextInput, UploadBox } from "./CampaignUi";
-import { deliverablePrices, platforms, reviewStats } from "./campaignData";
-import { createCampaign } from "../../../lib/authApi";
-import type { CampaignPayload } from "../../../types";
+import { deliverablePrices, platforms } from "./campaignData";
+import { createCampaign, reviewCampaign } from "../../../lib/authApi";
+import type { CampaignPayload, CampaignReviewResponse } from "../../../types";
 import { RegisterError } from "../../../HtmlComponents/RegisterFormParts";
 
 type CampaignFormState = Omit<CampaignPayload, "minimum_followers" | "deliverable_pricing" | "platforms"> & {
@@ -23,7 +23,7 @@ const initialForm: CampaignFormState = {
   creative_direction: "",
   tone_of_communication: "",
   content_references: "",
-  platforms: ["instagram"],
+  platforms: ["INSTAGRAM"],
   category: "",
   audience_type: "",
   location: "",
@@ -57,10 +57,10 @@ function PlatformSelector({
   onToggle: (platform: string) => void;
 }) {
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-4">
       {platforms.map((platform) => {
         const isSelected = selected.includes(platform.value);
-        const Icon = platform.value === "instagram" ? Instagram : platform.value === "youtube" ? Youtube : Linkedin;
+        const Icon = platform.value === "INSTAGRAM" ? Instagram : platform.value === "YOUTUBE" ? Youtube : platform.value === "X" ? Radio : Eye;
         return (
           <button
             key={platform.value}
@@ -109,7 +109,26 @@ function DeliverablePricing({
   );
 }
 
-function ReviewCard({ form }: { form: CampaignFormState }) {
+function buildCampaignPayload(form: CampaignFormState): CampaignPayload {
+  return {
+    ...form,
+    brief: form.objective,
+    minimum_followers: Number(form.minimum_followers || 0),
+    deadline: form.end_date || undefined,
+  };
+}
+
+function ReviewCard({
+  form,
+  review,
+  isLoadingReview,
+}: {
+  form: CampaignFormState;
+  review: CampaignReviewResponse | null;
+  isLoadingReview: boolean;
+}) {
+  const suggestedCategories = review?.suggested_creator_categories ?? [];
+
   return (
     <div className="grid gap-7 lg:grid-cols-[1fr_0.9fr]">
       <div>
@@ -132,23 +151,33 @@ function ReviewCard({ form }: { form: CampaignFormState }) {
       </div>
 
       <div className="grid gap-4">
-        {reviewStats.map((item) => {
-          const Icon = item.icon;
-          return (
-            <div key={item.title} className="rounded-xl bg-[#f6f7fb] p-5">
-              <div className="flex gap-4">
-                <span className={`grid h-10 w-10 place-items-center rounded-lg ${item.className}`}>
-                  <Icon className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-sm font-medium text-[#8a98ad]">{item.title}</p>
-                  <strong className="mt-1 block text-2xl font-black text-[#1d2430]">{item.value}</strong>
-                  <p className="mt-1 text-xs font-medium text-[#8a98ad]">{item.copy}</p>
-                </div>
-              </div>
+        <div className="rounded-xl bg-[#f6f7fb] p-5">
+          <div className="flex gap-4">
+            <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#f5f6fa] text-[#563bff]">
+              <Megaphone className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm font-medium text-[#8a98ad]">Estimated Creator Matches</p>
+              <strong className="mt-1 block text-2xl font-black text-[#1d2430]">
+                {isLoadingReview ? "Checking..." : review?.estimated_creator_matches ?? 0}
+              </strong>
+              <p className="mt-1 text-xs font-medium text-[#8a98ad]">Based on platform, category, location, language and minimum followers.</p>
             </div>
-          );
-        })}
+          </div>
+        </div>
+        <div className="rounded-xl bg-[#f6f7fb] p-5">
+          <div className="flex gap-4">
+            <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#ffc0c9] text-[#4b82ff]">
+              <Boxes className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm font-medium text-[#8a98ad]">Campaign Visibility</p>
+              <strong className="mt-1 block text-2xl font-black text-[#1d2430]">
+                Public</strong>
+              <p className="mt-1 text-xs font-medium text-[#8a98ad]">Visible to all eligible creators on selected platforms.</p>
+            </div>
+          </div>
+        </div>
 
         <div className="rounded-xl bg-[#f6f7fb] p-5">
           <div className="flex gap-4">
@@ -158,11 +187,16 @@ function ReviewCard({ form }: { form: CampaignFormState }) {
             <div>
               <p className="text-sm font-medium text-[#8a98ad]">Suggested Creator Categories</p>
               <div className="mt-4 flex flex-wrap gap-2">
-                {["Fashion", "Lifestyle", "Beauty", "Travel"].map((tag) => (
-                  <span key={tag} className="rounded-full bg-white px-3 py-1 text-xs font-black text-[#475166]">{tag}</span>
-                ))}
+                {suggestedCategories.length ? suggestedCategories.map((category) => (
+                  <span key={category.name} className="rounded-full bg-white px-3 py-1 text-xs font-black text-[#475166]">
+                    {category.name} ({category.matches})
+                  </span>
+                )) : (
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-[#475166]">
+                    No category matches yet
+                  </span>
+                )}
               </div>
-              <button className="mt-4 text-sm font-black text-[#4b22ff]">View more categories →</button>
             </div>
           </div>
         </div>
@@ -173,8 +207,13 @@ function ReviewCard({ form }: { form: CampaignFormState }) {
 
 export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
   const [form, setForm] = useState<CampaignFormState>(initialForm);
+  const [brandGuidelines, setBrandGuidelines] = useState<File | null>(null);
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [review, setReview] = useState<CampaignReviewResponse | null>(null);
+  const [isLoadingReview, setIsLoadingReview] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const reviewPayload = useMemo(() => buildCampaignPayload(form), [form]);
 
   const onFieldChange = (field: keyof CampaignFormState) => (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -199,16 +238,47 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
     }));
   };
 
+  const onBrandGuidelinesChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setError("");
+    const file = event.target.files?.[0] ?? null;
+    if (file && file.type !== "application/pdf") {
+      setBrandGuidelines(null);
+      setError("Brand guidelines must be a PDF file.");
+      event.target.value = "";
+      return;
+    }
+    setBrandGuidelines(file);
+  };
+
+  const onCoverImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setError("");
+    const file = event.target.files?.[0] ?? null;
+    if (file && !["image/png", "image/jpeg"].includes(file.type)) {
+      setCoverImage(null);
+      setError("Cover image must be a PNG or JPG file.");
+      event.target.value = "";
+      return;
+    }
+    setCoverImage(file);
+  };
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setIsLoadingReview(true);
+      reviewCampaign(reviewPayload)
+        .then(setReview)
+        .catch(() => setReview(null))
+        .finally(() => setIsLoadingReview(false));
+    }, 450);
+
+    return () => window.clearTimeout(timeout);
+  }, [reviewPayload]);
+
   const submitCampaign = async () => {
     setError("");
     setIsSubmitting(true);
     try {
-      await createCampaign({
-        ...form,
-        brief: form.objective,
-        minimum_followers: Number(form.minimum_followers || 0),
-        deadline: form.end_date || undefined,
-      });
+      await createCampaign(reviewPayload, brandGuidelines, coverImage);
       onCreated?.();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Could not publish campaign.");
@@ -239,7 +309,20 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
           <TextArea label="Brand Requirements" required placeholder="What are the must-haves for creators?" value={form.brand_requirements} onChange={onFieldChange("brand_requirements")} />
           <TextArea label="Creative Direction" required placeholder="Share your creative vision and expectations." value={form.creative_direction} onChange={onFieldChange("creative_direction")} />
           <TextArea label="Tone of Communication" required placeholder="How should creators communicate in content?" value={form.tone_of_communication} onChange={onFieldChange("tone_of_communication")} />
-          <UploadBox label="Brand Guidelines (Optional)" />
+          <UploadBox
+            label="Cover Image (PNG or JPG)"
+            accept="image/png,image/jpeg"
+            fileName={coverImage?.name}
+            helpText="Upload a campaign cover in PNG or JPG format."
+            onChange={onCoverImageChange}
+          />
+          <UploadBox
+            label="Brand Guidelines (PDF only)"
+            accept="application/pdf"
+            fileName={brandGuidelines?.name}
+            helpText="Only PDF files are accepted."
+            onChange={onBrandGuidelinesChange}
+          />
           <div className="grid gap-3 sm:grid-cols-2">
             <TextInput label="Start Date" required placeholder="Start date" type="date" value={form.start_date} onChange={onFieldChange("start_date")} />
             <TextInput label="End Date" required placeholder="End date" type="date" value={form.end_date} onChange={onFieldChange("end_date")} />
@@ -277,7 +360,7 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
       </CampaignSection>
 
       <CampaignSection index={6} title="Campaign Review" copy="Review your campaign details before publishing.">
-        <ReviewCard form={form} />
+        <ReviewCard form={form} review={review} isLoadingReview={isLoadingReview} />
       </CampaignSection>
 
       <CampaignSection index={7} title="Publish Campaign" copy="Once you publish, your campaign will be visible to creators and applications will start coming in.">

@@ -139,16 +139,30 @@ export function SelectInput({
   );
 }
 
-export function UploadBox({ label }: { label: string }) {
+export function UploadBox({
+  label,
+  accept,
+  fileName,
+  helpText,
+  onChange,
+}: {
+  label: string;
+  accept?: string;
+  fileName?: string;
+  helpText?: string;
+  onChange?: ChangeEventHandler<HTMLInputElement>;
+}) {
   return (
     <label className="block">
       <FieldLabel>{label}</FieldLabel>
       <span className="grid h-[132px] place-items-center rounded-lg border border-dashed border-[#b8c8de] text-center">
         <span className="text-sm font-semibold text-[#8a98ad]">
           <UploadCloud className="mx-auto mb-3 h-7 w-7 text-[#4b22ff]" />
-          Upload or drag & drop file
+          {fileName || "Upload or drag & drop file"}
+          {helpText ? <span className="mt-2 block text-xs font-medium text-[#9aa6b7]">{helpText}</span> : null}
         </span>
       </span>
+      <input type="file" accept={accept} onChange={onChange} className="sr-only" />
     </label>
   );
 }

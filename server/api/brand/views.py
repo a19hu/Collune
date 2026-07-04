@@ -20,6 +20,7 @@ from .serializers import (
 )
 from decimal import Decimal
 from datetime import datetime
+import json
 
 class Pagination(PageNumberPagination):
     page_size = 6
@@ -204,6 +205,30 @@ class CampaignsViewSet(APIView):
 
         data = request.data
 
+        guidelines = request.FILES.get("brand_guidelines")
+        if guidelines and guidelines.content_type != "application/pdf":
+            return Response(
+                {"error": "Brand guidelines must be a PDF file."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        cover_image = request.FILES.get("cover_image")
+        if cover_image and cover_image.content_type not in {"image/jpeg", "image/png"}:
+            return Response(
+                {"error": "Cover image must be a PNG or JPG file."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        deliverable_pricing = data.get("deliverable_pricing", {})
+        if isinstance(deliverable_pricing, str):
+            try:
+                deliverable_pricing = json.loads(deliverable_pricing) if deliverable_pricing else {}
+            except json.JSONDecodeError:
+                return Response(
+                    {"error": "Deliverable pricing must be valid JSON."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         try:
             Campaign.objects.create(
                 brand=brand,
@@ -215,7 +240,7 @@ class CampaignsViewSet(APIView):
                 brand_requirements=data.get("brand_requirements", ""),
                 creative_direction=data.get("creative_direction", ""),
                 tone_of_communication=data.get("tone_of_communication", ""),
-                brand_guidelines=request.FILES.get("brand_guidelines"),
+                brand_guidelines=guidelines,
                 content_references=data.get("content_references", ""),
                 platforms=data.getlist("platforms")
                     if hasattr(data, "getlist")
@@ -230,7 +255,7 @@ class CampaignsViewSet(APIView):
                 total_budget=Decimal(data.get("total_budget", 0)),
                 budget_range=data.get("budget_range", ""),
                 compensation_type=data.get("compensation_type", ""),
-                deliverable_pricing=data.get("deliverable_pricing", {}),
+                deliverable_pricing=deliverable_pricing,
                 start_date=datetime.strptime(
                     data["start_date"], "%Y-%m-%d"
                 ).date() if data.get("start_date") else None,
@@ -240,7 +265,7 @@ class CampaignsViewSet(APIView):
                 deadline=datetime.strptime(
                     data["deadline"], "%Y-%m-%d"
                 ).date() if data.get("deadline") else None,
-                cover_image=data.get("cover_image", ""),
+                cover_image=cover_image,
             )
 
         except ValueError as e:
@@ -255,6 +280,109 @@ class CampaignsViewSet(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+class CampaignReviewView(APIView):
+    permission_classes = [IsAuthenticated, IsBrand]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    @staticmethod
+    def _as_list(value):
+        if value is None:
+            return []
+        if isinstance(value, list):
+            return value
+        if hasattr(value, "getlist"):
+            return value.getlist("platforms")
+        return [value]
+
+    def post(self, request):
+        data = request.data
+        platforms = [str(platform).upper() for platform in self._as_list(data.get("platforms")) if platform]
+        category = str(data.get("category", "")).strip()
+        location = str(data.get("location", "")).strip()
+        language = str(data.get("language_preference", "")).strip()
+
+        try:
+            minimum_followers = int(data.get("minimum_followers") or 0)
+        except (TypeError, ValueError):
+            minimum_followers = 0
+
+        creators = CreatorProfile.objects.filter(
+            user__is_profile_visible=True,
+            user__verification_status=VerificationStatus.VERIFIED,
+        ).prefetch_related("social_accounts")
+
+        if category:
+            creators = creators.filter(category__icontains=category)
+        if location and location.lower() != "global":
+            creators = creators.filter(location__icontains=location)
+
+        matched_creator_ids = set()
+        category_counts = {}
+
+        for creator in creators:
+            if language and language not in creator.languages:
+                continue
+
+            accounts = list(creator.social_accounts.all())
+            if platforms:
+                accounts = [account for account in accounts if account.platform in platforms]
+            if minimum_followers:
+                accounts = [account for account in accounts if account.followers >= minimum_followers]
+            if not accounts:
+                continue
+
+            matched_creator_ids.add(str(creator.creator_id))
+            if creator.category:
+                category_counts[creator.category] = category_counts.get(creator.category, 0) + 1
+
+        suggested_categories = [
+            {"name": name, "matches": matches}
+            for name, matches in sorted(category_counts.items(), key=lambda item: item[1], reverse=True)[:4]
+        ]
+
+        if not suggested_categories:
+            fallback_categories = (
+                CreatorProfile.objects.filter(user__is_profile_visible=True, category__gt="")
+                .values("category")
+                .annotate(matches=Count("creator_id"))
+                .order_by("-matches")[:4]
+            )
+            suggested_categories = [
+                {"name": item["category"], "matches": item["matches"]}
+                for item in fallback_categories
+            ]
+
+        return Response({
+            "estimated_creator_matches": len(matched_creator_ids),
+            "suggested_creator_categories": suggested_categories,
+        })
+
+
+class BrandCampaignApplicationViewSet(APIView):
+    permission_classes =[IsAuthenticated,IsBrand]
+
+    def get(self,request,campaign_id):
+        campaign = Campaign.objects.get(campaign_id=campaign_id)
+
+        data = {
+
+        }
+
+
+        return Response()
+    
+    def patch(self,request,campaign_id):
+
+
+        return Response()
+    
+    def delete(self,request,campaign_id):
+        Campaign.objects.get(campaign_id=campaign_id).delete()
+
+
+        return Response({"message":""})
+
 
 class ShortlistViewSet(APIView):
     permission_classes = [IsAuthenticated, IsBrand]

@@ -38,6 +38,12 @@ FACEBOOK_GRAPH_URL = "https://graph.facebook.com/{version}"
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 YOUTUBE_CHANNELS_URL = "https://www.googleapis.com/youtube/v3/channels"
+
+
+def campaign_cover_image_url(request, campaign):
+    if not campaign.cover_image:
+        return ""
+    return request.build_absolute_uri(campaign.cover_image.url)
 X_AUTH_URL = "https://twitter.com/i/oauth2/authorize"
 X_TOKEN_URL = "https://api.twitter.com/2/oauth2/token"
 X_ME_URL = "https://api.twitter.com/2/users/me"
@@ -150,7 +156,7 @@ class CreatorDashboardView(APIView):
                 "id": str(campaign.campaign_id),
                 "title": campaign.title,
                 "objective": campaign.objective,
-                "cover_image": campaign.cover_image,
+                "cover_image": campaign_cover_image_url(self.request, campaign),
                 "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
                 "looking_for": campaign.category or campaign.brand_requirements,
                 "applied": CampaignApplication.objects.filter(campaign=campaign, creator=creator).exists(),
@@ -303,7 +309,7 @@ class CreatorCampaignsView(APIView):
             "start_date": campaign.start_date.isoformat() if campaign.start_date else None,
             "end_date": campaign.end_date.isoformat() if campaign.end_date else None,
             "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
-            "cover_image": campaign.cover_image,
+            "cover_image": campaign_cover_image_url(request, campaign),
             "posted_at": campaign.created_at.isoformat(),
             "brand_name": campaign.brand.company_name,
             "brand_type": campaign.brand.industry,
@@ -560,7 +566,7 @@ class CreatorSavedCampaignView(APIView):
                         "objective": campaign.objective,
                         "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
                         "posted_at": campaign.created_at.isoformat(),
-                        "cover_image": campaign.cover_image,
+                        "cover_image": campaign_cover_image_url(request, campaign),
                         "brand_id": str(brand.brand_id),
                         "brand_name": brand.company_name,
                         "brand_type": brand.industry,
@@ -686,7 +692,7 @@ class CreatorAppliedCampaignsView(APIView):
                         "objective": campaign.objective,
                         "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
                         "posted_at": campaign.created_at.isoformat(),
-                        "cover_image": campaign.cover_image,
+                        "cover_image": campaign_cover_image_url(request, campaign),
                         "brand_id": str(brand.brand_id),
                         "brand_name": brand.company_name,
                         "brand_type": brand.industry,

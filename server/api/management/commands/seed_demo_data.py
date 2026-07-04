@@ -154,7 +154,6 @@ class Command(BaseCommand):
                     "start_date": today + timedelta(days=index),
                     "end_date": today + timedelta(days=index + 21),
                     "deadline": today + timedelta(days=index + 10),
-                    "cover_image": f"https://picsum.photos/seed/collune-campaign-{index:02d}/900/520",
                     "created_at": timezone.now() - timedelta(days=10 - index),
                 },
             )

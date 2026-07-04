@@ -127,16 +127,18 @@ export function mapCampaignApiToCard(campaign: CampaignApi): CampaignCardItem {
 }
 
 export const platforms = [
-  { label: "Instagram", value: "instagram", color: "text-[#ff4d86]" },
-  { label: "YouTube", value: "youtube", color: "text-[#ff0000]" },
-  { label: "LinkedIn", value: "linkedin", color: "text-[#116bc1]" },
+  { label: "Instagram", value: "INSTAGRAM", color: "text-[#ff4d86]" },
+  { label: "X", value: "X", color: "text-[#111827]" },
+  { label: "YouTube", value: "YOUTUBE", color: "text-[#ff0000]" },
+  { label: "Facebook", value: "FACEBOOK", color: "text-[#116bc1]" },
 ];
 
 export const deliverablePrices = [
   "Instagram Post",
   "Instagram Reel",
   "YouTube Video",
-  "LinkedIn Post",
+  "X Post",
+  "Facebook Post",
   "Stories / Mentions",
 ];
 

@@ -174,7 +174,7 @@ class Campaign(models.Model):
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
     deadline = models.DateField(null=True, blank=True)
-    cover_image = models.URLField(blank=True, default="")
+    cover_image = models.ImageField(upload_to="campaigns/covers/", blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
