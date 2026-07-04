@@ -269,7 +269,7 @@ export async function verifyOtp(channel: OtpChannel, target: string, code: strin
 }
 
 export function createCampaign(payload: CampaignPayload) {
-  return apiPost<CampaignApi>("/campaigns/", payload, true);
+  return apiPost<{ message: string }>("/brands/campaigns/", payload, true);
 }
 
 

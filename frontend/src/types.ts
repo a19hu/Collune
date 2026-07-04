@@ -208,7 +208,7 @@ export type CampaignApplicationApi = {
 export type BrandCampaignListItemApi = {
   id: string;
   name: string;
-  status: CampaignApi["status"];
+  status: string;
   applications_received_count: number;
   recommended_creators_count: number;
   updated_at: string;

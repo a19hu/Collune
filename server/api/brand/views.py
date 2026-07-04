@@ -18,7 +18,8 @@ from .serializers import (
     BrandProfileSerializer, BrandRegisterSerializer, BrandShortlistSerializer, CampaignApplicationSerializer,
      CampaignSerializer,
 )
-
+from decimal import Decimal
+from datetime import datetime
 
 class Pagination(PageNumberPagination):
     page_size = 6
@@ -180,7 +181,7 @@ class CampaignsViewSet(APIView):
             {
                 "id": str(campaign.campaign_id),
                 "name": campaign.title,
-                "status": campaign.status,
+                "status": "Active",
                 "applications_received_count": campaign.applications_received_count,
                 "recommended_creators_count": campaign.recommended_creators_count,
                 "updated_at": campaign.updated_at.isoformat(),
@@ -192,11 +193,68 @@ class CampaignsViewSet(APIView):
             return paginator.get_paginated_response(data)
         return Response({"campaigns": data})
     
-    def post(self,request):
+    def post(self, request):
+        brand = getattr(request.user, "brand_profile", None)
 
+        if not brand:
+            return Response(
+                {"error": "No brand profile found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
+        data = request.data
 
-        return Response({"message":"sucessfully created"})
+        try:
+            Campaign.objects.create(
+                brand=brand,
+                title=data.get("title"),
+                internal_reference_name=data.get("internal_reference_name", ""),
+                brief=data.get("brief"),
+                objective=data.get("objective", ""),
+                deliverables=data.get("deliverables", ""),
+                brand_requirements=data.get("brand_requirements", ""),
+                creative_direction=data.get("creative_direction", ""),
+                tone_of_communication=data.get("tone_of_communication", ""),
+                brand_guidelines=request.FILES.get("brand_guidelines"),
+                content_references=data.get("content_references", ""),
+                platforms=data.getlist("platforms")
+                    if hasattr(data, "getlist")
+                    else data.get("platforms", []),
+                category=data.get("category", ""),
+                audience_type=data.get("audience_type", ""),
+                location=data.get("location", ""),
+                minimum_followers=int(data.get("minimum_followers", 0)),
+                language_preference=data.get("language_preference", ""),
+                content_style=data.get("content_style", ""),
+                additional_preferences=data.get("additional_preferences", ""),
+                total_budget=Decimal(data.get("total_budget", 0)),
+                budget_range=data.get("budget_range", ""),
+                compensation_type=data.get("compensation_type", ""),
+                deliverable_pricing=data.get("deliverable_pricing", {}),
+                start_date=datetime.strptime(
+                    data["start_date"], "%Y-%m-%d"
+                ).date() if data.get("start_date") else None,
+                end_date=datetime.strptime(
+                    data["end_date"], "%Y-%m-%d"
+                ).date() if data.get("end_date") else None,
+                deadline=datetime.strptime(
+                    data["deadline"], "%Y-%m-%d"
+                ).date() if data.get("deadline") else None,
+                cover_image=data.get("cover_image", ""),
+            )
+
+        except ValueError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {
+                "message": "Campaign created successfully.",
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 class ShortlistViewSet(APIView):
     permission_classes = [IsAuthenticated, IsBrand]

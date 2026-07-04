@@ -1,19 +1,17 @@
 import { useState,useMemo,ReactNode,useEffect } from "react";
-import { AlertCircle, ChevronRight, Plus } from "lucide-react";
+import { AlertCircle, ChevronRight } from "lucide-react";
 
-import type { CampaignCardItem } from "./Campaigns/campaignData";
 import { CampaignPanel } from "./Campaigns/CampaignUi";
 import { getBrandCampaigns } from "@/src/lib/authApi";
 import { BrandCard } from "@/src/HtmlComponents/BrandCard";
+import type { BrandCampaignListItemApi } from "@/src/types";
 
-type CampaignView = "list" | "create" | "detail";
-
-function sortCampaigns(items: CampaignCardItem[], sort: SortKey) {
+function sortCampaigns(items: BrandCampaignListItemApi[], sort: SortKey) {
   return [...items].sort((a, b) => {
-    if (sort === "applications") return b.applications - a.applications;
-    if (sort === "recommended") return b.recommended - a.recommended;
-    if (sort === "title") return a.title.localeCompare(b.title);
-    return a.updatedRank - b.updatedRank;
+    if (sort === "applications") return b.applications_received_count - a.applications_received_count;
+    if (sort === "recommended") return b.recommended_creators_count - a.recommended_creators_count;
+    if (sort === "title") return a.name.localeCompare(b.name);
+    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
   });
 }
 
@@ -32,7 +30,7 @@ const loadingCards = Array.from({ length: 5 }, (_, index) => index);
 export const BrandCampaigns = () => {
   const [sort, setSort] = useState<SortKey>("recent");
   const [page, setPage] = useState(1);
-  const [campaigns, setCampaigns] = useState<CampaignCardItem[]>([]);
+  const [campaigns, setCampaigns] = useState<BrandCampaignListItemApi[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const sortedCampaigns = useMemo(() => sortCampaigns(campaigns, sort), [campaigns, sort]);
@@ -81,8 +79,8 @@ export const BrandCampaigns = () => {
         {!isLoading && pageCampaigns.length === 0 ? (
           <FeedbackPanel title="No campaigns yet" copy="Create a campaign and it will appear here with applications and recommendations from the backend." />
         ) : null}
-        { campaigns.map((item,index) => (
-         <BrandCard  item={item} index={index} listvisible={true}/>
+        {pageCampaigns.map((item,index) => (
+         <BrandCard item={item} index={index} listvisible={true}/>
         ))}
       </div>
 
@@ -168,5 +166,3 @@ function LoadingCampaignCard({ index }: { key?: number; index: number }) {
     </CampaignPanel>
   );
 }
-
-

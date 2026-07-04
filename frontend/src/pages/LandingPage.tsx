@@ -4,13 +4,13 @@ import {
   BadgeCheck,
   Bookmark,
   Boxes,
+  Building2,
   Check,
   Clock3,
   FileText,
   Heart,
   Lock,
   MessageCircle,
-  Play,
   Search,
   Send,
   ShieldCheck,
@@ -19,6 +19,7 @@ import {
   Upload,
   UsersRound,
   UserRound,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -72,6 +73,7 @@ const LandingPage = () => {
   const [isLoadingCreators, setIsLoadingCreators] = useState(true);
   const [creatorError, setCreatorError] = useState("");
   const [selectedCreatorCategory, setSelectedCreatorCategory] = useState("All Creators");
+  const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
   const creatorCategories = useMemo(() => {
     const categories = creators.map((creator) => creator.category).filter(Boolean);
     return ["All Creators", ...Array.from(new Set(categories)).slice(0, 4)];
@@ -128,11 +130,8 @@ const LandingPage = () => {
             so outcomes speak louder than reach.
           </p>
           <div className="mt-9 flex flex-wrap justify-center gap-4">
-            <HeroButton onClick={() => navigate("/creator-register")} icon={<Play className="h-4 w-4 fill-current" />}>
-              Apply as a Creator
-            </HeroButton>
-            <HeroButton onClick={() => navigate("/brand-register")} icon={<FileText className="h-4 w-4" />} variant="light">
-              Apply as a Brand
+            <HeroButton onClick={() => setIsPartnerModalOpen(true)} icon={<UsersRound className="h-4 w-4" />}>
+              Join as a Partner
             </HeroButton>
           </div>
           <div className="mt-10 flex flex-wrap justify-center gap-x-4 gap-y-3 text-xs font-black text-[#8291c1]">
@@ -315,16 +314,19 @@ const LandingPage = () => {
         <p className="text-[15px] font-extrabold text-white/80">Join a growing network of verified creators and ambitious brands.</p>
         <div className="mt-10 flex flex-wrap justify-center gap-5">
           <HtmlButton
-            buttonName="Apply as a Creator"
-            onClick={() => navigate("/creator-register")}
-            />
-            <HtmlButton
-            buttonName="Apply as a Brand"
-            variant="light"
-            onClick={() => navigate("/brand-register")}
+            buttonName="Join as a Partner"
+            onClick={() => setIsPartnerModalOpen(true)}
             />
         </div>
       </section>
+      <PartnerJoinModal
+        isOpen={isPartnerModalOpen}
+        onClose={() => setIsPartnerModalOpen(false)}
+        onChoose={(path) => {
+          setIsPartnerModalOpen(false);
+          navigate(path);
+        }}
+      />
     </main>
   );
 };
@@ -405,6 +407,128 @@ function HeroButton({
   );
 }
 
+
+function PartnerJoinModal({
+  isOpen,
+  onClose,
+  onChoose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onChoose: (path: string) => void;
+}) {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-[#0b1745]/55 px-4 py-8 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="partner-modal-title"
+      onMouseDown={onClose}
+    >
+      <div
+        className="relative w-full max-w-[760px] overflow-hidden rounded-[22px] bg-white shadow-[0_30px_80px_rgba(11,23,69,0.24)]"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close partner selection"
+          className="absolute right-4 top-4 z-10 grid h-10 w-10 place-items-center rounded-full border border-[#dce5ff] bg-white text-[#617198] transition hover:bg-[#f3f6ff] hover:text-[#173fb5]"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        <div className="grid gap-0 md:grid-cols-[0.9fr_1.1fr]">
+          <div className="bg-[#173fb5] px-7 py-9 text-white md:px-8 md:py-10">
+            <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/18">
+              <Sparkles className="h-5 w-5" />
+            </span>
+            <h2 id="partner-modal-title" className="mt-5 text-[30px] font-black leading-none tracking-normal">
+              Choose your partner path
+            </h2>
+            <p className="mt-4 text-sm font-extrabold leading-snug text-white/78">
+              Tell us how you want to join Collune so we can take you to the right signup flow.
+            </p>
+            <div className="mt-8 grid gap-3 text-xs font-black text-white/78">
+              <span className="inline-flex items-center gap-2">
+                <BadgeCheck className="h-4 w-4 text-[#b9abff]" />
+                Verified profiles
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-[#b9abff]" />
+                Trusted collaborations
+              </span>
+            </div>
+          </div>
+
+          <div className="grid gap-4 p-5 pt-16 sm:p-7 sm:pt-16 md:p-8">
+            <PartnerChoiceCard
+              icon={<Building2 className="h-6 w-6" />}
+              title="Brand"
+              text="Launch campaigns, discover creators, and manage partnerships."
+              action="Continue as Brand"
+              onClick={() => onChoose("/brand-register")}
+            />
+            <PartnerChoiceCard
+              icon={<UserRound className="h-6 w-6" />}
+              title="Creator"
+              text="Build your profile, get discovered, and collaborate with brands."
+              action="Continue as Creator"
+              onClick={() => onChoose("/creator-register")}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PartnerChoiceCard({
+  icon,
+  title,
+  text,
+  action,
+  onClick,
+}: {
+  icon: ReactNode;
+  title: string;
+  text: string;
+  action: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group grid min-h-[138px] grid-cols-[56px_1fr_auto] items-center gap-4 rounded-[14px] border border-[#dce5ff] bg-[#f8faff] p-4 text-left transition hover:-translate-y-0.5 hover:border-[#9dadff] hover:bg-white hover:shadow-[0_18px_34px_rgba(72,91,162,0.14)]"
+    >
+      <span className="grid h-14 w-14 place-items-center rounded-[10px] bg-[#e4ebff] text-[#2448bd] transition group-hover:bg-[#2448bd] group-hover:text-white">
+        {icon}
+      </span>
+      <span className="min-w-0">
+        <strong className="block text-lg font-black leading-tight text-[#22345e]">{title}</strong>
+        <span className="mt-1 block text-[13px] font-extrabold leading-tight text-[#748098]">{text}</span>
+        <span className="mt-3 inline-flex items-center gap-2 text-[12px] font-black uppercase text-[#2448bd]">
+          {action}
+          <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+        </span>
+      </span>
+    </button>
+  );
+}
 
 function JourneyColumn({
   title,
