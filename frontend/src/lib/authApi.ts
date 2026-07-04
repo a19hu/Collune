@@ -378,13 +378,31 @@ export function removeSavedCampaign(campaignId: string) {
   return apiDelete<{ message: string; saved: boolean; removed: boolean }>("/creator/saved-campaigns/", { campaign_id: campaignId }, true);
 }
 
-export async function getBrandShortlists() {
-  const data = await apiRequest<BrandShortlistApi[] | PaginatedResponse<BrandShortlistApi>>(
-    "/brand-shortlists/",
+export async function getBrandShortlists(page = 1, pageSize = 10) {
+  const query = new URLSearchParams({
+    page: String(page),
+    page_size: String(pageSize),
+  });
+  const data = await apiRequest<BrandShortlistApi[] | PaginatedResponse<BrandShortlistApi> | { shortlists: BrandShortlistApi[]; total_pages?: number; count?: number }>(
+    `/brand-shortlists/?${query.toString()}`,
     {},
     true,
   );
-  return Array.isArray(data) ? data : data.results;
+  if (Array.isArray(data)) {
+    return { shortlists: data, total_pages: 1, count: data.length };
+  }
+  if ("results" in data) {
+    return {
+      shortlists: data.results,
+      total_pages: Math.max(1, Math.ceil(data.count / pageSize)),
+      count: data.count,
+    };
+  }
+  return {
+    shortlists: data.shortlists,
+    total_pages: Math.max(1, data.total_pages ?? 1),
+    count: data.count ?? data.shortlists.length,
+  };
 }
 
 export function createBrandShortlist(payload: BrandShortlistPayload) {

@@ -200,7 +200,7 @@ export const SideBarLayout = () => {
                   <Plus className="h-5 w-5" />
                   Create Campaign
                 </HeaderButton>
-                <HeaderButton onClick={() => navigate("/brand/shortlists")} variant="outline">
+                <HeaderButton onClick={() => navigate("/brand/shortlists/new_create")} variant="outline">
                   <Plus className="h-5 w-5" />
                   Build Shortlist
                 </HeaderButton>
@@ -233,6 +233,45 @@ export const SideBarLayout = () => {
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
+          />
+        ),
+      },
+      {
+        matches: () => pathname === "/brand/shortlists/new_create",
+        render: () => (
+          <DashboardTopBar
+            title="Create new shortlist"
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+          />
+        ),
+      },
+      {
+        matches: () => pathname.startsWith("/brand/shortlists/") && pathname.endsWith("/edit"),
+        render: () => (
+          <DashboardTopBar
+            title="Edit shortlist"
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+          />
+        ),
+      },
+      {
+        matches: () => pathname === "/brand/shortlists" || pathname.startsWith("/brand/shortlists/"),
+        render: () => (
+          <DashboardTopBar
+            title="Shortlists"
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+            actions={
+              <HeaderButton onClick={() => navigate("/brand/shortlists/new_create")} variant="solid">
+                <Plus className="h-5 w-5" />
+                Build Shortlist
+              </HeaderButton>
+            }
           />
         ),
       },

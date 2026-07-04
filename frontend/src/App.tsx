@@ -19,6 +19,7 @@ import { BrandShortlists } from './components/Brand/BrandShortlists.tsx';
 import LoadingPage from './components/layout/LoadingPage.tsx';
 import type { UserAccount } from './types.ts';
 import { CampaignCreateForm } from './components/Brand/Campaigns/CampaignCreateForm.tsx';
+import { ShortlistCreateForm } from './components/Brand/Shortlists/ShortlistCreateForm.tsx';
 import { DiscoverCreatorsPage } from './pages/DiscoverCreatorsPage.tsx';
 import { CampaignMarketplaceDetail } from './components/Creator/CampaignMarketplace/CampaignMarketplaceDetail.tsx';
 import { CampaignMarketplaceList } from './components/Creator/CampaignMarketplace/CampaignMarketplaceList.tsx';
@@ -77,6 +78,8 @@ const App: React.FC = () => {
                         <Route path="/brand/*" element={<SideBarLayout />}>
                             <Route index element={<BrandDashBoard />} />
                             <Route path="shortlists" element={<BrandShortlists />} />
+                            <Route path="shortlists/new_create" element={<ShortlistCreateForm />} />
+                            <Route path="shortlists/:shortlistId/edit" element={<ShortlistCreateForm />} />
                             <Route path="shortlists/:shortlistId" element={<BrandShortlists />} />
                             <Route path="campaigns" element={<BrandCampaigns />} />
                             <Route path="campaigns/new_create" element={<CampaignCreateForm />} />

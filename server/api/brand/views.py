@@ -40,6 +40,19 @@ class Pagination(PageNumberPagination):
         })
 
 
+class ShortlistPagination(Pagination):
+    def get_paginated_response(self, data):
+        return Response({
+            "count": self.page.paginator.count,
+            "next": self.get_next_link(),
+            "previous": self.get_previous_link(),
+            "page": self.page.number,
+            "total_pages": self.page.paginator.num_pages,
+            "page_size": self.get_page_size(self.request),
+            "shortlists": data,
+        })
+
+
 class BrandRegisterView(APIView):
     permission_classes = [AllowAny]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
@@ -578,7 +591,7 @@ class BrandCampaignApplicationViewSet(APIView):
 class ShortlistViewSet(APIView):
     permission_classes = [IsAuthenticated, IsBrand]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
-    pagination_class = Pagination
+    pagination_class = ShortlistPagination
 
     def get(self, request):
         brand = getattr(request.user, "brand_profile", None)
@@ -619,36 +632,21 @@ class ShortlistViewSet(APIView):
             )
 
         data = request.data
+        payload = data.copy() if hasattr(data, "copy") else dict(data)
 
-        try:
-            Campaign.objects.create(
-                brand=brand,
-                title=data.get("title"),
-                purpose=data.get("purpose", ""),
-                notes=data.get("notes", ""),
-                platforms=data.getlist("platforms")
-                    if hasattr(data, "getlist")
-                    else data.get("platforms", []),
-                categories=data.get("category", ""),
-                audience=data.get("audience_type", ""),
-                budget_range=data.get("budget_range", ""),
-                timeline=datetime.strptime(
-                    data["deadline"], "%Y-%m-%d"
-                ).date() if data.get("deadline") else None,
-            )
+        if "categories" not in payload and data.get("category"):
+            payload["categories"] = data.get("category")
+        if "audience" not in payload and data.get("audience_type"):
+            payload["audience"] = data.get("audience_type")
+        if "timeline" not in payload and data.get("deadline"):
+            payload["timeline"] = data.get("deadline")
+        if hasattr(data, "getlist") and "platforms" in data:
+            payload["platforms"] = data.getlist("platforms")
 
-        except ValueError as e:
-            return Response(
-                {"error": str(e)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        return Response(
-            {
-                "message": "shortlist created successfully.",
-            },
-            status=status.HTTP_201_CREATED,
-        )
+        serializer = BrandShortlistSerializer(data=payload, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save(brand=brand)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 class BrandProfileViewSet(viewsets.ModelViewSet):
     serializer_class = BrandProfileSerializer
@@ -731,6 +729,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
 class BrandShortlistViewSet(viewsets.ModelViewSet):
     serializer_class = BrandShortlistSerializer
     permission_classes = [IsAuthenticated, IsBrand]
+    pagination_class = ShortlistPagination
 
     def get_queryset(self):
         visible_creators = CreatorProfile.objects.select_related("user").filter(user__is_profile_visible=True)

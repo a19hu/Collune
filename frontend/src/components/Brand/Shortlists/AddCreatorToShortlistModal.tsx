@@ -46,8 +46,8 @@ export function AddCreatorToShortlistModal({
     setSelectedIds([]);
 
     getBrandShortlists()
-      .then((items) => {
-        if (mounted) setShortlists(items);
+      .then((response) => {
+        if (mounted) setShortlists(response.shortlists);
       })
       .catch((err) => {
         if (mounted) setError(err instanceof Error ? err.message : "Unable to load shortlists.");
