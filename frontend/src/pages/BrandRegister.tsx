@@ -14,7 +14,7 @@ import {
   User,
   Users,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { HtmlProgess } from "../HtmlComponents/HtmlProgress";
 import HtmlInput from "../HtmlComponents/HtmlInput";
@@ -141,7 +141,7 @@ function BrandRegisterSteps({
           />
           <label className="flex items-center gap-3 text-sm font-medium text-[#65758f]">
             <input type="checkbox" checked={form.acceptedTerms} onChange={onTermsChange} className="h-4 w-4 rounded border-[#9aa7ba]" required />
-            I agree to the <a className="text-[#4462ff]" href="#">Terms & Privacy Policy</a>
+            I agree to the <Link className="text-[#4462ff]" to="/brand-services-terms">Terms and Conditions</Link> &<Link className="text-[#4462ff]" to="/privacy-policy">Privacy Policy</Link>
           </label>
         </div>
       </>

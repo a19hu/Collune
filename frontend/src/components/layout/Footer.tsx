@@ -2,11 +2,11 @@ import { Link } from "react-router-dom";
 import { ColluneLogo } from "./Navbar";
 
 const footerLinks = [
-  { label: "About", href: "/#about" },
-  { label: "For Creators", href: "/featured-creators" },
-  { label: "For Brands", href: "/success-stories" },
-  { label: "Privacy", href: "#" },
-  { label: "Terms", href: "#" },
+  { label: "About Collune", href: "/about-collune" },
+  { label: "For Creators", href: "/creative-services-terms" },
+  { label: "For Brands", href: "/brand-services-terms" },
+  { label: "Privacy Policy", href: "/privacy-policy" },
+  { label: "Terms & Conditions", href: "/terms-conditions" },
 ];
 
 const Footer = () => {

@@ -3,6 +3,7 @@ import HtmlInput from "../HtmlComponents/HtmlInput";
 import { RegisterError, RegisterStepHeader, SelectablePill, VerificationBlock } from "../HtmlComponents/RegisterFormParts";
 import { CreatorRegisterForm, SocialAccountForm, VerificationState } from "../types";
 import type { ChangeEvent, ReactNode } from "react";
+import { Link } from "react-router-dom";
 
 
 const inputClass =
@@ -170,7 +171,8 @@ export const StepsCreatorRegister=({
           />
         </div>
         <p className="mt-6 text-center text-xs font-medium text-[#738098]">
-          By continuing, you agree to Collune's <a className="text-[#6f80ff]" href="#">Terms of Service</a> and <a className="text-[#6f80ff]" href="#">Privacy Policy</a>.
+          By continuing, you agree to Collune's <Link className="text-[#6f80ff]" to="/creative-services-terms"> Terms of Service</Link> and <Link className="text-[#6f80ff]" to="/privacy-policy">Privacy Policy</Link>.
+
         </p>
       </>
     );

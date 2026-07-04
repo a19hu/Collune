@@ -25,6 +25,11 @@ import { CampaignMarketplaceDetail } from './components/Creator/CampaignMarketpl
 import { CampaignMarketplaceList } from './components/Creator/CampaignMarketplace/CampaignMarketplaceList.tsx';
 import AppliedCampaigns from './components/Creator/AppliedCampaigns.tsx';
 import SavedCampaigns from './components/Creator/SavedCampaigns.tsx';
+import AboutCollune from './pages/AboutCollune.tsx';
+import PrivacyPolicy from './pages/PrivacyPolicy.tsx';
+import TermsConditions from './pages/TermsConditions.tsx';
+import BrandServicesTerms from './pages/BrandServicesTerms.tsx';
+import CreativeServicesTerms from './pages/CreativeServicesTerms.tsx';
 
 function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
     const { currentUser, isAuthLoading } = useAuth();
@@ -57,6 +62,11 @@ const App: React.FC = () => {
                 <Routes>
                     <Route element={<MainLayout />}>
                         <Route path='/' element={<LandingPage />} />
+                        <Route path="about-collune" element={<AboutCollune />} />
+                        <Route path="privacy-policy" element={<PrivacyPolicy />} />
+                        <Route path="terms-conditions" element={<TermsConditions />} />
+                        <Route path="brand-services-terms" element={<BrandServicesTerms />} />
+                        <Route path="creative-services-terms" element={<CreativeServicesTerms />} />
                         <Route path="discover-creators" element={<DiscoverCreatorsPage />} />
                         <Route path="creator_profile/:creatorId" element={<PublicCreatorProfile />} />
                         <Route path="creators/:creatorId" element={<PublicCreatorProfile />} />

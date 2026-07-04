@@ -33,7 +33,7 @@ const navItems = [
       { label: "FAQs", href: "/faqs" },
     ],
   },
-  { label: "About", href: "/#about" },
+  { label: "About", href: "/about-collune" },
 ];
 
 const Navbar = () => {
