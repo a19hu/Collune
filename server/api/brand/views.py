@@ -609,6 +609,46 @@ class ShortlistViewSet(APIView):
         if page is not None:
             return paginator.get_paginated_response(data)
         return Response({"shortlists": data})
+    def post(self, request):
+        brand = getattr(request.user, "brand_profile", None)
+
+        if not brand:
+            return Response(
+                {"error": "No brand profile found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        data = request.data
+
+        try:
+            Campaign.objects.create(
+                brand=brand,
+                title=data.get("title"),
+                purpose=data.get("purpose", ""),
+                notes=data.get("notes", ""),
+                platforms=data.getlist("platforms")
+                    if hasattr(data, "getlist")
+                    else data.get("platforms", []),
+                categories=data.get("category", ""),
+                audience=data.get("audience_type", ""),
+                budget_range=data.get("budget_range", ""),
+                timeline=datetime.strptime(
+                    data["deadline"], "%Y-%m-%d"
+                ).date() if data.get("deadline") else None,
+            )
+
+        except ValueError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {
+                "message": "shortlist created successfully.",
+            },
+            status=status.HTTP_201_CREATED,
+        )
     
 class BrandProfileViewSet(viewsets.ModelViewSet):
     serializer_class = BrandProfileSerializer

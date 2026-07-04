@@ -237,7 +237,7 @@ export const SideBarLayout = () => {
         ),
       },
       {
-        matches: () => pathname === "/brand/campaigns",
+        matches: () => pathname === "/brand/campaigns" || pathname.startsWith("/brand/campaigns/"),
         render: () => (
           <DashboardTopBar
             title="Campaigns"
