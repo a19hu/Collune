@@ -6,6 +6,7 @@ import type { SidebarMode } from "./SideBar";
 import { BadgeCheck, ChevronDown, Plus } from "lucide-react";
 import { HeaderButton } from "@/src/HtmlComponents/HtmlButton";
 import type { UserAccount } from "../../types";
+import { WebsiteTutorial } from "./WebsiteTutorial";
 
 function useDashboardState() {
   const location = useLocation();
@@ -88,11 +89,11 @@ function DashboardUserMenu({ currentUser, logout, profilePath }: DashboardUserMe
 
 function DashboardTopBar({ title, status, actions, currentUser, logout, profilePath }: DashboardTopBarProps) {
   return (
-    <header className="mb-10 flex min-h-[72px] flex-wrap items-center justify-between gap-5 border-b border-[#eef2fb] bg-white pb-6">
+    <header data-tour="topbar" className="mb-10 flex min-h-[72px] flex-wrap items-center justify-between gap-5 border-b border-[#eef2fb] bg-white pb-6">
       <h1 className="text-[22px] font-black tracking-normal text-[#173ca8]">
         {title}
       </h1>
-      <div className="flex flex-wrap items-center gap-5">
+      <div data-tour="topbar-actions" className="flex flex-wrap items-center gap-5">
         {actions}
         {status && currentUser.role == "Creator" ? <VerificationPill status={status} /> : null}
         {currentUser.role == "Creator" ? <DashboardUserMenu currentUser={currentUser} logout={logout} profilePath={profilePath} /> : null}
@@ -309,10 +310,13 @@ export const SideBarLayout = () => {
                 <TopComponentsBrand /> :
                 <TopComponentsCreator />
             }
-            <Outlet context={{ isVerified, mode }} />
+            <div data-tour="page-content">
+              <Outlet context={{ isVerified, mode }} />
+            </div>
           </div>
         </main>
       </div>
+      <WebsiteTutorial role={currentUser.role === "Brand" ? "Brand" : "Creator"} userEmail={currentUser.email} />
     </div>
   );
 };

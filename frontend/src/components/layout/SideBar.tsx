@@ -64,7 +64,7 @@ export function SideBar({ isVerified = false, mode = "creator" }: { isVerified?:
   }, [isBrandMenuOpen]);
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-[270px] flex-col border-r border-[#eef1f6] bg-[#f5f7ff] lg:flex">
+    <aside data-tour="sidebar" className="fixed inset-y-0 left-0 z-30 hidden w-[270px] flex-col border-r border-[#eef1f6] bg-[#f5f7ff] lg:flex">
       <div className="px-16 pb-6 pt-6">
     <Link to='/'>
         <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
@@ -73,7 +73,7 @@ export function SideBar({ isVerified = false, mode = "creator" }: { isVerified?:
       </div>
 
       {isBrand ? (
-        <div ref={brandMenuRef} className="relative px-4 pb-5">
+        <div ref={brandMenuRef} data-tour="brand-account-switcher" className="relative px-4 pb-5">
           <button
             type="button"
             onClick={() => setIsBrandMenuOpen((open) => !open)}
@@ -109,7 +109,7 @@ export function SideBar({ isVerified = false, mode = "creator" }: { isVerified?:
         </div>
       ) : null}
 
-      <nav className="grid gap-2 px-4">
+      <nav data-tour="sidebar-nav" className="grid gap-2 px-4">
         {navItems.map((item) => {
           const Icon = item.icon;
           const locked = !isVerified && item.lockedWhenUnverified;
@@ -149,7 +149,7 @@ export function SideBar({ isVerified = false, mode = "creator" }: { isVerified?:
         })}
       </nav>
 
-      <div className="mt-auto p-4">
+      <div data-tour="support-card" className="mt-auto p-4">
         <div className="rounded-xl bg-white p-4 shadow-sm">
           <div className="flex items-start gap-3">
             <CircleHelp className="mt-1 h-4 w-4 text-[#64738e]" />
