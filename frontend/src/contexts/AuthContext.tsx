@@ -7,7 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMe, loginWithEmail, signOutApi } from '../lib/authApi';
+import { loginWithEmail, signOutApi } from '../lib/authApi';
 import type { UserAccount } from '../types';
 import { authStorage } from './authStorage';
 
@@ -16,7 +16,6 @@ type AuthContextValue = {
   isAuthLoading: boolean;
   login: (email: string, password: string) => Promise<UserAccount>;
   logout: () => Promise<void>;
-  refreshSessionUser: () => Promise<UserAccount | null>;
   setSessionUser: (user: UserAccount | null) => void;
 };
 
@@ -41,15 +40,6 @@ const persistSession = (response: any) => {
 const clearSession = () => {
   authStorage.clear();
 };
-
-function toSessionUser(user: any): UserAccount {
-  return {
-    name: user.name || user.email || "",
-    email: user.email,
-    role: user.role,
-    verification_status: user.verification_status,
-  };
-}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -89,18 +79,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     []
   );
 
-  const refreshSessionUser = useCallback(async () => {
-    if (!authStorage.isAuthenticated()) return null;
-    const response = await getMe();
-    const nextUser = toSessionUser(response.user);
-    setCurrentUser(nextUser);
-    authStorage.setUser(nextUser);
-    if (nextUser.email) {
-      authStorage.setRememberedEmail(nextUser.email);
-    }
-    return nextUser;
-  }, []);
-
   const logout = useCallback(async () => {
     try {
       await signOutApi();
@@ -133,44 +111,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [navigate]);
 
-  useEffect(() => {
-    if (!currentUser) return;
-
-    void refreshSessionUser().catch(() => undefined);
-
-    const interval = window.setInterval(() => {
-      void refreshSessionUser().catch(() => undefined);
-    }, 15000);
-
-    const refreshOnFocus = () => {
-      void refreshSessionUser().catch(() => undefined);
-    };
-    const refreshOnVisibility = () => {
-      if (document.visibilityState === "visible") {
-        void refreshSessionUser().catch(() => undefined);
-      }
-    };
-
-    window.addEventListener("focus", refreshOnFocus);
-    document.addEventListener("visibilitychange", refreshOnVisibility);
-
-    return () => {
-      window.clearInterval(interval);
-      window.removeEventListener("focus", refreshOnFocus);
-      document.removeEventListener("visibilitychange", refreshOnVisibility);
-    };
-  }, [currentUser?.email, refreshSessionUser]);
-
   const value = useMemo(
     () => ({
       currentUser,
       isAuthLoading,
       login,
       logout,
-      refreshSessionUser,
       setSessionUser,
     }),
-    [currentUser, isAuthLoading, login, logout, refreshSessionUser, setSessionUser]
+    [currentUser, isAuthLoading, login, logout, setSessionUser]
   );
 
   return (
