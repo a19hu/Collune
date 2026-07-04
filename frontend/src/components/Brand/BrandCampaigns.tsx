@@ -1,9 +1,10 @@
 import { useState,useMemo,ReactNode,useEffect } from "react";
 import { AlertCircle, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { CampaignPanel } from "./Campaigns/CampaignUi";
-import { getBrandCampaigns } from "@/src/lib/authApi";
-import { BrandCard } from "@/src/HtmlComponents/BrandCard";
+import { deleteBrandCampaign, getBrandCampaigns } from "@/src/lib/authApi";
+import { BrandCard, type BrandCardItem } from "@/src/HtmlComponents/BrandCard";
 import type { BrandCampaignListItemApi } from "@/src/types";
 
 function sortCampaigns(items: BrandCampaignListItemApi[], sort: SortKey) {
@@ -28,22 +29,27 @@ const pageSize = 6;
 const loadingCards = Array.from({ length: 5 }, (_, index) => index);
 
 export const BrandCampaigns = () => {
+  const navigate = useNavigate();
   const [sort, setSort] = useState<SortKey>("recent");
   const [page, setPage] = useState(1);
   const [campaigns, setCampaigns] = useState<BrandCampaignListItemApi[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<BrandCardItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState("");
   const sortedCampaigns = useMemo(() => sortCampaigns(campaigns, sort), [campaigns, sort]);
   const pageCampaigns = sortedCampaigns;
 
     const loadCampaigns = async () => {
     setIsLoading(true);
+    setError("");
     try {
       const response = await getBrandCampaigns(page, pageSize);
       setCampaigns(response.campaigns);
       setTotalPages(Math.max(1, response.total_pages));
     } catch (err) {
-      console.log(err instanceof Error ? err.message : "Unable to load campaigns.");
+      setError(err instanceof Error ? err.message : "Unable to load campaigns.");
     } finally {
       setIsLoading(false);
     }
@@ -56,6 +62,21 @@ export const BrandCampaigns = () => {
   const onSortChange = (value: SortKey) => {
     setSort(value);
     setPage(1);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    setError("");
+    try {
+      await deleteBrandCampaign(deleteTarget.id);
+      setCampaigns((items) => items.filter((item) => item.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to delete campaign.");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -75,12 +96,19 @@ export const BrandCampaigns = () => {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
+        {error ? <p className="xl:col-span-3 rounded-lg bg-[#fff1f1] px-4 py-3 text-sm font-black text-[#d23b3b]">{error}</p> : null}
         {isLoading ? loadingCards.map((index) => <LoadingCampaignCard key={index} index={index} />) : null}
         {!isLoading && pageCampaigns.length === 0 ? (
           <FeedbackPanel title="No campaigns yet" copy="Create a campaign and it will appear here with applications and recommendations from the backend." />
         ) : null}
         {pageCampaigns.map((item,index) => (
-         <BrandCard item={item} index={index} listvisible={true}/>
+         <BrandCard
+          item={item}
+          index={index}
+          listvisible={true}
+          onEdit={(campaign) => navigate(`/brand/campaigns/${campaign.id}/edit`)}
+          onDelete={setDeleteTarget}
+         />
         ))}
       </div>
 
@@ -90,9 +118,51 @@ export const BrandCampaigns = () => {
         Campaigns help you attract the right creators and build meaningful collaborations.{" "}
         <button type="button" className="font-black text-[#2f16ff]">Learn how campaigns work</button>
       </p>
+      <DeleteCampaignModal
+        campaign={deleteTarget}
+        isDeleting={isDeleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };
+
+export function DeleteCampaignModal({
+  campaign,
+  isDeleting,
+  onCancel,
+  onConfirm,
+}: {
+  campaign: BrandCardItem | null;
+  isDeleting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  if (!campaign) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-[#0d1633]/45 px-4">
+      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-[0_24px_70px_rgba(13,22,51,0.22)]">
+        <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#fff1f1] text-[#d23b3b]">
+          <AlertCircle className="h-6 w-6" />
+        </span>
+        <h2 className="mt-5 text-center text-xl font-black text-[#1d2430]">Delete campaign?</h2>
+        <p className="mx-auto mt-3 max-w-sm text-center text-sm font-medium leading-relaxed text-[#63728a]">
+          This will permanently delete <strong>{campaign.name}</strong>. This action cannot be undone.
+        </p>
+        <div className="mt-6 flex justify-center gap-3">
+          <button type="button" onClick={onCancel} disabled={isDeleting} className="h-10 rounded-lg border border-[#dce4ef] px-5 text-sm font-black text-[#303948] disabled:opacity-60">
+            Cancel
+          </button>
+          <button type="button" onClick={onConfirm} disabled={isDeleting} className="h-10 rounded-lg bg-[#d23b3b] px-5 text-sm font-black text-white disabled:opacity-60">
+            {isDeleting ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Pagination({ page, totalPages, onPageChange }: { page: number; totalPages: number; onPageChange: (page: number) => void }) {
   const visiblePages = Array.from({ length: totalPages }, (_, index) => index + 1);

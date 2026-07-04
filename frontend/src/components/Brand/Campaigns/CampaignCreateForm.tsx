@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { Boxes, Eye, Instagram, Megaphone, Radio, Star, Youtube } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { CampaignPanel, CampaignSection, SelectInput, TextArea, TextInput, UploadBox } from "./CampaignUi";
 import { deliverablePrices, platforms } from "./campaignData";
-import { createCampaign, reviewCampaign } from "../../../lib/authApi";
-import type { CampaignPayload, CampaignReviewResponse } from "../../../types";
+import { createCampaign, getBrandCampaignDetail, reviewCampaign, updateBrandCampaign } from "../../../lib/authApi";
+import type { BrandCampaignDetailApi, CampaignPayload, CampaignReviewResponse } from "../../../types";
 import { RegisterError } from "../../../HtmlComponents/RegisterFormParts";
 
 type CampaignFormState = Omit<CampaignPayload, "minimum_followers" | "deliverable_pricing" | "platforms"> & {
@@ -48,6 +49,36 @@ const audienceTypes = ["Gen Z", "Millennials", "Working Professionals", "Parents
 const locations = ["India", "United States", "United Kingdom", "Global"];
 const languages = ["English", "Hindi", "Tamil", "Telugu", "Bengali"];
 const contentStyles = ["Educational", "Product Review", "Storytelling", "Tutorial", "UGC"];
+
+function mapCampaignDetailToForm(campaign: BrandCampaignDetailApi): CampaignFormState {
+  return {
+    title: campaign.title || "",
+    internal_reference_name: campaign.internal_reference_name || "",
+    brief: campaign.brief || "",
+    objective: campaign.objective || campaign.brief || "",
+    deliverables: campaign.deliverables || "",
+    brand_requirements: campaign.brand_requirements || "",
+    creative_direction: campaign.creative_direction || "",
+    tone_of_communication: campaign.tone_of_communication || "",
+    content_references: campaign.content_references || "",
+    platforms: campaign.platforms?.length ? campaign.platforms : ["INSTAGRAM"],
+    category: campaign.category || "",
+    audience_type: campaign.audience_type || "",
+    location: campaign.location || "",
+    minimum_followers: String(campaign.minimum_followers || ""),
+    language_preference: campaign.language_preference || "",
+    content_style: campaign.content_style || "",
+    additional_preferences: campaign.additional_preferences || "",
+    total_budget: String(campaign.total_budget || ""),
+    budget_range: campaign.budget_range || "",
+    compensation_type: campaign.compensation_type || "",
+    deliverable_pricing: campaign.deliverable_pricing || Object.fromEntries(deliverablePrices.map((item) => [item, ""])),
+    start_date: campaign.start_date || "",
+    end_date: campaign.end_date || "",
+    deadline: campaign.deadline || "",
+    status: "ACTIVE",
+  };
+}
 
 function PlatformSelector({
   selected,
@@ -206,6 +237,9 @@ function ReviewCard({
 }
 
 export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
+  const { campaignId } = useParams();
+  const navigate = useNavigate();
+  const isEditing = Boolean(campaignId);
   const [form, setForm] = useState<CampaignFormState>(initialForm);
   const [brandGuidelines, setBrandGuidelines] = useState<File | null>(null);
   const [coverImage, setCoverImage] = useState<File | null>(null);
@@ -213,7 +247,32 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
   const [isLoadingReview, setIsLoadingReview] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingCampaign, setIsLoadingCampaign] = useState(Boolean(campaignId));
   const reviewPayload = useMemo(() => buildCampaignPayload(form), [form]);
+
+  useEffect(() => {
+    if (!campaignId) return;
+    let mounted = true;
+    setIsLoadingCampaign(true);
+    setError("");
+
+    getBrandCampaignDetail(campaignId)
+      .then((campaign) => {
+        if (!mounted) return;
+        setForm(mapCampaignDetailToForm(campaign));
+      })
+      .catch((loadError) => {
+        if (!mounted) return;
+        setError(loadError instanceof Error ? loadError.message : "Unable to load campaign.");
+      })
+      .finally(() => {
+        if (mounted) setIsLoadingCampaign(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [campaignId]);
 
   const onFieldChange = (field: keyof CampaignFormState) => (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -278,8 +337,14 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
     setError("");
     setIsSubmitting(true);
     try {
-      await createCampaign(reviewPayload, brandGuidelines, coverImage);
-      onCreated?.();
+      if (campaignId) {
+        await updateBrandCampaign(campaignId, reviewPayload, brandGuidelines, coverImage);
+        navigate(`/brand/campaigns/${campaignId}`);
+      } else {
+        await createCampaign(reviewPayload, brandGuidelines, coverImage);
+        onCreated?.();
+        navigate("/brand/campaigns");
+      }
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Could not publish campaign.");
     } finally {
@@ -295,6 +360,9 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
         void submitCampaign();
       }}
     >
+      {isLoadingCampaign ? (
+        <CampaignPanel className="p-8 text-center text-sm font-black text-[#63728a]">Loading campaign...</CampaignPanel>
+      ) : null}
       <CampaignSection index={1} title="Campaign Title" copy="Give your campaign a clear name and internal reference.">
         <div className="grid gap-5 md:grid-cols-2">
           <TextInput label="Campaign Name" required placeholder="Enter campaign name" value={form.title} onChange={onFieldChange("title")} />
@@ -363,11 +431,11 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
         <ReviewCard form={form} review={review} isLoadingReview={isLoadingReview} />
       </CampaignSection>
 
-      <CampaignSection index={7} title="Publish Campaign" copy="Once you publish, your campaign will be visible to creators and applications will start coming in.">
+      <CampaignSection index={7} title={isEditing ? "Save Campaign" : "Publish Campaign"} copy={isEditing ? "Save your changes to update this campaign." : "Once you publish, your campaign will be visible to creators and applications will start coming in."}>
         <RegisterError message={error} className="mb-5" />
         <button type="submit" disabled={isSubmitting} className="inline-flex h-12 items-center gap-3 rounded-lg bg-[#4b22ff] px-10 text-sm font-black text-white shadow-[0_12px_20px_rgba(75,34,255,0.18)] disabled:cursor-not-allowed disabled:opacity-70">
           <Megaphone className="h-5 w-5" />
-          {isSubmitting ? "Publishing..." : "Publish Campaign"}
+          {isSubmitting ? (isEditing ? "Saving..." : "Publishing...") : (isEditing ? "Save Campaign" : "Publish Campaign")}
         </button>
         <p className="mt-4 flex items-center gap-2 text-sm font-medium text-[#7e8da5]">
           <Eye className="h-4 w-4" />

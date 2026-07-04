@@ -230,6 +230,28 @@ export type BrandCampaignListResponse = {
   page_size: number;
   campaigns: BrandCampaignListItemApi[];
 };
+
+export type BrandCampaignDetailApi = CampaignPayload & {
+  campaign_id: string;
+  id: string;
+  name: string;
+  status: string;
+  brand_guidelines?: string;
+  brand_guidelines_url?: string;
+  cover_image: string;
+  applications_received_count: number;
+  recommended_creators_count: number;
+  applications: CampaignApplicationApi[];
+  recommended_creators: Array<{
+    creator_id: string;
+    name: string;
+    username: string;
+    email: string;
+    profile_picture: string;
+  }>;
+  created_at: string;
+  updated_at: string;
+};
 export type BrandShortlistStatusApi = "DRAFT" | "SUBMITTED" ;
 export type BrandShortlistPayload = {
   title: string;
@@ -457,7 +479,7 @@ export type BrandDashboardApi = {
   no_of_submitted_shortlists?: number;
   no_of_active_shortlists: number;
   collaborations_active?: number;
-  active_campaigns: Array<CampaignApi | { id: string; name: string; status: string }>;
+  active_campaigns: BrandCampaignListItemApi[];
   active_shortlists?: Array<BrandShortlistApi | { id: string; name: string; status: string }>;
   submitted_shortlists?: BrandShortlistApi[];
 };

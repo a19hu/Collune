@@ -8,6 +8,7 @@ from .brand.views import (
     BrandProfileViewSet,
     BrandRegisterView,
     BrandShortlistViewSet,
+    BrandCampaignApplicationViewSet,
     CampaignReviewView,
     CampaignsViewSet,
     CampaignViewSet,
@@ -70,6 +71,7 @@ urlpatterns = [
 
     path("brands/campaigns/", CampaignsViewSet.as_view(), name="brand_campaigns"),
     path("brands/campaigns/review/", CampaignReviewView.as_view(), name="brand_campaign_review"),
+    path("brands/campaigns/<uuid:campaign_id>/", BrandCampaignApplicationViewSet.as_view(), name="brand_campaign_detail"),
     path("creators/list/", CreatorListViewSet.as_view(), name="creators_list"),
     path("creator/<uuid:creator_id>/", CreatorListViewSet.as_view(), name="creator_detail"),
 

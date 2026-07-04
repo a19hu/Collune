@@ -1,5 +1,6 @@
 import type {
   BrandCampaignListResponse,
+  BrandCampaignDetailApi,
   BrandDashboardApi,
   BrandProfileApi,
   BrandRegisterPayload,
@@ -318,6 +319,22 @@ export function getBrandCampaigns(page = 1, pageSize = 10) {
     page_size: String(pageSize),
   });
   return apiRequest<BrandCampaignListResponse>(`/brands/campaigns/?${query.toString()}`, {}, true);
+}
+
+export function getBrandCampaignDetail(campaignId: string) {
+  return apiRequest<BrandCampaignDetailApi>(`/brands/campaigns/${campaignId}/`, {}, true);
+}
+
+export function updateBrandCampaign(campaignId: string, payload: CampaignPayload, brandGuidelines?: File | null, coverImage?: File | null) {
+  const body = new FormData();
+  appendCampaignPayload(body, payload);
+  if (brandGuidelines) body.append("brand_guidelines", brandGuidelines, brandGuidelines.name);
+  if (coverImage) body.append("cover_image", coverImage, coverImage.name);
+  return apiPatchForm<{ message: string }>(`/brands/campaigns/${campaignId}/`, body, true);
+}
+
+export function deleteBrandCampaign(campaignId: string) {
+  return apiDelete<{ message: string }>(`/brands/campaigns/${campaignId}/`, {}, true);
 }
 
 export function getCampaign(campaignId: string) {

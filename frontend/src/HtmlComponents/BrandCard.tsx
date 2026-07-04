@@ -1,7 +1,7 @@
 import { ArrowRight, MoreVertical, Star, Users } from "lucide-react";
-import { ReactNode } from "react"
+import { ReactNode, useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom";
-type itemapi = {
+export type BrandCardItem = {
     id: string;
     name: string;
     status: string;
@@ -35,9 +35,34 @@ export function formatUpdatedAt(value: string) {
 }
 
 
-export const BrandCard = ({ item, index, shortlist = false, listvisible = false }: { item: itemapi, index: number, shortlist?: boolean, listvisible?: boolean }) => {
+export const BrandCard = ({
+    item,
+    index,
+    shortlist = false,
+    listvisible = false,
+    onEdit,
+    onDelete,
+}: {
+    item: BrandCardItem,
+    index: number,
+    shortlist?: boolean,
+    listvisible?: boolean,
+    onEdit?: (item: BrandCardItem) => void,
+    onDelete?: (item: BrandCardItem) => void,
+}) => {
 
     const navigate = useNavigate();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (!isMenuOpen) return;
+        const closeMenu = (event: MouseEvent) => {
+            if (!menuRef.current?.contains(event.target as Node)) setIsMenuOpen(false);
+        };
+        window.addEventListener("click", closeMenu);
+        return () => window.removeEventListener("click", closeMenu);
+    }, [isMenuOpen]);
 
     return (
         <>
@@ -46,11 +71,45 @@ export const BrandCard = ({ item, index, shortlist = false, listvisible = false 
                     <span className={`grid h-12 w-12 place-items-center rounded-full ${campaignIconStyles[index % campaignIconStyles.length]}`}>
                         {/* <Icon className="h-6 w-6" /> */}
                     </span>
-                    <button type="button"
-                        // onClick={onOpen}
-                        className="text-[#657084]" aria-label={`${item.name} options`}>
-                        <MoreVertical className="h-5 w-5" />
-                    </button>
+                    {!shortlist ? (
+                        <div ref={menuRef} className="relative">
+                            <button
+                                type="button"
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    setIsMenuOpen((open) => !open);
+                                }}
+                                className="grid h-9 w-9 place-items-center rounded-lg text-[#657084] hover:bg-[#f3f6fa]"
+                                aria-label={`${item.name} options`}
+                            >
+                                <MoreVertical className="h-5 w-5" />
+                            </button>
+                            {isMenuOpen ? (
+                                <div className="absolute right-0 top-10 z-20 w-36 overflow-hidden rounded-lg border border-[#dfe5ee] bg-white py-1 text-sm font-black text-[#303948] shadow-[0_18px_36px_rgba(32,42,70,0.14)]">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsMenuOpen(false);
+                                            onEdit?.(item);
+                                        }}
+                                        className="block w-full px-4 py-2 text-left hover:bg-[#f5f7fb]"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsMenuOpen(false);
+                                            onDelete?.(item);
+                                        }}
+                                        className="block w-full px-4 py-2 text-left text-[#d23b3b] hover:bg-[#fff1f1]"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            ) : null}
+                        </div>
+                    ) : null}
                 </div>
 
                 <h3 className="mt-7 min-h-[58px] text-[21px] font-black leading-snug text-black">{item.name}</h3>

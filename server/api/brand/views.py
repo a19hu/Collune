@@ -361,6 +361,7 @@ class CampaignReviewView(APIView):
 
 class BrandCampaignApplicationViewSet(APIView):
     permission_classes = [IsAuthenticated, IsBrand]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_campaign(self, request, campaign_id):
         brand = getattr(request.user, "brand_profile", None)
@@ -397,9 +398,19 @@ class BrandCampaignApplicationViewSet(APIView):
                     .first()
                 )
 
+        if not campaign:
+            return Response({"error": "Campaign not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        def file_url(file):
+            if not file:
+                return ""
+            return request.build_absolute_uri(file.url)
 
         data = {
             "campaign_id": str(campaign.campaign_id),
+            "id": str(campaign.campaign_id),
+            "name": campaign.title,
+            "status": "Active",
             "title": campaign.title,
             "internal_reference_name": campaign.internal_reference_name,
             "brief": campaign.brief,
@@ -408,7 +419,8 @@ class BrandCampaignApplicationViewSet(APIView):
             "brand_requirements": campaign.brand_requirements,
             "creative_direction": campaign.creative_direction,
             "tone_of_communication": campaign.tone_of_communication,
-            "brand_guidelines": campaign.brand_guidelines.url if campaign.brand_guidelines else None,
+            "brand_guidelines": file_url(campaign.brand_guidelines),
+            "brand_guidelines_url": file_url(campaign.brand_guidelines),
             "content_references": campaign.content_references,
             "platforms": campaign.platforms,
             "category": campaign.category,
@@ -422,21 +434,53 @@ class BrandCampaignApplicationViewSet(APIView):
             "budget_range": campaign.budget_range,
             "compensation_type": campaign.compensation_type,
             "deliverable_pricing": campaign.deliverable_pricing,
-            "start_date": campaign.start_date,
-            "end_date": campaign.end_date,
-            "deadline": campaign.deadline,
-            "cover_image": campaign.cover_image,
-            "created_at": campaign.created_at,
-            "updated_at": campaign.updated_at,
+            "start_date": campaign.start_date.isoformat() if campaign.start_date else None,
+            "end_date": campaign.end_date.isoformat() if campaign.end_date else None,
+            "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
+            "cover_image": file_url(campaign.cover_image),
+            "created_at": campaign.created_at.isoformat(),
+            "updated_at": campaign.updated_at.isoformat(),
             "applications_received_count": campaign.applications_received_count,
             "recommended_creators_count": campaign.recommended_creators_count,
+            "applications": [
+                {
+                    "application_id": str(app.application_id),
+                    "campaign": str(campaign.campaign_id),
+                    "creator": str(app.creator.creator_id),
+                    "status": app.status,
+                    "created_at": app.created_at.isoformat(),
+                    "updated_at": app.updated_at.isoformat(),
+                    "creator_detail": {
+                        "creator_id": str(app.creator.creator_id),
+                        "display_name": app.creator.display_name,
+                        "category": app.creator.category,
+                        "location": app.creator.location,
+                        "profile_image_url": file_url(app.creator.profile_image),
+                        "user": {
+                            "name": app.creator.user.name,
+                            "username": app.creator.user.username,
+                            "email": app.creator.user.email,
+                        },
+                        "social_accounts": [
+                            {
+                                "platform": account.platform,
+                                "followers": account.followers,
+                                "engagement_rate": account.engagement_rate,
+                                "is_connected": account.is_connected,
+                            }
+                            for account in app.creator.social_accounts.all()
+                        ],
+                    },
+                }
+                for app in campaign.applications.all()
+            ],
             "recommended_creators": [
                 {
                 "creator_id": str(app.creator.creator_id),
-                "name": app.creator.user.get_full_name(),
+                "name": app.creator.display_name,
                 "username": app.creator.user.username,
                 "email": app.creator.user.email,
-                "profile_picture": app.creator.profile_picture,
+                "profile_picture": file_url(app.creator.profile_image),
                 }
                 for app in campaign.applications.all()
                 if app.status == ApplicationStatus.ACCEPTED
@@ -449,6 +493,30 @@ class BrandCampaignApplicationViewSet(APIView):
         campaign = self.get_campaign(request, campaign_id)
 
         data = request.data
+
+        cover_image = request.FILES.get("cover_image")
+        if cover_image and cover_image.content_type not in {"image/jpeg", "image/png"}:
+            return Response(
+                {"error": "Cover image must be a PNG or JPG file."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        guidelines = request.FILES.get("brand_guidelines")
+        if guidelines and guidelines.content_type != "application/pdf":
+            return Response(
+                {"error": "Brand guidelines must be a PDF file."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        deliverable_pricing = data.get("deliverable_pricing")
+        if isinstance(deliverable_pricing, str):
+            try:
+                deliverable_pricing = json.loads(deliverable_pricing) if deliverable_pricing else {}
+            except json.JSONDecodeError:
+                return Response(
+                    {"error": "Deliverable pricing must be valid JSON."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         for field in [
             "title",
@@ -471,17 +539,25 @@ class BrandCampaignApplicationViewSet(APIView):
             "total_budget",
             "budget_range",
             "compensation_type",
-            "deliverable_pricing",
             "start_date",
             "end_date",
             "deadline",
-            "cover_image",
         ]:
             if field in data:
                 setattr(campaign, field, data[field])
 
-        if "brand_guidelines" in request.FILES:
-            campaign.brand_guidelines = request.FILES["brand_guidelines"]
+        if hasattr(data, "getlist") and "platforms" in data:
+            campaign.platforms = data.getlist("platforms")
+        elif "platforms" in data:
+            campaign.platforms = data.get("platforms") or []
+
+        if deliverable_pricing is not None:
+            campaign.deliverable_pricing = deliverable_pricing
+
+        if guidelines:
+            campaign.brand_guidelines = guidelines
+        if cover_image:
+            campaign.cover_image = cover_image
 
         campaign.save()
 

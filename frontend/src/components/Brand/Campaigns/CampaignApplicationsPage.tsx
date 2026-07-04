@@ -6,10 +6,9 @@ import creatorOne from "../../../assets/collune/creator-1.png";
 import creatorTwo from "../../../assets/collune/creator-2.png";
 import creatorThree from "../../../assets/collune/creator-3.png";
 import {
-  getCampaign,
-  getCampaignApplications,
+  getBrandCampaignDetail,
 } from "../../../lib/authApi";
-import type { CampaignApi, CampaignApplicationApi, CreatorProfileApi } from "../../../types";
+import type { BrandCampaignDetailApi, CampaignApplicationApi, CreatorProfileApi } from "../../../types";
 import { AddCreatorToShortlistModal } from "../Shortlists/AddCreatorToShortlistModal";
 import { CampaignPanel } from "./CampaignUi";
 
@@ -164,7 +163,7 @@ function FeedbackPanel({ title, copy }: { title: string; copy: string }) {
 export function CampaignApplicationsPage() {
   const { campaignId } = useParams();
   const navigate = useNavigate();
-  const [campaign, setCampaign] = useState<CampaignApi | null>(null);
+  const [campaign, setCampaign] = useState<BrandCampaignDetailApi | null>(null);
   const [applications, setApplications] = useState<CampaignApplicationApi[]>([]);
   const [selectedCreator, setSelectedCreator] = useState<CreatorProfileApi | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -175,14 +174,17 @@ export function CampaignApplicationsPage() {
     setIsLoading(true);
     setError("");
 
-    Promise.all([
-      campaignId ? getCampaign(campaignId) : Promise.resolve(null),
-      getCampaignApplications(),
-    ])
-      .then(([campaignData, applicationData]) => {
+    if (!campaignId) {
+      setError("Campaign id is missing.");
+      setIsLoading(false);
+      return;
+    }
+
+    getBrandCampaignDetail(campaignId)
+      .then((campaignData) => {
         if (!mounted) return;
         setCampaign(campaignData);
-        setApplications(applicationData);
+        setApplications(campaignData.applications || []);
       })
       .catch((err) => {
         if (!mounted) return;
@@ -198,8 +200,8 @@ export function CampaignApplicationsPage() {
   }, [campaignId]);
 
   const campaignApplications = useMemo(
-    () => applications.filter((application) => application.campaign === campaignId),
-    [applications, campaignId],
+    () => applications,
+    [applications],
   );
 
   return (
@@ -227,6 +229,26 @@ export function CampaignApplicationsPage() {
         </div>
       </header>
 
+      {campaign ? (
+        <CampaignPanel className="grid gap-5 p-6 lg:grid-cols-[1.1fr_0.9fr]">
+          <div>
+            <h2 className="text-xl font-black text-[#1d2430]">Campaign Details</h2>
+            <p className="mt-3 text-sm font-medium leading-relaxed text-[#63728a]">{campaign.objective || campaign.brief || "No objective added."}</p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {(campaign.platforms || []).map((platform) => (
+                <span key={platform} className="rounded-lg bg-[#eef2ff] px-3 py-1.5 text-xs font-black text-[#173ca8]">{normalizePlatform(platform)}</span>
+              ))}
+            </div>
+          </div>
+          <div className="grid gap-3 text-sm">
+            <DetailStat label="Budget" value={campaign.budget_range || campaign.total_budget || "Not set"} />
+            <DetailStat label="Category" value={campaign.category || "Not set"} />
+            <DetailStat label="Applications" value={String(campaign.applications_received_count || 0)} />
+            <DetailStat label="Recommended" value={String(campaign.recommended_creators_count || 0)} />
+          </div>
+        </CampaignPanel>
+      ) : null}
+
       {error ? (
         <FeedbackPanel title="Unable to load applications" copy={error} />
       ) : isLoading ? (
@@ -253,6 +275,15 @@ export function CampaignApplicationsPage() {
           onClose={() => setSelectedCreator(null)}
         />
       ) : null}
+    </div>
+  );
+}
+
+function DetailStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between rounded-lg bg-[#f6f7fa] px-4 py-3">
+      <span className="font-semibold text-[#7d8aa0]">{label}</span>
+      <strong className="text-right font-black text-[#1d2430]">{value}</strong>
     </div>
   );
 }

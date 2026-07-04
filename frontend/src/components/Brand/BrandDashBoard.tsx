@@ -11,9 +11,10 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { getBrandDashboard } from "../../lib/authApi";
+import { deleteBrandCampaign, getBrandDashboard } from "../../lib/authApi";
 import type { BrandDashboardApi, BrandProfileApi } from "../../types";
-import { BrandCard, Panel, StatusPill } from "@/src/HtmlComponents/BrandCard";
+import { BrandCard, Panel, StatusPill, type BrandCardItem } from "@/src/HtmlComponents/BrandCard";
+import { DeleteCampaignModal } from "./BrandCampaigns";
 
 type Metric = {
   label: string;
@@ -25,6 +26,8 @@ type Metric = {
 const BrandDashBoard = () => {
   const navigate = useNavigate();
   const [brand, setBrand] = useState<BrandDashboardApi | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<BrandCardItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -54,6 +57,24 @@ const BrandDashBoard = () => {
     { label: "Shortlists Submitted", value: brand?.no_of_active_shortlists || 0, link: "/brand/shortlists", icon: Star },
     { label: "Collaborations Active", value: brand?.collaborations_active || 0, link: "/brand/shortlists", icon: Users },
   ];
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await deleteBrandCampaign(deleteTarget.id);
+      setBrand((current) => current ? {
+        ...current,
+        no_of_active_campaigns: Math.max(0, current.no_of_active_campaigns - 1),
+        active_campaigns: current.active_campaigns.filter((campaign) => campaign.id !== deleteTarget.id),
+      } : current);
+      setDeleteTarget(null);
+    } catch (error) {
+      console.error("Failed to delete campaign", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
 <>
@@ -86,7 +107,12 @@ const BrandDashBoard = () => {
             </>
             :
             brand?.active_campaigns?.map((campaign, index) => (
-                <BrandCard item={campaign} index={index} />
+                <BrandCard
+                  item={campaign}
+                  index={index}
+                  onEdit={(item) => navigate(`/brand/campaigns/${item.id}/edit`)}
+                  onDelete={setDeleteTarget}
+                />
             ))}
         </div>
       </section>
@@ -111,6 +137,12 @@ const BrandDashBoard = () => {
             ))}
         </div>
       </section>
+      <DeleteCampaignModal
+        campaign={deleteTarget}
+        isDeleting={isDeleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+      />
     </>
   );
 };
