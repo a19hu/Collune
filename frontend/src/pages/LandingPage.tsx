@@ -104,18 +104,18 @@ const LandingPage = () => {
   return (
     <main id="top" className="min-h-screen overflow-hidden bg-[#f3f6ff] font-sans text-[#17327c]">
       <section className="relative grid min-h-[calc(100vh-1px)] place-items-center px-5 pb-20 pt-28">
-        <div className="absolute left-[max(120px,calc(50%-565px))] top-[150px] hidden h-[560px] w-[178px] rounded-l-[170px] border-l-[3px] border-dashed border-[#b9a8ff] opacity-80 lg:block" />
-        <div className="absolute right-[max(120px,calc(50%-565px))] top-[278px] hidden h-[560px] w-[178px] rounded-r-[170px] border-r-[3px] border-dashed border-[#b9a8ff] opacity-80 lg:block" />
+        <div className="absolute left-[max(120px,calc(50%-565px))] top-[280px] hidden h-[500px] w-[178px] rounded-l-[170px] border-l-[3px] border-dashed border-[#b9a8ff] opacity-80 lg:block" />
+        <div className="absolute right-[max(120px,calc(50%-565px))] top-[278px] hidden h-[450px] w-[178px] rounded-r-[170px] border-r-[3px] border-dashed border-[#b9a8ff] opacity-80 lg:block" />
 
         <FloatingPhoto image={heroCreator1} className="left-[max(78px,calc(50%-592px))] top-[200px] h-[126px] w-[136px] rotate-[6deg] [&>span]:-bottom-4 [&>span]:-right-5" icon={<Check className="h-6 w-6" />} />
-        <FloatingPhoto image={heroCreator2} className="right-[max(94px,calc(50%-585px))] top-[34px] h-[130px] w-[124px] -rotate-[7deg] [&>span]:bottom-4 [&>span]:-left-7" icon={<Star className="h-5 w-5" />} />
-        <FloatingPhoto image={heroCreator3} className="left-[max(94px,calc(50%-575px))] top-[555px] h-[128px] w-[134px] -rotate-[7deg] [&>span]:-bottom-5 [&>span]:-left-4 [&>span]:bg-[#a893ff]" icon={<Boxes className="h-5 w-5" />} />
-        <FloatingPhoto image={heroCreator4} className="right-[max(110px,calc(50%-570px))] top-[532px] h-[138px] w-[146px] rotate-[8deg] [&>span]:-right-5 [&>span]:-top-4 [&>span]:bg-[#a893ff]" icon={<BadgeCheck className="h-5 w-5" />} />
+        <FloatingPhoto image={heroCreator2} className="right-[max(94px,calc(50%-585px))] top-[204px] h-[130px] w-[124px] -rotate-[7deg] [&>span]:bottom-4 [&>span]:-left-7" icon={<Star className="h-5 w-5" />} />
+        <FloatingPhoto image={heroCreator3} className="left-[max(94px,calc(50%-575px))] top-[655px] h-[128px] w-[134px] -rotate-[7deg] [&>span]:-bottom-5 [&>span]:-left-4 [&>span]:bg-[#a893ff]" icon={<Boxes className="h-5 w-5" />} />
+        <FloatingPhoto image={heroCreator4} className="right-[max(110px,calc(50%-570px))] top-[655px] h-[138px] w-[146px] rotate-[8deg] [&>span]:-right-5 [&>span]:-top-4 [&>span]:bg-[#a893ff]" icon={<BadgeCheck className="h-5 w-5" />} />
 
-        <HeroBadge className="left-[max(60px,calc(48%-580px))] top-[380px] rotate-[12deg]" icon={<ShieldCheck className="h-6 w-6" />}>
+        <HeroBadge className="left-[max(60px,calc(48%-580px))] top-[480px] rotate-[12deg]" icon={<ShieldCheck className="h-6 w-6" />}>
           Trusted<br />Collaborations
         </HeroBadge>
-        <HeroBadge className="right-[max(150px,calc(50%-545px))] top-[245px] -rotate-[10deg] bg-[#8194ff]" icon={<Clock3 className="h-6 w-6" />}>
+        <HeroBadge className="right-[max(350px,calc(50%-740px))] top-[485px] -rotate-[10deg] bg-[#8194ff]" icon={<Clock3 className="h-6 w-6" />}>
           On time<br />Payments
         </HeroBadge>
 
