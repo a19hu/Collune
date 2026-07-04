@@ -8,6 +8,7 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
 
 from ..models import (
     ApplicationStatus, BrandProfile, BrandShortlist, Campaign, CampaignApplication, CreatorProfile, ShortlistStatus, UserRole, VerificationStatus,
@@ -358,30 +359,144 @@ class CampaignReviewView(APIView):
             "suggested_creator_categories": suggested_categories,
         })
 
-
 class BrandCampaignApplicationViewSet(APIView):
-    permission_classes =[IsAuthenticated,IsBrand]
+    permission_classes = [IsAuthenticated, IsBrand]
 
-    def get(self,request,campaign_id):
-        campaign = Campaign.objects.get(campaign_id=campaign_id)
+    def get_campaign(self, request, campaign_id):
+        brand = getattr(request.user, "brand_profile", None)
+
+        return get_object_or_404(
+            Campaign,
+            campaign_id=campaign_id,
+            brand=brand
+        )
+
+    def get(self, request, campaign_id):
+        campaign = (
+                    Campaign.objects.filter(
+                        campaign_id=campaign_id,
+                        brand=request.user.brand_profile,
+                    )
+                    .annotate(
+                        applications_received_count=Count("applications", distinct=True),
+                        recommended_creators_count=Count(
+                            "applications",
+                            filter=Q(applications__status=ApplicationStatus.ACCEPTED),
+                            distinct=True,
+                        ),
+                    )
+                    .prefetch_related(
+                        Prefetch(
+                            "applications",
+                            queryset=CampaignApplication.objects.select_related(
+                                "creator",
+                                "creator__user",
+                            ).order_by("-created_at"),
+                        )
+                    )
+                    .first()
+                )
+
 
         data = {
-
+            "campaign_id": str(campaign.campaign_id),
+            "title": campaign.title,
+            "internal_reference_name": campaign.internal_reference_name,
+            "brief": campaign.brief,
+            "objective": campaign.objective,
+            "deliverables": campaign.deliverables,
+            "brand_requirements": campaign.brand_requirements,
+            "creative_direction": campaign.creative_direction,
+            "tone_of_communication": campaign.tone_of_communication,
+            "brand_guidelines": campaign.brand_guidelines.url if campaign.brand_guidelines else None,
+            "content_references": campaign.content_references,
+            "platforms": campaign.platforms,
+            "category": campaign.category,
+            "audience_type": campaign.audience_type,
+            "location": campaign.location,
+            "minimum_followers": campaign.minimum_followers,
+            "language_preference": campaign.language_preference,
+            "content_style": campaign.content_style,
+            "additional_preferences": campaign.additional_preferences,
+            "total_budget": str(campaign.total_budget),
+            "budget_range": campaign.budget_range,
+            "compensation_type": campaign.compensation_type,
+            "deliverable_pricing": campaign.deliverable_pricing,
+            "start_date": campaign.start_date,
+            "end_date": campaign.end_date,
+            "deadline": campaign.deadline,
+            "cover_image": campaign.cover_image,
+            "created_at": campaign.created_at,
+            "updated_at": campaign.updated_at,
+            "applications_received_count": campaign.applications_received_count,
+            "recommended_creators_count": campaign.recommended_creators_count,
+            "recommended_creators": [
+                {
+                "creator_id": str(app.creator.creator_id),
+                "name": app.creator.user.get_full_name(),
+                "username": app.creator.user.username,
+                "email": app.creator.user.email,
+                "profile_picture": app.creator.profile_picture,
+                }
+                for app in campaign.applications.all()
+                if app.status == ApplicationStatus.ACCEPTED
+            ],
         }
 
+        return Response(data)
 
-        return Response()
-    
-    def patch(self,request,campaign_id):
+    def patch(self, request, campaign_id):
+        campaign = self.get_campaign(request, campaign_id)
 
+        data = request.data
 
-        return Response()
-    
-    def delete(self,request,campaign_id):
-        Campaign.objects.get(campaign_id=campaign_id).delete()
+        for field in [
+            "title",
+            "internal_reference_name",
+            "brief",
+            "objective",
+            "deliverables",
+            "brand_requirements",
+            "creative_direction",
+            "tone_of_communication",
+            "content_references",
+            "platforms",
+            "category",
+            "audience_type",
+            "location",
+            "minimum_followers",
+            "language_preference",
+            "content_style",
+            "additional_preferences",
+            "total_budget",
+            "budget_range",
+            "compensation_type",
+            "deliverable_pricing",
+            "start_date",
+            "end_date",
+            "deadline",
+            "cover_image",
+        ]:
+            if field in data:
+                setattr(campaign, field, data[field])
 
+        if "brand_guidelines" in request.FILES:
+            campaign.brand_guidelines = request.FILES["brand_guidelines"]
 
-        return Response({"message":""})
+        campaign.save()
+
+        return Response({
+            "message": "Campaign updated successfully."
+        })
+
+    def delete(self, request, campaign_id):
+        campaign = self.get_campaign(request, campaign_id)
+        campaign.delete()
+
+        return Response(
+            {"message": "Campaign deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT,
+        )
 
 
 class ShortlistViewSet(APIView):
