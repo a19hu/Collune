@@ -2,9 +2,10 @@ import { useEffect, useState, type ChangeEvent } from "react";
 import { Send } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { createBrandShortlist, getBrandShortlist, updateBrandShortlist } from "../../../lib/authApi";
-import type { BrandShortlistPayload } from "../../../types";
+import { createBrandShortlist, getBrandShortlist, getCreatorsList, updateBrandShortlist } from "../../../lib/authApi";
+import type { BrandShortlistPayload, BrandShortlistStatusApi, CreatorListItemApi } from "../../../types";
 import { CampaignPanel, CampaignSection, SelectInput, TextArea, TextInput } from "../Campaigns/CampaignUi";
+import { PlatformSelector } from "../Campaigns/CampaignCreateForm";
 
 type ShortlistFormState = {
   title: string;
@@ -14,7 +15,8 @@ type ShortlistFormState = {
   categories: string;
   audience: string;
   budget_range: string;
-  timeline: string;
+  start_date: string;
+  end_date: string;
 };
 
 const initialForm: ShortlistFormState = {
@@ -25,10 +27,10 @@ const initialForm: ShortlistFormState = {
   categories: "",
   audience: "",
   budget_range: "",
-  timeline: "",
+  start_date: "",
+  end_date: "",
 };
 
-const platformOptions = ["INSTAGRAM", "YOUTUBE", "LINKEDIN"];
 const categoryOptions = ["Business", "Finance", "Education", "Lifestyle", "Fashion", "Beauty", "Technology", "Travel"];
 const audienceOptions = ["Students", "Young professionals", "Parents", "Founders", "Creators", "Finance enthusiasts"];
 const budgetRanges = ["$1K - $5K", "$5K - $10K", "$10K - $50K", "$50K+"];
@@ -42,22 +44,24 @@ function mapPayloadToForm(shortlist: BrandShortlistPayload): ShortlistFormState 
     categories: shortlist.categories || "",
     audience: shortlist.audience || "",
     budget_range: shortlist.budget_range || "",
-    timeline: shortlist.timeline || "",
+    start_date: shortlist.timeline?.split(" - ")[0] || "",
+    end_date: shortlist.timeline?.split(" - ")[1] || "",
   };
 }
 
-function buildPayload(form: ShortlistFormState): BrandShortlistPayload {
+function buildPayload(form: ShortlistFormState, status: BrandShortlistStatusApi, creatorIds: string[]): BrandShortlistPayload {
+  const timeline = [form.start_date, form.end_date].filter(Boolean).join(" - ");
   return {
     title: form.title.trim(),
-    status: "DRAFT",
+    status,
     purpose: form.purpose.trim(),
     notes: form.notes.trim(),
     platforms: form.platforms,
     categories: form.categories,
     audience: form.audience,
     budget_range: form.budget_range,
-    timeline: form.timeline,
-    creators: [],
+    timeline,
+    creators: creatorIds,
   };
 }
 
@@ -68,9 +72,30 @@ export function ShortlistCreateForm() {
   const [form, setForm] = useState<ShortlistFormState>(initialForm);
   const [creatorIds, setCreatorIds] = useState<string[]>([]);
   const [status, setStatus] = useState<BrandShortlistPayload["status"]>("DRAFT");
+  const [creators, setCreators] = useState<CreatorListItemApi[]>([]);
+  const [isLoadingCreators, setIsLoadingCreators] = useState(true);
   const [isLoading, setIsLoading] = useState(Boolean(shortlistId));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    let mounted = true;
+    setIsLoadingCreators(true);
+    getCreatorsList()
+      .then((items) => {
+        if (mounted) setCreators(items);
+      })
+      .catch((err) => {
+        if (mounted) setError(err instanceof Error ? err.message : "Unable to load creators.");
+      })
+      .finally(() => {
+        if (mounted) setIsLoadingCreators(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!shortlistId) return;
@@ -115,6 +140,15 @@ export function ShortlistCreateForm() {
     }));
   };
 
+  const toggleCreator = (creatorId: string) => {
+    setError("");
+    setCreatorIds((current) => (
+      current.includes(creatorId)
+        ? current.filter((item) => item !== creatorId)
+        : [...current, creatorId]
+    ));
+  };
+
   const submitShortlist = async () => {
     if (!form.title.trim()) {
       setError("Shortlist name is required.");
@@ -124,9 +158,9 @@ export function ShortlistCreateForm() {
     setError("");
     setIsSubmitting(true);
     try {
-      const payload = buildPayload(form);
+      const payload = buildPayload(form, status || "DRAFT", creatorIds);
       if (shortlistId) {
-        await updateBrandShortlist(shortlistId, { ...payload, status, creators: creatorIds });
+        await updateBrandShortlist(shortlistId, payload);
         navigate(`/brand/shortlists/${shortlistId}`);
       } else {
         const created = await createBrandShortlist(payload);
@@ -162,19 +196,8 @@ export function ShortlistCreateForm() {
         </div>
       </CampaignSection>
 
-      <CampaignSection index={3} title="Platform Selection" copy="Select platforms for this shortlist.">
-        <div className="flex flex-wrap gap-3">
-          {platformOptions.map((platform) => (
-            <button
-              key={platform}
-              type="button"
-              onClick={() => togglePlatform(platform)}
-              className={`h-11 rounded-lg border px-5 text-sm font-black ${form.platforms.includes(platform) ? "border-[#4b22ff] bg-[#f0eaff] text-[#4b22ff]" : "border-[#dce5f2] bg-white text-[#63728a]"}`}
-            >
-              {platform}
-            </button>
-          ))}
-        </div>
+      <CampaignSection index={3} title="Platform Selection" copy="Select the platforms where you want this campaign to be active.">
+        <PlatformSelector selected={form.platforms} onToggle={togglePlatform} />
       </CampaignSection>
 
       <CampaignSection index={4} title="Creator Requirements" copy="Tell us what kind of creators this shortlist should contain.">
@@ -182,13 +205,58 @@ export function ShortlistCreateForm() {
           <SelectInput label="Categories" required placeholder="Select category" value={form.categories} onChange={onFieldChange("categories")} options={categoryOptions} />
           <SelectInput label="Audience" required placeholder="Select audience" value={form.audience} onChange={onFieldChange("audience")} options={audienceOptions} />
           <SelectInput label="Budget Range" placeholder="Select budget range" value={form.budget_range} onChange={onFieldChange("budget_range")} options={budgetRanges} />
-          <TextInput label="Campaign Timeline" placeholder="e.g. Jun 20, 2025 - Jul 20, 2025" value={form.timeline} onChange={onFieldChange("timeline")} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <TextInput label="Start Date" required placeholder="Start date" type="date" value={form.start_date} onChange={onFieldChange("start_date")} />
+            <TextInput label="End Date" required placeholder="End date" type="date" value={form.end_date} onChange={onFieldChange("end_date")} />
+          </div>
         </div>
       </CampaignSection>
 
-      <CampaignSection index={5} title={isEditing ? "Save Shortlist" : "Create Shortlist"} copy={isEditing ? "Save your changes to update this shortlist." : "Create this shortlist, then add creators from the detail page."}>
+      <CampaignSection index={5} title="Shortlist Creators" copy="Choose creators to save in this shortlist now.">
+        {isLoadingCreators ? (
+          <p className="text-sm font-black text-[#63728a]">Loading creators...</p>
+        ) : creators.length ? (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {creators.map((creator) => {
+              const selected = creatorIds.includes(creator.creator_id);
+              return (
+                <button
+                  key={creator.creator_id}
+                  type="button"
+                  onClick={() => toggleCreator(creator.creator_id)}
+                  className={`flex min-h-20 items-center gap-3 rounded-lg border p-4 text-left transition ${selected ? "border-[#4b22ff] bg-[#f0eaff]" : "border-[#dce5f2] bg-white"}`}
+                >
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#173ca8] text-sm font-black text-white">
+                    {(creator.display_name || "C").charAt(0).toUpperCase()}
+                  </span>
+                  <span className="min-w-0">
+                    <strong className="block truncate text-sm font-black text-[#1d2430]">{creator.display_name}</strong>
+                    <span className="mt-1 block truncate text-xs font-semibold text-[#7d8aa0]">
+                      {creator.category || "Creator"} • {creator.total_followers || 0} followers
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-sm font-black text-[#63728a]">No creators found.</p>
+        )}
+      </CampaignSection>
+
+      <CampaignSection index={6} title={isEditing ? "Save Shortlist" : "Create Shortlist"} copy={isEditing ? "Save your changes to update this shortlist." : "Create this shortlist with selected creators and status."}>
+        <div className="mb-5 max-w-xs">
+          <SelectInput
+            label="Shortlist Status"
+            required
+            placeholder="Select status"
+            value={status}
+            onChange={(event) => setStatus(event.target.value as BrandShortlistStatusApi)}
+            options={["DRAFT", "SUBMITTED"]}
+          />
+        </div>
         {error ? <p className="mb-5 rounded-lg bg-[#ffe9e9] px-4 py-3 text-sm font-semibold text-[#d23b3b]">{error}</p> : null}
-        <button type="submit" disabled={isSubmitting || isLoading} className="inline-flex h-12 items-center gap-3 rounded-lg bg-[#4b22ff] px-10 text-sm font-black text-white shadow-[0_12px_20px_rgba(75,34,255,0.18)] disabled:cursor-not-allowed disabled:opacity-70">
+        <button type="submit" disabled={isSubmitting || isLoading || isLoadingCreators} className="inline-flex h-12 items-center gap-3 rounded-lg bg-[#4b22ff] px-10 text-sm font-black text-white shadow-[0_12px_20px_rgba(75,34,255,0.18)] disabled:cursor-not-allowed disabled:opacity-70">
           <Send className="h-5 w-5" />
           {isSubmitting ? (isEditing ? "Saving..." : "Creating...") : (isEditing ? "Save Shortlist" : "Create Shortlist")}
         </button>

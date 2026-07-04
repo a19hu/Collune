@@ -229,7 +229,8 @@ class BrandShortlist(models.Model):
     categories = models.CharField(max_length=240, blank=True, default="")
     audience = models.CharField(max_length=240, blank=True, default="")
     budget_range = models.CharField(max_length=120, blank=True, default="")
-    timeline = models.CharField(max_length=160, blank=True, default="")
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 

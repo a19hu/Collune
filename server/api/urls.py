@@ -7,11 +7,11 @@ from .brand.views import (
     BrandDetailDashboardView,
     BrandProfileViewSet,
     BrandRegisterView,
-    BrandShortlistViewSet,
     BrandCampaignApplicationViewSet,
     CampaignReviewView,
     CampaignsViewSet,
     CampaignViewSet,
+    ShortlistViewSet,
 )
 from .common.views import (
     EmailAvailabilityView,
@@ -45,7 +45,6 @@ from .creator.views import (
 router = DefaultRouter()
 router.register("brands", BrandProfileViewSet, basename="brands")
 router.register("campaigns", CampaignViewSet, basename="campaigns")
-router.register("brand-shortlists", BrandShortlistViewSet, basename="brand_shortlists")
 
 urlpatterns = [
     path("auth/brands/register/", BrandRegisterView.as_view(), name="brand_register"),
@@ -72,6 +71,8 @@ urlpatterns = [
     path("brands/campaigns/", CampaignsViewSet.as_view(), name="brand_campaigns"),
     path("brands/campaigns/review/", CampaignReviewView.as_view(), name="brand_campaign_review"),
     path("brands/campaigns/<uuid:campaign_id>/", BrandCampaignApplicationViewSet.as_view(), name="brand_campaign_detail"),
+    path("brand-shortlists/", ShortlistViewSet.as_view(), name="brand_shortlists"),
+    path("brand-shortlists/<uuid:shortlist_id>/", ShortlistViewSet.as_view(), name="brand_shortlist_detail"),
     path("creators/list/", CreatorListViewSet.as_view(), name="creators_list"),
     path("creator/<uuid:creator_id>/", CreatorListViewSet.as_view(), name="creator_detail"),
 

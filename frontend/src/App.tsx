@@ -85,7 +85,7 @@ const App: React.FC = () => {
                             <Route path="campaigns/new_create" element={<CampaignCreateForm />} />
                             <Route path="campaigns/:campaignId/edit" element={<CampaignCreateForm />} />
                             <Route path="campaigns/:campaignId" element={<CampaignApplicationsPage />} />
-                            <Route path="campaigns/:campaignId/applications" element={<CampaignApplicationsPage />} />
+                            {/* <Route path="campaigns/:campaignId/applications" element={<CampaignApplicationsPage />} /> */}
                         </Route>
                     </Route>
                     <Route path="/creator-register" element={<CreatorRegister />} />

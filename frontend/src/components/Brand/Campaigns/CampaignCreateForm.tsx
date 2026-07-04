@@ -80,7 +80,7 @@ function mapCampaignDetailToForm(campaign: BrandCampaignDetailApi): CampaignForm
   };
 }
 
-function PlatformSelector({
+export function PlatformSelector({
   selected,
   onToggle,
 }: {

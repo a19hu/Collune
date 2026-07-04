@@ -593,35 +593,61 @@ class ShortlistViewSet(APIView):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
     pagination_class = ShortlistPagination
 
-    def get(self, request):
+    def get_queryset(self, request):
         brand = getattr(request.user, "brand_profile", None)
         if not brand:
-            return Response({"error": "No brand profile found."}, status=status.HTTP_404_NOT_FOUND)
+            return None
 
-        shortlists = (
+        visible_creators = CreatorProfile.objects.select_related("user").filter(user__is_profile_visible=True)
+        return (
             BrandShortlist.objects.filter(brand=brand)
+            .prefetch_related(Prefetch("creators", queryset=visible_creators))
             .annotate(creators_count=Count("creators", distinct=True))
             .order_by("-updated_at")
         )
 
+    def get_shortlist(self, request, shortlist_id):
+        queryset = self.get_queryset(request)
+        if queryset is None:
+            return None
+        return get_object_or_404(queryset, shortlist_id=shortlist_id)
+
+    def normalize_payload(self, data):
+        payload = data.copy() if hasattr(data, "copy") else dict(data)
+
+        if "categories" not in payload and data.get("category"):
+            payload["categories"] = data.get("category")
+        if "audience" not in payload and data.get("audience_type"):
+            payload["audience"] = data.get("audience_type")
+        if "timeline" not in payload and data.get("deadline"):
+            payload["timeline"] = data.get("deadline")
+        if hasattr(data, "getlist"):
+            if "platforms" in data:
+                payload["platforms"] = data.getlist("platforms")
+            if "creators" in data:
+                payload["creators"] = data.getlist("creators")
+        return payload
+
+    def get(self, request, shortlist_id=None):
+        if not getattr(request.user, "brand_profile", None):
+            return Response({"error": "No brand profile found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if shortlist_id:
+            shortlist = self.get_shortlist(request, shortlist_id)
+            serializer = BrandShortlistSerializer(shortlist, context={"request": request})
+            return Response(serializer.data)
+
+        shortlists = self.get_queryset(request)
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(shortlists, request, view=self)
         shortlist_page = page if page is not None else shortlists
 
-        data = [
-            {
-                "id": str(shortlist.shortlist_id),
-                "name": shortlist.title,
-                "status": shortlist.status,
-                "creators_count": shortlist.creators_count,
-                "updated_at": shortlist.updated_at.isoformat(),
-            }
-            for shortlist in shortlist_page
-        ]
+        data = BrandShortlistSerializer(shortlist_page, many=True, context={"request": request}).data
 
         if page is not None:
             return paginator.get_paginated_response(data)
         return Response({"shortlists": data})
+
     def post(self, request):
         brand = getattr(request.user, "brand_profile", None)
 
@@ -631,22 +657,30 @@ class ShortlistViewSet(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        data = request.data
-        payload = data.copy() if hasattr(data, "copy") else dict(data)
-
-        if "categories" not in payload and data.get("category"):
-            payload["categories"] = data.get("category")
-        if "audience" not in payload and data.get("audience_type"):
-            payload["audience"] = data.get("audience_type")
-        if "timeline" not in payload and data.get("deadline"):
-            payload["timeline"] = data.get("deadline")
-        if hasattr(data, "getlist") and "platforms" in data:
-            payload["platforms"] = data.getlist("platforms")
-
+        payload = self.normalize_payload(request.data)
         serializer = BrandShortlistSerializer(data=payload, context={"request": request})
         serializer.is_valid(raise_exception=True)
         serializer.save(brand=brand)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def patch(self, request, shortlist_id):
+        if not getattr(request.user, "brand_profile", None):
+            return Response({"error": "No brand profile found."}, status=status.HTTP_404_NOT_FOUND)
+
+        shortlist = self.get_shortlist(request, shortlist_id)
+        payload = self.normalize_payload(request.data)
+        serializer = BrandShortlistSerializer(shortlist, data=payload, partial=True, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, shortlist_id):
+        if not getattr(request.user, "brand_profile", None):
+            return Response({"error": "No brand profile found."}, status=status.HTTP_404_NOT_FOUND)
+
+        shortlist = self.get_shortlist(request, shortlist_id)
+        shortlist.delete()
+        return Response({"message": "Shortlist deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
     
 class BrandProfileViewSet(viewsets.ModelViewSet):
     serializer_class = BrandProfileSerializer
@@ -725,19 +759,3 @@ class CampaignViewSet(viewsets.ModelViewSet):
         serializer = CampaignApplicationSerializer(application, context={"request": request})
         return Response({"application": serializer.data}, status=status.HTTP_201_CREATED)
 
-
-class BrandShortlistViewSet(viewsets.ModelViewSet):
-    serializer_class = BrandShortlistSerializer
-    permission_classes = [IsAuthenticated, IsBrand]
-    pagination_class = ShortlistPagination
-
-    def get_queryset(self):
-        visible_creators = CreatorProfile.objects.select_related("user").filter(user__is_profile_visible=True)
-        return (
-            BrandShortlist.objects.select_related("brand")
-            .prefetch_related(Prefetch("creators", queryset=visible_creators))
-            .filter(brand__user=self.request.user)
-        )
-
-    def perform_create(self, serializer):
-        serializer.save(brand=self.request.user.brand_profile)

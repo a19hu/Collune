@@ -175,7 +175,8 @@ class BrandShortlistSerializer(serializers.ModelSerializer):
             "categories",
             "audience",
             "budget_range",
-            "timeline",
+            "start_date",
+            "end_date",
             "created_at",
             "updated_at",
         ]

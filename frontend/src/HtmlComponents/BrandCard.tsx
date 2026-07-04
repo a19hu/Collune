@@ -150,15 +150,15 @@ export const BrandCard = ({
                     listvisible ?
                         <div className="mt-5 flex items-center justify-between border-t border-[#e4ebf4] pt-5">
                             <span className="text-sm font-medium text-[#63728a]">{formatUpdatedAt(item.updated_at)}</span>
-                            <button type="button" onClick={() => navigate(`/brand/campaigns/${item.id}`)} className="inline-flex items-center gap-2 text-sm font-black text-[#2f16ff]">
-                                View Campaign <ArrowRight className="h-4 w-4" />
+                            <button type="button" onClick={() => shortlist ? navigate(`/brand/shortlists/${item.id}`):navigate(`/brand/campaigns/${item.id}`)} className="inline-flex items-center gap-2 text-sm font-black text-[#2f16ff]">
+                                View {shortlist ? "Shortlist":"Campaign"} <ArrowRight className="h-4 w-4" />
                             </button>
                         </div>
                         :
                         <button type="button"
-                            onClick={() => navigate(`/brand/campaigns/${item.id}`)}
+                            onClick={() => shortlist ? navigate(`/brand/shortlists/${item.id}`):navigate(`/brand/campaigns/${item.id}`)}
                             className="mt-5 inline-flex items-center gap-2 text-base font-black text-[#7b83ff]">
-                            View Campaign <ArrowRight className="h-4 w-4" />
+                            View {shortlist ? "Shortlist":"Campaign"} <ArrowRight className="h-4 w-4" />
                         </button>
                 }
             </Panel>
