@@ -1,17 +1,26 @@
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework import serializers
 
-from ..models import OtpChannel
+from ..models import OtpChannel, UserRole
 
 User = get_user_model()
 
 
 class AuthUserSerializer(serializers.ModelSerializer):
+    role = serializers.SerializerMethodField()
     profile_id = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["user_id","email","role", "profile_id"]
+        fields = ["user_id", "name", "email", "role", "verification_status", "profile_id"]
+
+    def get_role(self, obj):
+        role_map = {
+            UserRole.ADMIN: "Admin",
+            UserRole.BRAND: "Brand",
+            UserRole.CREATOR: "Creator",
+        }
+        return role_map.get(obj.role, obj.role)
 
     def get_profile_id(self, obj):
         if hasattr(obj, "brand_profile"):

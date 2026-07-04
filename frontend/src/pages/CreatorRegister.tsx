@@ -32,7 +32,7 @@ const initialCreatorForm: CreatorRegisterForm = {
   category: "Political Commentary",
   location: "",
   languages: ["Hindi", "English"],
-  collaboration_preferences: ["Sponsored Posts", "Long-Term Partnerships", "Product Launches", "UGC Content"],
+  collaboration_preferences: ["Product Launches", "UGC Content"],
   bio: "",
   about: "",
   gender: "",

@@ -22,7 +22,8 @@ class VerificationView(APIView):
         profile = model.objects.filter(pk=profile_id).first()
         if not profile:
             return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
-        profile.verification_status = status_value
-        profile.save(update_fields=["verification_status", "updated_at"])
+        profile.user.verification_status = status_value
+        profile.user.save(update_fields=["verification_status"])
+        profile.save(update_fields=["updated_at"])
         serializer_class = BrandProfileSerializer if profile_type == "brands" else CreatorProfileSerializer
         return Response({"profile": serializer_class(profile, context={"request": request}).data})
