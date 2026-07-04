@@ -121,9 +121,6 @@ export function EditableInfoPanel({
         <h2 className="text-lg font-black text-[#333b4a]">
           {title} {optional ? <span className="text-[#98a1b1]">(Optional)</span> : null}
         </h2>
-        <button type="button" onClick={onEdit} className="text-sm font-black text-[#7b83ff]">
-          {editing ? "Done" : "Edit"}
-        </button>
       </div>
       {editing ? (
         <textarea
@@ -141,12 +138,12 @@ export function EditableInfoPanel({
 export function PlatformIcon({ platform }: { key?: string; platform: ShortlistCreator["platform"] }) {
   return (
     <span className={`grid h-8 w-8 place-items-center rounded-lg ${platformClasses[platform]}`}>
-      {platform === "Instagram" ? <Instagram className="h-4 w-4" /> : platform === "YouTube" ? <Youtube className="h-4 w-4" /> : <span className="text-sm font-black">in</span>}
+      {platform.toLocaleLowerCase() === "instagram" ? <Instagram className="h-4 w-4" /> : platform.toLocaleLowerCase() === "youtube" ? <Youtube className="h-4 w-4" /> : <span className="text-sm font-black">in</span>}
     </span>
   );
 }
 
-export function CreatorCard({ creator, onRemove }: { key?: string; creator: ShortlistCreator; onRemove: (id: string) => void }) {
+export function CreatorCard({ creator, onRemove }: { key?: string; creator: ShortlistCreator; onRemove?: (id: string) => void }) {
   return (
     <ShortlistPanel className="min-w-[220px] overflow-hidden">
       <div className="relative aspect-[1.08/1] bg-[#eef2f7]">
@@ -154,17 +151,20 @@ export function CreatorCard({ creator, onRemove }: { key?: string; creator: Shor
         <span className="absolute left-4 top-4">
           <PlatformIcon platform={creator.platform} />
         </span>
-        <button type="button" onClick={() => onRemove(creator.id)} className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white text-[#667085]" aria-label={`Remove ${creator.name}`}>
+        {
+          onRemove && <button type="button" onClick={() => onRemove(creator.id)} className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white text-[#667085]" aria-label={`Remove ${creator.name}`}>
           <MoreVertical className="h-5 w-5" />
-        </button>
+        </button> 
+        }
+        
       </div>
       <div className="p-4">
         <h3 className="text-lg font-black leading-tight text-[#333b4a]">{creator.name}</h3>
         <p className="mt-1 text-sm font-medium text-[#6d7688]">{creator.category}</p>
         <p className="mt-4 text-sm font-medium text-[#6d7688]">
-          {creator.followers} Followers{creator.engagement} Eng. Rate
+          {creator.followers} Followers {creator.engagement} Eng. Rate
         </p>
-        <p className="mt-3 text-sm font-black text-[#7b83ff]">{creator.added}</p>
+        {/* <p className="mt-3 text-sm font-black text-[#7b83ff]">{creator.added}</p> */}
       </div>
     </ShortlistPanel>
   );

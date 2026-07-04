@@ -12,6 +12,7 @@ import {
   StatusBadge,
 } from "./ShortlistUi";
 import type { ShortlistItem } from "./shortlistData";
+import { useNavigate } from "react-router-dom";
 
 export function ShortlistDetail({
   shortlist,
@@ -48,6 +49,7 @@ export function ShortlistDetail({
   onToggleOrder: () => void;
   onRemoveCreator: (id: string) => void;
 }) {
+  const navigate = useNavigate()
   const visibleCreators = shortlist.creators
     .filter((creator) => `${creator.name} ${creator.category}`.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => isOrderReversed ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name));
@@ -94,10 +96,14 @@ export function ShortlistDetail({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button type="button" onClick={onToggleOrder} className="grid h-11 w-11 place-items-center rounded-lg bg-white text-[#657084]" aria-label="Shortlist options">
-            <MoreVertical className="h-5 w-5" />
-          </button>
-          <PrimaryButton onClick={onDiscover}>Discover Creators</PrimaryButton>
+          <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate(`/brand/shortlists/${shortlist.id}/edit`)}
+                type="button" className="inline-flex h-11 items-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-5 text-sm font-black text-[#303948]">
+                <Edit3 className="h-4 w-4" />
+                Edit Shortlist
+              </button>
+            </div>
         </div>
       </div>
 
@@ -122,12 +128,19 @@ export function ShortlistDetail({
           <p className="mt-5 text-[15px] font-medium leading-relaxed text-[#6d7688]">
             This shortlist is in {shortlist.status.toLowerCase()} mode. Add creators and submit to Collune when you're ready.
           </p>
-          <button type="button" onClick={onSubmit} className="mt-5 h-12 w-full rounded-lg bg-[#173ca8] text-sm font-black text-white">
+          {
+            shortlist.status === "Submitted" ?
+            <button type="button" disabled className="mt-5 h-12 w-full rounded-lg bg-[#173ca8] text-sm font-black text-white">
+            Submitted
+          </button> :
+            <button type="button" onClick={onSubmit} className="mt-5 h-12 w-full rounded-lg bg-[#173ca8] text-sm font-black text-white">
             Submit to Collune
           </button>
-          <button type="button" onClick={onSave} className="mt-4 w-full text-sm font-black text-[#173ca8]">
+          }
+          
+          {/* <button type="button" onClick={onSave} className="mt-4 w-full text-sm font-black text-[#173ca8]">
             Save Changes
-          </button>
+          </button> */}
         </ShortlistPanel>
       </div>
 
@@ -159,16 +172,12 @@ export function ShortlistDetail({
                 className="h-10 w-[260px] rounded-lg border border-[#dfe5ee] pl-11 pr-4 text-sm font-medium outline-none focus:border-[#6a75ff] focus:ring-4 focus:ring-[#6a75ff]/10"
               />
             </label>
-            <button type="button" onClick={onToggleOrder} className="inline-flex h-10 items-center gap-2 text-sm font-black text-[#7b83ff]">
-              <ArrowUpDown className="h-4 w-4" />
-              {isOrderReversed ? "Default Order" : "Edit Order"}
-            </button>
           </div>
         </div>
 
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
           {visibleCreators.map((creator) => (
-            <CreatorCard key={creator.id} creator={creator} onRemove={onRemoveCreator} />
+            <CreatorCard key={creator.id} creator={creator} />
           ))}
           {visibleCreators.length === 0 ? (
             <ShortlistPanel className="grid min-h-[260px] place-items-center p-8 text-center xl:col-span-2">

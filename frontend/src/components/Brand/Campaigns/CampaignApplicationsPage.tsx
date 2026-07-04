@@ -508,12 +508,11 @@ export function CampaignApplicationsPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button type="button" className="inline-flex h-11 items-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-5 text-sm font-black text-[#303948]">
+              <button
+                onClick={() => navigate(`/brand/campaigns/${campaign.campaign_id || campaign.id}/edit`)}
+                type="button" className="inline-flex h-11 items-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-5 text-sm font-black text-[#303948]">
                 <Edit3 className="h-4 w-4" />
                 Edit Campaign
-              </button>
-              <button type="button" className="grid h-11 w-11 place-items-center rounded-lg border border-[#dfe7f2] bg-white text-[#63728a]" aria-label="Campaign options">
-                <MoreHorizontal className="h-5 w-5" />
               </button>
             </div>
           </header>
@@ -637,7 +636,9 @@ export function CampaignApplicationsPage() {
                   <div>
                     <h2 className="text-xl font-black leading-tight text-[#1d2430]">Need more creators or want to make changes?</h2>
                     <p className="mt-4 text-base font-medium leading-relaxed text-[#7d8aa0]">You can edit your campaign details or adjust requirements to improve match quality.</p>
-                    <button type="button" className="mt-5 h-12 rounded-lg bg-[#4b22ff] px-8 text-base font-black text-white">Edit Campaign</button>
+                    <button
+                      onClick={() => navigate(`/brand/campaigns/${campaign.campaign_id || campaign.id}/edit`)}
+                      type="button" className="mt-5 h-12 rounded-lg bg-[#4b22ff] px-8 text-base font-black text-white">Edit Campaign</button>
                   </div>
                 </div>
               </section>
