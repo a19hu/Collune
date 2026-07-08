@@ -423,7 +423,7 @@ export type CreatorListPlatformApi = {
 };
 
 export type CreatorListItemApi = {
-  creator_id: string;
+  creator_id: string | null;
   display_name: string;
   category: string;
   verified?: boolean;

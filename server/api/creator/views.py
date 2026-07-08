@@ -808,9 +808,6 @@ class CreatorListViewSet(APIView):
         creators = (
             CreatorProfile.objects.select_related("user")
             .prefetch_related("social_accounts")
-            .filter(
-                user__is_profile_visible=True,
-            )
             .order_by("-created_at")
         )
 
@@ -821,8 +818,9 @@ class CreatorListViewSet(APIView):
                 account.followers for account in creator.social_accounts.all()
             )
 
+            is_profile_visible = creator.user.is_profile_visible
             item = {
-                "creator_id": str(creator.creator_id),
+                "creator_id": str(creator.creator_id) if is_profile_visible else None,
                 "display_name": creator.display_name,
                 "category": creator.category,
                 "verified": creator.user.verification_status
@@ -835,6 +833,7 @@ class CreatorListViewSet(APIView):
                 ),
                 "work_with": creator.work_with,
                 "total_followers": total_followers,
+                "is_profile_visible": is_profile_visible,
             }
 
             if is_brand:
