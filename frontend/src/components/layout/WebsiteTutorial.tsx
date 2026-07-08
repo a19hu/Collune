@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Compass, FileText, LayoutDashboard, LifeBuoy, Menu, MousePointerClick, Search, ShieldCheck, Sparkles, Users, X } from "lucide-react";
 
-type TutorialRole = "Brand" | "Creator";
+type TutorialRole = "Brand" | "Creator" | "Admin";
 
 type TutorialStep = {
   title: string;
@@ -87,6 +87,30 @@ const creatorSteps: TutorialStep[] = [
   },
 ];
 
+const adminSteps: TutorialStep[] = [
+  {
+    title: "Admin sidebar",
+    copy: "Use this left sidebar to move between Dashboard, Users, Creators, Brands, Campaigns, and Shortlists.",
+    icon: Menu,
+    target: '[data-tour="sidebar-nav"]',
+    placement: "right",
+  },
+  {
+    title: "Admin workspace",
+    copy: "This main area shows the selected management section and will hold moderation tables and review workflows.",
+    icon: ShieldCheck,
+    target: '[data-tour="page-content"]',
+    placement: "center",
+  },
+  {
+    title: "Support area",
+    copy: "Use the support panel for operational support and platform administration workflows.",
+    icon: LifeBuoy,
+    target: '[data-tour="support-card"]',
+    placement: "right",
+  },
+];
+
 function getStorageKey(role: TutorialRole, email?: string) {
   return `collune:tutorial:v1:${role}:${email || "unknown"}`;
 }
@@ -95,7 +119,7 @@ export function WebsiteTutorial({ role, userEmail }: { role: TutorialRole; userE
   const [isOpen, setIsOpen] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
-  const steps = useMemo(() => role === "Brand" ? brandSteps : creatorSteps, [role]);
+  const steps = useMemo(() => role === "Admin" ? adminSteps : role === "Brand" ? brandSteps : creatorSteps, [role]);
   const storageKey = useMemo(() => getStorageKey(role, userEmail), [role, userEmail]);
   const step = steps[stepIndex];
   const Icon = step.icon;

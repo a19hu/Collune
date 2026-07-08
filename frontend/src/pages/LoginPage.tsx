@@ -28,8 +28,9 @@ export const LoginPage = () => {
 
     try {
       const user = await login(email.trim(), password);
+      console.log(user)
       authStorage.setRememberedEmail(user.email || email.trim());
-      navigate(user.role === "Brand" ? "/brand" : user.role === "Creator" ? "/creator" : "/", { replace: true });
+      navigate(user.role === "Brand" ? "/brand" : user.role === "Creator" ? "/creator" : "/admin", { replace: true });
     } catch (error) {
       setAuthError("Something went wrong. Please check your credentials and try again.");
     } finally {

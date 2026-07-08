@@ -30,6 +30,12 @@ import PrivacyPolicy from './pages/PrivacyPolicy.tsx';
 import TermsConditions from './pages/TermsConditions.tsx';
 import BrandServicesTerms from './pages/BrandServicesTerms.tsx';
 import CreativeServicesTerms from './pages/CreativeServicesTerms.tsx';
+import AdminDashboard from './components/Admin/AdminDashboard.tsx';
+import AdminUsers from './components/Admin/AdminUsers.tsx';
+import AdminCreators from './components/Admin/AdminCreators.tsx';
+import AdminBrands from './components/Admin/AdminBrands.tsx';
+import AdminCampaigns from './components/Admin/AdminCampaigns.tsx';
+import AdminShortlists from './components/Admin/AdminShortlists.tsx';
 
 function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
     const { currentUser, isAuthLoading } = useAuth();
@@ -37,7 +43,7 @@ function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
     if (isAuthLoading) return <LoadingPage />;
     if (!currentUser) return <Navigate to="/login" replace />;
     if (currentUser.role !== allowedRole) {
-        return <Navigate to={currentUser.role === 'Brand' ? '/brand' : currentUser.role === 'Creator' ? '/creator' : '/'} replace />;
+        return <Navigate to={currentUser.role === 'Admin' ? '/admin' : currentUser.role === 'Brand' ? '/brand' : currentUser.role === 'Creator' ? '/creator' : '/'} replace />;
     }
 
     return <Outlet />;
@@ -96,6 +102,16 @@ const App: React.FC = () => {
                             <Route path="campaigns/:campaignId/edit" element={<CampaignCreateForm />} />
                             <Route path="campaigns/:campaignId" element={<CampaignApplicationsPage />} />
                             {/* <Route path="campaigns/:campaignId/applications" element={<CampaignApplicationsPage />} /> */}
+                        </Route>
+                    </Route>
+                    <Route element={<RequireAuth allowedRole="Admin" />}>
+                        <Route path="/admin/*" element={<SideBarLayout />}>
+                            <Route index element={<AdminDashboard />} />
+                            <Route path="users" element={<AdminUsers />} />
+                            <Route path="creators" element={<AdminCreators />} />
+                            <Route path="brands" element={<AdminBrands />} />
+                            <Route path="campaigns" element={<AdminCampaigns />} />
+                            <Route path="shortlists" element={<AdminShortlists />} />
                         </Route>
                     </Route>
                     <Route path="/creator-register" element={<CreatorRegister />} />

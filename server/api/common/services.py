@@ -42,7 +42,7 @@ def parse_payload(request):
 
 def auth_user_payload(user):
     role_map = {
-        UserRole.ADMIN: "Super Admin",
+        UserRole.ADMIN: "Admin",
         UserRole.BRAND: "Brand",
         UserRole.CREATOR: "Creator",
     }

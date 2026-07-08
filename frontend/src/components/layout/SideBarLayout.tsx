@@ -10,7 +10,7 @@ import { WebsiteTutorial } from "./WebsiteTutorial";
 
 function useDashboardState() {
   const location = useLocation();
-  const mode: SidebarMode = location.pathname.startsWith("/brand") ? "brand" : "creator";
+  const mode: SidebarMode = location.pathname.startsWith("/admin") ? "admin" : location.pathname.startsWith("/brand") ? "brand" : "creator";
   const pathname = location.pathname.replace(/\/$/, "") || "/";
 
   return { mode, pathname };
@@ -112,7 +112,8 @@ export const SideBarLayout = () => {
   const { mode, pathname } = useDashboardState();
   const navigate = useNavigate();
   const isBrand = mode === "brand";
-  const profilePath = isBrand ? "/brand" : "/creator/profile";
+  const isAdmin = mode === "admin";
+  const profilePath = isAdmin ? "/admin" : isBrand ? "/brand" : "/creator/profile";
   const isVerified = currentUser.verification_status === "VERIFIED"
   const brandStatus = isVerified ? "verified-brand" : "under-review";
 
@@ -189,6 +190,27 @@ export const SideBarLayout = () => {
     ];
 
     return topRoutes.find((route) => route.matches())?.render() ?? null;
+  }
+
+  function TopComponentsAdmin() {
+    const topRoutes = [
+      { matches: () => pathname === "/admin", title: "Admin Dashboard" },
+      { matches: () => pathname === "/admin/users", title: "Users" },
+      { matches: () => pathname === "/admin/creators", title: "Creators" },
+      { matches: () => pathname === "/admin/brands", title: "Brands" },
+      { matches: () => pathname === "/admin/campaigns", title: "Campaigns" },
+      { matches: () => pathname === "/admin/shortlists", title: "Shortlists" },
+    ];
+    const route = topRoutes.find((item) => item.matches());
+
+    return (
+      <DashboardTopBar
+        title={route?.title || "Admin"}
+        currentUser={currentUser}
+        logout={logout}
+        profilePath={profilePath}
+      />
+    );
   }
 
   function TopComponentsBrand() {
@@ -322,6 +344,8 @@ export const SideBarLayout = () => {
         <main className="min-h-[calc(100vh-98px)] bg-white px-6 py-0 lg:px-8">
           <div className="min-h-screen bg-white pt-8">
             {
+              isAdmin ?
+                <TopComponentsAdmin /> :
               isBrand ?
                 <TopComponentsBrand /> :
                 <TopComponentsCreator />
@@ -332,7 +356,7 @@ export const SideBarLayout = () => {
           </div>
         </main>
       </div>
-      <WebsiteTutorial role={currentUser.role === "Brand" ? "Brand" : "Creator"} userEmail={currentUser.email} />
+      <WebsiteTutorial role={currentUser.role} userEmail={currentUser.email} />
     </div>
   );
 };
