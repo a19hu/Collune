@@ -24,13 +24,18 @@ type DashboardUserMenuProps = {
 
 type DashboardTopBarProps = DashboardUserMenuProps & {
   title: string;
-  status?: "verified-creator" | "under-review";
+  status?: "verified-creator" | "verified-brand" | "under-review";
   actions?: ReactNode;
 };
 
 const statusPillStyles = {
   "verified-creator": {
     label: "Verified Creator",
+    className: "bg-[#ddfbea] text-[#31b979]",
+    icon: <BadgeCheck className="h-3.5 w-3.5" />,
+  },
+  "verified-brand": {
+    label: "Verified Brand",
     className: "bg-[#ddfbea] text-[#31b979]",
     icon: <BadgeCheck className="h-3.5 w-3.5" />,
   },
@@ -95,8 +100,8 @@ function DashboardTopBar({ title, status, actions, currentUser, logout, profileP
       </h1>
       <div data-tour="topbar-actions" className="flex flex-wrap items-center gap-5">
         {actions}
-        {status && currentUser.role == "Creator" ? <VerificationPill status={status} /> : null}
-        {currentUser.role == "Creator" ? <DashboardUserMenu currentUser={currentUser} logout={logout} profilePath={profilePath} /> : null}
+        {status ? <VerificationPill status={status} /> : null}
+        <DashboardUserMenu currentUser={currentUser} logout={logout} profilePath={profilePath} />
       </div>
     </header>
   );
@@ -109,6 +114,7 @@ export const SideBarLayout = () => {
   const isBrand = mode === "brand";
   const profilePath = isBrand ? "/brand" : "/creator/profile";
   const isVerified = currentUser.verification_status === "VERIFIED"
+  const brandStatus = isVerified ? "verified-brand" : "under-review";
 
   function TopComponentsCreator() {
     const topRoutes = [
@@ -191,11 +197,16 @@ export const SideBarLayout = () => {
         matches: () => pathname === "/brand",
         render: () => (
           <DashboardTopBar
-            title={`Welcome ${currentUser?.name || "Brand"}`}
+            title={
+              isVerified
+                ? `Welcome ${currentUser?.name || "Brand"}`
+                : `Welcome, ${currentUser?.name || "Brand"}. Your brand is under review.`
+            }
+            status={brandStatus}
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
-            actions={
+            actions={isVerified ? (
               <>
                 <HeaderButton onClick={() => navigate("/brand/campaigns/new_create")} variant="solid">
                   <Plus className="h-5 w-5" />
@@ -206,7 +217,7 @@ export const SideBarLayout = () => {
                   Build Shortlist
                 </HeaderButton>
               </>
-            }
+            ) : undefined}
           />
         ),
       },
@@ -231,6 +242,7 @@ export const SideBarLayout = () => {
         render: () => (
           <DashboardTopBar
             title="Create new campaign"
+            status={brandStatus}
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
@@ -242,6 +254,7 @@ export const SideBarLayout = () => {
         render: () => (
           <DashboardTopBar
             title="Create new shortlist"
+            status={brandStatus}
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
@@ -253,6 +266,7 @@ export const SideBarLayout = () => {
         render: () => (
           <DashboardTopBar
             title="Edit shortlist"
+            status={brandStatus}
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
@@ -264,15 +278,16 @@ export const SideBarLayout = () => {
         render: () => (
           <DashboardTopBar
             title="Shortlists"
+            status={brandStatus}
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
-            actions={
+            actions={isVerified ? (
               <HeaderButton onClick={() => navigate("/brand/shortlists/new_create")} variant="solid">
                 <Plus className="h-5 w-5" />
                 Build Shortlist
               </HeaderButton>
-            }
+            ) : undefined}
           />
         ),
       },
@@ -281,15 +296,16 @@ export const SideBarLayout = () => {
         render: () => (
           <DashboardTopBar
             title="Campaigns"
+            status={brandStatus}
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
-            actions={
+            actions={isVerified ? (
               <HeaderButton onClick={() => navigate("/brand/campaigns/new_create")} variant="solid">
                 <Plus className="h-5 w-5" />
                 Create Campaign
               </HeaderButton>
-            }
+            ) : undefined}
           />
         ),
       },
