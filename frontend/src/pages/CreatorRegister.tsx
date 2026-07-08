@@ -242,7 +242,7 @@ const CreatorRegister = () => {
         user: {
           name: form.name.trim(),
           email: form.email.trim(),
-          phone_no: normalizePhoneNumber(form.phone_no),
+          phone_no: "+91" + normalizePhoneNumber(form.phone_no),
           password: form.password,
         },
         display_name: form.name.trim(),

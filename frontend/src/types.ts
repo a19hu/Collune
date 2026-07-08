@@ -24,6 +24,7 @@ export type CreatorRegisterForm = {
 export type BrandRegisterForm = {
   name: string;
   email: string;
+  emailOtp: string;
   phone_no: string;
   password: string;
   confirmPassword: string;

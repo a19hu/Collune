@@ -61,6 +61,7 @@ locals {
 
     FACEBOOK_APP_ID = var.facebook_app_id
     FACEBOOK_APP_SECRET = var.facebook_app_secret
+    FACEBOOK_REDIRECT_URI = "https://collune-backend-350157158342.asia-south1.run.app/api/v1/auth/facebook/callback/"
   }
 }
 

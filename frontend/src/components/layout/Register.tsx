@@ -295,8 +295,8 @@ function SideArtwork({ step }: { step: number }) {
     );
 }
 
-const Register = ({ children, step, totalSteps = 3 }: RegisterProps) => {
-    const isBrandFlow = totalSteps === 3;
+const Register = ({ children, step, totalSteps = 4 }: RegisterProps) => {
+    const isBrandFlow = totalSteps === 4;
     const isFinalStep = step === totalSteps;
 
     if (isFinalStep && !isBrandFlow) {

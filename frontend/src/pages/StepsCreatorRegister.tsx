@@ -1,4 +1,4 @@
-import { CalendarDays, Check, ChevronDown, CloudUpload, Eye, EyeClosed, Globe, Grid2X2, Instagram, Lock, Mail, MapPin, Megaphone, Phone, Play, Rocket, User, Users, X, Youtube } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, Eye, EyeClosed, Globe, Grid2X2, Instagram, Lock, Mail, MapPin, Megaphone, Phone, Play, Rocket, User, Users, X, Youtube } from "lucide-react";
 import HtmlInput from "../HtmlComponents/HtmlInput";
 import { RegisterError, RegisterStepHeader, SelectablePill, VerificationBlock } from "../HtmlComponents/RegisterFormParts";
 import { CreatorRegisterForm, SocialAccountForm, VerificationState } from "../types";
@@ -88,6 +88,28 @@ function PreferenceTile({
   );
 }
 
+function ReviewRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-start gap-4">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#e8e0ff] text-[#4b22f4]">
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-[#65758f]">{label}</p>
+        <p className="mt-1 break-words text-base font-black text-[#202337]">{value || "Not provided"}</p>
+      </div>
+    </div>
+  );
+}
+
 function getSocialIcon(platform: SocialAccountForm["platform"]) {
   const iconClass = "h-7 w-7";
   const iconWrapperClass = "grid h-12 w-12 place-items-center rounded-xl text-white";
@@ -152,7 +174,7 @@ export const StepsCreatorRegister=({
         <div className="mt-8 grid gap-4">
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Full Name" icon={<User className="h-5 w-5" />} value={form.name} onChange={onFieldChange("name")} placeholder="Aakrit Gupta" required />
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Email Address" icon={<Mail className="h-5 w-5" />} value={form.email} onChange={onFieldChange("email")} placeholder="aakrit.gupta@gmail.com" type="email" required />
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Phone Number" icon={<Phone className="h-5 w-5" />} value={form.phone_no} onChange={onFieldChange("phone_no")} placeholder="+91 99999 44444" pattern="^\+[1-9]\d{7,14}$" type="tel" required maxLength={13} minLength={13} />
+          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Phone Number" icon={<Phone className="h-5 w-5" />} value={form.phone_no} onChange={onFieldChange("phone_no")} placeholder="99999 44444" pattern="[0-9]{10}" type="tel" required maxLength={10} minLength={10} />
           <HtmlInput
             labelClass={labelClass}
             inputClass={inputClass}
@@ -321,16 +343,18 @@ export const StepsCreatorRegister=({
 
   return (
     <>
-      <RegisterStepHeader centered title="Add your Portfolio" copy="Upload examples of your best work. You can always add more later." />
-      <div className="mt-8 grid min-h-[400px] place-items-center rounded-[24px] border-2 border-dashed border-[#d7e2ff] px-6 text-center">
-        <div>
-          <CloudUpload className="mx-auto h-16 w-16 text-[#7788ff]" />
-          <h2 className="mt-7 text-lg font-semibold text-[#202337]">Drag & drop files here</h2>
-          <p className="mt-4 text-sm font-medium text-[#707b91]">or</p>
-          <button type="button" className="mt-6 rounded-lg border-2 border-[#2447bd] px-8 py-3 text-base font-black text-[#2447bd]">
-            Upload Files
-          </button>
-          <p className="mt-5 text-sm font-medium text-[#707b91]">Supports: JPG, PNG, MP4 (Up to 200MB each)</p>
+      <RegisterStepHeader centered title="Review your profile" copy="Confirm your key details before creating your creator account." />
+      <div className="mt-8 rounded-xl border border-[#dfe4ed] p-7">
+        <div className="grid gap-7">
+          <ReviewRow icon={<User className="h-5 w-5" />} label="Full Name" value={form.name} />
+          <ReviewRow icon={<Mail className="h-5 w-5" />} label="Email" value={form.email} />
+          <ReviewRow icon={<Phone className="h-5 w-5" />} label="Phone Number" value={form.phone_no} />
+          <ReviewRow icon={<Grid2X2 className="h-5 w-5" />} label="Creator Category" value={form.category} />
+          <ReviewRow icon={<MapPin className="h-5 w-5" />} label="Location" value={form.location} />
+          <ReviewRow icon={<Globe className="h-5 w-5" />} label="Content Languages" value={form.languages.join(", ")} />
+          <ReviewRow icon={<Megaphone className="h-5 w-5" />} label="Collaboration Preferences" value={form.collaboration_preferences.join(", ")} />
+          <ReviewRow icon={<Instagram className="h-5 w-5" />} label="Selected Social Platform" value={selectedSocialPlatform || "Not selected"} />
+          <ReviewRow icon={<User className="h-5 w-5" />} label="Short Bio" value={form.bio} />
         </div>
       </div>
     </>

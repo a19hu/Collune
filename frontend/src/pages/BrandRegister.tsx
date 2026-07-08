@@ -19,15 +19,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { HtmlProgess } from "../HtmlComponents/HtmlProgress";
 import HtmlInput from "../HtmlComponents/HtmlInput";
 import { BrandSelect } from "../HtmlComponents/HtmlSelect";
-import { AuthSwitchLink, RegisterError, RegisterStepHeader, RegisterSubmitButtons } from "../HtmlComponents/RegisterFormParts";
+import { AuthSwitchLink, RegisterError, RegisterStepHeader, RegisterSubmitButtons, VerificationBlock } from "../HtmlComponents/RegisterFormParts";
 import Register from "../components/layout/Register";
 import { useAuth } from "../contexts/AuthContext";
 import { authStorage } from "../contexts/authStorage";
-import { checkEmailAvailability, registerBrandFormData } from "../lib/authApi";
+import { checkEmailAvailability, registerBrandFormData, sendOtp, verifyOtp } from "../lib/authApi";
 import { normalizePhoneNumber } from "../lib/function";
-import type { BrandRegisterForm } from "../types";
+import type { BrandRegisterForm, VerificationState } from "../types";
 
-const totalSteps = 3;
+const totalSteps = 4;
 const maxLogoSizeBytes = 2 * 1024 * 1024;
 const allowedLogoTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
 const allowedLogoExtensions = [".png", ".jpg", ".jpeg", ".webp"];
@@ -39,6 +39,7 @@ const labelClass = "mb-2 block text-xs font-black text-[#202337]";
 const initialBrandForm: BrandRegisterForm = {
   name: "",
   email: "",
+  emailOtp: "",
   phone_no: "",
   password: "",
   confirmPassword: "",
@@ -49,6 +50,19 @@ const initialBrandForm: BrandRegisterForm = {
   company_size: "",
   linkedin_url: "",
   logo: null,
+};
+
+const initialVerification: VerificationState = {
+  emailSent: false,
+  emailVerified: false,
+  phoneOtpSent: false,
+  phoneVerified: false,
+  isSendingEmail: false,
+  isSendingPhone: false,
+  isCheckingEmail: false,
+  isVerifyingPhone: false,
+  message: "",
+  error: "",
 };
 
 const industryOptions = ["Technology", "Consumer Brand", "Finance", "Education"];
@@ -80,20 +94,32 @@ type BrandStepsProps = {
   step: number;
   form: BrandRegisterForm;
   showPassword: boolean;
+  phoneOtp: string;
+  verification: VerificationState;
   onFieldChange: (field: keyof BrandRegisterForm) => (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  onEmailOtpChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onPhoneOtpChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onTermsChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onLogoChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onTogglePassword: () => void;
+  onVerifyEmailOtp: () => void;
+  onVerifyPhoneOtp: () => void;
 };
 
 function BrandRegisterSteps({
   step,
   form,
   showPassword,
+  phoneOtp,
+  verification,
   onFieldChange,
+  onEmailOtpChange,
+  onPhoneOtpChange,
   onTermsChange,
   onLogoChange,
   onTogglePassword,
+  onVerifyEmailOtp,
+  onVerifyPhoneOtp,
 }: BrandStepsProps) {
   if (step === 1) {
     return (
@@ -109,7 +135,7 @@ function BrandRegisterSteps({
         <div className="mt-12 grid gap-6">
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Full Name" icon={<User className="h-5 w-5" />} value={form.name} onChange={onFieldChange("name")} placeholder="John Smith" required />
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Work Email" icon={<Mail className="h-5 w-5" />} value={form.email} onChange={onFieldChange("email")} placeholder="john@company.com" type="email" required />
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Phone Number" icon={<Phone className="h-5 w-5" />} value={form.phone_no} onChange={onFieldChange("phone_no")} placeholder="+91 9876543210" type="tel" pattern="^\+[1-9]\d{7,14}$" required maxLength={13} minLength={13}/>
+          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Phone Number" icon={<Phone className="h-5 w-5" />} value={form.phone_no} onChange={onFieldChange("phone_no")} placeholder="99999 44444" pattern="[0-9]{10}" type="tel" required maxLength={10} minLength={10} />
           <HtmlInput
             labelClass={labelClass}
             inputClass={inputClass}
@@ -149,6 +175,46 @@ function BrandRegisterSteps({
   }
 
   if (step === 2) {
+    return (
+      <>
+        <div className="mt-12">
+          <RegisterStepHeader
+            title="Verify your contact"
+            copy="Enter the verification codes sent to your work email and phone."
+            titleClassName="text-[30px] font-black tracking-normal text-[#202337]"
+            copyClassName="mt-6 text-base font-medium text-[#65758f]"
+          />
+        </div>
+        <RegisterError message={verification.error} className="mt-6" />
+        <div className="mt-8 grid gap-7">
+          <VerificationBlock
+            icon={<Mail className="h-5 w-5" />}
+            title="Verify Email"
+            target={form.email || "your email"}
+            otp={form.emailOtp}
+            otpSent={verification.emailSent}
+            verified={verification.emailVerified}
+            isVerifying={verification.isCheckingEmail}
+            onOtpChange={onEmailOtpChange}
+            onVerify={onVerifyEmailOtp}
+          />
+          <VerificationBlock
+            icon={<Phone className="h-5 w-5" />}
+            title="Verify Phone"
+            target={form.phone_no || "your phone"}
+            otp={phoneOtp}
+            otpSent={verification.phoneOtpSent}
+            verified={verification.phoneVerified}
+            isVerifying={verification.isVerifyingPhone}
+            onOtpChange={onPhoneOtpChange}
+            onVerify={onVerifyPhoneOtp}
+          />
+        </div>
+      </>
+    );
+  }
+
+  if (step === 3) {
     return (
       <>
         <div className="mt-12">
@@ -222,6 +288,8 @@ const BrandRegister = () => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<BrandRegisterForm>(initialBrandForm);
   const [showPassword, setShowPassword] = useState(false);
+  const [phoneOtp, setPhoneOtp] = useState("");
+  const [verification, setVerification] = useState<VerificationState>(initialVerification);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
@@ -230,6 +298,10 @@ const BrandRegister = () => {
   ) => {
     if (submitError) setSubmitError("");
     setForm((current) => ({ ...current, [field]: event.target.value }));
+  };
+
+  const setVerificationStatus = (patch: Partial<VerificationState>) => {
+    setVerification((current) => ({ ...current, ...patch }));
   };
 
   const validateAccountStep = async () => {
@@ -253,6 +325,83 @@ const BrandRegister = () => {
     return true;
   };
 
+  const sendContactOtp = async (
+    channel: "EMAIL" | "PHONE",
+    target: string,
+    loadingKey: "isSendingEmail" | "isSendingPhone",
+    successPatch: Partial<VerificationState>,
+    fallbackError: string,
+  ) => {
+    setVerificationStatus({ [loadingKey]: true, error: "", message: "" });
+    try {
+      await sendOtp(channel, target);
+      setVerificationStatus(successPatch);
+      return true;
+    } catch (error) {
+      setVerificationStatus({ error: error instanceof Error ? error.message : fallbackError });
+      return false;
+    } finally {
+      setVerificationStatus({ [loadingKey]: false });
+    }
+  };
+
+  const sendBrandVerificationOtps = async () => {
+    const emailSent = await sendContactOtp(
+      "EMAIL",
+      form.email.trim(),
+      "isSendingEmail",
+      { emailSent: true, emailVerified: false, message: "Email OTP sent." },
+      "Could not send email OTP.",
+    );
+    if (!emailSent) return false;
+
+    const phoneSent = await sendContactOtp(
+      "PHONE",
+      normalizePhoneNumber(form.phone_no),
+      "isSendingPhone",
+      { phoneOtpSent: true, phoneVerified: false, message: "Phone OTP sent." },
+      "Could not send phone OTP.",
+    );
+    return phoneSent;
+  };
+
+  const verifyEmailOtp = async () => {
+    setVerificationStatus({ isCheckingEmail: true, error: "", message: "" });
+    try {
+      await verifyOtp("EMAIL", form.email.trim(), form.emailOtp);
+      setVerificationStatus({ emailVerified: true, message: "Email verified." });
+    } catch (error) {
+      setVerificationStatus({ error: error instanceof Error ? error.message : "Invalid email OTP." });
+    } finally {
+      setVerificationStatus({ isCheckingEmail: false });
+    }
+  };
+
+  const verifyPhoneOtp = async () => {
+    setVerificationStatus({ isVerifyingPhone: true, error: "", message: "" });
+    try {
+      await verifyOtp("PHONE", normalizePhoneNumber(form.phone_no), phoneOtp);
+      setVerificationStatus({ phoneVerified: true, message: "Phone number verified." });
+    } catch (error) {
+      setVerificationStatus({ error: error instanceof Error ? error.message : "Invalid phone OTP." });
+    } finally {
+      setVerificationStatus({ isVerifyingPhone: false });
+    }
+  };
+
+  const validateVerificationStep = () => {
+    const missing: string[] = [];
+    if (!verification.emailVerified) missing.push("Email OTP is not verified.");
+    if (!verification.phoneVerified) missing.push("Phone OTP is not verified.");
+
+    if (missing.length) {
+      setVerificationStatus({ error: missing.join(" "), message: "" });
+      return false;
+    }
+
+    return true;
+  };
+
   const submitBrandRegistration = async () => {
     setSubmitError("");
 
@@ -267,7 +416,7 @@ const BrandRegister = () => {
         user: {
           name: form.name.trim(),
           email: form.email.trim(),
-          phone_no: normalizePhoneNumber(form.phone_no),
+          phone_no: "+91" + normalizePhoneNumber(form.phone_no),
           password: form.password,
         },
         company_name: form.company_name.trim(),
@@ -299,7 +448,11 @@ const BrandRegister = () => {
             void submitBrandRegistration();
             return;
           }
-          if (step === 1 && !(await validateAccountStep())) return;
+          if (step === 1) {
+            if (!(await validateAccountStep())) return;
+            if (!(await sendBrandVerificationOtps())) return;
+          }
+          if (step === 2 && !validateVerificationStep()) return;
           setStep((current) => Math.min(totalSteps, current + 1));
         }}
       >
@@ -309,7 +462,11 @@ const BrandRegister = () => {
           step={step}
           form={form}
           showPassword={showPassword}
+          phoneOtp={phoneOtp}
+          verification={verification}
           onFieldChange={onFieldChange}
+          onEmailOtpChange={(event) => setForm((current) => ({ ...current, emailOtp: event.target.value.replace(/\D/g, "").slice(0, 6) }))}
+          onPhoneOtpChange={(event) => setPhoneOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
           onTermsChange={(event) => setForm((current) => ({ ...current, acceptedTerms: event.target.checked }))}
           onLogoChange={(event) => {
             const file = event.target.files?.[0] || null;
@@ -338,6 +495,8 @@ const BrandRegister = () => {
             setForm((current) => ({ ...current, logo: file }));
           }}
           onTogglePassword={() => setShowPassword((current) => !current)}
+          onVerifyEmailOtp={() => void verifyEmailOtp()}
+          onVerifyPhoneOtp={() => void verifyPhoneOtp()}
         />
 
         <RegisterError message={submitError} />
