@@ -1,4 +1,5 @@
 import type {
+  AdminCampaignTableItem,
   BrandCampaignListResponse,
   BrandCampaignDetailApi,
   BrandDashboardApi,
@@ -225,6 +226,11 @@ export async function getCreatorsList() {
     true,
   );
   return data.creators
+}
+
+export async function getAdminCampaigns() {
+  const data = await apiRequest<{ data: AdminCampaignTableItem[] }>("/admin/campaigns/", {}, true);
+  return data.data;
 }
 
 export async function getCreatorPublicProfile(creatorId: string) {

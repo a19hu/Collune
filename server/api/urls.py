@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .admin.views import VerificationView
+from .admin.views import CampaignTableView, VerificationView
 from .brand.views import (
     BrandDetailDashboardView,
     BrandProfileViewSet,
@@ -90,6 +90,7 @@ urlpatterns = [
 
 
     path("verification/<str:profile_type>/<uuid:profile_id>/", VerificationView.as_view(), name="verification"),
+    path("admin/campaigns/", CampaignTableView.as_view(), name="admin_campaigns_table"),
    
    
     path("", include(router.urls)),

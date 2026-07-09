@@ -485,6 +485,15 @@ export type BrandDashboardApi = {
   submitted_shortlists?: BrandShortlistApi[];
 };
 
+export type AdminCampaignTableItem = {
+  id: string;
+  brand_id: string;
+  title: string;
+  brand: string;
+  applications_received_count: number;
+  recommended_creators_count: number;
+};
+
 export type CreatorDashboardApi = {
   account_id?: string;
   account_created?: boolean;
