@@ -1,6 +1,7 @@
 import type {
   AdminCampaignTableItem,
   BrandCampaignListResponse,
+  BrandLogoApi,
   BrandCampaignDetailApi,
   BrandDashboardApi,
   BrandProfileApi,
@@ -211,6 +212,11 @@ export async function getBrandsList() {
   );
   if (Array.isArray(data)) return data;
   if ("results" in data) return data.results;
+  return data.brands;
+}
+
+export async function getBrandLogos() {
+  const data = await apiRequest<{ brands: BrandLogoApi[] }>("/brands/logo-carousel/");
   return data.brands;
 }
 

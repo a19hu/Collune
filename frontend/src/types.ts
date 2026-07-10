@@ -461,6 +461,11 @@ export type BrandRegisterResponse = LoginResponse & {
   brand: BrandProfileApi;
 };
 
+export type BrandLogoApi = {
+  id: string;
+  logo: string;
+};
+
 export type BrandProfileApi = {
   brand_id: string;
   company_name: string;

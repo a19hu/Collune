@@ -164,6 +164,22 @@ class BrandDetailDashboardView(APIView):
 
         }
         return Response({"brand_dashboard": result})
+
+
+class BrandLogoCarouselView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        brands = BrandProfile.objects.exclude(logo="").exclude(logo__isnull=True).order_by("company_name")
+        data = [
+            {
+                "id": str(brand.brand_id),
+                "logo": request.build_absolute_uri(brand.logo.url),
+            }
+            for brand in brands
+            if brand.logo
+        ]
+        return Response({"brands": data})
     
 class CampaignsViewSet(APIView):
     permission_classes = [IsAuthenticated, IsBrand]
@@ -758,4 +774,3 @@ class CampaignViewSet(viewsets.ModelViewSet):
         )
         serializer = CampaignApplicationSerializer(application, context={"request": request})
         return Response({"application": serializer.data}, status=status.HTTP_201_CREATED)
-

@@ -1,6 +1,8 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -85,6 +87,28 @@ class ColluneAuthTests(APITestCase):
         self.assertEqual(campaign.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Campaign.objects.count(), 1)
         self.assertEqual(BrandProfile.objects.get().campaigns.count(), 1)
+
+    def test_brand_logo_carousel_returns_only_id_and_logo(self):
+        user = get_user_model().objects.create_user(
+            username="logo-brand",
+            email="logo@brand.test",
+            password="StrongPass123!",
+        )
+        brand = BrandProfile.objects.create(
+            user=user,
+            company_name="Logo Brand",
+            industry="Technology",
+        )
+        brand.logo = SimpleUploadedFile("logo.png", b"fake-image-content", content_type="image/png")
+        brand.save(update_fields=["logo"])
+
+        response = self.client.get(reverse("brand_logo_carousel"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("brands", response.data)
+        self.assertEqual(len(response.data["brands"]), 1)
+        self.assertEqual(set(response.data["brands"][0].keys()), {"id", "logo"})
+        self.assertEqual(response.data["brands"][0]["id"], str(brand.brand_id))
 
     def test_public_lists_respect_profile_visibility(self):
         visible_brand_response = self.client.post(

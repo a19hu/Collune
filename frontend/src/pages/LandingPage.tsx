@@ -24,8 +24,8 @@ import {
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { getCreatorsList } from "../lib/authApi";
-import type { CreatorListItemApi } from "../types";
+import { getBrandLogos, getCreatorsList } from "../lib/authApi";
+import type { BrandLogoApi, CreatorListItemApi } from "../types";
 import heroCreator1 from "../assets/collune/hero-creator-1.jpg";
 import heroCreator2 from "../assets/collune/hero-creator-2.jpg";
 import heroCreator3 from "../assets/collune/hero-creator-3.jpg";
@@ -69,9 +69,11 @@ const creatorSteps = [
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const [brandLogos, setBrandLogos] = useState<BrandLogoApi[]>([]);
   const [creators, setCreators] = useState<CreatorListItemApi[]>([]);
   const [isLoadingCreators, setIsLoadingCreators] = useState(true);
   const [creatorError, setCreatorError] = useState("");
+  const [brandLogoError, setBrandLogoError] = useState("");
   const [selectedCreatorCategory, setSelectedCreatorCategory] = useState("All Creators");
   const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
   const creatorCategories = useMemo(() => {
@@ -85,6 +87,14 @@ const LandingPage = () => {
 
   useEffect(() => {
     let isMounted = true;
+
+    getBrandLogos()
+      .then((data) => {
+        if (isMounted) setBrandLogos(data);
+      })
+      .catch((error) => {
+        if (isMounted) setBrandLogoError(error instanceof Error ? error.message : "Could not load brand logos.");
+      });
 
     getCreatorsList()
       .then((data) => {
@@ -155,6 +165,17 @@ const LandingPage = () => {
         <a href="#creators" aria-label="Scroll to creators" className="absolute bottom-7 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-white text-[#9aa7c4] shadow-[0_12px_28px_rgba(68,90,158,0.1)]">
           <ArrowDown className="h-4.5 w-4.5" />
         </a>
+      </section>
+
+      <section className="bg-[#edf3ff] px-6 py-10">
+          
+          {brandLogoError ? (
+            <p className="py-6 text-center text-sm font-black text-[#bf3f5f]">{brandLogoError}</p>
+          ) : brandLogos.length ? (
+            <BrandLogoCarousel logos={brandLogos} />
+          ) : (
+            <p className="py-6 text-center text-sm font-black text-[#7b8aaa]">Brand logos will appear here once brands upload them.</p>
+          )}
       </section>
 
       <section id="featured-creators" className="px-6 py-20 text-center">
@@ -404,6 +425,38 @@ function HeroButton({
       {children}
       <ArrowRight className="h-4 w-4" />
     </button>
+  );
+}
+
+function BrandLogoCarousel({ logos }: { logos: BrandLogoApi[] }) {
+  return (
+    <div className="relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-[linear-gradient(90deg,#ffffff_0%,rgba(255,255,255,0)_100%)]" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-[linear-gradient(270deg,#ffffff_0%,rgba(255,255,255,0)_100%)]" />
+      <div className="animate-brand-marquee flex w-max">
+        {[0, 1].map((groupIndex) => (
+          <div
+            key={groupIndex}
+            aria-hidden={groupIndex === 1}
+            className="flex shrink-0 items-center gap-4 pr-4 md:gap-6 md:pr-6"
+          >
+            {logos.map((brand) => (
+              <div
+                key={`${groupIndex}-${brand.id}`}
+                className="flex h-24 w-40 shrink-0 items-center justify-center rounded-[20px] border border-[#e1e9ff] bg-[#f8faff] px-1 shadow-[0_10px_24px_rgba(80,105,183,0.06)]"
+              >
+                <img
+                  src={brand.logo}
+                  alt="Brand logo"
+                  className="max-h-20 w-full rounded-[20px] object-contain transition hover:grayscale-0"
+                  loading="lazy"
+                />
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

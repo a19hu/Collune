@@ -5,6 +5,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .admin.views import CampaignTableView, VerificationView
 from .brand.views import (
     BrandDetailDashboardView,
+    BrandLogoCarouselView,
     BrandProfileViewSet,
     BrandRegisterView,
     BrandCampaignApplicationViewSet,
@@ -60,6 +61,7 @@ urlpatterns = [
     path("auth/creator/profile/", CreatorProfileView.as_view(), name="creator_profile"),
 
     path("brands/dashboard/", BrandDetailDashboardView.as_view(), name="brand_dashboard"),
+    path("brands/logo-carousel/", BrandLogoCarouselView.as_view(), name="brand_logo_carousel"),
     path("creators/dashboard/", CreatorDashboardView.as_view(), name="creator_dashboard"),
     path("creator/campaigns/", CampaignsListView.as_view(), name="creator_campaigns"),
     path("creator/campaignds/<uuid:campaign_id>/", CreatorCampaignsView.as_view(), name="creator_campaigns_profile"),
