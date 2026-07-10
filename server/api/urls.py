@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .admin.views import CampaignTableView, VerificationView
+from .admin.views import BrandTableView, CampaignTableView, CreatorTableView, ShortlistTableView, VerificationView
 from .brand.views import (
     BrandDetailDashboardView,
     BrandLogoCarouselView,
@@ -92,7 +92,11 @@ urlpatterns = [
 
 
     path("verification/<str:profile_type>/<uuid:profile_id>/", VerificationView.as_view(), name="verification"),
+    path("admin/brands/", BrandTableView.as_view(), name="admin_brands_table"),
     path("admin/campaigns/", CampaignTableView.as_view(), name="admin_campaigns_table"),
+    path("admin/creators/", CreatorTableView.as_view(), name="admin_creators_table"),
+    path("admin/shortlists/", ShortlistTableView.as_view(), name="admin_shortlists_table"),
+
    
    
     path("", include(router.urls)),

@@ -498,6 +498,34 @@ export type AdminCampaignTableItem = {
   applications_received_count: number;
   recommended_creators_count: number;
 };
+export type AdminCreatorTableItem = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  category: string;
+  visibility: boolean;
+  verification: "PENDING" | "VERIFIED";
+};
+export type AdminBrandTableItem = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  industry: string;
+  visibility: boolean;
+  verification: "PENDING" | "VERIFIED";
+  campaigns_count: number;
+};
+export type AdminShortlistTableItem = {
+  id: string;
+  brand_id: string;
+  title: string;
+  brand: string;
+  creators_count: number;
+  start_date: string | null;
+  end_date: string | null;
+};
 
 export type CreatorDashboardApi = {
   account_id?: string;

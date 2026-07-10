@@ -38,7 +38,7 @@ const navItems = [
 
 const Navbar = () => {
   const { currentUser, isAuthLoading, logout } = useAuth();
-  const dashboardPath = currentUser?.role === "Brand" ? "/brand" : currentUser?.role === "Creator" ? "/creator" : "/";
+  const dashboardPath = currentUser?.role === "Brand" ? "/brand" : currentUser?.role === "Creator" ? "/creator" : "/admin";
   const userInitial = currentUser?.name?.trim().charAt(0).toUpperCase() || currentUser?.email?.trim().charAt(0).toUpperCase() || "U";
 
   return (

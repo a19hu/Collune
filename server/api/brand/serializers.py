@@ -39,6 +39,9 @@ class BrandDashboardSerializer(serializers.Serializer):
 class BrandProfileSerializer(serializers.ModelSerializer):
     user = AuthUserSerializer(read_only=True)
     logo_url = serializers.SerializerMethodField()
+    is_profile_visible = serializers.BooleanField(source="user.is_profile_visible", read_only=True)
+    verification_status = serializers.CharField(source="user.verification_status", read_only=True)
+    profile_completion = serializers.SerializerMethodField()
 
     class Meta:
         model = BrandProfile
@@ -65,6 +68,18 @@ class BrandProfileSerializer(serializers.ModelSerializer):
         if not obj.logo:
             return ""
         return request.build_absolute_uri(obj.logo.url) if request else obj.logo.url
+
+    def get_profile_completion(self, obj):
+        fields = [
+            obj.company_name,
+            obj.industry,
+            obj.website,
+            obj.company_size,
+            obj.linkedin_url,
+            obj.logo,
+        ]
+        filled = sum(bool(value) for value in fields)
+        return round((filled / len(fields)) * 100) if fields else 0
 
 
 class CampaignSerializer(serializers.ModelSerializer):

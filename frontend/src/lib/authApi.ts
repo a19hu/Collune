@@ -1,5 +1,7 @@
 import type {
+  AdminBrandTableItem,
   AdminCampaignTableItem,
+  AdminCreatorTableItem,
   BrandCampaignListResponse,
   BrandLogoApi,
   BrandCampaignDetailApi,
@@ -30,6 +32,7 @@ import type {
   OtpChannel,
   OtpResponse,
   PaginatedResponse,
+  AdminShortlistTableItem,
 } from "../types";
 import { authStorage } from "../contexts/authStorage";
 
@@ -237,6 +240,30 @@ export async function getCreatorsList() {
 export async function getAdminCampaigns() {
   const data = await apiRequest<{ data: AdminCampaignTableItem[] }>("/admin/campaigns/", {}, true);
   return data.data;
+}
+
+export async function getAdminBrands() {
+  const data = await apiRequest<{ data: AdminBrandTableItem[] }>("/admin/brands/", {}, true);
+  return data.data;
+}
+
+export async function getAdminCreators() {
+  const data = await apiRequest<{ data: AdminCreatorTableItem[] }>("/admin/creators/", {}, true);
+  return data.data;
+}
+
+export async function getAdminShortlists() {
+  const data = await apiRequest<{ data: AdminShortlistTableItem[] }>("/admin/shortlists/", {}, true);
+  return data.data;
+}
+
+export async function updateAdminVerification(profileType: "brands" | "creators", profileId: string, verificationStatus: "PENDING" | "VERIFIED") {
+  const data = await apiPatch<{ profile: unknown }>(
+    `/verification/${profileType}/${profileId}/`,
+    { verification_status: verificationStatus },
+    true,
+  );
+  return data.profile;
 }
 
 export async function getCreatorPublicProfile(creatorId: string) {
