@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Permission
 from django.db.models import Count, Q
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -6,6 +7,7 @@ from rest_framework.views import APIView
 
 from ..models import BrandProfile
 from ..permissions import IsAdminUserRole
+from .serializers import AdminManagedUserSerializer, AdminPermissionSerializer, AdminUserCreateSerializer
 from ..brand.serializers import BrandProfileSerializer
 from ..creator.serializers import CreatorProfileSerializer
 from ..models import (
@@ -30,6 +32,42 @@ class VerificationView(APIView):
         profile.save(update_fields=["updated_at"])
         serializer_class = BrandProfileSerializer if profile_type == "brands" else CreatorProfileSerializer
         return Response({"profile": serializer_class(profile, context={"request": request}).data})
+
+
+class PermissionTableView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUserRole]
+
+    def get(self, request):
+        permissions = Permission.objects.select_related("content_type").order_by(
+            "content_type__app_label",
+            "content_type__model",
+            "name",
+        )
+        return Response({"data": AdminPermissionSerializer(permissions, many=True).data})
+
+
+class AdminUserManagementView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUserRole]
+
+    def get(self, request):
+        users = (
+            User.objects.exclude(role__in=[UserRole.BRAND, UserRole.CREATOR])
+            .prefetch_related("user_permissions__content_type")
+            .order_by("-created_at")
+        )
+        role = request.query_params.get("role")
+        if role in UserRole.values:
+            users = users.filter(role=role)
+        return Response({"data": AdminManagedUserSerializer(users, many=True).data})
+
+    def post(self, request):
+        serializer = AdminUserCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(
+            {"user": AdminManagedUserSerializer(user).data},
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class CampaignTableView(APIView):

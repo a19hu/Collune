@@ -498,6 +498,32 @@ export type AdminCampaignTableItem = {
   applications_received_count: number;
   recommended_creators_count: number;
 };
+export type AdminPermissionItem = {
+  id: number;
+  name: string;
+  codename: string;
+  app_label: string;
+  model: string;
+};
+export type AdminManagedUserItem = {
+  user_id: string;
+  name: string;
+  email: string;
+  phone_no: string | null;
+  role: "ADMIN" | "BRAND" | "CREATOR";
+  verification_status: "PENDING" | "VERIFIED";
+  is_profile_visible: boolean;
+  is_active: boolean;
+  permissions: AdminPermissionItem[];
+};
+export type AdminCreateUserPayload = {
+  name: string;
+  email: string;
+  phone_no?: string;
+  password: string;
+  role: "ADMIN" | "BRAND" | "CREATOR";
+  permissions: number[];
+};
 export type AdminCreatorTableItem = {
   id: string;
   name: string;

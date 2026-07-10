@@ -1,6 +1,7 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+from django.contrib.auth.models import Permission
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
@@ -109,6 +110,35 @@ class ColluneAuthTests(APITestCase):
         self.assertEqual(len(response.data["brands"]), 1)
         self.assertEqual(set(response.data["brands"][0].keys()), {"id", "logo"})
         self.assertEqual(response.data["brands"][0]["id"], str(brand.brand_id))
+
+    def test_admin_can_create_user_with_role_and_permissions(self):
+        admin = get_user_model().objects.create_user(
+            username="admin-user-manager",
+            email="admin.manager@test.com",
+            password="StrongPass123!",
+            role=UserRole.ADMIN,
+        )
+        self.client.force_authenticate(user=admin)
+        permission = Permission.objects.get(codename="view_campaign")
+
+        response = self.client.post(
+            reverse("admin_users_table"),
+            {
+                "name": "Managed User",
+                "email": "managed.user@test.com",
+                "phone_no": "+15551234567",
+                "password": "StrongPass123!",
+                "role": UserRole.ADMIN,
+                "permissions": [permission.id],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["user"]["role"], UserRole.ADMIN)
+        self.assertEqual(response.data["user"]["email"], "managed.user@test.com")
+        self.assertEqual(len(response.data["user"]["permissions"]), 1)
+        self.assertEqual(response.data["user"]["permissions"][0]["codename"], "view_campaign")
 
     def test_public_lists_respect_profile_visibility(self):
         visible_brand_response = self.client.post(

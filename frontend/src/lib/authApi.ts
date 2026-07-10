@@ -1,7 +1,10 @@
 import type {
   AdminBrandTableItem,
   AdminCampaignTableItem,
+  AdminCreateUserPayload,
   AdminCreatorTableItem,
+  AdminManagedUserItem,
+  AdminPermissionItem,
   BrandCampaignListResponse,
   BrandLogoApi,
   BrandCampaignDetailApi,
@@ -239,6 +242,21 @@ export async function getCreatorsList() {
 
 export async function getAdminCampaigns() {
   const data = await apiRequest<{ data: AdminCampaignTableItem[] }>("/admin/campaigns/", {}, true);
+  return data.data;
+}
+
+export async function getAdminUsers() {
+  const data = await apiRequest<{ data: AdminManagedUserItem[] }>("/admin/users/", {}, true);
+  return data.data;
+}
+
+export async function createAdminUser(payload: AdminCreateUserPayload) {
+  const data = await apiPost<{ user: AdminManagedUserItem }>("/admin/users/", payload, true);
+  return data.user;
+}
+
+export async function getAdminPermissions() {
+  const data = await apiRequest<{ data: AdminPermissionItem[] }>("/admin/permissions/", {}, true);
   return data.data;
 }
 
