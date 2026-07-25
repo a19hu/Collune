@@ -198,6 +198,7 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
 FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:3000")
+MOBILE_APP_URL = env("MOBILE_APP_URL", default="collune://")
 META_APP_ID = env("META_APP_ID", default="")
 META_APP_SECRET = env("META_APP_SECRET", default="")
 INSTAGRAM_CLIENT_ID = env("INSTAGRAM_CLIENT_ID", default=META_APP_ID)

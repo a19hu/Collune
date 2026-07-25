@@ -51,6 +51,11 @@ function getAuthHeader() {
   return "";
 }
 
+function detectOAuthClient() {
+  if (typeof navigator === "undefined") return "web";
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ? "app" : "web";
+}
+
 function formatApiError(data: unknown): string {
   if (typeof data === "string") return data;
   if (!data || typeof data !== "object") return "Request failed";
@@ -295,7 +300,11 @@ export async function updateCreatorProfile(payload: FormData) {
 }
 
 function oauthReturnQuery(returnTo?: "registration") {
-  return returnTo ? `?return_to=${encodeURIComponent(returnTo)}` : "";
+  const params = new URLSearchParams();
+  if (returnTo) params.set("return_to", returnTo);
+  params.set("client", detectOAuthClient());
+  const query = params.toString();
+  return query ? `?${query}` : "";
 }
 
 export async function getInstagramConnectUrl(returnTo?: "registration") {

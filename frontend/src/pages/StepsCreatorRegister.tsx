@@ -1,4 +1,4 @@
-import { CalendarDays, Check, ChevronDown, Eye, EyeClosed, Globe, Grid2X2, Instagram, Lock, Mail, MapPin, Megaphone, Phone, Play, Rocket, User, Users, X, Youtube } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, Eye, EyeClosed, Globe, Grid2X2, Instagram, Lock, Mail, MapPin, MapPinned, Megaphone, Phone, Play, Rocket, User, Users, X, Youtube } from "lucide-react";
 import HtmlInput from "../HtmlComponents/HtmlInput";
 import { RegisterError, RegisterStepHeader, SelectablePill, VerificationBlock } from "../HtmlComponents/RegisterFormParts";
 import { CreatorRegisterForm, SocialAccountForm, VerificationState } from "../types";
@@ -22,6 +22,145 @@ const collaborationOptions = [
   { title: "Events", copy: "Participate in brand events and meetups", icon: <CalendarDays className="h-7 w-7" /> },
   { title: "Webinars", copy: "Join or host webinars and live sessions", icon: <Globe className="h-7 w-7" /> },
 ];
+
+type AddressFieldKey = "country" | "state" | "district" | "city" | "postalCode" | "streetAddress";
+
+type AddressParts = Record<AddressFieldKey, string>;
+
+const emptyAddressParts: AddressParts = {
+  country: "",
+  state: "",
+  district: "",
+  city: "",
+  postalCode: "",
+  streetAddress: "",
+};
+
+const addressFieldOrder: AddressFieldKey[] = ["country", "state", "district", "city", "postalCode", "streetAddress"];
+
+const addressFieldMeta: Array<{
+  key: AddressFieldKey;
+  label: string;
+  placeholder: string;
+  optional?: boolean;
+}> = [
+  { key: "country", label: "Country", placeholder: "India" },
+  { key: "state", label: "State", placeholder: "Delhi" },
+  { key: "district", label: "District", placeholder: "Central Delhi" },
+  { key: "city", label: "City", placeholder: "New Delhi" },
+  { key: "postalCode", label: "Postal Code", placeholder: "110001" },
+  { key: "streetAddress", label: "Street Address", placeholder: "House no., building, street", optional: true },
+];
+
+function parseLocationParts(location: string): AddressParts {
+  if (!location.trim()) return emptyAddressParts;
+
+  const structuredParts = location.split("|").reduce<Partial<AddressParts>>((accumulator, item) => {
+    const [rawKey, ...rest] = item.split(":");
+    const key = rawKey?.trim().toLowerCase() as AddressFieldKey | undefined;
+    if (!key || !addressFieldOrder.includes(key)) return accumulator;
+    accumulator[key] = rest.join(":").trim();
+    return accumulator;
+  }, {});
+
+  if (Object.keys(structuredParts).length > 0) {
+    return { ...emptyAddressParts, ...structuredParts };
+  }
+
+  const fallbackParts = location.split(",").map((part) => part.trim()).filter(Boolean);
+  return {
+    ...emptyAddressParts,
+    city: fallbackParts[0] || "",
+    state: fallbackParts[1] || "",
+    country: fallbackParts[2] || "",
+  };
+}
+
+function formatLocationParts(parts: AddressParts) {
+  return addressFieldOrder
+    .map((key) => `${key}: ${parts[key].trim()}`)
+    .filter((item) => !item.endsWith(":"))
+    .join(" | ");
+}
+
+function getLocationDisplayValue(location: string) {
+  const parts = parseLocationParts(location);
+  return [
+    parts.streetAddress,
+    parts.city,
+    parts.district,
+    parts.state,
+    parts.country,
+    parts.postalCode ? `PIN ${parts.postalCode}` : "",
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
+function AddressField({
+  label,
+  placeholder,
+  value,
+  optional = false,
+  onChange,
+}: {
+  label: string;
+  placeholder: string;
+  value: string;
+  optional?: boolean;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-xs font-semibold text-[#4c5880]">
+        {label}
+        {optional ? " (Optional)" : ""}
+      </span>
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="h-12 w-full rounded-xl border border-[#d8e2fb] bg-white px-4 text-sm font-semibold text-[#173ca8] outline-none transition placeholder:text-[#9aa7bf] focus:border-[#6d7eff] focus:ring-4 focus:ring-[#6d7eff]/10"
+      />
+    </label>
+  );
+}
+
+function AddressComposer({
+  location,
+  onChange,
+}: {
+  location: string;
+  onChange: (value: string) => void;
+}) {
+  const parts = parseLocationParts(location);
+
+  const updatePart = (key: AddressFieldKey, value: string) => {
+    onChange(formatLocationParts({ ...parts, [key]: value }));
+  };
+
+  return (
+    <section className="block">
+      <span className="mb-2 block text-xs font-semibold text-[#202337]">Location Details</span>
+      <div className="rounded-2xl border border-[#d8e2fb] bg-[#f7f9ff] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+        <div className="mt-3 h-[228px] overflow-y-auto pr-1">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {addressFieldMeta.map((field) => (
+              <AddressField
+                // key={field.key}
+                label={field.label}
+                placeholder={field.placeholder}
+                optional={field.optional}
+                value={parts[field.key]}
+                onChange={(value) => updatePart(field.key, value)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function SocialCard({
   icon,
@@ -140,6 +279,7 @@ type StepContentProps = {
   selectedSocialPlatform: SocialAccountForm["platform"] | "";
   connectingPlatform: string;
   onFieldChange: (field: keyof CreatorRegisterForm) => (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  onLocationChange: (value: string) => void;
   onEmailOtpChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onPhoneOtpChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onConnectSocial: (platform: SocialAccountForm["platform"]) => void;
@@ -159,6 +299,7 @@ export const StepsCreatorRegister=({
   selectedSocialPlatform,
   connectingPlatform,
   onFieldChange,
+  onLocationChange,
   onEmailOtpChange,
   onPhoneOtpChange,
   onConnectSocial,
@@ -268,7 +409,7 @@ export const StepsCreatorRegister=({
               <ChevronDown className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#707b91]" />
             </span>
           </label>
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Location" icon={<MapPin className="h-5 w-5" />} value={form.location} onChange={onFieldChange("location")} placeholder="New Delhi, India" />
+          <AddressComposer location={form.location} onChange={onLocationChange} />
           <label className="block">
             <span className="mb-2 block text-xs font-semibold text-[#202337]">Gender</span>
             <span className="relative block">
@@ -350,7 +491,7 @@ export const StepsCreatorRegister=({
           <ReviewRow icon={<Mail className="h-5 w-5" />} label="Email" value={form.email} />
           <ReviewRow icon={<Phone className="h-5 w-5" />} label="Phone Number" value={form.phone_no} />
           <ReviewRow icon={<Grid2X2 className="h-5 w-5" />} label="Creator Category" value={form.category} />
-          <ReviewRow icon={<MapPin className="h-5 w-5" />} label="Location" value={form.location} />
+          <ReviewRow icon={<MapPin className="h-5 w-5" />} label="Location" value={getLocationDisplayValue(form.location)} />
           <ReviewRow icon={<Globe className="h-5 w-5" />} label="Content Languages" value={form.languages.join(", ")} />
           <ReviewRow icon={<Megaphone className="h-5 w-5" />} label="Collaboration Preferences" value={form.collaboration_preferences.join(", ")} />
           <ReviewRow icon={<Instagram className="h-5 w-5" />} label="Selected Social Platform" value={selectedSocialPlatform || "Not selected"} />

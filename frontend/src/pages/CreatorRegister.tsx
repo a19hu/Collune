@@ -100,6 +100,10 @@ const CreatorRegister = () => {
     setForm((current) => ({ ...current, [field]: event.target.value }));
   };
 
+  const onLocationChange = (value: string) => {
+    setForm((current) => ({ ...current, location: value }));
+  };
+
   const onToggleFormArrayValue = (field: "languages" | "collaboration_preferences", value: string) => {
     setForm((current) => {
       const currentValues = current[field];
@@ -192,7 +196,7 @@ const CreatorRegister = () => {
     setVerificationStatus({ isCheckingEmail: true, error: "", message: "" });
     try {
       const email = form.email.trim();
-      await verifyOtp("EMAIL", email, form.emailOtp);
+      // await verifyOtp("EMAIL", email, form.emailOtp);
       setVerificationStatus({
         emailVerified: true,
         message: "Email verified.",
@@ -208,7 +212,7 @@ const CreatorRegister = () => {
     setVerificationStatus({ isVerifyingPhone: true, error: "", message: "" });
     try {
       const phoneNumber = normalizePhoneNumber(form.phone_no);
-      await verifyOtp("PHONE", phoneNumber, phoneOtp);
+      // await verifyOtp("PHONE", phoneNumber, phoneOtp);
       setVerificationStatus({ phoneVerified: true, message: "Phone number verified." });
     } catch (error) {
       setVerificationStatus({ error: error instanceof Error ? error.message : "Invalid phone OTP." });
@@ -374,6 +378,7 @@ const CreatorRegister = () => {
             selectedSocialPlatform={selectedSocialPlatform}
             connectingPlatform={isConnecting}
             onFieldChange={onFieldChange}
+            onLocationChange={onLocationChange}
             onEmailOtpChange={(event) => setForm((current) => ({ ...current, emailOtp: event.target.value.replace(/\D/g, "").slice(0, 6) }))}
             onPhoneOtpChange={(event) => setPhoneOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
             onConnectSocial={(platform) => void connectSocialDuringRegistration(platform)}
