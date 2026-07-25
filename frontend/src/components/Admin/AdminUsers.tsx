@@ -41,10 +41,10 @@ export function AdminUsers() {
   const deferredAvailableFilter = useDeferredValue(availableFilter);
   const deferredChosenFilter = useDeferredValue(chosenFilter);
 
-  const selectedRoleTemplate = useMemo(
-    () => roleTemplates.find((template) => template.role === form.role) ?? null,
-    [form.role, roleTemplates],
-  );
+  // const selectedRoleTemplate = useMemo(
+  //   () => roleTemplates.find((template) => template.role === form.role) ?? null,
+  //   [form.role, roleTemplates],
+  // );
 
   useEffect(() => {
     let mounted = true;
@@ -218,7 +218,7 @@ export function AdminUsers() {
             </label>
           </div>
 
-          <div className="mt-4 grid gap-4 md:max-w-xs">
+          {/* <div className="mt-4 grid gap-4 md:max-w-xs">
             <label className="flex items-center gap-3 rounded-lg border border-[#d6def3] bg-[#f8faff] px-4 py-3 text-sm font-black text-[#1d203a]">
               <input
                 type="checkbox"
@@ -227,9 +227,9 @@ export function AdminUsers() {
               />
               Active
             </label>
-          </div>
+          </div> */}
 
-          {selectedRoleTemplate ? (
+          {/* {selectedRoleTemplate ? (
             <div className="mt-5 rounded-2xl border border-[#dbe4fb] bg-[#f7f9ff] p-4">
               <p className="text-sm font-black text-[#1d203a]">{selectedRoleTemplate.label}</p>
               <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#667085]">{selectedRoleTemplate.purpose}</p>
@@ -238,7 +238,7 @@ export function AdminUsers() {
                 Default permission bundle: <span className="font-black text-[#1d203a]">{selectedRoleTemplate.permission_count}</span>
               </p>
             </div>
-          ) : null}
+          ) : null} */}
 
           <div className="mt-6 grid gap-4 xl:grid-cols-[1fr_auto_1fr]">
             <div className="grid gap-3">

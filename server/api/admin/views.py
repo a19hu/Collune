@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from ..models import BrandProfile
 from ..permissions import IsAdminUserRole
 from .serializers import AdminManagedUserSerializer, AdminPermissionSerializer, AdminUserCreateSerializer
-from .services import build_role_templates
+from .services import build_role_templates, filter_admin_permissions
 from ..brand.serializers import BrandProfileSerializer
 from ..creator.serializers import CreatorProfileSerializer
 from ..models import (
@@ -39,10 +39,12 @@ class PermissionTableView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUserRole]
 
     def get(self, request):
-        permissions = Permission.objects.select_related("content_type").order_by(
-            "content_type__app_label",
-            "content_type__model",
-            "name",
+        permissions = filter_admin_permissions(
+            Permission.objects.select_related("content_type").order_by(
+                "content_type__app_label",
+                "content_type__model",
+                "name",
+            )
         )
         serialized_permissions = AdminPermissionSerializer(permissions, many=True).data
         return Response({"data": serialized_permissions, "role_templates": build_role_templates(permissions)})

@@ -139,6 +139,22 @@ class ColluneAuthTests(APITestCase):
         self.assertEqual(response.data["user"]["email"], "managed.user@test.com")
         self.assertIn("view_campaign", [item["codename"] for item in response.data["user"]["permissions"]])
 
+    def test_admin_permissions_table_hides_internal_models(self):
+        admin = get_user_model().objects.create_user(
+            username="admin-permissions-manager",
+            email="admin.permissions@test.com",
+            password="StrongPass123!",
+            role=UserRole.ADMIN,
+        )
+        self.client.force_authenticate(user=admin)
+
+        response = self.client.get(reverse("admin_permissions_table"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        hidden_models = {"session", "token", "contenttype", "tokenproxy", "permission", "group", "otpverification"}
+        response_models = {item["model"] for item in response.data["data"]}
+        self.assertTrue(hidden_models.isdisjoint(response_models))
+
     def test_public_lists_respect_profile_visibility(self):
         visible_brand_response = self.client.post(
             reverse("brand_register"),

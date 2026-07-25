@@ -4,6 +4,17 @@ from django.contrib.auth.models import Permission
 
 from ..models import UserRole
 
+EXCLUDED_PERMISSION_MODELS = {
+    "session",
+    "token",
+    "contenttype",
+    "tokenproxy",
+    "permission",
+    "group",
+    "otpverification",
+    "logentry"
+}
+
 ROLE_DETAILS = {
     UserRole.SUPER_ADMIN: {
         "label": "Super Admin",
@@ -75,8 +86,16 @@ def _matches_rule(permission: Permission, models: set[str], actions: set[str]) -
     return action in actions and model_name in models
 
 
+def filter_admin_permissions(permissions: Iterable[Permission]) -> list[Permission]:
+    return [
+        permission
+        for permission in permissions
+        if permission.content_type.model.lower() not in EXCLUDED_PERMISSION_MODELS
+    ]
+
+
 def get_default_permissions_for_role(role: str, permissions: Iterable[Permission] | None = None) -> list[Permission]:
-    queryset = list(
+    queryset = filter_admin_permissions(
         permissions
         if permissions is not None
         else Permission.objects.select_related("content_type").order_by("content_type__app_label", "content_type__model", "name")
