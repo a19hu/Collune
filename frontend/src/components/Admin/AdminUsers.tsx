@@ -1,7 +1,13 @@
 import { useDeferredValue, useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { createAdminUser, getAdminPermissions, getAdminUsers } from "../../lib/authApi";
-import type { AdminCreateUserPayload, AdminManagedUserItem, AdminPermissionItem } from "../../types";
+import type {
+  AdminCreateUserPayload,
+  AdminManagedUserItem,
+  AdminPermissionItem,
+  AdminRoleTemplateItem,
+  InternalUserRoleCode,
+} from "../../types";
 import { AdminPanel, AdminSectionHeader } from "./AdminUi";
 
 const initialForm: AdminCreateUserPayload = {
@@ -10,12 +16,18 @@ const initialForm: AdminCreateUserPayload = {
   phone_no: "",
   password: "",
   role: "ADMIN",
+  is_active: true,
   permissions: [],
 };
+
+function formatRoleLabel(role: string) {
+  return role.replaceAll("_", " ");
+}
 
 export function AdminUsers() {
   const [users, setUsers] = useState<AdminManagedUserItem[]>([]);
   const [permissions, setPermissions] = useState<AdminPermissionItem[]>([]);
+  const [roleTemplates, setRoleTemplates] = useState<AdminRoleTemplateItem[]>([]);
   const [form, setForm] = useState<AdminCreateUserPayload>(initialForm);
   const [availableSelection, setAvailableSelection] = useState<number[]>([]);
   const [chosenSelection, setChosenSelection] = useState<number[]>([]);
@@ -29,14 +41,24 @@ export function AdminUsers() {
   const deferredAvailableFilter = useDeferredValue(availableFilter);
   const deferredChosenFilter = useDeferredValue(chosenFilter);
 
+  const selectedRoleTemplate = useMemo(
+    () => roleTemplates.find((template) => template.role === form.role) ?? null,
+    [form.role, roleTemplates],
+  );
+
   useEffect(() => {
     let mounted = true;
 
     Promise.all([getAdminUsers(), getAdminPermissions()])
-      .then(([userItems, permissionItems]) => {
+      .then(([userItems, permissionResponse]) => {
         if (!mounted) return;
         setUsers(userItems);
-        setPermissions(permissionItems);
+        setPermissions(permissionResponse.data);
+        setRoleTemplates(permissionResponse.role_templates);
+        const defaultTemplate = permissionResponse.role_templates.find((template) => template.role === initialForm.role);
+        if (defaultTemplate) {
+          setForm((current) => ({ ...current, permissions: defaultTemplate.permission_ids }));
+        }
       })
       .catch((err) => {
         if (mounted) setError(err instanceof Error ? err.message : "Unable to load admin user data.");
@@ -68,6 +90,17 @@ export function AdminUsers() {
     });
   }, [permissions, selectedIds, deferredChosenFilter]);
 
+  function applyRoleTemplate(role: InternalUserRoleCode) {
+    const template = roleTemplates.find((item) => item.role === role);
+    setForm((current) => ({
+      ...current,
+      role,
+      permissions: template ? template.permission_ids : [],
+    }));
+    setAvailableSelection([]);
+    setChosenSelection([]);
+  }
+
   function moveToChosen() {
     if (!availableSelection.length) return;
     setForm((current) => ({
@@ -98,7 +131,11 @@ export function AdminUsers() {
         phone_no: form.phone_no?.trim() || "",
       });
       setUsers((current) => [user, ...current]);
-      setForm(initialForm);
+      const defaultTemplate = roleTemplates.find((template) => template.role === initialForm.role);
+      setForm({
+        ...initialForm,
+        permissions: defaultTemplate ? defaultTemplate.permission_ids : [],
+      });
       setAvailableSelection([]);
       setChosenSelection([]);
       setAvailableFilter("");
@@ -113,7 +150,10 @@ export function AdminUsers() {
 
   return (
     <div>
-      <AdminSectionHeader title="Users" copy="Create internal users, assign the admin role, and attach Django permissions for feature access." />
+      <AdminSectionHeader
+        title="Users"
+        copy="Create internal workspace users, apply the PDF role templates, and adjust direct permissions where needed."
+      />
       {error ? <p className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-black text-[#b42318]">{error}</p> : null}
       {success ? <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-black text-[#067647]">{success}</p> : null}
 
@@ -166,13 +206,39 @@ export function AdminUsers() {
               Role
               <select
                 value={form.role}
-                onChange={(event) => setForm((current) => ({ ...current, role: event.target.value as AdminCreateUserPayload["role"] }))}
+                onChange={(event) => applyRoleTemplate(event.target.value as InternalUserRoleCode)}
                 className="h-11 rounded-lg border border-[#d6def3] bg-white px-3 font-semibold text-[#1d203a]"
               >
-                <option value="ADMIN">ADMIN</option>
+                {roleTemplates.map((template) => (
+                  <option key={template.role} value={template.role}>
+                    {template.label}
+                  </option>
+                ))}
               </select>
             </label>
           </div>
+
+          <div className="mt-4 grid gap-4 md:max-w-xs">
+            <label className="flex items-center gap-3 rounded-lg border border-[#d6def3] bg-[#f8faff] px-4 py-3 text-sm font-black text-[#1d203a]">
+              <input
+                type="checkbox"
+                checked={Boolean(form.is_active)}
+                onChange={(event) => setForm((current) => ({ ...current, is_active: event.target.checked }))}
+              />
+              Active
+            </label>
+          </div>
+
+          {selectedRoleTemplate ? (
+            <div className="mt-5 rounded-2xl border border-[#dbe4fb] bg-[#f7f9ff] p-4">
+              <p className="text-sm font-black text-[#1d203a]">{selectedRoleTemplate.label}</p>
+              <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#667085]">{selectedRoleTemplate.purpose}</p>
+              <p className="mt-2 text-sm font-semibold text-[#465064]">{selectedRoleTemplate.description}</p>
+              <p className="mt-3 text-sm font-semibold text-[#465064]">
+                Default permission bundle: <span className="font-black text-[#1d203a]">{selectedRoleTemplate.permission_count}</span>
+              </p>
+            </div>
+          ) : null}
 
           <div className="mt-6 grid gap-4 xl:grid-cols-[1fr_auto_1fr]">
             <div className="grid gap-3">
@@ -264,35 +330,39 @@ export function AdminUsers() {
 
       {isLoading ? <p className="rounded-xl border border-[#dfe5ee] bg-white p-5 text-sm font-black text-[#657084]">Loading users...</p> : null}
       {!isLoading ? (
-        <AdminPanel className="overflow-hidden">
-          <div className="grid border-b border-[#edf1fb] bg-[#f7f9ff] px-5 py-4 text-xs font-black uppercase text-[#657084]" style={{ gridTemplateColumns: "1.2fr 0.8fr 0.8fr 0.8fr 1.6fr" }}>
-            <span>User</span>
-            <span>Role</span>
-            <span>Visibility</span>
-            <span>Status</span>
-            <span>Permissions</span>
-          </div>
-          <div className="divide-y divide-[#edf1fb]">
-            {users.length ? users.map((user) => (
-              <div key={user.user_id} className="grid gap-3 px-5 py-4 text-sm text-[#334260]" style={{ gridTemplateColumns: "1.2fr 0.8fr 0.8fr 0.8fr 1.6fr" }}>
-                <div className="min-w-0">
-                  <p className="truncate font-black text-[#1d203a]">{user.name}</p>
-                  <p className="truncate text-xs font-semibold text-[#7a8496]">{user.email}</p>
+        <div className="grid gap-4">
+          {users.length ? users.map((user) => (
+            <AdminPanel className="p-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <p className="font-black text-[#1d203a]">{user.name}</p>
+                  <p className="text-sm font-semibold text-[#657084]">{user.email}</p>
+                  <p className="mt-2 text-sm font-semibold text-[#334260]">{formatRoleLabel(user.role)}</p>
                 </div>
-                <span className="font-semibold">{user.role}</span>
-                <span className="font-semibold">{user.is_profile_visible ? "Visible" : "Hidden"}</span>
-                <span className="font-semibold">{user.verification_status}</span>
-                <span className="truncate font-semibold">
+                <div className="grid gap-1 text-sm font-semibold text-[#465064]">
+                  <span>Status: {user.is_active ? "Active" : "Inactive"}</span>
+                  <span>Verification: {user.verification_status}</span>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-2 text-sm font-semibold text-[#465064] md:grid-cols-2">
+                <p>Visibility: <span className="font-black text-[#1d203a]">{user.is_profile_visible ? "Visible" : "Hidden"}</span></p>
+                <p>Phone: <span className="font-black text-[#1d203a]">{user.phone_no || "None"}</span></p>
+              </div>
+
+              <p className="mt-3 text-sm font-semibold text-[#465064]">
+                Permissions:{" "}
+                <span className="font-black text-[#1d203a]">
                   {user.permissions.length
-                    ? `${user.permissions.length} assigned: ${user.permissions.slice(0, 3).map((permission) => permission.codename).join(", ")}${user.permissions.length > 3 ? "..." : ""}`
+                    ? `${user.permissions.length} assigned: ${user.permissions.slice(0, 4).map((permission) => permission.codename).join(", ")}${user.permissions.length > 4 ? "..." : ""}`
                     : "No direct permissions"}
                 </span>
-              </div>
-            )) : (
-              <div className="px-5 py-4 text-sm font-black text-[#657084]">No users found.</div>
-            )}
-          </div>
-        </AdminPanel>
+              </p>
+            </AdminPanel>
+          )) : (
+            <AdminPanel className="p-5 text-sm font-black text-[#657084]">No users found.</AdminPanel>
+          )}
+        </div>
       ) : null}
     </div>
   );

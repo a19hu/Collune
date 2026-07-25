@@ -42,7 +42,13 @@ def parse_payload(request):
 
 def auth_user_payload(user):
     role_map = {
+        UserRole.SUPER_ADMIN: "Super Admin",
         UserRole.ADMIN: "Admin",
+        UserRole.OPERATIONS_MANAGER: "Operations Manager",
+        UserRole.SALES_MARKETING_MANAGER: "Sales & Marketing Manager",
+        UserRole.PROJECT_MANAGER: "Project Manager",
+        UserRole.ANALYTICS_MANAGER: "Analytics Manager",
+        UserRole.TEAM_MEMBER: "Team Member / Executive",
         UserRole.BRAND: "Brand",
         UserRole.CREATOR: "Creator",
     }
@@ -50,7 +56,7 @@ def auth_user_payload(user):
         "id": str(user.user_id),
         "name": user.name or user.profile_name,
         "email": user.email,
-        "role": role_map.get(user.role, "Super Admin"),
+        "role": role_map.get(user.role, user.role),
         "verification_status":user.verification_status
     }
 

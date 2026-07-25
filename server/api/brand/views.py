@@ -704,7 +704,7 @@ class BrandProfileViewSet(viewsets.ModelViewSet):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_queryset(self):
-        if self.request.user.role == UserRole.ADMIN:
+        if self.request.user.role in UserRole.internal_roles():
             return BrandProfile.objects.select_related("user").all()
         if self.request.user.role == UserRole.BRAND:
             return BrandProfile.objects.select_related("user").filter(user=self.request.user)

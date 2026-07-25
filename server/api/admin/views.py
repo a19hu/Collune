@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from ..models import BrandProfile
 from ..permissions import IsAdminUserRole
 from .serializers import AdminManagedUserSerializer, AdminPermissionSerializer, AdminUserCreateSerializer
+from .services import build_role_templates
 from ..brand.serializers import BrandProfileSerializer
 from ..creator.serializers import CreatorProfileSerializer
 from ..models import (
@@ -43,7 +44,8 @@ class PermissionTableView(APIView):
             "content_type__model",
             "name",
         )
-        return Response({"data": AdminPermissionSerializer(permissions, many=True).data})
+        serialized_permissions = AdminPermissionSerializer(permissions, many=True).data
+        return Response({"data": serialized_permissions, "role_templates": build_role_templates(permissions)})
 
 
 class AdminUserManagementView(APIView):

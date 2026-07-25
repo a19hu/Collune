@@ -5,6 +5,7 @@ import type {
   AdminCreatorTableItem,
   AdminManagedUserItem,
   AdminPermissionItem,
+  AdminRoleTemplateItem,
   BrandCampaignListResponse,
   BrandLogoApi,
   BrandCampaignDetailApi,
@@ -261,8 +262,7 @@ export async function createAdminUser(payload: AdminCreateUserPayload) {
 }
 
 export async function getAdminPermissions() {
-  const data = await apiRequest<{ data: AdminPermissionItem[] }>("/admin/permissions/", {}, true);
-  return data.data;
+  return apiRequest<{ data: AdminPermissionItem[]; role_templates: AdminRoleTemplateItem[] }>("/admin/permissions/", {}, true);
 }
 
 export async function getAdminBrands() {

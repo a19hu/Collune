@@ -111,7 +111,7 @@ class ColluneAuthTests(APITestCase):
         self.assertEqual(set(response.data["brands"][0].keys()), {"id", "logo"})
         self.assertEqual(response.data["brands"][0]["id"], str(brand.brand_id))
 
-    def test_admin_can_create_user_with_role_and_permissions(self):
+    def test_admin_can_create_internal_user_with_role_template_and_permissions(self):
         admin = get_user_model().objects.create_user(
             username="admin-user-manager",
             email="admin.manager@test.com",
@@ -128,17 +128,16 @@ class ColluneAuthTests(APITestCase):
                 "email": "managed.user@test.com",
                 "phone_no": "+15551234567",
                 "password": "StrongPass123!",
-                "role": UserRole.ADMIN,
+                "role": UserRole.OPERATIONS_MANAGER,
                 "permissions": [permission.id],
             },
             format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["user"]["role"], UserRole.ADMIN)
+        self.assertEqual(response.data["user"]["role"], UserRole.OPERATIONS_MANAGER)
         self.assertEqual(response.data["user"]["email"], "managed.user@test.com")
-        self.assertEqual(len(response.data["user"]["permissions"]), 1)
-        self.assertEqual(response.data["user"]["permissions"][0]["codename"], "view_campaign")
+        self.assertIn("view_campaign", [item["codename"] for item in response.data["user"]["permissions"]])
 
     def test_public_lists_respect_profile_visibility(self):
         visible_brand_response = self.client.post(

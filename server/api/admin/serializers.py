@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from ..common.services import generate_username
 from ..models import User, UserRole
+from .services import get_default_permissions_for_role
 
 
 class AdminPermissionSerializer(serializers.ModelSerializer):
@@ -38,6 +39,7 @@ class AdminUserCreateSerializer(serializers.Serializer):
     phone_no = serializers.CharField(max_length=20, required=False, allow_blank=True)
     password = serializers.CharField(write_only=True, min_length=8)
     role = serializers.ChoiceField(choices=UserRole.choices)
+    is_active = serializers.BooleanField(required=False, default=True)
     permissions = serializers.PrimaryKeyRelatedField(
         queryset=Permission.objects.select_related("content_type").all(),
         many=True,
@@ -56,14 +58,15 @@ class AdminUserCreateSerializer(serializers.Serializer):
         return value
 
     def validate_role(self, value):
-        if value != UserRole.ADMIN:
-            raise serializers.ValidationError("Only internal admin users can be created from this section.")
+        if value not in UserRole.internal_roles():
+            raise serializers.ValidationError("Only internal workspace users can be created from this section.")
         return value
 
     def create(self, validated_data):
         permissions = validated_data.pop("permissions", [])
         email = validated_data["email"]
         role = validated_data["role"]
+        default_permissions = get_default_permissions_for_role(role)
         user = User.objects.create_user(
             username=generate_username(email),
             email=email,
@@ -71,8 +74,11 @@ class AdminUserCreateSerializer(serializers.Serializer):
             name=validated_data["name"],
             phone_no=validated_data.get("phone_no") or None,
             role=role,
+            is_active=validated_data.get("is_active", True),
         )
-        if permissions:
-            user.user_permissions.set(permissions)
+        permission_ids = {permission.id for permission in default_permissions}
+        permission_ids.update(permission.id for permission in permissions)
+        if permission_ids:
+            user.user_permissions.set(Permission.objects.filter(id__in=permission_ids))
 
         return user

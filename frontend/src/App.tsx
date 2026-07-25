@@ -37,13 +37,25 @@ import AdminBrands from './components/Admin/AdminBrands.tsx';
 import AdminCampaigns from './components/Admin/AdminCampaigns.tsx';
 import AdminShortlists from './components/Admin/AdminShortlists.tsx';
 
+function isInternalWorkspaceRole(role: UserAccount["role"]) {
+    return role !== "Brand" && role !== "Creator";
+}
+
+function getDashboardPath(role: UserAccount["role"]) {
+    return role === "Brand" ? "/brand" : role === "Creator" ? "/creator" : "/admin";
+}
+
 function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
     const { currentUser, isAuthLoading } = useAuth();
 
     if (isAuthLoading) return <LoadingPage />;
     if (!currentUser) return <Navigate to="/login" replace />;
-    if (currentUser.role !== allowedRole) {
-        return <Navigate to={currentUser.role === 'Admin' ? '/admin' : currentUser.role === 'Brand' ? '/brand' : currentUser.role === 'Creator' ? '/creator' : '/'} replace />;
+    if (allowedRole === "Admin") {
+        if (!isInternalWorkspaceRole(currentUser.role)) {
+            return <Navigate to={getDashboardPath(currentUser.role)} replace />;
+        }
+    } else if (currentUser.role !== allowedRole) {
+        return <Navigate to={getDashboardPath(currentUser.role)} replace />;
     }
 
     return <Outlet />;

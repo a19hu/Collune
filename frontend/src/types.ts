@@ -1,7 +1,25 @@
+export type InternalUserRoleLabel =
+  | "Super Admin"
+  | "Admin"
+  | "Operations Manager"
+  | "Sales & Marketing Manager"
+  | "Project Manager"
+  | "Analytics Manager"
+  | "Team Member / Executive";
+
+export type InternalUserRoleCode =
+  | "SUPER_ADMIN"
+  | "ADMIN"
+  | "OPERATIONS_MANAGER"
+  | "SALES_MARKETING_MANAGER"
+  | "PROJECT_MANAGER"
+  | "ANALYTICS_MANAGER"
+  | "TEAM_MEMBER";
+
 export type UserAccount = {
   name: string;
   email: string;
-  role: 'Admin' | 'Creator' | 'Brand';
+  role: InternalUserRoleLabel | 'Creator' | 'Brand';
   verification_status:string;
 };
 
@@ -505,12 +523,20 @@ export type AdminPermissionItem = {
   app_label: string;
   model: string;
 };
+export type AdminRoleTemplateItem = {
+  role: InternalUserRoleCode;
+  label: InternalUserRoleLabel;
+  purpose: string;
+  description: string;
+  permission_ids: number[];
+  permission_count: number;
+};
 export type AdminManagedUserItem = {
   user_id: string;
   name: string;
   email: string;
   phone_no: string | null;
-  role: "ADMIN" | "BRAND" | "CREATOR";
+  role: InternalUserRoleCode | "BRAND" | "CREATOR";
   verification_status: "PENDING" | "VERIFIED";
   is_profile_visible: boolean;
   is_active: boolean;
@@ -521,7 +547,8 @@ export type AdminCreateUserPayload = {
   email: string;
   phone_no?: string;
   password: string;
-  role: "ADMIN" | "BRAND" | "CREATOR";
+  role: InternalUserRoleCode;
+  is_active?: boolean;
   permissions: number[];
 };
 export type AdminCreatorTableItem = {

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Compass, FileText, LayoutDashboard, LifeBuoy, Menu, MousePointerClick, Search, ShieldCheck, Sparkles, Users, X } from "lucide-react";
+import type { InternalUserRoleLabel } from "../../types";
 
-type TutorialRole = "Brand" | "Creator" | "Admin";
+type TutorialRole = "Brand" | "Creator" | InternalUserRoleLabel;
 
 type TutorialStep = {
   title: string;
@@ -119,7 +120,7 @@ export function WebsiteTutorial({ role, userEmail }: { role: TutorialRole; userE
   const [isOpen, setIsOpen] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
-  const steps = useMemo(() => role === "Admin" ? adminSteps : role === "Brand" ? brandSteps : creatorSteps, [role]);
+  const steps = useMemo(() => role === "Brand" ? brandSteps : role === "Creator" ? creatorSteps : adminSteps, [role]);
   const storageKey = useMemo(() => getStorageKey(role, userEmail), [role, userEmail]);
   const step = steps[stepIndex];
   const Icon = step.icon;

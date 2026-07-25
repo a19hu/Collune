@@ -6,9 +6,27 @@ from django.utils import timezone
 
 
 class UserRole(models.TextChoices):
+    SUPER_ADMIN = "SUPER_ADMIN", "Super Admin"
     ADMIN = "ADMIN", "Admin"
+    OPERATIONS_MANAGER = "OPERATIONS_MANAGER", "Operations Manager"
+    SALES_MARKETING_MANAGER = "SALES_MARKETING_MANAGER", "Sales & Marketing Manager"
+    PROJECT_MANAGER = "PROJECT_MANAGER", "Project Manager"
+    ANALYTICS_MANAGER = "ANALYTICS_MANAGER", "Analytics Manager"
+    TEAM_MEMBER = "TEAM_MEMBER", "Team Member / Executive"
     BRAND = "BRAND", "Brand"
     CREATOR = "CREATOR", "Creator"
+
+    @classmethod
+    def internal_roles(cls):
+        return (
+            cls.SUPER_ADMIN,
+            cls.ADMIN,
+            cls.OPERATIONS_MANAGER,
+            cls.SALES_MARKETING_MANAGER,
+            cls.PROJECT_MANAGER,
+            cls.ANALYTICS_MANAGER,
+            cls.TEAM_MEMBER,
+        )
 
 
 class VerificationStatus(models.TextChoices):
