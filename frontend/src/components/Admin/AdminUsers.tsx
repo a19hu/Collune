@@ -152,7 +152,6 @@ export function AdminUsers() {
     <div>
       <AdminSectionHeader
         title="Users"
-        copy="Create internal workspace users, apply the PDF role templates, and adjust direct permissions where needed."
       />
       {error ? <p className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-black text-[#b42318]">{error}</p> : null}
       {success ? <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-black text-[#067647]">{success}</p> : null}

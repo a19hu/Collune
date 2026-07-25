@@ -1,9 +1,9 @@
-import { type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import SideBar from "./SideBar";
 import type { SidebarMode } from "./SideBar";
-import { BadgeCheck, ChevronDown, Plus } from "lucide-react";
+import { BadgeCheck, ChevronDown, Menu, Plus } from "lucide-react";
 import { HeaderButton } from "@/src/HtmlComponents/HtmlButton";
 import type { UserAccount } from "../../types";
 import { WebsiteTutorial } from "./WebsiteTutorial";
@@ -26,6 +26,7 @@ type DashboardTopBarProps = DashboardUserMenuProps & {
   title: string;
   status?: "verified-creator" | "verified-brand" | "under-review";
   actions?: ReactNode;
+  onOpenSidebar?: () => void;
 };
 
 const statusPillStyles = {
@@ -92,12 +93,22 @@ function DashboardUserMenu({ currentUser, logout, profilePath }: DashboardUserMe
   );
 }
 
-function DashboardTopBar({ title, status, actions, currentUser, logout, profilePath }: DashboardTopBarProps) {
+function DashboardTopBar({ title, status, actions, currentUser, logout, profilePath, onOpenSidebar }: DashboardTopBarProps) {
   return (
     <header data-tour="topbar" className="mb-10 flex min-h-[72px] flex-wrap items-center justify-between gap-5 border-b border-[#eef2fb] bg-white pb-6">
-      <h1 className="text-[22px] font-black tracking-normal text-[#173ca8]">
-        {title}
-      </h1>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onOpenSidebar}
+          className="grid h-11 w-11 place-items-center rounded-2xl border border-[#dce5fb] bg-[#f5f7ff] text-[#214bc0] lg:hidden"
+          aria-label="Open sidebar"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        <h1 className="text-[22px] font-black tracking-normal text-[#173ca8]">
+          {title}
+        </h1>
+      </div>
       <div data-tour="topbar-actions" className="flex flex-wrap items-center gap-5">
         {actions}
         {status ? <VerificationPill status={status} /> : null}
@@ -111,11 +122,23 @@ export const SideBarLayout = () => {
   const { currentUser, logout } = useAuth();
   const { mode, pathname } = useDashboardState();
   const navigate = useNavigate();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const isBrand = mode === "brand";
   const isAdmin = mode === "admin";
   const profilePath = isAdmin ? "/admin" : isBrand ? "/brand" : "/creator/profile";
   const isVerified = currentUser.verification_status === "VERIFIED"
   const brandStatus = isVerified ? "verified-brand" : "under-review";
+
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = isMobileSidebarOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileSidebarOpen]);
 
   function TopComponentsCreator() {
     const topRoutes = [
@@ -132,6 +155,7 @@ export const SideBarLayout = () => {
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
           />
         ),
       },
@@ -148,6 +172,7 @@ export const SideBarLayout = () => {
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
           />
         ),
       },
@@ -160,6 +185,7 @@ export const SideBarLayout = () => {
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
           />
         ),
       },
@@ -172,6 +198,7 @@ export const SideBarLayout = () => {
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
           />
         ),
       },
@@ -184,6 +211,7 @@ export const SideBarLayout = () => {
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
           />
         ),
       },
@@ -209,6 +237,7 @@ export const SideBarLayout = () => {
         currentUser={currentUser}
         logout={logout}
         profilePath={profilePath}
+        onOpenSidebar={() => setIsMobileSidebarOpen(true)}
       />
     );
   }
@@ -228,6 +257,7 @@ export const SideBarLayout = () => {
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
             actions={isVerified ? (
               <>
                 <HeaderButton onClick={() => navigate("/brand/campaigns/new_create")} variant="solid">
@@ -251,6 +281,7 @@ export const SideBarLayout = () => {
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
             actions={
               <HeaderButton onClick={() => navigate("/creator/marketplace")} variant="solid">
                 Browse Campaigns
@@ -268,6 +299,7 @@ export const SideBarLayout = () => {
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
           />
         ),
       },
@@ -280,6 +312,7 @@ export const SideBarLayout = () => {
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
           />
         ),
       },
@@ -304,6 +337,7 @@ export const SideBarLayout = () => {
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
             actions={isVerified ? (
               <HeaderButton onClick={() => navigate("/brand/shortlists/new_create")} variant="solid">
                 <Plus className="h-5 w-5" />
@@ -322,6 +356,7 @@ export const SideBarLayout = () => {
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
             actions={isVerified ? (
               <HeaderButton onClick={() => navigate("/brand/campaigns/new_create")} variant="solid">
                 <Plus className="h-5 w-5" />
@@ -338,7 +373,12 @@ export const SideBarLayout = () => {
 
   return (
     <div className="min-h-screen bg-white font-sans text-[#1d203a]">
-      <SideBar isVerified={isVerified} mode={mode} />
+      <SideBar
+        isVerified={isVerified}
+        mode={mode}
+        isMobileOpen={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+      />
 
       <div className="lg:pl-[270px]">
         <main className="min-h-[calc(100vh-98px)] bg-white px-6 py-0 lg:px-8">

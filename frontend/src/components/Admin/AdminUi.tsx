@@ -32,7 +32,7 @@ export function AdminMetricCard({
   );
 }
 
-export function AdminSectionHeader({ title, copy }: { title: string; copy: string }) {
+export function AdminSectionHeader({ title, copy }: { title: string; copy?: string }) {
   return (
     <div className="mb-6">
       <h2 className="text-[26px] font-black tracking-normal text-[#1d203a]">{title}</h2>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BadgeCheck, Building2, ChevronDown, CircleHelp, FileText, Home, ListChecks, LogOut, Settings, ShieldCheck, ShoppingBag, Star, UserRound, Users } from "lucide-react";
+import { BadgeCheck, Building2, ChevronDown, CircleHelp, FileText, Home, ListChecks, LogOut, ShieldCheck, ShoppingBag, Star, UserRound, Users, X } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import logo from "../../assets/Logo.svg";
 import { useAuth } from "../../contexts/AuthContext";
@@ -32,7 +32,14 @@ const navByMode = {
   ],
 };
 
-export function SideBar({ isVerified = false, mode = "creator" }: { isVerified?: boolean; mode?: SidebarMode }) {
+type SideBarProps = {
+  isVerified?: boolean;
+  mode?: SidebarMode;
+  isMobileOpen?: boolean;
+  onCloseMobile?: () => void;
+};
+
+export function SideBar({ isVerified = false, mode = "creator", isMobileOpen = false, onCloseMobile }: SideBarProps) {
   const navItems = navByMode[mode];
   const { currentUser, logout } = useAuth();
   const [brandProfile, setBrandProfile] = useState<BrandProfileApi | null>(null);
@@ -72,115 +79,143 @@ export function SideBar({ isVerified = false, mode = "creator" }: { isVerified?:
     return () => document.removeEventListener("mousedown", closeOnOutsideClick);
   }, [isBrandMenuOpen]);
 
+  useEffect(() => {
+    if (!isMobileOpen) {
+      setIsBrandMenuOpen(false);
+    }
+  }, [isMobileOpen]);
+
   return (
-    <aside data-tour="sidebar" className="fixed inset-y-0 left-0 z-30 hidden w-[270px] flex-col border-r border-[#eef1f6] bg-[#f5f7ff] lg:flex">
-      <div className="px-16 pb-6 pt-6">
-    <Link to='/'>
-        <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
-    </Link>
-
-      </div>
-
-      {isBrand || isAdmin ? (
-        <div ref={brandMenuRef} data-tour="brand-account-switcher" className="relative px-4 pb-5">
+    <>
+      <div
+        className={`fixed inset-0 z-30 bg-[#0b1633]/40 transition-opacity lg:hidden ${
+          isMobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={onCloseMobile}
+        aria-hidden={!isMobileOpen}
+      />
+      <aside
+        data-tour="sidebar"
+        className={`fixed inset-y-0 left-0 z-40 flex w-[270px] flex-col border-r border-[#eef1f6] bg-[#f5f7ff] transition-transform duration-300 lg:z-30 lg:translate-x-0 ${
+          isMobileOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:flex`}
+      >
+        <div className="flex items-center justify-between px-6 pb-6 pt-6 lg:px-16">
+          <Link to="/" onClick={onCloseMobile}>
+            <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
+          </Link>
           <button
             type="button"
-            onClick={() => setIsBrandMenuOpen((open) => !open)}
-            className="flex h-[58px] w-full items-center gap-3 rounded-lg border border-[#e1e6ef] bg-white px-3 text-left shadow-sm"
+            onClick={onCloseMobile}
+            className="grid h-10 w-10 place-items-center rounded-full border border-[#dce5fb] bg-white text-[#214bc0] lg:hidden"
+            aria-label="Close sidebar"
           >
-            {isAdmin ? (
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#173fb5] text-white">
-                <ShieldCheck className="h-5 w-5" />
-              </span>
-            ) : brandProfile?.logo_url ? (
-              <img src={brandProfile.logo_url} alt={brandName} className="h-9 w-9 rounded-md object-cover" />
-            ) : (
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#4b22ff] text-sm font-black text-white">
-                {brandInitials}
-              </span>
-            )}
-            <span className="min-w-0 flex-1 truncate text-sm font-black text-black">{isAdmin ? currentUser?.name || "Admin" : brandName}</span>
-            <ChevronDown className={`h-5 w-5 text-[#657084] transition ${isBrandMenuOpen ? "rotate-180" : ""}`} />
+            <X className="h-5 w-5" />
           </button>
-
-          {isBrandMenuOpen ? (
-            <div className="absolute left-4 right-4 top-[68px] z-40 rounded-lg border border-[#e1e6ef] bg-white p-2 shadow-[0_12px_30px_rgba(20,30,60,0.14)]">
-              <div className="border-b border-[#eef1f6] px-3 py-3">
-                <p className="truncate text-sm font-black text-[#1d203a]">{isAdmin ? currentUser?.name || "Admin" : brandName}</p>
-                <p className="mt-1 truncate text-xs font-medium text-[#657084]">{currentUser?.email || (isAdmin ? "Admin account" : "Brand account")}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => void logout()}
-                className="mt-2 flex h-10 w-full items-center gap-3 rounded-md px-3 text-sm font-black text-[#d23b3b] hover:bg-[#fff1f1]"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign out
-              </button>
-            </div>
-          ) : null}
         </div>
-      ) : null}
 
-      <nav data-tour="sidebar-nav" className="grid gap-2 px-4">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const locked = !isVerified && item.lockedWhenUnverified;
+        {isBrand || isAdmin ? (
+          <div ref={brandMenuRef} data-tour="brand-account-switcher" className="relative px-4 pb-5">
+            <button
+              type="button"
+              onClick={() => setIsBrandMenuOpen((open) => !open)}
+              className="flex h-[58px] w-full items-center gap-3 rounded-lg border border-[#e1e6ef] bg-white px-3 text-left shadow-sm"
+            >
+              {isAdmin ? (
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#173fb5] text-white">
+                  <ShieldCheck className="h-5 w-5" />
+                </span>
+              ) : brandProfile?.logo_url ? (
+                <img src={brandProfile.logo_url} alt={brandName} className="h-9 w-9 rounded-md object-cover" />
+              ) : (
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#4b22ff] text-sm font-black text-white">
+                  {brandInitials}
+                </span>
+              )}
+              <span className="min-w-0 flex-1 truncate text-sm font-black text-black">{isAdmin ? currentUser?.name || "Admin" : brandName}</span>
+              <ChevronDown className={`h-5 w-5 text-[#657084] transition ${isBrandMenuOpen ? "rotate-180" : ""}`} />
+            </button>
 
-          if (locked) {
+            {isBrandMenuOpen ? (
+              <div className="absolute left-4 right-4 top-[68px] z-40 rounded-lg border border-[#e1e6ef] bg-white p-2 shadow-[0_12px_30px_rgba(20,30,60,0.14)]">
+                <div className="border-b border-[#eef1f6] px-3 py-3">
+                  <p className="truncate text-sm font-black text-[#1d203a]">{isAdmin ? currentUser?.name || "Admin" : brandName}</p>
+                  <p className="mt-1 truncate text-xs font-medium text-[#657084]">{currentUser?.email || (isAdmin ? "Admin account" : "Brand account")}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void logout()}
+                  className="mt-2 flex h-10 w-full items-center gap-3 rounded-md px-3 text-sm font-black text-[#d23b3b] hover:bg-[#fff1f1]"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        <nav data-tour="sidebar-nav" className="grid gap-2 px-4">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const locked = !isVerified && item.lockedWhenUnverified;
+
+            if (locked) {
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  className="flex h-[46px] cursor-not-allowed items-center gap-3 rounded-lg px-4 text-left text-[15px] font-semibold text-[#9aa3b2] opacity-70"
+                  title="Available after verification"
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="flex-1">{item.label}</span>
+                  <Building2 className="h-4 w-4 text-[#7c8798]" />
+                </button>
+              );
+            }
+
             return (
-              <button
+              <NavLink
                 key={item.label}
-                type="button"
-                className="flex h-[46px] cursor-not-allowed items-center gap-3 rounded-lg px-4 text-left text-[15px] font-semibold text-[#9aa3b2] opacity-70"
-                title="Available after verification"
+                to={item.to}
+                end={item.to === `/${mode}`}
+                onClick={onCloseMobile}
+                className={({ isActive }) =>
+                  `flex h-[46px] items-center gap-3 rounded-lg px-4 text-[15px] font-semibold transition ${
+                    isActive
+                      ? "bg-[#dfe7ff] text-[#2d30ff]"
+                      : "text-[#657084] hover:bg-white hover:text-[#2d30ff]"
+                  }`
+                }
               >
                 <Icon className="h-5 w-5" />
                 <span className="flex-1">{item.label}</span>
-                <Building2 className="h-4 w-4 text-[#7c8798]" />
-              </button>
+              </NavLink>
             );
-          }
+          })}
+        </nav>
 
-          return (
-            <NavLink
-              key={item.label}
-              to={item.to}
-              end={item.to === `/${mode}`}
-              className={({ isActive }) =>
-                `flex h-[46px] items-center gap-3 rounded-lg px-4 text-[15px] font-semibold transition ${
-                   isActive
-                    ? "bg-[#dfe7ff] text-[#2d30ff]"
-                    : "text-[#657084] hover:bg-white hover:text-[#2d30ff]"
-                }`
-              }
-            >
-              <Icon className="h-5 w-5" />
-              <span className="flex-1">{item.label}</span>
-            </NavLink>
-          );
-        })}
-      </nav>
-
-      <div data-tour="support-card" className="mt-auto p-4">
-        <div className="rounded-xl bg-white p-4 shadow-sm">
-          <div className="flex items-start gap-3">
-            <CircleHelp className="mt-1 h-4 w-4 text-[#64738e]" />
-            <div>
-              <h3 className="text-sm font-black text-[#1d203a]">Need Help?</h3>
-              <p className="mt-2 text-xs font-medium leading-snug text-[#7a8496]">
-                We're here to help you succeed.
-              </p>
+        <div data-tour="support-card" className="mt-auto p-4">
+          <div className="rounded-xl bg-white p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <CircleHelp className="mt-1 h-4 w-4 text-[#64738e]" />
+              <div>
+                <h3 className="text-sm font-black text-[#1d203a]">Need Help?</h3>
+                <p className="mt-2 text-xs font-medium leading-snug text-[#7a8496]">
+                  We're here to help you succeed.
+                </p>
+              </div>
             </div>
+            <button className="mt-4 h-[62px] w-full rounded-lg border-2 border-[#64738e] text-sm font-black text-[#64738e]">
+              Contact
+              <br />
+              Support
+            </button>
           </div>
-          <button className="mt-4 h-[62px] w-full rounded-lg border-2 border-[#64738e] text-sm font-black text-[#64738e]">
-            Contact
-            <br />
-            Support
-          </button>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 
