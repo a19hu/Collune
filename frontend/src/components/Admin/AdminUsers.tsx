@@ -330,35 +330,51 @@ export function AdminUsers() {
       {isLoading ? <p className="rounded-xl border border-[#dfe5ee] bg-white p-5 text-sm font-black text-[#657084]">Loading users...</p> : null}
       {!isLoading ? (
         <div className="grid gap-4">
-          {users.length ? users.map((user) => (
-            <AdminPanel className="p-5">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                  <p className="font-black text-[#1d203a]">{user.name}</p>
-                  <p className="text-sm font-semibold text-[#657084]">{user.email}</p>
-                  <p className="mt-2 text-sm font-semibold text-[#334260]">{formatRoleLabel(user.role)}</p>
-                </div>
-                <div className="grid gap-1 text-sm font-semibold text-[#465064]">
-                  <span>Status: {user.is_active ? "Active" : "Inactive"}</span>
-                  <span>Verification: {user.verification_status}</span>
+          {users.length ? (
+            <AdminPanel className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <div className="min-w-[1100px]">
+                  <div
+                    className="grid border-b border-[#edf1fb] bg-[#f7f9ff] px-5 py-4 text-xs font-black uppercase text-[#657084]"
+                    style={{ gridTemplateColumns: "1.2fr 0.95fr 1fr 0.85fr 0.85fr 2fr" }}
+                  >
+                    <span>User</span>
+                    <span>Role</span>
+                    <span>Phone</span>
+                    <span>Status</span>
+                    <span>Visibility</span>
+                    <span>Permissions</span>
+                  </div>
+                  <div className="divide-y divide-[#edf1fb]">
+                    {users.map((user) => (
+                      <div
+                        key={user.user_id}
+                        className="grid items-start gap-3 px-5 py-4 text-sm text-[#334260]"
+                        style={{ gridTemplateColumns: "1.2fr 0.95fr 1fr 0.85fr 0.85fr 2fr" }}
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-black text-[#1d203a]">{user.name}</p>
+                          <p className="truncate text-xs font-semibold text-[#7a8496]">{user.email}</p>
+                        </div>
+                        <span className="font-semibold">{formatRoleLabel(user.role)}</span>
+                        <span className="font-semibold">{user.phone_no || "None"}</span>
+                        <div className="grid gap-1 font-semibold">
+                          <span>{user.is_active ? "Active" : "Inactive"}</span>
+                          <span className="text-[#657084]">{user.verification_status}</span>
+                        </div>
+                        <span className="font-semibold">{user.is_profile_visible ? "Visible" : "Hidden"}</span>
+                        <span className="font-semibold">
+                          {user.permissions.length
+                            ? `${user.permissions.length} assigned: ${user.permissions.map((permission) => permission.codename).join(", ")}`
+                            : "No direct permissions"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-
-              <div className="mt-4 grid gap-2 text-sm font-semibold text-[#465064] md:grid-cols-2">
-                <p>Visibility: <span className="font-black text-[#1d203a]">{user.is_profile_visible ? "Visible" : "Hidden"}</span></p>
-                <p>Phone: <span className="font-black text-[#1d203a]">{user.phone_no || "None"}</span></p>
-              </div>
-
-              <p className="mt-3 text-sm font-semibold text-[#465064]">
-                Permissions:{" "}
-                <span className="font-black text-[#1d203a]">
-                  {user.permissions.length
-                    ? `${user.permissions.length} assigned: ${user.permissions.slice(0, 4).map((permission) => permission.codename).join(", ")}${user.permissions.length > 4 ? "..." : ""}`
-                    : "No direct permissions"}
-                </span>
-              </p>
             </AdminPanel>
-          )) : (
+          ) : (
             <AdminPanel className="p-5 text-sm font-black text-[#657084]">No users found.</AdminPanel>
           )}
         </div>

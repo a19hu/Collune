@@ -48,17 +48,23 @@ export function AdminTablePlaceholder({
   columns: string[];
   rows: Array<Record<string, string>>;
 }) {
+  const gridTemplateColumns = `repeat(${columns.length}, minmax(180px, 1fr))`;
+
   return (
     <AdminPanel className="overflow-hidden">
-      <div className="grid border-b border-[#edf1fb] bg-[#f7f9ff] px-5 py-4 text-xs font-black uppercase text-[#657084]" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}>
-        {columns.map((column) => <span key={column}>{column}</span>)}
-      </div>
-      <div className="divide-y divide-[#edf1fb]">
-        {rows.map((row, index) => (
-          <div key={index} className="grid px-5 py-4 text-sm font-semibold text-[#334260]" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}>
-            {columns.map((column) => <span key={column} className="truncate pr-4">{row[column] || "-"}</span>)}
+      <div className="overflow-x-auto">
+        <div className="min-w-full">
+          <div className="grid border-b border-[#edf1fb] bg-[#f7f9ff] px-5 py-4 text-xs font-black uppercase text-[#657084]" style={{ gridTemplateColumns }}>
+            {columns.map((column) => <span key={column} className="pr-4">{column}</span>)}
           </div>
-        ))}
+          <div className="divide-y divide-[#edf1fb]">
+            {rows.map((row, index) => (
+              <div key={index} className="grid px-5 py-4 text-sm font-semibold text-[#334260]" style={{ gridTemplateColumns }}>
+                {columns.map((column) => <span key={column} className="pr-4">{row[column] || "-"}</span>)}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </AdminPanel>
   );
