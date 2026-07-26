@@ -261,15 +261,16 @@ export type BrandCampaignDetailApi = CampaignPayload & {
   applications_received_count: number;
   recommended_creators_count: number;
   applications: CampaignApplicationApi[];
-  recommended_creators: Array<{
-    creator_id: string;
-    name: string;
-    username: string;
-    email: string;
-    profile_picture: string;
-  }>;
+  recommended_creators: BrandRecommendedCreatorApi[];
   created_at: string;
   updated_at: string;
+};
+export type BrandRecommendedCreatorApi = {
+  creator_id: string;
+  name: string;
+  username: string;
+  email: string;
+  profile_picture: string;
 };
 export type BrandShortlistStatusApi = "DRAFT" | "SUBMITTED" ;
 export type BrandShortlistPayload = {

@@ -11,6 +11,7 @@ import {
   Edit3,
   ExternalLink,
   FileText,
+  ArrowRight,
   Instagram,
   Linkedin,
   Megaphone,
@@ -30,7 +31,7 @@ import creatorThree from "../../../assets/collune/creator-3.png";
 import {
   getBrandCampaignDetail,
 } from "../../../lib/authApi";
-import type { BrandCampaignDetailApi, CampaignApplicationApi, CreatorProfileApi } from "../../../types";
+import type { BrandCampaignDetailApi, BrandRecommendedCreatorApi, CampaignApplicationApi, CreatorProfileApi } from "../../../types";
 import { AddCreatorToShortlistModal } from "../Shortlists/AddCreatorToShortlistModal";
 import { CampaignPanel } from "./CampaignUi";
 
@@ -304,6 +305,41 @@ function ApplicationProfileCard({
   );
 }
 
+function RecommendedCreatorCard({
+  creator,
+  index,
+  onOpenProfile,
+}: {
+  creator: BrandRecommendedCreatorApi;
+  index: number;
+  onOpenProfile: (creatorId: string) => void;
+}) {
+  const image = creator.profile_picture || fallbackImages[index % fallbackImages.length];
+
+  return (
+    <CampaignPanel className="w-[220px] shrink-0 overflow-hidden">
+      <div className="relative aspect-[1/1] bg-[#eef2f7]">
+        <img src={image} alt={creator.name || "Creator"} className="h-full w-full object-cover" />
+        <span className="absolute left-3 top-3 rounded-full bg-[#4b22ff] px-3 py-1 text-[11px] font-black text-white">
+          Collune Pick
+        </span>
+      </div>
+      <div className="p-4">
+        <h3 className="truncate text-base font-black text-[#1d2430]">{creator.name || creator.username || "Creator"}</h3>
+        <p className="mt-1 truncate text-sm font-semibold text-[#7d8aa0]">@{creator.username || "creator"}</p>
+        <p className="mt-2 truncate text-xs font-semibold text-[#97a3b7]">{creator.email}</p>
+        <button
+          type="button"
+          onClick={() => onOpenProfile(creator.creator_id)}
+          className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-4 text-sm font-black text-[#303948]"
+        >
+          View Profile <ExternalLink className="h-4 w-4" />
+        </button>
+      </div>
+    </CampaignPanel>
+  );
+}
+
 function CreatorStat({ value, label }: { value: string; label: string }) {
   return (
     <div className="rounded-lg bg-[#f6f7fa] p-4">
@@ -373,6 +409,14 @@ export function CampaignApplicationsPage() {
   const acceptedApplications = useMemo(
     () => campaignApplications.filter((application) => application.status === "ACCEPTED"),
     [campaignApplications],
+  );
+  const recommendedCreators = useMemo(
+    () => campaign?.recommended_creators || [],
+    [campaign],
+  );
+  const recommendedCreatorsPreview = useMemo(
+    () => recommendedCreators.slice(0, 6),
+    [recommendedCreators],
   );
   const overviewRows = useMemo(() => {
     if (!campaign) return [];
@@ -534,6 +578,38 @@ export function CampaignApplicationsPage() {
                   ))}
                 </div>
               </CampaignPanel>
+
+              <section>
+                <SectionTitle
+                  title="Recommended by Collune"
+                  copy="A curated set of creator profiles recommended by Collune for this campaign."
+                  action={recommendedCreators.length > 6 ? (
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/brand/campaigns/${campaign.campaign_id || campaign.id}/recommended-creators`)}
+                      className="inline-flex h-11 items-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-5 text-sm font-black text-[#303948]"
+                    >
+                      View All
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  ) : undefined}
+                />
+                {recommendedCreatorsPreview.length ? (
+                  <div className="overflow-x-auto">
+                    <div className="flex min-w-max gap-5">
+                      {recommendedCreatorsPreview.map((creator, index) => (
+                        <RecommendedCreatorCard
+                          creator={creator}
+                          index={index}
+                          onOpenProfile={(creatorId) => navigate(`/creators/${creatorId}`)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <FeedbackPanel title="No Collune recommendations yet" copy="Recommended creators from Collune will appear here when matching profiles are prepared for this campaign." />
+                )}
+              </section>
 
               <section>
                 <SectionTitle title="Campaign Applications" copy="Creator profiles that applied to this campaign." />

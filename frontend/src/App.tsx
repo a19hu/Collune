@@ -15,6 +15,7 @@ import CreatorProfile from './components/Creator/CreatorProfile.tsx';
 import BrandDashBoard from './components/Brand/BrandDashBoard.tsx';
 import { BrandCampaigns } from './components/Brand/BrandCampaigns.tsx';
 import { CampaignApplicationsPage } from './components/Brand/Campaigns/CampaignApplicationsPage.tsx';
+import { RecommendedCreatorsPage } from './components/Brand/Campaigns/RecommendedCreatorsPage.tsx';
 import { BrandShortlists } from './components/Brand/BrandShortlists.tsx';
 import LoadingPage from './components/layout/LoadingPage.tsx';
 import type { UserAccount } from './types.ts';
@@ -112,6 +113,7 @@ const App: React.FC = () => {
                             <Route path="campaigns" element={<BrandCampaigns />} />
                             <Route path="campaigns/new_create" element={<CampaignCreateForm />} />
                             <Route path="campaigns/:campaignId/edit" element={<CampaignCreateForm />} />
+                            <Route path="campaigns/:campaignId/recommended-creators" element={<RecommendedCreatorsPage />} />
                             <Route path="campaigns/:campaignId" element={<CampaignApplicationsPage />} />
                             {/* <Route path="campaigns/:campaignId/applications" element={<CampaignApplicationsPage />} /> */}
                         </Route>

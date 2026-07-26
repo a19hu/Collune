@@ -8,6 +8,8 @@ import creator3 from "../../assets/collune/hero-creator-4.png";
 import heroCreator from "../../assets/collune/hero-creator-5.jpg";
 import socialCreator from "../../assets/collune/hero-creator-6.jpg";
 import handshakeImage from "../../assets/collune/creator-2.png";
+import creatorregi1 from "../../assets/collune/creatorregi1.png"
+import { Link } from 'react-router-dom';
 
 type RegisterProps = {
 
@@ -104,45 +106,6 @@ function BrandCardArtwork({ final = false }: { final?: boolean }) {
 
     return (
         <div className="relative mx-auto mt-12 h-[330px] w-[520px] max-w-full">
-            <div className="absolute left-0 top-20 h-14 w-full rounded-2xl bg-[#f0edff] shadow-lg" />
-            <div className="absolute left-7 top-28 -rotate-12 rounded-lg bg-[#4965f4] p-6 text-white shadow-xl">
-                <BriefcaseBusiness className="h-10 w-10" />
-            </div>
-            <div className="absolute left-32 top-36 w-52 rounded-lg bg-white p-5 shadow-xl">
-                <div className="flex items-center gap-3">
-                    <span className="grid h-12 w-12 place-items-center rounded-lg bg-[#4965f4] text-white">
-                        <FileText className="h-7 w-7" />
-                    </span>
-                    <div>
-                        <h3 className="font-black text-[#202337]">Acme Labs</h3>
-                        <p className="text-sm leading-tight text-[#697995]">Technology<br />Company</p>
-                    </div>
-                </div>
-                <div className="mt-4 h-2 rounded-full bg-[#dfe4ed]" />
-                <div className="mt-3 h-2 w-32 rounded-full bg-[#dfe4ed]" />
-            </div>
-            <div className="absolute right-7 top-14 flex gap-5">
-                {[creator2, creator3, creator1].map((image, index) => (
-                    <div key={image} className="w-[74px] rounded-lg bg-white p-3 text-center shadow-lg">
-                        <img src={image} alt="" className="mx-auto h-11 w-11 rounded-full object-cover" />
-                        <div className="mx-auto mt-2 h-1.5 w-9 rounded bg-[#dfe4ed]" />
-                        <p className="mt-2 text-[10px] font-black text-[#4462ff]">{index === 1 ? "85K" : index === 2 ? "210K" : "120K"}</p>
-                    </div>
-                ))}
-            </div>
-            <div className="absolute bottom-0 left-16 w-44 rounded-lg bg-white p-4 shadow-lg">
-                <div className="flex items-center gap-3">
-                    <span className="h-9 w-9 rounded bg-[#4965f4]" />
-                    <h4 className="text-sm font-black">Campaign Brief</h4>
-                </div>
-                {[0, 1, 2].map((item) => (
-                    <div key={item} className="mt-3 flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 fill-[#4965f4] text-white" />
-                        <span className="h-2 flex-1 rounded bg-[#dfe4ed]" />
-                    </div>
-                ))}
-            </div>
-            <TrendingUp className="absolute right-7 top-24 h-16 w-16 rotate-[-20deg] fill-[#4965f4] text-[#4965f4]" />
         </div>
     );
 }
@@ -189,7 +152,10 @@ function LeftPane({ step }: { step: number }) {
             <p className="mt-7 max-w-lg text-base font-medium leading-relaxed text-[#65758f]">
                 Create your account to discover creators, launch campaigns, and build meaningful collaborations.
             </p>
-            <BrandCardArtwork />
+            {/* <BrandCardArtwork /> */}
+            <div className="relative mx-auto mt-15 h-[330px] w-[520px] max-w-full">
+            <img src={creatorregi1} className="h-[150%]"/>
+            </div>
         </>
     );
 }
@@ -303,9 +269,9 @@ const Register = ({ children, step, totalSteps = 4 }: RegisterProps) => {
         return (
             <main className="min-h-screen bg-[#f4f6fb] p-4 text-[#202337] md:p-10">
                 <section className="relative mx-auto min-h-[calc(100vh-80px)] max-w-[1342px] overflow-hidden rounded-xl bg-white px-7 py-8 md:px-12">
-                    <a href="/" aria-label="Collune home" className="absolute left-7 top-8 inline-flex w-max md:left-12">
+                    <Link to="/" aria-label="Collune home" className="absolute left-7 top-8 inline-flex w-max md:left-12">
                         <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
-                    </a>
+                    </Link>
 
                     <div className="flex min-h-[calc(100vh-144px)] items-center justify-center pt-20">
                         {children}
@@ -317,11 +283,11 @@ const Register = ({ children, step, totalSteps = 4 }: RegisterProps) => {
 
     return (
         <main className="min-h-screen bg-[#f4f6fb] p-4 text-[#202337] md:p-[30px]">
-            <section className={`mx-auto grid min-h-[calc(100vh-60px)] max-w-[1296px] overflow-hidden rounded-[20px] bg-white ${isBrandFlow ? "lg:grid-cols-[0.85fr_1.15fr]" : "lg:grid-cols-[1fr_1fr]"}`}>
+            <section className={`mx-auto grid min-h-[calc(90vh-60px)] max-w-[1296px] overflow-hidden rounded-[20px] bg-white ${isBrandFlow ? "lg:grid-cols-[0.85fr_1.15fr]" : "lg:grid-cols-[1fr_1fr]"}`}>
                 <aside className="flex flex-col px-10 py-11 md:px-14">
-                    <a href="/" aria-label="Collune home" className="inline-flex w-max">
+                    <Link to="/" aria-label="Collune home" className="inline-flex w-max">
                         <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
-                    </a>
+                    </Link>
 
                     {isBrandFlow ? (
                         <div className="flex flex-1 flex-col">
