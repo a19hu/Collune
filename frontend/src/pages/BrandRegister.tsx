@@ -26,15 +26,12 @@ import { authStorage } from "../contexts/authStorage";
 import { checkEmailAvailability, registerBrandFormData, sendOtp, verifyOtp } from "../lib/authApi";
 import { normalizePhoneNumber } from "../lib/function";
 import type { BrandRegisterForm, VerificationState } from "../types";
+import { inputClass, labelClass } from "./StepsCreatorRegister";
 
 const totalSteps = 4;
 const maxLogoSizeBytes = 2 * 1024 * 1024;
 const allowedLogoTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
 const allowedLogoExtensions = [".png", ".jpg", ".jpeg", ".webp"];
-
-const inputClass =
-  "h-[47px] w-full rounded-lg border border-[#d9e2f2] bg-white px-11 text-sm font-medium text-[#202337] outline-none transition placeholder:text-[#95a3ba] focus:border-[#5068f2] focus:ring-4 focus:ring-[#5068f2]/10";
-const labelClass = "mb-2 block text-xs font-black text-[#202337]";
 
 const initialBrandForm: BrandRegisterForm = {
   name: "",
@@ -167,7 +164,7 @@ function BrandRegisterSteps({
           />
           <label className="flex items-center gap-3 text-sm font-medium text-[#65758f]">
             <input type="checkbox" checked={form.acceptedTerms} onChange={onTermsChange} className="h-4 w-4 rounded border-[#9aa7ba]" required />
-            I agree to the <Link className="text-[#4462ff]" to="/brand-services-terms">Terms and Conditions</Link> &<Link className="text-[#4462ff]" to="/privacy-policy">Privacy Policy</Link>
+            I agree to the <Link className="text-[#4462ff]" to="/brand-services-terms" >Terms and Conditions</Link> &<Link className="text-[#4462ff]" to="/privacy-policy">Privacy Policy</Link>
           </label>
         </div>
       </>

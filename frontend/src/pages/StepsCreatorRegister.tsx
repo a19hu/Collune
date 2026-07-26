@@ -6,9 +6,9 @@ import type { ChangeEvent, ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 
-const inputClass =
+export const inputClass =
   "h-[52px] w-full rounded-xl border border-[#d8e2fb] bg-white px-12 text-[15px] font-semibold text-[#173ca8] outline-none transition placeholder:text-[#9aa7bf] focus:border-[#6d7eff] focus:ring-4 focus:ring-[#6d7eff]/10";
-const labelClass = "mb-2 block text-xs font-semibold text-[#6e7d99]";
+export const labelClass = "mb-2 block text-xs font-semibold text-[#6e7d99]";
 
 const languageOptions = ["Hindi", "English", "Punjabi", "Tamil", "Telugu", "Bengali", "Marathi", "Gujarati", "Kannada", "Malayalam"];
 const categoryOptions = ["Political Commentary", "Business & Finance", "Lifestyle", "Technology", "Beauty", "Travel", "Education"];

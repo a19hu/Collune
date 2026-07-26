@@ -252,7 +252,7 @@ function ApplicationProfileCard({
 
   return (
     <CampaignPanel className="overflow-hidden">
-      <div className="grid md:grid-cols-[220px_minmax(0,1fr)]">
+      <div className="grid md:grid-row-[220px_minmax(0,1fr)]">
         <div className="relative aspect-[1.2/1] bg-[#eef2f7] md:aspect-auto">
           <img src={image} alt={creator?.display_name || "Creator"} className="h-full w-full object-cover" />
           <span className={`absolute left-4 top-4 grid h-9 w-9 place-items-center rounded-lg ${platformClass}`}>
@@ -297,15 +297,6 @@ function ApplicationProfileCard({
             >
               View Profile <ExternalLink className="h-4 w-4" />
             </button>
-            {creator ? (
-              <button
-                type="button"
-                onClick={() => onAddToShortlist(creator)}
-                className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-4 text-sm font-black text-[#1438c8]"
-              >
-                Add to Shortlist
-              </button>
-            ) : null}
           </div>
         </div>
       </div>
@@ -523,7 +514,6 @@ export function CampaignApplicationsPage() {
                 <SectionTitle
                   title="Campaign Overview"
                   copy="A summary of your campaign brief and requirements."
-                  action={<button type="button" className="text-sm font-black text-[#4b22ff]">Edit</button>}
                 />
                 <div className="grid gap-5">
                   {overviewRows.map((row) => (
