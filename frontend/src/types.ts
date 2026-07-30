@@ -529,11 +529,13 @@ export type AdminManagedUserItem = {
   name: string;
   email: string;
   phone_no: string | null;
-  role: "ADMIN" | "BRAND" | "CREATOR";
   verification_status: "PENDING" | "VERIFIED";
-  is_profile_visible: boolean;
   is_active: boolean;
-  permissions?: AdminPermissionItem[];
+  userrole?: {
+    role_name: InternalUserRoleCode;
+    permissions: string;
+    Purpose: string | null;
+  } | null;
 };
 export type AdminCreateUserPayload = {
   name: string;

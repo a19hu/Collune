@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
 from ..common.services import generate_username
@@ -9,12 +10,12 @@ from .services import (
 
 
 class AdminManagedUserSerializer(serializers.ModelSerializer):
-    role = serializers.CharField(read_only=True)
     userrole = serializers.SerializerMethodField()
 
     def get_userrole(self, obj):
-        role_details = getattr(obj, "role_details", None)
-        if not role_details:
+        try:
+            role_details = obj.role_details
+        except ObjectDoesNotExist:
             return None
         return {
             "role_name": role_details.role_name,

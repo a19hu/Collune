@@ -232,48 +232,43 @@ export function AdminUsers() {
           {users.length ? (
             <AdminPanel className="overflow-hidden">
               <div className="overflow-x-auto">
-                <div className="min-w-[1100px]">
+                <div className="min-w-[980px]">
                   <div
                     className="grid border-b border-[#edf1fb] bg-[#f7f9ff] px-5 py-4 text-xs font-black uppercase text-[#657084]"
-                    style={{ gridTemplateColumns: "1.2fr 0.95fr 1fr 0.85fr 0.85fr 2fr" }}
+                    style={{ gridTemplateColumns: "1.15fr 1.1fr 1fr 0.85fr 1.3fr" }}
                   >
                     <span>User</span>
-                    <span>Account Role</span>
                     <span>Phone</span>
                     <span>Status</span>
-                    <span>Visibility</span>
-                    <span>Permissions</span>
+                    <span>Active</span>
+                    <span>User Role</span>
                   </div>
                   <div className="divide-y divide-[#edf1fb]">
-                    {users.map((user) => (
-                      (() => {
-                        const permissions = user.permissions ?? [];
-                        return (
-                          <div
-                            key={user.user_id}
-                            className="grid items-start gap-3 px-5 py-4 text-sm text-[#334260]"
-                            style={{ gridTemplateColumns: "1.2fr 0.95fr 1fr 0.85fr 0.85fr 2fr" }}
-                          >
-                            <div className="min-w-0">
-                              <p className="truncate font-black text-[#1d203a]">{user.name}</p>
-                              <p className="truncate text-xs font-semibold text-[#7a8496]">{user.email}</p>
-                            </div>
-                            <span className="font-semibold">{formatRoleLabel(user.role)}</span>
-                            <span className="font-semibold">{user.phone_no || "None"}</span>
-                            <div className="grid gap-1 font-semibold">
-                              <span>{user.is_active ? "Active" : "Inactive"}</span>
-                              <span className="text-[#657084]">{user.verification_status}</span>
-                            </div>
-                            <span className="font-semibold">{user.is_profile_visible ? "Visible" : "Hidden"}</span>
-                            <span className="font-semibold">
-                              {permissions.length
-                                ? `${permissions.length} assigned: ${permissions.map((permission) => permission.codename).join(", ")}`
-                                : "No direct permissions"}
-                            </span>
+                    {users.map((user) => {
+                      const userRole = user.userrole;
+                      return (
+                        <div
+                          key={user.user_id}
+                          className="grid items-start gap-3 px-5 py-4 text-sm text-[#334260]"
+                          style={{ gridTemplateColumns: "1.15fr 1.1fr 1fr 0.85fr 1.3fr" }}
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate font-black text-[#1d203a]">{user.name}</p>
+                            <p className="truncate text-xs font-semibold text-[#7a8496]">{user.email}</p>
+                            <p className="truncate text-xs font-semibold text-[#98a2b3]">{user.user_id}</p>
                           </div>
-                        );
-                      })()
-                    ))}
+                          <span className="font-semibold">{user.phone_no || "None"}</span>
+                          <div className="grid gap-1 font-semibold">
+                            <span>{user.verification_status}</span>
+                          </div>
+                          <span className="font-semibold">{user.is_active ? "Active" : "Inactive"}</span>
+                          <div className="grid gap-1 font-semibold">
+                            <span>{userRole ? formatRoleLabel(userRole.role_name) : "No role assigned"}</span>
+                            {userRole?.Purpose ? <span className="text-xs text-[#657084]">{userRole.Purpose}</span> : null}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
