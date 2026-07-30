@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
+  AlertCircle,
   ArrowLeft,
   BarChart3,
   CalendarDays,
@@ -21,6 +22,7 @@ import {
   Target,
   Users,
   WalletCards,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -237,13 +239,11 @@ function ActivityItem({ title, time, icon: Icon, accent }: { key?: string; title
 function ApplicationProfileCard({
   application,
   index,
-  onAddToShortlist,
   onOpenProfile,
 }: {
   key?: string;
   application: CampaignApplicationApi;
   index: number;
-  onAddToShortlist: (creator: CreatorProfileApi) => void;
   onOpenProfile: (creatorId: string) => void;
 }) {
   const creator = application.creator_detail;
@@ -252,14 +252,12 @@ function ApplicationProfileCard({
   const image = creator?.profile_image_url || fallbackImages[index % fallbackImages.length];
 
   return (
-    <CampaignPanel className="overflow-hidden">
-      <div className="grid md:grid-row-[220px_minmax(0,1fr)]">
-        <div className="relative aspect-[1.2/1] bg-[#eef2f7] md:aspect-auto">
+    <CampaignPanel className="w-[220px] shrink-0 overflow-hidden">
+      <div className="relative aspect-[1/1] bg-[#eef2f7]">
           <img src={image} alt={creator?.display_name || "Creator"} className="h-full w-full object-cover" />
           <span className={`absolute left-4 top-4 grid h-9 w-9 place-items-center rounded-lg ${platformClass}`}>
             <PlatformIcon platform={platform} />
           </span>
-        </div>
 
         <div className="p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -271,12 +269,9 @@ function ApplicationProfileCard({
                 {creator?.category || "Creator"} • {creator?.location || "Location not set"}
               </p>
             </div>
-            <span className={`rounded-lg px-3 py-1.5 text-xs font-black ${statusClasses[application.status]}`}>
-              {application.status}
-            </span>
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-3">
+          <div className="mt-5 gap-4 flex-row flex-2">
             <CreatorStat value={formatFollowers(creator?.audience_size)} label="Followers" />
             <CreatorStat value={getEngagement(creator)} label="Eng. Rate" />
           </div>
@@ -300,41 +295,6 @@ function ApplicationProfileCard({
             </button>
           </div>
         </div>
-      </div>
-    </CampaignPanel>
-  );
-}
-
-function RecommendedCreatorCard({
-  creator,
-  index,
-  onOpenProfile,
-}: {
-  creator: BrandRecommendedCreatorApi;
-  index: number;
-  onOpenProfile: (creatorId: string) => void;
-}) {
-  const image = creator.profile_picture || fallbackImages[index % fallbackImages.length];
-
-  return (
-    <CampaignPanel className="w-[220px] shrink-0 overflow-hidden">
-      <div className="relative aspect-[1/1] bg-[#eef2f7]">
-        <img src={image} alt={creator.name || "Creator"} className="h-full w-full object-cover" />
-        <span className="absolute left-3 top-3 rounded-full bg-[#4b22ff] px-3 py-1 text-[11px] font-black text-white">
-          Collune Pick
-        </span>
-      </div>
-      <div className="p-4">
-        <h3 className="truncate text-base font-black text-[#1d2430]">{creator.name || creator.username || "Creator"}</h3>
-        <p className="mt-1 truncate text-sm font-semibold text-[#7d8aa0]">@{creator.username || "creator"}</p>
-        <p className="mt-2 truncate text-xs font-semibold text-[#97a3b7]">{creator.email}</p>
-        <button
-          type="button"
-          onClick={() => onOpenProfile(creator.creator_id)}
-          className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-4 text-sm font-black text-[#303948]"
-        >
-          View Profile <ExternalLink className="h-4 w-4" />
-        </button>
       </div>
     </CampaignPanel>
   );
@@ -368,9 +328,9 @@ export function CampaignApplicationsPage() {
   const navigate = useNavigate();
   const [campaign, setCampaign] = useState<BrandCampaignDetailApi | null>(null);
   const [applications, setApplications] = useState<CampaignApplicationApi[]>([]);
-  const [selectedCreator, setSelectedCreator] = useState<CreatorProfileApi | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showPermissionPopup, setShowPermissionPopup] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -402,22 +362,16 @@ export function CampaignApplicationsPage() {
     };
   }, [campaignId]);
 
-  const campaignApplications = useMemo(
+  const allApplications = useMemo(
     () => applications,
     [applications],
   );
-  const acceptedApplications = useMemo(
-    () => campaignApplications.filter((application) => application.status === "ACCEPTED"),
-    [campaignApplications],
+  const campaignApplications = useMemo(
+    () => allApplications.filter((application) => application.status === "ACCEPTED"),
+    [allApplications],
   );
-  const recommendedCreators = useMemo(
-    () => campaign?.recommended_creators || [],
-    [campaign],
-  );
-  const recommendedCreatorsPreview = useMemo(
-    () => recommendedCreators.slice(0, 6),
-    [recommendedCreators],
-  );
+  const acceptedApplications = campaignApplications;
+
   const overviewRows = useMemo(() => {
     if (!campaign) return [];
     return [
@@ -494,14 +448,14 @@ export function CampaignApplicationsPage() {
     return [
       { title: "Campaign Published", detail: formatDate(campaign?.created_at), icon: Check, accent: "green" as Accent },
       { title: "Applications Open", detail: formatDate(campaign?.created_at), icon: FileText, accent: "violet" as Accent },
-      { title: "Review In Progress", detail: campaignApplications.length ? "In Progress" : "Upcoming", icon: BarChart3, accent: campaignApplications.length ? "blue" as Accent : "muted" as Accent },
+      { title: "Review In Progress", detail: allApplications.length ? "In Progress" : "Upcoming", icon: BarChart3, accent: allApplications.length ? "blue" as Accent : "muted" as Accent },
       { title: "Creators Recommended", detail: acceptedApplications.length ? "In Progress" : "Upcoming", icon: Star, accent: acceptedApplications.length ? "orange" as Accent : "muted" as Accent },
       { title: "Collaborations Started", detail: acceptedApplications.length ? "In Progress" : "Upcoming", icon: Users, accent: acceptedApplications.length ? "green" as Accent : "muted" as Accent },
     ];
-  }, [acceptedApplications.length, campaign, campaignApplications.length]);
+  }, [acceptedApplications.length, allApplications.length, campaign]);
   const activityItems = useMemo(
     () => [
-      ...campaignApplications.slice(0, 3).map((application) => ({
+      ...allApplications.slice(0, 3).map((application) => ({
         title: `${application.creator_detail?.display_name || application.creator_detail?.user?.name || "Creator"} applied to this campaign`,
         time: formatDate(application.created_at),
         icon: Users,
@@ -514,7 +468,7 @@ export function CampaignApplicationsPage() {
         accent: "green" as Accent,
       }] : []),
     ],
-    [campaign, campaignApplications],
+    [allApplications, campaign],
   );
 
   return (
@@ -580,51 +534,20 @@ export function CampaignApplicationsPage() {
               </CampaignPanel>
 
               <section>
-                <SectionTitle
-                  title="Recommended by Collune"
-                  copy="A curated set of creator profiles recommended by Collune for this campaign."
-                  action={recommendedCreators.length > 6 ? (
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/brand/campaigns/${campaign.campaign_id || campaign.id}/recommended-creators`)}
-                      className="inline-flex h-11 items-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-5 text-sm font-black text-[#303948]"
-                    >
-                      View All
-                      <ArrowRight className="h-4 w-4" />
-                    </button>
-                  ) : undefined}
-                />
-                {recommendedCreatorsPreview.length ? (
-                  <div className="overflow-x-auto">
-                    <div className="flex min-w-max gap-5">
-                      {recommendedCreatorsPreview.map((creator, index) => (
-                        <RecommendedCreatorCard
-                          creator={creator}
-                          index={index}
-                          onOpenProfile={(creatorId) => navigate(`/creators/${creatorId}`)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <FeedbackPanel title="No Collune recommendations yet" copy="Recommended creators from Collune will appear here when matching profiles are prepared for this campaign." />
-                )}
-              </section>
-
-              <section>
-                <SectionTitle title="Campaign Applications" copy="Creator profiles that applied to this campaign." />
+                <SectionTitle 
+                title="Recommended Creators"
+                  copy="Creators recommended by Collune based on your requirements." />
                 {error ? (
                   <FeedbackPanel title="Unable to load applications" copy={error} />
                 ) : isLoading ? (
                   <FeedbackPanel title="Loading applications" copy="Fetching creator profiles for this campaign." />
                 ) : campaignApplications.length ? (
-                  <div className="grid gap-5">
+                  <div className="flex min-w-max gap-5">
                     {campaignApplications.map((application, index) => (
                       <ApplicationProfileCard
                         key={application.application_id}
                         application={application}
                         index={index}
-                        onAddToShortlist={setSelectedCreator}
                         onOpenProfile={(creatorId) => navigate(`/creators/${creatorId}`)}
                       />
                     ))}
@@ -664,7 +587,7 @@ export function CampaignApplicationsPage() {
                 </div>
 
                 <div className="grid gap-4">
-                  <StatusMetric label="Applications Received" value={campaignApplications.length} copy={`${campaignApplications.length} applications from creators`} icon={<Users className="h-5 w-5" />} accent="violet" />
+                  <StatusMetric label="Applications Received" value={allApplications.length} copy={`${allApplications.length} applications from creators`} icon={<Users className="h-5 w-5" />} accent="violet" />
                   <StatusMetric label="Recommended Creators" value={campaign.recommended_creators_count || acceptedApplications.length} copy="Shortlisted by Collune" icon={<Star className="h-5 w-5" />} accent="orange" />
                   <StatusMetric label="Collaborations Started" value={acceptedApplications.length} copy="Accepted creators" icon={<Users className="h-5 w-5" />} accent="green" />
                 </div>
@@ -677,9 +600,10 @@ export function CampaignApplicationsPage() {
 
                 <button
                   type="button"
+                  onClick={() => setShowPermissionPopup(true)}
                   className="mt-7 h-12 w-full rounded-lg border-2 border-[#4b22ff] bg-white text-base font-black text-[#4b22ff]"
                 >
-                  View Applications ({campaignApplications.length})
+                  View Applications ({allApplications.length})
                 </button>
               </CampaignPanel>
 
@@ -714,12 +638,35 @@ export function CampaignApplicationsPage() {
       ) : null}
       {!campaign && error ? <FeedbackPanel title="Unable to load applications" copy={error} /> : null}
       {!campaign && isLoading ? <FeedbackPanel title="Loading applications" copy="Fetching creator profiles for this campaign." /> : null}
-      {selectedCreator ? (
-        <AddCreatorToShortlistModal
-          creator={selectedCreator}
-          isOpen={Boolean(selectedCreator)}
-          onClose={() => setSelectedCreator(null)}
-        />
+      {showPermissionPopup ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#111827]/45 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-[0_24px_60px_rgba(17,24,39,0.25)]">
+            <div className="flex items-start justify-between gap-4">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#fff1f1] text-[#d23b3b]">
+                <AlertCircle className="h-6 w-6" />
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowPermissionPopup(false)}
+                className="grid h-9 w-9 place-items-center rounded-full text-[#7d8aa0] transition hover:bg-[#f3f6fa] hover:text-[#1d2430]"
+                aria-label="Close permission popup"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <h3 className="mt-4 text-xl font-black text-[#1d2430]">Permission Required</h3>
+            <p className="mt-3 text-sm font-medium leading-relaxed text-[#6f7d92]">
+              You do not have permission to view all campaign applications. Only recommended creators are available on this page.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowPermissionPopup(false)}
+              className="mt-6 h-11 w-full rounded-xl bg-[#4b22ff] text-sm font-black text-white"
+            >
+              Okay
+            </button>
+          </div>
+        </div>
       ) : null}
     </div>
   );

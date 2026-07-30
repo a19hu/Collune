@@ -6,6 +6,11 @@ from django.utils import timezone
 
 
 class UserRole(models.TextChoices):
+    ADMIN = "ADMIN", "Admin"
+    BRAND = "BRAND", "Brand"
+    CREATOR = "CREATOR", "Creator"
+
+class UserAdminRole(models.TextChoices):
     SUPER_ADMIN = "SUPER_ADMIN", "Super Admin"
     ADMIN = "ADMIN", "Admin"
     OPERATIONS_MANAGER = "OPERATIONS_MANAGER", "Operations Manager"
@@ -13,8 +18,6 @@ class UserRole(models.TextChoices):
     PROJECT_MANAGER = "PROJECT_MANAGER", "Project Manager"
     ANALYTICS_MANAGER = "ANALYTICS_MANAGER", "Analytics Manager"
     TEAM_MEMBER = "TEAM_MEMBER", "Team Member / Executive"
-    BRAND = "BRAND", "Brand"
-    CREATOR = "CREATOR", "Creator"
 
     @classmethod
     def internal_roles(cls):
@@ -76,6 +79,14 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.profile_name
+
+
+class UserAdminRole(models.Model):
+    role_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="role_details")
+    role_name = models.CharField(max_length=32, choices=UserAdminRole.choices, default=UserAdminRole.TEAM_MEMBER)
+    permissions = models.TextField()
+    Purpose = models.CharField(max_length=255, blank=True,null=True)
 
 
 class OtpVerification(models.Model):

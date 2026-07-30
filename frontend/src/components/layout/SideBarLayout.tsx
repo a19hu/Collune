@@ -55,7 +55,8 @@ function VerificationPill({ status }: { status: NonNullable<DashboardTopBarProps
   const pill = statusPillStyles[status];
 
   return (
-    <span className={`inline-flex h-9 items-center gap-2 rounded-[7px] px-4 text-[13px] font-black ${pill.className}`}>
+    <span 
+    className={`inline-flex h-9 items-center gap-2 rounded-[7px] px-4 text-[13px] font-black ${pill.className}`}>
       {pill.icon}
       {pill.label}
     </span>
@@ -111,7 +112,7 @@ function DashboardTopBar({ title, status, actions, currentUser, logout, profileP
       </div>
       <div data-tour="topbar-actions" className="flex flex-wrap items-center gap-5">
         {actions}
-        {status ? null : <VerificationPill status={status} /> }
+        {status ? <VerificationPill status={status} />: null }
         {
           currentUser.role == "Brand" ?  null :
           <DashboardUserMenu currentUser={currentUser} logout={logout} profilePath={profilePath} />
