@@ -524,24 +524,16 @@ export type AdminPermissionItem = {
   app_label: string;
   model: string;
 };
-export type AdminRoleTemplateItem = {
-  role: InternalUserRoleCode;
-  label: InternalUserRoleLabel;
-  purpose: string;
-  description: string;
-  permission_ids: number[];
-  permission_count: number;
-};
 export type AdminManagedUserItem = {
   user_id: string;
   name: string;
   email: string;
   phone_no: string | null;
-  role: InternalUserRoleCode | "BRAND" | "CREATOR";
+  role: "ADMIN" | "BRAND" | "CREATOR";
   verification_status: "PENDING" | "VERIFIED";
   is_profile_visible: boolean;
   is_active: boolean;
-  permissions: AdminPermissionItem[];
+  permissions?: AdminPermissionItem[];
 };
 export type AdminCreateUserPayload = {
   name: string;
@@ -550,7 +542,6 @@ export type AdminCreateUserPayload = {
   password: string;
   role: InternalUserRoleCode;
   is_active?: boolean;
-  permissions: number[];
 };
 export type AdminCreatorTableItem = {
   id: string;

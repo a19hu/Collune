@@ -1,8 +1,7 @@
-from django.contrib.auth.models import Permission
 from rest_framework import serializers
 
 from ..common.services import generate_username
-from ..models import User, UserRole, UserAdminRole
+from ..models import User, UserRole, UserAdminRole,VerificationStatus
 from .services import (
     get_internal_admin_roles,
     get_role_details,
@@ -10,6 +9,18 @@ from .services import (
 
 
 class AdminManagedUserSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(read_only=True)
+    userrole = serializers.SerializerMethodField()
+
+    def get_userrole(self, obj):
+        role_details = getattr(obj, "role_details", None)
+        if not role_details:
+            return None
+        return {
+            "role_name": role_details.role_name,
+            "permissions": role_details.permissions,
+            "Purpose": role_details.Purpose,
+        }
 
     class Meta:
         model = User
@@ -18,10 +29,9 @@ class AdminManagedUserSerializer(serializers.ModelSerializer):
             "name",
             "email",
             "phone_no",
-            "role",
             "verification_status",
-            "is_profile_visible",
             "is_active",
+            "userrole",
         ]
 
 
@@ -60,6 +70,7 @@ class AdminUserCreateSerializer(serializers.Serializer):
             name=validated_data["name"],
             phone_no=validated_data.get("phone_no") or None,
             role=UserRole.ADMIN,
+            verification_status = VerificationStatus.VERIFIED,
             is_active=validated_data.get("is_active", True),
         )
 

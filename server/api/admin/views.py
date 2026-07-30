@@ -41,13 +41,10 @@ class AdminUserManagementView(APIView):
 
     def get(self, request):
         users = (
-            User.objects.exclude(role__in=[UserRole.BRAND, UserRole.CREATOR])
-            .prefetch_related("user_permissions__content_type")
+            User.objects.filter(role=UserRole.ADMIN)
+            .select_related("role_details")
             .order_by("-created_at")
         )
-        role = request.query_params.get("role")
-        if role in UserRole.values:
-            users = users.filter(role=role)
         return Response({"data": AdminManagedUserSerializer(users, many=True).data})
 
     def post(self, request):

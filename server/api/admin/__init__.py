@@ -9,6 +9,7 @@ from ..models import (
     CreatorProfile,
     CreatorSocialAccount,
     User,
+    UserAdminRole,
 )
 
 
@@ -66,3 +67,10 @@ class BrandShortlistAdmin(admin.ModelAdmin):
     search_fields = ("title", "brand__company_name", "creators__display_name")
     list_filter = ("status",)
     filter_horizontal = ("creators",)
+
+
+@admin.register(UserAdminRole)
+class UserAdminRoleAdmin(admin.ModelAdmin):
+    list_display = ("role_id", "user", "role_name", "Purpose")
+    search_fields = ("user__email", "user__name", "role_name", "Purpose")
+    list_filter = ("role_name",)

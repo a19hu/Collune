@@ -1,11 +1,9 @@
-import { useDeferredValue, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 
-import { createAdminUser, getAdminPermissions, getAdminUsers } from "../../lib/authApi";
+import { createAdminUser, getAdminUsers } from "../../lib/authApi";
 import type {
   AdminCreateUserPayload,
   AdminManagedUserItem,
-  AdminPermissionItem,
-  AdminRoleTemplateItem,
   InternalUserRoleCode,
 } from "../../types";
 import { AdminPanel, AdminSectionHeader } from "./AdminUi";
@@ -17,48 +15,75 @@ const initialForm: AdminCreateUserPayload = {
   password: "",
   role: "ADMIN",
   is_active: true,
-  permissions: [],
 };
 
 function formatRoleLabel(role: string) {
   return role.replaceAll("_", " ");
 }
 
+const ROLE_DETAILS = {
+  SUPER_ADMIN: {
+    label: "Super Admin",
+    purpose: "Owner / Founder",
+    description: "Full access, user management, billing, settings, delete, permissions, reports, API, and all modules.",
+  },
+  ADMIN: {
+    label: "Admin",
+    purpose: "Company Administrator",
+    description: "Manage all modules except super-admin settings, create users, assign roles, and view reports.",
+  },
+  OPERATIONS_MANAGER: {
+    label: "Operations Manager",
+    purpose: "Daily Operations",
+    description: "Manage projects, client assignments, approvals, reports, and day-to-day operations.",
+  },
+  SALES_MARKETING_MANAGER: {
+    label: "Sales & Marketing Manager",
+    purpose: "Sales & Marketing",
+    description: "Handle CRM-style workflows, deals, campaigns, customer follow-up, and sales analytics.",
+  },
+  PROJECT_MANAGER: {
+    label: "Project Manager",
+    purpose: "Project Delivery",
+    description: "Create projects, assign work, track progress, approve delivery, and communicate with clients.",
+  },
+  ANALYTICS_MANAGER: {
+    label: "Analytics Manager",
+    purpose: "Reports & Insights",
+    description: "Read-only dashboards, analytics exports, and insight access.",
+  },
+  TEAM_MEMBER: {
+    label: "Team Member / Executive",
+    purpose: "Employee",
+    description: "Assigned project access, attendance, documents, and profile updates.",
+  },
+} satisfies Record<InternalUserRoleCode, { label: string; purpose: string; description: string }>;
+
+const roleOptions = Object.entries(ROLE_DETAILS).map(([role, details]) => ({
+  role: role as InternalUserRoleCode,
+  ...details,
+}));
+
 export function AdminUsers() {
   const [users, setUsers] = useState<AdminManagedUserItem[]>([]);
-  const [permissions, setPermissions] = useState<AdminPermissionItem[]>([]);
-  const [roleTemplates, setRoleTemplates] = useState<AdminRoleTemplateItem[]>([]);
   const [form, setForm] = useState<AdminCreateUserPayload>(initialForm);
-  const [availableSelection, setAvailableSelection] = useState<number[]>([]);
-  const [chosenSelection, setChosenSelection] = useState<number[]>([]);
-  const [availableFilter, setAvailableFilter] = useState("");
-  const [chosenFilter, setChosenFilter] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const deferredAvailableFilter = useDeferredValue(availableFilter);
-  const deferredChosenFilter = useDeferredValue(chosenFilter);
-
-  // const selectedRoleTemplate = useMemo(
-  //   () => roleTemplates.find((template) => template.role === form.role) ?? null,
-  //   [form.role, roleTemplates],
-  // );
+  const selectedRoleTemplate = useMemo(
+    () => roleOptions.find((template) => template.role === form.role) ?? null,
+    [form.role],
+  );
 
   useEffect(() => {
     let mounted = true;
 
-    Promise.all([getAdminUsers(), getAdminPermissions()])
-      .then(([userItems, permissionResponse]) => {
+    getAdminUsers()
+      .then((userItems) => {
         if (!mounted) return;
         setUsers(userItems);
-        setPermissions(permissionResponse.data);
-        setRoleTemplates(permissionResponse.role_templates);
-        const defaultTemplate = permissionResponse.role_templates.find((template) => template.role === initialForm.role);
-        if (defaultTemplate) {
-          setForm((current) => ({ ...current, permissions: defaultTemplate.permission_ids }));
-        }
       })
       .catch((err) => {
         if (mounted) setError(err instanceof Error ? err.message : "Unable to load admin user data.");
@@ -72,52 +97,11 @@ export function AdminUsers() {
     };
   }, []);
 
-  const selectedIds = useMemo(() => new Set(form.permissions), [form.permissions]);
-  const availablePermissions = useMemo(() => {
-    return permissions.filter((permission) => {
-      if (selectedIds.has(permission.id)) return false;
-      if (!deferredAvailableFilter.trim()) return true;
-      const haystack = `${permission.app_label} ${permission.model} ${permission.name} ${permission.codename}`.toLowerCase();
-      return haystack.includes(deferredAvailableFilter.trim().toLowerCase());
-    });
-  }, [permissions, selectedIds, deferredAvailableFilter]);
-  const chosenPermissions = useMemo(() => {
-    return permissions.filter((permission) => {
-      if (!selectedIds.has(permission.id)) return false;
-      if (!deferredChosenFilter.trim()) return true;
-      const haystack = `${permission.app_label} ${permission.model} ${permission.name} ${permission.codename}`.toLowerCase();
-      return haystack.includes(deferredChosenFilter.trim().toLowerCase());
-    });
-  }, [permissions, selectedIds, deferredChosenFilter]);
-
   function applyRoleTemplate(role: InternalUserRoleCode) {
-    const template = roleTemplates.find((item) => item.role === role);
     setForm((current) => ({
       ...current,
       role,
-      permissions: template ? template.permission_ids : [],
     }));
-    setAvailableSelection([]);
-    setChosenSelection([]);
-  }
-
-  function moveToChosen() {
-    if (!availableSelection.length) return;
-    setForm((current) => ({
-      ...current,
-      permissions: Array.from(new Set([...current.permissions, ...availableSelection])),
-    }));
-    setAvailableSelection([]);
-  }
-
-  function moveToAvailable() {
-    if (!chosenSelection.length) return;
-    const removeIds = new Set(chosenSelection);
-    setForm((current) => ({
-      ...current,
-      permissions: current.permissions.filter((id) => !removeIds.has(id)),
-    }));
-    setChosenSelection([]);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -126,21 +110,14 @@ export function AdminUsers() {
     setError("");
     setSuccess("");
     try {
-      const user = await createAdminUser({
+      await createAdminUser({
         ...form,
         phone_no: form.phone_no?.trim() || "",
       });
-      setUsers((current) => [user, ...current]);
-      const defaultTemplate = roleTemplates.find((template) => template.role === initialForm.role);
-      setForm({
-        ...initialForm,
-        permissions: defaultTemplate ? defaultTemplate.permission_ids : [],
-      });
-      setAvailableSelection([]);
-      setChosenSelection([]);
-      setAvailableFilter("");
-      setChosenFilter("");
-      setSuccess("User created successfully.");
+      const refreshedUsers = await getAdminUsers();
+      setUsers(refreshedUsers);
+      setForm(initialForm);
+      setSuccess(`User created successfully. Backend account role will appear as ADMIN; workspace role selected: ${formatRoleLabel(form.role)}.`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to create user.");
     } finally {
@@ -208,7 +185,7 @@ export function AdminUsers() {
                 onChange={(event) => applyRoleTemplate(event.target.value as InternalUserRoleCode)}
                 className="h-11 rounded-lg border border-[#d6def3] bg-white px-3 font-semibold text-[#1d203a]"
               >
-                {roleTemplates.map((template) => (
+                {roleOptions.map((template) => (
                   <option key={template.role} value={template.role}>
                     {template.label}
                   </option>
@@ -228,94 +205,16 @@ export function AdminUsers() {
             </label>
           </div> */}
 
-          {/* {selectedRoleTemplate ? (
+          {selectedRoleTemplate ? (
             <div className="mt-5 rounded-2xl border border-[#dbe4fb] bg-[#f7f9ff] p-4">
               <p className="text-sm font-black text-[#1d203a]">{selectedRoleTemplate.label}</p>
               <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#667085]">{selectedRoleTemplate.purpose}</p>
               <p className="mt-2 text-sm font-semibold text-[#465064]">{selectedRoleTemplate.description}</p>
-              <p className="mt-3 text-sm font-semibold text-[#465064]">
-                Default permission bundle: <span className="font-black text-[#1d203a]">{selectedRoleTemplate.permission_count}</span>
-              </p>
             </div>
-          ) : null} */}
-
-          <div className="mt-6 grid gap-4 xl:grid-cols-[1fr_auto_1fr]">
-            <div className="grid gap-3">
-              <div>
-                <p className="text-sm font-black text-[#1d203a]">Available user permissions</p>
-                <input
-                  value={availableFilter}
-                  onChange={(event) => setAvailableFilter(event.target.value)}
-                  placeholder="Filter"
-                  className="mt-2 h-10 w-full rounded-lg border border-[#d6def3] px-3 text-sm font-semibold text-[#1d203a]"
-                />
-              </div>
-              <select
-                multiple
-                size={14}
-                value={availableSelection.map(String)}
-                onChange={(event) =>
-                  setAvailableSelection(Array.from(event.currentTarget.selectedOptions, (option: HTMLOptionElement) => Number(option.value)))
-                }
-                className="min-h-[320px] rounded-xl border border-[#d6def3] bg-white p-3 text-sm font-semibold text-[#243a73]"
-              >
-                {availablePermissions.map((permission) => (
-                  <option key={permission.id} value={permission.id}>
-                    {permission.app_label} | {permission.model} | {permission.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-col items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={moveToChosen}
-                className="rounded-lg border border-[#cdd8f2] bg-white px-4 py-2 text-sm font-black text-[#2448bd]"
-              >
-                Choose
-              </button>
-              <button
-                type="button"
-                onClick={moveToAvailable}
-                className="rounded-lg border border-[#cdd8f2] bg-white px-4 py-2 text-sm font-black text-[#2448bd]"
-              >
-                Remove
-              </button>
-            </div>
-
-            <div className="grid gap-3">
-              <div>
-                <p className="text-sm font-black text-[#1d203a]">Chosen user permissions</p>
-                <input
-                  value={chosenFilter}
-                  onChange={(event) => setChosenFilter(event.target.value)}
-                  placeholder="Filter"
-                  className="mt-2 h-10 w-full rounded-lg border border-[#d6def3] px-3 text-sm font-semibold text-[#1d203a]"
-                />
-              </div>
-              <select
-                multiple
-                size={14}
-                value={chosenSelection.map(String)}
-                onChange={(event) =>
-                  setChosenSelection(Array.from(event.currentTarget.selectedOptions, (option: HTMLOptionElement) => Number(option.value)))
-                }
-                className="min-h-[320px] rounded-xl border border-[#d6def3] bg-white p-3 text-sm font-semibold text-[#243a73]"
-              >
-                {chosenPermissions.map((permission) => (
-                  <option key={permission.id} value={permission.id}>
-                    {permission.app_label} | {permission.model} | {permission.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          ) : null}
 
           <div className="mt-6 flex items-center justify-between gap-4">
-            <p className="text-sm font-semibold text-[#657084]">
-              Selected permissions: <span className="font-black text-[#1d203a]">{form.permissions.length}</span>
-            </p>
+            <p className="text-sm font-semibold text-[#657084]">Roles are now defined locally in the frontend.</p>
             <button
               type="submit"
               disabled={isSubmitting}
@@ -339,7 +238,7 @@ export function AdminUsers() {
                     style={{ gridTemplateColumns: "1.2fr 0.95fr 1fr 0.85fr 0.85fr 2fr" }}
                   >
                     <span>User</span>
-                    <span>Role</span>
+                    <span>Account Role</span>
                     <span>Phone</span>
                     <span>Status</span>
                     <span>Visibility</span>
@@ -347,28 +246,33 @@ export function AdminUsers() {
                   </div>
                   <div className="divide-y divide-[#edf1fb]">
                     {users.map((user) => (
-                      <div
-                        key={user.user_id}
-                        className="grid items-start gap-3 px-5 py-4 text-sm text-[#334260]"
-                        style={{ gridTemplateColumns: "1.2fr 0.95fr 1fr 0.85fr 0.85fr 2fr" }}
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate font-black text-[#1d203a]">{user.name}</p>
-                          <p className="truncate text-xs font-semibold text-[#7a8496]">{user.email}</p>
-                        </div>
-                        <span className="font-semibold">{formatRoleLabel(user.role)}</span>
-                        <span className="font-semibold">{user.phone_no || "None"}</span>
-                        <div className="grid gap-1 font-semibold">
-                          <span>{user.is_active ? "Active" : "Inactive"}</span>
-                          <span className="text-[#657084]">{user.verification_status}</span>
-                        </div>
-                        <span className="font-semibold">{user.is_profile_visible ? "Visible" : "Hidden"}</span>
-                        <span className="font-semibold">
-                          {user.permissions.length
-                            ? `${user.permissions.length} assigned: ${user.permissions.map((permission) => permission.codename).join(", ")}`
-                            : "No direct permissions"}
-                        </span>
-                      </div>
+                      (() => {
+                        const permissions = user.permissions ?? [];
+                        return (
+                          <div
+                            key={user.user_id}
+                            className="grid items-start gap-3 px-5 py-4 text-sm text-[#334260]"
+                            style={{ gridTemplateColumns: "1.2fr 0.95fr 1fr 0.85fr 0.85fr 2fr" }}
+                          >
+                            <div className="min-w-0">
+                              <p className="truncate font-black text-[#1d203a]">{user.name}</p>
+                              <p className="truncate text-xs font-semibold text-[#7a8496]">{user.email}</p>
+                            </div>
+                            <span className="font-semibold">{formatRoleLabel(user.role)}</span>
+                            <span className="font-semibold">{user.phone_no || "None"}</span>
+                            <div className="grid gap-1 font-semibold">
+                              <span>{user.is_active ? "Active" : "Inactive"}</span>
+                              <span className="text-[#657084]">{user.verification_status}</span>
+                            </div>
+                            <span className="font-semibold">{user.is_profile_visible ? "Visible" : "Hidden"}</span>
+                            <span className="font-semibold">
+                              {permissions.length
+                                ? `${permissions.length} assigned: ${permissions.map((permission) => permission.codename).join(", ")}`
+                                : "No direct permissions"}
+                            </span>
+                          </div>
+                        );
+                      })()
                     ))}
                   </div>
                 </div>
