@@ -7,7 +7,6 @@ from .admin.views import (
     BrandTableView,
     CampaignTableView,
     CreatorTableView,
-    PermissionTableView,
     ShortlistTableView,
     VerificationView,
 )
@@ -103,7 +102,6 @@ urlpatterns = [
     path("admin/brands/", BrandTableView.as_view(), name="admin_brands_table"),
     path("admin/campaigns/", CampaignTableView.as_view(), name="admin_campaigns_table"),
     path("admin/creators/", CreatorTableView.as_view(), name="admin_creators_table"),
-    path("admin/permissions/", PermissionTableView.as_view(), name="admin_permissions_table"),
     path("admin/shortlists/", ShortlistTableView.as_view(), name="admin_shortlists_table"),
     path("admin/users/", AdminUserManagementView.as_view(), name="admin_users_table"),
 

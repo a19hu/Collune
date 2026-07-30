@@ -3,20 +3,13 @@ from rest_framework import serializers
 
 from ..common.services import generate_username
 from ..models import User, UserRole, UserAdminRole
-from .services import get_default_permissions_for_role
-
-
-class AdminPermissionSerializer(serializers.ModelSerializer):
-    app_label = serializers.CharField(source="content_type.app_label", read_only=True)
-    model = serializers.CharField(source="content_type.model", read_only=True)
-
-    class Meta:
-        model = Permission
-        fields = ["id", "name", "codename", "app_label", "model"]
+from .services import (
+    get_internal_admin_roles,
+    get_role_details,
+)
 
 
 class AdminManagedUserSerializer(serializers.ModelSerializer):
-    permissions = AdminPermissionSerializer(source="user_permissions", many=True, read_only=True)
 
     class Meta:
         model = User
@@ -29,7 +22,6 @@ class AdminManagedUserSerializer(serializers.ModelSerializer):
             "verification_status",
             "is_profile_visible",
             "is_active",
-            "permissions",
         ]
 
 
@@ -38,7 +30,7 @@ class AdminUserCreateSerializer(serializers.Serializer):
     email = serializers.EmailField()
     phone_no = serializers.CharField(max_length=20, required=False, allow_blank=True)
     password = serializers.CharField(write_only=True, min_length=8)
-    role = serializers.ChoiceField(choices=UserAdminRole.choices)
+    role = serializers.ChoiceField(choices=UserAdminRole._meta.get_field("role_name").choices)
     is_active = serializers.BooleanField(required=False, default=True)
 
     def validate_email(self, value):
@@ -53,13 +45,14 @@ class AdminUserCreateSerializer(serializers.Serializer):
         return value
 
     def validate_role(self, value):
-        if value not in UserAdminRole.internal_roles():
+        if value not in get_internal_admin_roles():
             raise serializers.ValidationError("Only internal workspace users can be created from this section.")
         return value
 
     def create(self, validated_data):
         email = validated_data["email"]
         role = validated_data["role"]
+
         user = User.objects.create_user(
             username=generate_username(email),
             email=email,
@@ -69,16 +62,13 @@ class AdminUserCreateSerializer(serializers.Serializer):
             role=UserRole.ADMIN,
             is_active=validated_data.get("is_active", True),
         )
-        # permission_ids = {permission.id for permission in default_permissions}
-        # permission_ids.update(permission.id for permission in permissions)
-        # if permission_ids:
-        #     user.user_permissions.set(Permission.objects.filter(id__in=permission_ids))
-        useradminrole = UserAdminRole.objects.create_user(
-            user = user,
-            role_name= role,
-            permissions = 
-            Purpose = 
 
+        role_details = get_role_details(role)
+        UserAdminRole.objects.create(
+            user=user,
+            role_name=role,
+            permissions=role_details["description"],
+            Purpose=role_details["purpose"],
         )
 
         return user

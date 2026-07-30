@@ -1,3 +1,4 @@
+import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ColluneLogo } from "./Navbar";
 
@@ -7,6 +8,18 @@ const footerLinks = [
   { label: "For Brands", href: "/brand-services-terms" },
   { label: "Privacy Policy", href: "/privacy-policy" },
   { label: "Terms & Conditions", href: "/terms-conditions" },
+];
+
+function XIcon({ className }: { className?: string }) {
+  return <span className={className}>X</span>;
+}
+
+const socialTiles = [
+  { label: "Instagram", color: "bg-[#f77737]", href: "https://www.instagram.com/thecollune/", icon: Instagram },
+  { label: "LinkedIn", color: "bg-[#0a66c2]", href: "https://www.linkedin.com/company/thecollune/", icon: Linkedin },
+  { label: "X (Twitter)", color: "bg-[#111827]", href: "https://x.com/thecollune", icon: XIcon },
+  { label: "YouTube", color: "bg-[#ff0000]", href: "https://www.youtube.com/@thecollune", icon: Youtube },
+  { label: "Facebook", color: "bg-[#1877f2]", href: "https://www.facebook.com/thecollune", icon: Facebook },
 ];
 
 const Footer = () => {
@@ -38,10 +51,23 @@ const Footer = () => {
             <small className="text-sm font-extrabold text-[#8a96ad]">
               © 2026 Collune. All Rights Reserved.
             </small>
-            <div className="flex gap-7" aria-hidden="true">
-              <span className="h-14 w-14 rounded-[13px] bg-[#dda0ff]" />
-              <span className="h-14 w-14 rounded-[13px] bg-[#809dff]" />
-              <span className="h-14 w-14 rounded-[13px] bg-[#303847]" />
+            <div className="flex flex-wrap gap-4" aria-label="Social platforms">
+              {socialTiles.map((tile) => {
+                const Icon = tile.icon;
+                return (
+                  <a
+                    key={tile.label}
+                    href={tile.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={tile.label}
+                    className={`grid h-14 w-14 place-items-center rounded-[13px] ${tile.color} text-white transition hover:scale-105`}
+                    title={tile.label}
+                  >
+                    <Icon className="text-lg font-black leading-none" />
+                  </a>
+                );
+              })}
             </div>
           </div>
         </div>

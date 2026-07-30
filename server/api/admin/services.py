@@ -2,7 +2,7 @@ from collections.abc import Iterable
 
 from django.contrib.auth.models import Permission
 
-from ..models import UserRole
+from ..models import UserAdminRole
 
 EXCLUDED_PERMISSION_MODELS = {
     "session",
@@ -15,38 +15,41 @@ EXCLUDED_PERMISSION_MODELS = {
     "logentry"
 }
 
+ROLE_LABELS = dict(UserAdminRole._meta.get_field("role_name").choices)
+ROLE_VALUES = tuple(ROLE_LABELS.keys())
+
 ROLE_DETAILS = {
-    UserRole.SUPER_ADMIN: {
+    "SUPER_ADMIN": {
         "label": "Super Admin",
         "purpose": "Owner / Founder",
         "description": "Full access, user management, billing, settings, delete, permissions, reports, API, and all modules.",
     },
-    UserRole.ADMIN: {
+    "ADMIN": {
         "label": "Admin",
         "purpose": "Company Administrator",
         "description": "Manage all modules except super-admin settings, create users, assign roles, and view reports.",
     },
-    UserRole.OPERATIONS_MANAGER: {
+    "OPERATIONS_MANAGER": {
         "label": "Operations Manager",
         "purpose": "Daily Operations",
         "description": "Manage projects, client assignments, approvals, reports, and day-to-day operations.",
     },
-    UserRole.SALES_MARKETING_MANAGER: {
+    "SALES_MARKETING_MANAGER": {
         "label": "Sales & Marketing Manager",
         "purpose": "Sales & Marketing",
         "description": "Handle CRM-style workflows, deals, campaigns, customer follow-up, and sales analytics.",
     },
-    UserRole.PROJECT_MANAGER: {
+    "PROJECT_MANAGER": {
         "label": "Project Manager",
         "purpose": "Project Delivery",
         "description": "Create projects, assign work, track progress, approve delivery, and communicate with clients.",
     },
-    UserRole.ANALYTICS_MANAGER: {
+    "ANALYTICS_MANAGER": {
         "label": "Analytics Manager",
         "purpose": "Reports & Insights",
         "description": "Read-only dashboards, analytics exports, and insight access.",
     },
-    UserRole.TEAM_MEMBER: {
+    "TEAM_MEMBER": {
         "label": "Team Member / Executive",
         "purpose": "Employee",
         "description": "Assigned project access, attendance, documents, and profile updates.",
@@ -54,29 +57,37 @@ ROLE_DETAILS = {
 }
 
 ROLE_PERMISSION_RULES = {
-    UserRole.SUPER_ADMIN: {"all_permissions": True},
-    UserRole.ADMIN: {"all_permissions": True},
-    UserRole.OPERATIONS_MANAGER: {
+    "SUPER_ADMIN": {"all_permissions": True},
+    "ADMIN": {"all_permissions": True},
+    "OPERATIONS_MANAGER": {
         "models": {"campaign", "brandshortlist", "brandprofile", "creatorprofile", "user"},
         "actions": {"add", "change", "delete", "view"},
     },
-    UserRole.SALES_MARKETING_MANAGER: {
+    "SALES_MARKETING_MANAGER": {
         "models": {"campaign", "brandprofile", "creatorprofile", "user"},
         "actions": {"view", "change"},
     },
-    UserRole.PROJECT_MANAGER: {
+    "PROJECT_MANAGER": {
         "models": {"campaign", "brandshortlist", "creatorprofile", "brandprofile"},
         "actions": {"add", "change", "view"},
     },
-    UserRole.ANALYTICS_MANAGER: {
+    "ANALYTICS_MANAGER": {
         "models": {"campaign", "brandshortlist", "brandprofile", "creatorprofile", "user"},
         "actions": {"view"},
     },
-    UserRole.TEAM_MEMBER: {
+    "TEAM_MEMBER": {
         "models": {"campaign", "brandshortlist", "user"},
         "actions": {"view", "change"},
     },
 }
+
+
+def get_internal_admin_roles() -> tuple[str, ...]:
+    return ROLE_VALUES
+
+
+def get_role_details(role: str) -> dict:
+    return ROLE_DETAILS[role]
 
 
 def _matches_rule(permission: Permission, models: set[str], actions: set[str]) -> bool:
@@ -111,13 +122,13 @@ def get_default_permissions_for_role(role: str, permissions: Iterable[Permission
 def build_role_templates(permissions: Iterable[Permission]) -> list[dict]:
     permission_list = list(permissions)
     templates = []
-    for role in UserRole.internal_roles():
+    for role in get_internal_admin_roles():
         details = ROLE_DETAILS[role]
         role_permissions = get_default_permissions_for_role(role, permission_list)
         templates.append(
             {
                 "role": role,
-                "label": details["label"],
+                "label": ROLE_LABELS.get(role, details["label"]),
                 "purpose": details["purpose"],
                 "description": details["description"],
                 "permission_ids": [permission.id for permission in role_permissions],
