@@ -22,7 +22,12 @@ data "google_project" "current" {
 locals {
   cloud_run_service_account_email = var.cloud_run_service_account_email != "" ? var.cloud_run_service_account_email : "${data.google_project.current.number}-compute@developer.gserviceaccount.com"
   backend_image                   = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}/collune-backend:${var.image_tag}"
+  frontend_image                  = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}/collune-frontend:${var.frontend_image_tag}"
+  backend_public_url              = "https://collune-backend-727341248620.asia-south1.run.app"
 
+  react_env = {
+    VITE_API_BASE_URL = local.backend_public_url
+  }
   django_env = {
     DB_NAME                     = var.database_name
     DB_USER                     = var.db_user
@@ -47,23 +52,23 @@ locals {
 
     META_APP_ID            = var.meta_app_id
     META_APP_SECRET        = var.meta_app_secret
-    INSTAGRAM_REDIRECT_URI = "https://collune-backend-727341248620.asia-south1.run.app/api/v1/auth/instagram/callback/"
+    INSTAGRAM_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/instagram/callback/"
     FRONTEND_URL           = "https://collune.vercel.app"
 
     GOOGLE_CLIENT_SECRET = var.google_client_secret
-    YOUTUBE_REDIRECT_URI = "https://collune-backend-727341248620.asia-south1.run.app/api/v1/auth/youtube/callback/"
+    YOUTUBE_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/youtube/callback/"
     GOOGLE_CLIENT_ID     = var.google_client_id
     YOUTUBE_OAUTH_SCOPES = "openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly"
 
     X_CLIENT_ID     = var.x_client_id
     X_CLIENT_SECRET = var.x_client_secret
-    X_REDIRECT_URI  = "https://collune-backend-727341248620.asia-south1.run.app/api/v1/auth/x/callback/"
+    X_REDIRECT_URI  = "${local.backend_public_url}/api/v1/auth/x/callback/"
     X_OAUTH_SCOPES  = "tweet.read users.read follows.read offline.access"
     X_BEARER_TOKEN  = var.x_bearer_token
 
     FACEBOOK_APP_ID       = var.facebook_app_id
     FACEBOOK_APP_SECRET   = var.facebook_app_secret
-    FACEBOOK_REDIRECT_URI = "https://collune-backend-727341248620.asia-south1.run.app/api/v1/auth/facebook/callback/"
+    FACEBOOK_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/facebook/callback/"
   }
 }
 
@@ -97,15 +102,13 @@ resource "google_project_service" "service_networking_api" {
 # Artifact Registry repository for container images
 resource "google_artifact_registry_repository" "docker_repo" {
   location      = var.region
-  repository_id = "collune-server"
+  repository_id = "collune"
   description   = "Docker repository for collune backend images"
   format        = "DOCKER"
 }
 
 
-
-
-resource "google_cloud_run_service" "default" {
+resource "google_cloud_run_service" "backend" {
   name     = "collune-backend"
   location = var.region
   project  = var.project_id
@@ -146,6 +149,66 @@ resource "google_cloud_run_service" "default" {
         "autoscaling.knative.dev/maxScale"      = "10"
         "run.googleapis.com/startup-cpu-boost"  = "true"
         "run.googleapis.com/cloudsql-instances" = google_sql_database_instance.postgres.connection_name
+      }
+      labels = {
+        commit-sha = "d6fc5aed5f6dbacf1f6cdbcce1b9131750bc1ebd"
+        managed-by = "gcp-cloud-build-deploy-cloud-run"
+      }
+    }
+  }
+
+  traffic {
+    latest_revision = true
+    percent         = 100
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].metadata[0].annotations["run.googleapis.com/client-name"],
+      template[0].metadata[0].annotations["run.googleapis.com/client-version"],
+      template[0].metadata[0].labels["client.knative.dev/nonce"],
+    ]
+  }
+}
+
+resource "google_cloud_run_service" "frontend" {
+  name     = "collune-frontend"
+  location = var.region
+  project  = var.project_id
+
+  template {
+    spec {
+      containers {
+        image = local.frontend_image
+
+        ports {
+          container_port = 8080
+        }
+
+        dynamic "env" {
+          for_each = local.react_env
+          content {
+            name  = env.key
+            value = env.value
+          }
+        }
+
+        resources {
+          limits = {
+            cpu    = "1000m"
+            memory = "512Mi"
+          }
+        }
+      }
+      service_account_name  = local.cloud_run_service_account_email
+      timeout_seconds       = 60
+      container_concurrency = 80
+    }
+
+    metadata {
+      annotations = {
+        "autoscaling.knative.dev/maxScale"     = "10"
+        "run.googleapis.com/startup-cpu-boost" = "true"
       }
       labels = {
         commit-sha = "d6fc5aed5f6dbacf1f6cdbcce1b9131750bc1ebd"
@@ -222,9 +285,9 @@ resource "google_cloud_run_v2_job" "migrate" {
 
 # Allow unauthenticated access to the Cloud Run service (for Flutter app)
 resource "google_cloud_run_service_iam_member" "public_access" {
-  location = google_cloud_run_service.default.location
-  project  = google_cloud_run_service.default.project
-  service  = google_cloud_run_service.default.name
+  location = google_cloud_run_service.frontend.location
+  project  = google_cloud_run_service.frontend.project
+  service  = google_cloud_run_service.frontend.name
   role     = "roles/run.invoker"
   member   = "allUsers"
 }

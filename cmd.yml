@@ -12,7 +12,9 @@ gcloud config set project <collune>
 gcloud auth configure-docker \                                                                       
     asia-south1-docker.pkg.dev
 GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token) terraform apply -auto-approve
-sudo docker build -t asia-south1-docker.pkg.dev/collune/collune-server/collune-backend:latest . 
-docker push asia-south1-docker.pkg.dev/collune/collune-server/collune-backend:latest
+sudo docker build -t asia-south1-docker.pkg.dev/collune/collune/collune-backend:latest . 
+docker push asia-south1-docker.pkg.dev/collune/collune/collune-backend:latest
+sudo docker build -t asia-south1-docker.pkg.dev/collune/collune/collune-frontend:latest . 
+docker push asia-south1-docker.pkg.dev/collune/collune/collune-frontend:latest
 
 gcloud builds submit --tag asia-south1-docker.pkg.dev/collune/collune-server/collune-backend:latest .
