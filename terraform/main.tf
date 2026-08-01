@@ -21,6 +21,7 @@ data "google_project" "current" {
 
 locals {
   cloud_run_service_account_email = var.cloud_run_service_account_email != "" ? var.cloud_run_service_account_email : "${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+  backend_image                   = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}/collune-backend:${var.image_tag}"
 
   django_env = {
     DB_NAME                     = var.database_name
@@ -59,8 +60,8 @@ locals {
     X_OAUTH_SCOPES  = "tweet.read users.read follows.read offline.access"
     X_BEARER_TOKEN  = var.x_bearer_token
 
-    FACEBOOK_APP_ID = var.facebook_app_id
-    FACEBOOK_APP_SECRET = var.facebook_app_secret
+    FACEBOOK_APP_ID       = var.facebook_app_id
+    FACEBOOK_APP_SECRET   = var.facebook_app_secret
     FACEBOOK_REDIRECT_URI = "https://collune-backend-350157158342.asia-south1.run.app/api/v1/auth/facebook/callback/"
   }
 }
@@ -95,7 +96,7 @@ resource "google_project_service" "service_networking_api" {
 # Artifact Registry repository for container images
 resource "google_artifact_registry_repository" "docker_repo" {
   location      = var.region
-  repository_id = "collune"
+  repository_id = "collune-server"
   description   = "Docker repository for collune backend images"
   format        = "DOCKER"
 }
@@ -111,7 +112,7 @@ resource "google_cloud_run_service" "default" {
   template {
     spec {
       containers {
-        image   = "${var.region}-docker.pkg.dev/${var.project_id}/collune/collune-backend:${var.image_tag}"
+        image   = local.backend_image
         command = ["gunicorn"]
         args    = ["server.wsgi:application", "--bind", "0.0.0.0:8080"]
 
@@ -190,7 +191,7 @@ resource "google_cloud_run_v2_job" "migrate" {
     template {
       service_account = local.cloud_run_service_account_email
       containers {
-        image   = "${var.region}-docker.pkg.dev/${var.project_id}/collune/collune-backend:${var.image_tag}"
+        image   = local.backend_image
         command = ["/bin/sh", "-c"]
         args    = ["python manage.py migrate --noinput && python manage.py ensure_superuser"]
 
