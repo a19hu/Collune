@@ -1,4 +1,5 @@
 import requests
+import logging
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import status
@@ -14,6 +15,7 @@ from .serializers import AuthUserSerializer, LoginSerializer, OtpSendSerializer,
 from .services import OTP_EXPIRY_MINUTES, OTP_MAX_ATTEMPTS, auth_response, create_otp, normalize_otp_target, send_otp_message
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class LoginView(APIView):
@@ -72,6 +74,7 @@ class OtpSendView(APIView):
             send_otp_message(otp)
         except requests.RequestException as exc:
             otp.delete()
+            logger.exception("OTP send failed for channel=%s target=%s", channel, target)
             return Response(
                 {"error": "Could not send OTP through Brevo.", "detail": str(exc)},
                 status=status.HTTP_502_BAD_GATEWAY,

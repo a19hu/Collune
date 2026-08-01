@@ -104,6 +104,13 @@ variable "email_host_password" {
   sensitive = true
 }
 
+variable "brevo_api_key" {
+  type  = string
+  default = ""
+  sensitive = true
+  
+}
+
 variable "django_superuser_username" {
   type    = string
   default = ""

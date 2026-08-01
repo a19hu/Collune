@@ -18,6 +18,7 @@ User = get_user_model()
 BREVO_API_BASE = "https://api.brevo.com/v3"
 OTP_EXPIRY_MINUTES = 10
 OTP_MAX_ATTEMPTS = 5
+logger = logging.getLogger(__name__)
 
 
 def generate_username(email):
@@ -103,8 +104,16 @@ def create_otp(channel, target):
         expires_at=timezone.now() + timedelta(minutes=OTP_EXPIRY_MINUTES),
     )
 
+def get_env(name, fallback=None):
+    value = os.getenv(name)
+    if value is None:
+        return fallback
+    value = value.strip()
+    return value if value else fallback
+
+
 def brevo_headers():
-    api_key = os.getenv("BREVO_API_KEY") or os.getenv("BREVO_APIKEY")
+    api_key = get_env("BREVO_API_KEY") or get_env("BREVO_APIKEY")
     if not api_key:
         raise RuntimeError("BREVO_API_KEY is not configured.")
     return {
@@ -114,15 +123,11 @@ def brevo_headers():
     }
 
 def send_brevo_email_otp(target, code):
-    sender_email = os.getenv("DEFAULT_FROM_EMAIL")
-    brevo_api_key = os.getenv("BREVO_API_KEY")
-    print(brevo_api_key)
+    sender_email = get_env("BREVO_EMAIL_SENDER") or get_env("DEFAULT_FROM_EMAIL")
     if not sender_email:
         raise RuntimeError("DEFAULT_FROM_EMAIL is not configured.")
-    # try:
-
-    BREVO_API_BASE_EMAIL = BREVO_API_BASE + "/smtp/email"
-    print(BREVO_API_BASE_EMAIL)
+    sender_name = get_env("BREVO_EMAIL_SENDER_NAME", "Collune")
+    brevo_email_url = f"{BREVO_API_BASE}/smtp/email"
 
     html_content = f"""
         <!DOCTYPE html>
@@ -151,7 +156,7 @@ def send_brevo_email_otp(target, code):
 
     payload = {
             "sender": {
-                "name": "Collune",
+                "name": sender_name,
                 "email": sender_email,
             },
             "to": [
@@ -164,31 +169,21 @@ def send_brevo_email_otp(target, code):
             "htmlContent": html_content,
     }
 
-    headers = {
-            "accept": "application/json",
-            "api-key": brevo_api_key,
-            "content-type": "application/json",
-    }
-
-    try: 
-        requests.post(
-            BREVO_API_BASE_EMAIL,
+    try:
+        response = requests.post(
+            brevo_email_url,
             json=payload,
-            headers=headers,
+            headers=brevo_headers(),
             timeout=20,
         )
-        
-        
-
-    #     send_mail(
-    #                 subject="Your Collune verification code",
-    #                 message=f"Your Collune verification code is {code}. This code expires in {OTP_EXPIRY_MINUTES} minutes.",
-    #                 from_email=sender_email,
-    #                 recipient_list=[target],
-    #                 fail_silently=False,
-    #             )
-    except RuntimeError as error:
-        print("sending error",error)
+        response.raise_for_status()
+    except requests.HTTPError as error:
+        body = error.response.text[:500] if error.response is not None else ""
+        logger.error("Brevo email API rejected OTP send. status=%s body=%s", getattr(error.response, "status_code", "unknown"), body)
+        raise
+    except requests.RequestException:
+        logger.exception("Brevo email API request failed.")
+        raise
 
 def send_brevo_sms_otp(target, code):
     sender = os.getenv("BREVO_SMS_SENDER", "Collune")[:11]
