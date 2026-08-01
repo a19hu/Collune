@@ -104,14 +104,6 @@ export function SideBar({ isVerified = false, mode = "creator", isMobileOpen = f
           <Link to="/" onClick={onCloseMobile}>
             <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
           </Link>
-          <button
-            type="button"
-            onClick={onCloseMobile}
-            className="grid h-10 w-10 place-items-center rounded-full border border-[#dce5fb] bg-white text-[#214bc0] lg:hidden"
-            aria-label="Close sidebar"
-          >
-            <X className="h-5 w-5" />
-          </button>
         </div>
 
         {isBrand || isAdmin ? (

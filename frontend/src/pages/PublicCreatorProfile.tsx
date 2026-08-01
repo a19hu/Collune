@@ -35,11 +35,11 @@ function XIcon({ className }: { className?: string }) {
 }
 
 const socialTiles = [
-  { label: "Instagram", color: "bg-[#f77737]", href: "https://www.instagram.com/thecollune/", icon: Instagram },
-  { label: "LinkedIn", color: "bg-[#0a66c2]", href: "https://www.linkedin.com/company/thecollune/", icon: Linkedin },
-  { label: "X (Twitter)", color: "bg-[#111827]", href: "https://x.com/thecollune", icon: XIcon },
-  { label: "YouTube", color: "bg-[#ff0000]", href: "https://www.youtube.com/@thecollune", icon: Youtube },
-  { label: "Facebook", color: "bg-[#1877f2]", href: "https://www.facebook.com/thecollune", icon: Facebook },
+  { label: "Instagram", color: "bg-[#f77737]", icon: Instagram },
+  { label: "LinkedIn", color: "bg-[#0a66c2]", icon: Linkedin },
+  { label: "X (Twitter)", color: "bg-[#111827]", icon: XIcon },
+  { label: "YouTube", color: "bg-[#ff0000]", icon: Youtube },
+  { label: "Facebook", color: "bg-[#1877f2]", icon: Facebook },
 ];
 
 const platformMeta: Record<CreatorSocialPlatform, { label: string; color: string; Icon: typeof Instagram }> = {

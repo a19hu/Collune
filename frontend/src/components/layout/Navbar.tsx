@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -40,6 +41,28 @@ const Navbar = () => {
   const { currentUser, isAuthLoading, logout } = useAuth();
   const dashboardPath = currentUser?.role === "Brand" ? "/brand" : currentUser?.role === "Creator" ? "/creator" : "/admin";
   const userInitial = currentUser?.name?.trim().charAt(0).toUpperCase() || currentUser?.email?.trim().charAt(0).toUpperCase() || "U";
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function handlePointerDown(event: PointerEvent) {
+      if (!userMenuRef.current?.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setIsUserMenuOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
 
   return (
     <header className="fixed left-1/2 top-4 z-50 w-[calc(100%-32px)] max-w-7xl -translate-x-1/2 md:top-5">
@@ -73,21 +96,36 @@ const Navbar = () => {
         {isAuthLoading ? (
           <span className="h-11 w-32 justify-self-end rounded-full border border-[#dce5fb] bg-white/60" />
         ) : currentUser ? (
-          <div className="group relative justify-self-end">
-            <Link to={dashboardPath} className="inline-flex min-h-11 items-center justify-center gap-3 rounded-full bg-white/75 text-sm font-black text-[#2449bd] backdrop-blur transition hover:bg-white">
+          <div ref={userMenuRef} className="relative justify-self-end">
+            <button
+              type="button"
+              onClick={() => setIsUserMenuOpen((current) => !current)}
+              className="inline-flex min-h-11 items-center justify-center gap-3 rounded-full bg-white/75 px-3 text-sm font-black text-[#2449bd] backdrop-blur transition hover:bg-white"
+              aria-haspopup="menu"
+              aria-expanded={isUserMenuOpen}
+            >
               <span className="grid h-10 w-10 place-items-center rounded-full bg-[#1438c8] text-white">
                 {userInitial}
               </span>
               <span className="hidden max-w-[150px] truncate sm:inline">{currentUser.name}</span>
-              <ChevronDown className="h-3.5 w-3.5 transition group-hover:rotate-180" />
-            </Link>
-            <div className="invisible absolute right-0 top-12 w-56 rounded-2xl border border-[#dce5fb] bg-white p-2 opacity-0 shadow-[0_18px_40px_rgba(45,66,140,0.14)] transition group-hover:visible group-hover:opacity-100">
-              <Link to={dashboardPath} className="block rounded-xl px-4 py-3 text-sm font-black text-[#34466d] transition hover:bg-[#eef3ff] hover:text-[#214bc0]">
+              <ChevronDown className={`h-3.5 w-3.5 transition ${isUserMenuOpen ? "rotate-180" : ""}`} />
+            </button>
+            <div
+              className={`${isUserMenuOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-1 opacity-0"} absolute right-0 top-12 w-56 rounded-2xl border border-[#dce5fb] bg-white p-2 shadow-[0_18px_40px_rgba(45,66,140,0.14)] transition`}
+            >
+              <Link
+                to={dashboardPath}
+                onClick={() => setIsUserMenuOpen(false)}
+                className="block rounded-xl px-4 py-3 text-sm font-black text-[#34466d] transition hover:bg-[#eef3ff] hover:text-[#214bc0]"
+              >
                 Dashboard
               </Link>
               <button
                 type="button"
-                onClick={() => void logout()}
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  void logout();
+                }}
                 className="block w-full rounded-xl px-4 py-3 text-left text-sm font-black text-[#b42318] transition hover:bg-[#fff0f0]"
               >
                 Sign out

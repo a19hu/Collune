@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
-import { Boxes, Eye, Instagram, Megaphone, Radio, Star, Youtube } from "lucide-react";
+import { Boxes, Eye, Facebook, Instagram, Linkedin, Megaphone, Star, Youtube } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { CampaignPanel, CampaignSection, SelectInput, TextArea, TextInput, UploadBox } from "./CampaignUi";
@@ -42,13 +42,25 @@ const initialForm: CampaignFormState = {
   status: "ACTIVE",
 };
 
-const budgetRanges = ["$0 - $10K", "$10K - $50K", "$50K - $100K", "$100K+"];
+const budgetRanges = ["₹0 - ₹10K", "₹10K - ₹50K", "₹50K - ₹100K", "₹100K+"];
 const compensationTypes = ["Per Deliverable", "Fixed Fee", "Performance Bonus", "Hybrid"];
 const categories = ["Fashion", "Finance", "Lifestyle", "Beauty", "Travel", "Technology", "Food"];
 const audienceTypes = ["Gen Z", "Millennials", "Working Professionals", "Parents", "Small Business Owners"];
 const locations = ["India", "United States", "United Kingdom", "Global"];
 const languages = ["English", "Hindi", "Tamil", "Telugu", "Bengali"];
 const contentStyles = ["Educational", "Product Review", "Storytelling", "Tutorial", "UGC"];
+
+function XIcon({ className }: { className?: string }) {
+  return <span className={className}>X</span>;
+}
+
+const socialTiles = [
+  { label: "Instagram", value: "INSTAGRAM", color: "bg-[#f77737]", icon: Instagram },
+  { label: "LinkedIn", value: "LINKEDIN", color: "bg-[#0a66c2]", icon: Linkedin },
+  { label: "X (Twitter)", value: "X", color: "bg-[#111827]", icon: XIcon },
+  { label: "YouTube", value: "YOUTUBE", color: "bg-[#ff0000]", icon: Youtube },
+  { label: "Facebook", value: "FACEBOOK", color: "bg-[#1877f2]", icon: Facebook },
+];
 
 function mapCampaignDetailToForm(campaign: BrandCampaignDetailApi): CampaignFormState {
   return {
@@ -91,7 +103,8 @@ export function PlatformSelector({
     <div className="grid gap-4 md:grid-cols-4">
       {platforms.map((platform) => {
         const isSelected = selected.includes(platform.value);
-        const Icon = platform.value === "INSTAGRAM" ? Instagram : platform.value === "YOUTUBE" ? Youtube : platform.value === "X" ? Radio : Eye;
+        const tile = socialTiles.find((item) => item.value === platform.value) || socialTiles[0];
+        const Icon = tile.icon;
         return (
           <button
             key={platform.value}
@@ -100,8 +113,10 @@ export function PlatformSelector({
             className={`flex h-14 items-center justify-between rounded-lg border px-4 text-left ${isSelected ? "border-[#4b22ff] bg-[#f8f5ff] ring-2 ring-[#4b22ff]/10" : "border-[#dce5f2] bg-white"}`}
           >
             <span className="inline-flex items-center gap-3 text-sm font-black text-[#334054]">
-              <Icon className={`h-5 w-5 ${platform.color}`} />
-              {platform.label}
+              <span className={`grid h-8 w-8 place-items-center rounded-[10px] ${tile.color} text-white`}>
+                <Icon className="h-4 w-4" />
+              </span>
+              {tile.label}
             </span>
             <span className={`grid h-5 w-5 place-items-center rounded border ${isSelected ? "border-[#4b22ff] bg-[#4b22ff]" : "border-[#dce5f2]"}`}>
               {isSelected ? <span className="h-2 w-2 rounded-sm bg-white" /> : null}
@@ -126,7 +141,7 @@ function DeliverablePricing({
         <div key={item} className={`grid grid-cols-[1fr_auto] items-center gap-4 px-4 py-3 ${index % 2 ? "bg-[#f7f9fc]" : "bg-white"}`}>
           <span className="text-sm font-semibold text-[#475166]">{item}</span>
           <label className="flex items-center gap-2 text-sm font-black text-[#7f8da3]">
-            $
+            ₹
             <input
               value={value[item] || ""}
               onChange={(event) => onChange(item, event.target.value)}
@@ -404,7 +419,7 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
 
       <CampaignSection index={4} title="Budget Setup" copy="Define your budget and creator compensation preferences.">
         <div className="grid gap-5 md:grid-cols-3">
-          <TextInput label="Total Budget" required placeholder="e.g. 50000" prefix="$" value={form.total_budget} onChange={onFieldChange("total_budget")} />
+          <TextInput label="Total Budget" required placeholder="e.g. 50000" prefix="₹" value={form.total_budget} onChange={onFieldChange("total_budget")} />
           <SelectInput label="Budget Range" required placeholder="Select budget range" value={form.budget_range} onChange={onFieldChange("budget_range")} options={budgetRanges} />
           <SelectInput label="Creator Compensation Type" required placeholder="Select compensation type" value={form.compensation_type} onChange={onFieldChange("compensation_type")} options={compensationTypes} />
         </div>

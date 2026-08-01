@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import SideBar from "./SideBar";
@@ -55,8 +55,8 @@ function VerificationPill({ status }: { status: NonNullable<DashboardTopBarProps
   const pill = statusPillStyles[status];
 
   return (
-    <span 
-    className={`inline-flex h-9 items-center gap-2 rounded-[7px] px-4 text-[13px] font-black ${pill.className}`}>
+    <span
+      className={`inline-flex min-h-9 items-center justify-center gap-2 rounded-[7px] px-4 text-center text-[13px] font-black ${pill.className}`}>
       {pill.icon}
       {pill.label}
     </span>
@@ -65,26 +65,62 @@ function VerificationPill({ status }: { status: NonNullable<DashboardTopBarProps
 
 function DashboardUserMenu({ currentUser, logout, profilePath }: DashboardUserMenuProps) {
   const userInitial = getUserInitial(currentUser);
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function handlePointerDown(event: PointerEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setIsOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
 
   return (
-    <div className="group relative justify-self-end">
+    <div ref={menuRef} className="relative w-full sm:w-auto sm:justify-self-end">
       <button
         type="button"
-        className="inline-flex min-h-12 items-center justify-center gap-3 rounded-full bg-transparent text-sm font-black text-[#2449bd] transition hover:bg-[#eef3ff]"
+        onClick={() => setIsOpen((current) => !current)}
+        className="inline-flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl border border-[#dce5fb] bg-[#f7f9ff] px-3 text-sm font-black text-[#2449bd] transition hover:bg-[#eef3ff] sm:w-auto sm:justify-center sm:rounded-full sm:border-transparent sm:bg-transparent"
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
       >
-        <span className="grid h-10 w-10 place-items-center rounded-full bg-[#173fb5] text-white">
-          {userInitial}
+        <span className="flex min-w-0 items-center gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#173fb5] text-white">
+            {userInitial}
+          </span>
+          <span className="max-w-[170px] truncate">{currentUser?.name || "User"}</span>
         </span>
-        <span className="hidden max-w-[170px] truncate sm:inline">{currentUser?.name || "User"}</span>
-        <ChevronDown className="h-3.5 w-3.5 transition group-hover:rotate-180" />
+        <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition ${isOpen ? "rotate-180" : ""}`} />
       </button>
-      <div className="invisible absolute right-0 top-12 z-30 w-56 rounded-2xl border border-[#dce5fb] bg-white p-2 opacity-0 shadow-[0_18px_40px_rgba(45,66,140,0.14)] transition group-hover:visible group-hover:opacity-100">
-        <Link to={profilePath} className="block rounded-xl px-4 py-3 text-sm font-black text-[#34466d] transition hover:bg-[#eef3ff] hover:text-[#214bc0]">
+      <div
+        className={`${isOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-1 opacity-0"} absolute left-0 right-0 top-[calc(100%+8px)] z-30 rounded-2xl border border-[#dce5fb] bg-white p-2 shadow-[0_18px_40px_rgba(45,66,140,0.14)] transition sm:left-auto sm:w-56`}
+      >
+        <Link
+          to={profilePath}
+          onClick={() => setIsOpen(false)}
+          className="block rounded-xl px-4 py-3 text-sm font-black text-[#34466d] transition hover:bg-[#eef3ff] hover:text-[#214bc0]"
+        >
           Profile
         </Link>
         <button
           type="button"
-          onClick={() => void logout()}
+          onClick={() => {
+            setIsOpen(false);
+            void logout();
+          }}
           className="block w-full rounded-xl px-4 py-3 text-left text-sm font-black text-[#b42318] transition hover:bg-[#fff0f0]"
         >
           Sign out
@@ -96,27 +132,30 @@ function DashboardUserMenu({ currentUser, logout, profilePath }: DashboardUserMe
 
 function DashboardTopBar({ title, status, actions, currentUser, logout, profilePath, onOpenSidebar }: DashboardTopBarProps) {
   return (
-    <header data-tour="topbar" className="mb-10 flex min-h-[72px] flex-wrap items-center justify-between gap-5 border-b border-[#eef2fb] bg-white pb-6">
-      <div className="flex items-center gap-3">
+    <header data-tour="topbar" className="mb-8 border-b border-[#eef2fb] bg-white pb-5 sm:mb-10 sm:pb-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex min-w-0 items-start gap-3 sm:items-center">
         <button
           type="button"
           onClick={onOpenSidebar}
-          className="grid h-11 w-11 place-items-center rounded-2xl border border-[#dce5fb] bg-[#f5f7ff] text-[#214bc0] lg:hidden"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-[#dce5fb] bg-[#f5f7ff] text-[#214bc0] lg:hidden"
           aria-label="Open sidebar"
         >
           <Menu className="h-5 w-5" />
         </button>
-        <h1 className="text-[22px] font-black tracking-normal text-[#173ca8]">
+        <h1 className="min-w-0 text-[20px] font-black leading-tight tracking-normal text-[#173ca8] sm:text-[22px]">
           {title}
         </h1>
       </div>
-      <div data-tour="topbar-actions" className="flex flex-wrap items-center gap-5">
-        {actions}
-        {status ? <VerificationPill status={status} />: null }
-        {
-          currentUser.role == "Brand" ?  null :
-          <DashboardUserMenu currentUser={currentUser} logout={logout} profilePath={profilePath} />
-        }
+      <div data-tour="topbar-actions" className="flex w-full flex-col gap-3 sm:gap-4 lg:w-auto lg:items-end">
+        {actions ? <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">{actions}</div> : null}
+        <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">
+          {status ? <VerificationPill status={status} /> : null}
+          {currentUser.role == "Brand" ? null : (
+            <DashboardUserMenu currentUser={currentUser} logout={logout} profilePath={profilePath} />
+          )}
+        </div>
+      </div>
       </div>
     </header>
   );
@@ -385,8 +424,8 @@ export const SideBarLayout = () => {
       />
 
       <div className="lg:pl-[270px]">
-        <main className="min-h-[calc(100vh-98px)] bg-white px-6 py-0 lg:px-8">
-          <div className="min-h-screen bg-white pt-8">
+        <main className="min-h-[calc(100vh-98px)] bg-white px-4 py-0 sm:px-6 lg:px-8">
+          <div className="min-h-screen bg-white pt-5 sm:pt-8">
             {
               isAdmin ?
                 <TopComponentsAdmin /> :
