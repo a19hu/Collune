@@ -196,7 +196,7 @@ const CreatorRegister = () => {
     setVerificationStatus({ isCheckingEmail: true, error: "", message: "" });
     try {
       const email = form.email.trim();
-      // await verifyOtp("EMAIL", email, form.emailOtp);
+      await verifyOtp("EMAIL", email, form.emailOtp);
       setVerificationStatus({
         emailVerified: true,
         message: "Email verified.",

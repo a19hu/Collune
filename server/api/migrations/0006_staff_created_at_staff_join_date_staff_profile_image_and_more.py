@@ -26,6 +26,16 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='staff',
+            name='id',
+            field=models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
+        ),
+        migrations.AddField(
+            model_name='teacher',
+            name='id',
+            field=models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
+        ),
+        migrations.AddField(
+            model_name='staff',
             name='created_at',
             field=models.DateTimeField(default=django.utils.timezone.now),
         ),
@@ -97,7 +107,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='teacher',
             name='teacher_id',
-            field=models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False),
+            field=models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
         ),
         migrations.AddField(
             model_name='teacher',

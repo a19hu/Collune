@@ -365,7 +365,7 @@ const BrandRegister = () => {
   const verifyEmailOtp = async () => {
     setVerificationStatus({ isCheckingEmail: true, error: "", message: "" });
     try {
-      // await verifyOtp("EMAIL", form.email.trim(), form.emailOtp);
+      await verifyOtp("EMAIL", form.email.trim(), form.emailOtp);
       setVerificationStatus({ emailVerified: true, message: "Email verified." });
     } catch (error) {
       setVerificationStatus({ error: error instanceof Error ? error.message : "Invalid email OTP." });

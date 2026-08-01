@@ -46,23 +46,23 @@ locals {
 
     META_APP_ID            = var.meta_app_id
     META_APP_SECRET        = var.meta_app_secret
-    INSTAGRAM_REDIRECT_URI = "https://collune-backend-350157158342.asia-south1.run.app/api/v1/auth/instagram/callback/"
+    INSTAGRAM_REDIRECT_URI = "https://collune-backend-727341248620.asia-south1.run.app/api/v1/auth/instagram/callback/"
     FRONTEND_URL           = "https://collune.vercel.app"
 
     GOOGLE_CLIENT_SECRET = var.google_client_secret
-    YOUTUBE_REDIRECT_URI = "https://collune-backend-350157158342.asia-south1.run.app/api/v1/auth/youtube/callback/"
+    YOUTUBE_REDIRECT_URI = "https://collune-backend-727341248620.asia-south1.run.app/api/v1/auth/youtube/callback/"
     GOOGLE_CLIENT_ID     = var.google_client_id
     YOUTUBE_OAUTH_SCOPES = "openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly"
 
     X_CLIENT_ID     = var.x_client_id
     X_CLIENT_SECRET = var.x_client_secret
-    X_REDIRECT_URI  = "https://collune-backend-350157158342.asia-south1.run.app/api/v1/auth/x/callback/"
+    X_REDIRECT_URI  = "https://collune-backend-727341248620.asia-south1.run.app/api/v1/auth/x/callback/"
     X_OAUTH_SCOPES  = "tweet.read users.read follows.read offline.access"
     X_BEARER_TOKEN  = var.x_bearer_token
 
     FACEBOOK_APP_ID       = var.facebook_app_id
     FACEBOOK_APP_SECRET   = var.facebook_app_secret
-    FACEBOOK_REDIRECT_URI = "https://collune-backend-350157158342.asia-south1.run.app/api/v1/auth/facebook/callback/"
+    FACEBOOK_REDIRECT_URI = "https://collune-backend-727341248620.asia-south1.run.app/api/v1/auth/facebook/callback/"
   }
 }
 
