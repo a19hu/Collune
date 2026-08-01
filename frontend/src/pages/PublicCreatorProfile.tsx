@@ -5,21 +5,22 @@ import {
   BarChart3,
   Check,
   Globe2,
-  Instagram,
   Loader2,
   Lock,
   MapPin,
   ShieldCheck,
   Twitter,
   UserRound,
-  Youtube,
 } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
+
 
 import { useAuth } from "../contexts/AuthContext";
 import { getCreatorPublicProfile } from "../lib/authApi";
 import { AddCreatorToShortlistModal } from "../components/Brand/Shortlists/AddCreatorToShortlistModal";
 import type { CreatorPublicProfileApi, CreatorSocialPlatform } from "../types";
 import { formatUpdatedAt } from "../HtmlComponents/BrandCard";
+import { getLocationDisplayValue } from "./StepsCreatorRegister";
 
 const fallbackPortfolio = [
   "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=480&q=80",
@@ -27,6 +28,18 @@ const fallbackPortfolio = [
   "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=480&q=80",
   "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=480&q=80",
   "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=480&q=80",
+];
+
+function XIcon({ className }: { className?: string }) {
+  return <span className={className}>X</span>;
+}
+
+const socialTiles = [
+  { label: "Instagram", color: "bg-[#f77737]", href: "https://www.instagram.com/thecollune/", icon: Instagram },
+  { label: "LinkedIn", color: "bg-[#0a66c2]", href: "https://www.linkedin.com/company/thecollune/", icon: Linkedin },
+  { label: "X (Twitter)", color: "bg-[#111827]", href: "https://x.com/thecollune", icon: XIcon },
+  { label: "YouTube", color: "bg-[#ff0000]", href: "https://www.youtube.com/@thecollune", icon: Youtube },
+  { label: "Facebook", color: "bg-[#1877f2]", href: "https://www.facebook.com/thecollune", icon: Facebook },
 ];
 
 const platformMeta: Record<CreatorSocialPlatform, { label: string; color: string; Icon: typeof Instagram }> = {
@@ -143,12 +156,52 @@ function VerifiedCard() {
   );
 }
 
+function BrandLoginPromptModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-[#0f172a]/55 px-4" onClick={onClose}>
+      <div
+        className="w-full max-w-[420px] rounded-[10px] bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.22)]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-black text-[#25304a]">Login Required</h2>
+            <p className="mt-2 text-sm font-semibold leading-relaxed text-[#64728c]">
+              Please login as a brand to add creators to a shortlist or save them for later.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid h-9 w-9 place-items-center rounded-full border border-[#dce4f0] text-[#64728c]"
+            aria-label="Close login prompt"
+          >
+            <span className="text-lg leading-none">x</span>
+          </button>
+        </div>
+
+        <div className="mt-6 grid gap-3">
+          <Link to="/login" className="grid h-12 place-items-center rounded-[6px] bg-[#1438c8] text-sm font-black text-white">
+            Login as a Brand
+          </Link>
+          <Link to="/brand-register" className="grid h-12 place-items-center rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]">
+            Create Brand Account
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function PublicCreatorProfile() {
   const { creatorId } = useParams();
   const { currentUser } = useAuth();
   const [profile, setProfile] = useState<CreatorPublicProfileApi | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isBrandLoginPromptOpen, setIsBrandLoginPromptOpen] = useState(false);
   const isBrand = currentUser?.role === "Brand";
 
  useEffect(() => {
@@ -199,6 +252,16 @@ export function PublicCreatorProfile() {
     ];
   }, [profile]);
 
+  const locationDisplay = useMemo(() => {
+    const rawLocation = profile?.location || "";
+    return rawLocation ? getLocationDisplayValue(rawLocation) : "";
+  }, [profile?.location]);
+
+  const languageDisplay = useMemo(() => {
+    if (!profile?.languages?.length) return "";
+    return profile.languages.join(", ");
+  }, [profile?.languages]);
+
   if (isLoading) {
     return (
       <main className="grid min-h-[70vh] place-items-center bg-[#f4f7fb]">
@@ -230,7 +293,7 @@ export function PublicCreatorProfile() {
         <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
           <div className="grid gap-5">
         <Panel className="overflow-hidden p-5 sm:p-7">
-          <div className="grid gap-6 lg:grid-cols-[250px_1fr] lg:items-center">
+          <div className="grid justify-items-center gap-6 text-center lg:grid-cols-[250px_1fr] lg:items-center lg:justify-items-stretch lg:text-left">
             <div className="relative h-[210px] w-[210px] overflow-hidden rounded-full bg-[#f3e4d4]">
               {profile?.profile_image ? (
                 <img src={profile.profile_image} alt={profile.display_name} className="h-full w-full object-cover" />
@@ -245,26 +308,37 @@ export function PublicCreatorProfile() {
             </div>
 
             <div className="pt-3">
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-start">
                 <h1 className="text-[28px] font-black leading-tight text-[#1438c8]">{profile?.display_name}</h1>
                 <BadgeCheck className="h-5 w-5 fill-[#6f85ff] text-white" />
               </div>
               <p className="mt-1 text-[13px] font-semibold text-[#6b7891]">
                 {profile.category || "Creator"}
               </p>
-              <p className="mt-1 flex items-center gap-1 text-[12px] font-medium text-[#7b8597]">
+              <p className="mt-2 flex items-center justify-center gap-1 text-[12px] font-medium text-[#7b8597] lg:justify-start">
                 <MapPin className="h-3.5 w-3.5" />
-                {profile?.location || "Location not added"} {profile?.languages?.length ? ` | ${profile.languages.join(", ")}` : ""}
+                <span>{locationDisplay || "Location not added"}</span>
               </p>
-              <p className="mt-4 max-w-[560px] text-[13px] font-medium leading-relaxed text-[#526079]">
+              <p className="mt-1 flex items-center justify-center gap-1 text-[12px] font-medium text-[#7b8597] lg:justify-start">
+                <Globe2 className="h-3.5 w-3.5" />
+                <span>{languageDisplay || "Language not added"}</span>
+              </p>
+              <p className="mt-4 max-w-[560px] text-[13px] font-medium leading-relaxed text-[#526079] lg:max-w-none">
                 {profile?.bio || "This creator has not added a profile bio yet."}
               </p>
-              <div className="mt-5 flex flex-wrap gap-3">
-                {["#e69bf4", "#ff624f", "#8099ff", "#344055", "#d9dee5"].map((color) => (
-                  <span key={color} className="h-8 w-8 rounded-full" style={{ backgroundColor: color }} />
-                ))}
+              <div className="mt-5 flex flex-wrap justify-center gap-3 lg:justify-start">
+                <div className="flex flex-wrap justify-center gap-4 lg:justify-start" aria-label="Social platforms">
+              {socialTiles.map((tile) => {
+                const Icon = tile.icon;
+                return (
+                  <span key={tile.color} className={`grid h-9 w-9 place-items-center rounded-[13px] ${tile.color} text-white transition hover:scale-105`}>
+                    <Icon className="text-lg font-black leading-none"  />
+                    </span>
+                );
+              })}
+            </div>
               </div>
-              <div className="mt-5 max-w-[210px] rounded-[6px] border border-[#d8e0ec] bg-white px-4 py-2 text-center lg:ml-auto">
+              <div className="mt-5 w-full max-w-[210px] rounded-[6px] border border-[#d8e0ec] bg-white px-4 py-2 text-center lg:ml-auto">
                 <strong className="block text-[24px] font-black leading-none text-[#1438c8]">{(profile?.total_followers || 0).toLocaleString()}</strong>
                 <span className="text-[11px] font-semibold text-[#6c7790]">Followers across Platforms</span>
               </div>
@@ -374,8 +448,20 @@ export function PublicCreatorProfile() {
                     For Brands <Lock className="h-4 w-4" />
                   </h2>
                   <div className="mt-4 grid gap-3">
-                    <button type="button" className="h-12 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]">Add to Shortlist</button>
-                    <button type="button" className="h-12 rounded-[6px] bg-[#1438c8] text-sm font-black text-white">Save Creator</button>
+                    <button
+                      type="button"
+                      onClick={() => setIsBrandLoginPromptOpen(true)}
+                      className="h-12 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]"
+                    >
+                      Add to Shortlist
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsBrandLoginPromptOpen(true)}
+                      className="h-12 rounded-[6px] bg-[#1438c8] text-sm font-black text-white"
+                    >
+                      Save Creator
+                    </button>
                   </div>
                   <p className="mt-4 text-center text-[12px] font-semibold leading-tight text-[#64728c]">
                     These actions are only available for logged in brands
@@ -386,6 +472,7 @@ export function PublicCreatorProfile() {
           </aside>
         </div>
       </div>
+      <BrandLoginPromptModal isOpen={isBrandLoginPromptOpen} onClose={() => setIsBrandLoginPromptOpen(false)} />
     </main>
   );
 }
