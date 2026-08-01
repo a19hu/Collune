@@ -165,7 +165,9 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://collune.vercel.app"
+    "https://collune.vercel.app",
+    "https://collune.com",
+    "https://collune-frontend-727341248620.asia-south1.run.app"
 ]
 
 CORS_ALLOW_HEADERS = (

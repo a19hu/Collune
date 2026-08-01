@@ -4,6 +4,7 @@ import path from 'path';
 import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
+
   return {
     plugins: [react(), tailwindcss()],
     resolve: {
@@ -17,17 +18,6 @@ export default defineConfig(() => {
       hmr: process.env.DISABLE_HMR !== 'true',
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
-    //   proxy: {
-    //     '/api/v1': {
-    //       target: 'https://sm-350157158342.asia-south1.run.app',
-    //       changeOrigin: true,
-    //     },
-    //     '/media': {
-    //       target: 'https://sm-350157158342.asia-south1.run.app',
-    //       changeOrigin: true,
-    //     },
-    //   },
-    // },
     proxy: {
         '/api/v1': {
           target: 'http://localhost:8000',
@@ -38,6 +28,11 @@ export default defineConfig(() => {
           changeOrigin: true,
         },
       },
+    },
+    preview: {
+      host: '0.0.0.0',
+      port: 8080,
+      allowedHosts: ['collune-frontend-727341248620.asia-south1.run.app'],
     },
   };
 });

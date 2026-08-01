@@ -38,8 +38,18 @@ import type {
 } from "../types";
 import { authStorage } from "../contexts/authStorage";
 
+const DEFAULT_API_ORIGIN = "https://collune-backend-727341248620.asia-south1.run.app";
 
-const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/v1`;
+function resolveApiBaseUrl() {
+  const raw = String(import.meta.env.VITE_API_BASE_URL || "").trim();
+  if (!raw || raw === "undefined" || raw === "null") {
+    return `${DEFAULT_API_ORIGIN}/api/v1`;
+  }
+  const normalized = raw.replace(/\/+$/, "");
+  return `${normalized}/api/v1`;
+}
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 type ApiError = { error?: string; detail?: string; message?: string };
 type ApiRecord = Record<string, unknown>;

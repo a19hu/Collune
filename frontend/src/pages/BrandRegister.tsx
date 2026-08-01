@@ -331,7 +331,7 @@ const BrandRegister = () => {
   ) => {
     setVerificationStatus({ [loadingKey]: true, error: "", message: "" });
     try {
-      // await sendOtp(channel, target);
+      await sendOtp(channel, target);
       setVerificationStatus(successPatch);
       return true;
     } catch (error) {
