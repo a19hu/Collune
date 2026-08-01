@@ -50,6 +50,60 @@ X_ME_URL = "https://api.twitter.com/2/users/me"
 MOBILE_UA_MARKERS = ("android", "iphone", "ipad", "ipod", "mobile")
 
 
+def build_creator_location(country="", state="", district="", city="", postal_code="", street_address=""):
+    parts = {
+        "country": country,
+        "state": state,
+        "district": district,
+        "city": city,
+        "postalCode": postal_code,
+        "streetAddress": street_address,
+    }
+    return " | ".join(
+        f"{key}: {str(value).strip()}"
+        for key, value in parts.items()
+        if str(value).strip()
+    )
+
+
+def creator_address_payload(source):
+    country = (source.get("country") or "").strip()
+    state = (source.get("state") or "").strip()
+    district = (source.get("district") or "").strip()
+    city = (source.get("city") or "").strip()
+    postal_code = (source.get("postal_code") or source.get("postalCode") or "").strip()
+    street_address = (source.get("street_address") or source.get("streetAddress") or "").strip()
+    location = (source.get("location") or "").strip() or build_creator_location(
+        country=country,
+        state=state,
+        district=district,
+        city=city,
+        postal_code=postal_code,
+        street_address=street_address,
+    )
+    return {
+        "location": location,
+        "country": country,
+        "state": state,
+        "district": district,
+        "city": city,
+        "postal_code": postal_code,
+        "street_address": street_address,
+    }
+
+
+def creator_address_response(creator):
+    return {
+        "location": creator.location,
+        "country": creator.country,
+        "state": creator.state,
+        "district": creator.district,
+        "city": creator.city,
+        "postalCode": creator.postal_code,
+        "streetAddress": creator.street_address,
+    }
+
+
 def resolve_oauth_client(request):
     requested_client = (request.query_params.get("client") or "").strip().lower()
     if requested_client in {"app", "web"}:
@@ -79,11 +133,12 @@ class CreatorRegisterView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         user = create_user(data["user"], UserRole.CREATOR)
+        address = creator_address_payload(data)
         creator = CreatorProfile.objects.create(
             user=user,
             display_name=data.get("display_name") or user.profile_name,
             category=data.get("category", ""),
-            location=data.get("location", ""),
+            **address,
             languages=data.get("languages", []),
             collaboration_preferences=data.get("collaboration_preferences", []),
             bio=data.get("bio", ""),
@@ -399,7 +454,6 @@ class CreatorProfileView(APIView):
             ),
             "updated_at": creator.updated_at,
             "languages": creator.languages,
-            "location": creator.location,
             "bio": creator.bio,
             "about": creator.about,
             "gender": creator.gender,
@@ -416,6 +470,7 @@ class CreatorProfileView(APIView):
             "work_with":creator.work_with,
             "collaboration_preferences":creator.collaboration_preferences
         }
+        response.update(creator_address_response(creator))
 
         return Response({"creator": response})
 
@@ -438,6 +493,7 @@ class CreatorProfileView(APIView):
             "collaboration_preferences",
             "work_with",
         }
+        address_keys = {"country", "state", "district", "city", "postalCode", "streetAddress", "postal_code", "street_address"}
 
         # Update CreatorProfile fields
         for field in allowed_creator_fields:
@@ -449,6 +505,11 @@ class CreatorProfileView(APIView):
                         value = parsed_value if isinstance(parsed_value, list) else []
                     except json.JSONDecodeError:
                         value = [item.strip() for item in value.split(",") if item.strip()]
+                setattr(creator, field, value)
+
+        if "location" in request.data or any(key in request.data for key in address_keys):
+            address = creator_address_payload(request.data)
+            for field, value in address.items():
                 setattr(creator, field, value)
 
         # Update profile image
@@ -803,12 +864,14 @@ class CreatorListViewSet(APIView):
             ),
             "updated_at": creator.updated_at,
             "languages": creator.languages,
-            "location": creator.location,
             "bio": creator.bio,
             "about": creator.about,
+            "gender": creator.gender,
+            "collaboration_preferences": creator.collaboration_preferences,
             "total_followers": total_followers,
             "platform_data": platforms,
         }
+        response.update(creator_address_response(creator))
 
         if is_brand:
             response.update(
@@ -855,15 +918,10 @@ class CreatorListViewSet(APIView):
                 "work_with": creator.work_with,
                 "total_followers": total_followers,
                 "is_profile_visible": is_profile_visible,
+                "created_at": creator.created_at.isoformat(),
             }
-
-            if is_brand:
-                item.update(
-                    {
-                        "location": creator.location,
-                        "gender": creator.gender,
-                    }
-                )
+            item.update(creator_address_response(creator))
+            item["gender"] = creator.gender
 
             data.append(item)
 

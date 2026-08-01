@@ -23,11 +23,11 @@ const collaborationOptions = [
   { title: "Webinars", copy: "Join or host webinars and live sessions", icon: <Globe className="h-7 w-7" /> },
 ];
 
-type AddressFieldKey = "country" | "state" | "district" | "city" | "postalCode" | "streetAddress";
+export type AddressFieldKey = "country" | "state" | "district" | "city" | "postalCode" | "streetAddress";
 
-type AddressParts = Record<AddressFieldKey, string>;
+export type AddressParts = Record<AddressFieldKey, string>;
 
-const emptyAddressParts: AddressParts = {
+export const emptyAddressParts: AddressParts = {
   country: "",
   state: "",
   district: "",
@@ -52,7 +52,7 @@ const addressFieldMeta: Array<{
   { key: "streetAddress", label: "Street Address", placeholder: "House no., building, street", optional: true },
 ];
 
-function parseLocationParts(location: string): AddressParts {
+export function parseLocationParts(location: string): AddressParts {
   if (!location.trim()) return emptyAddressParts;
 
   const structuredParts = location.split("|").reduce<Partial<AddressParts>>((accumulator, item) => {
@@ -76,14 +76,14 @@ function parseLocationParts(location: string): AddressParts {
   };
 }
 
-function formatLocationParts(parts: AddressParts) {
+export function formatLocationParts(parts: AddressParts) {
   return addressFieldOrder
     .map((key) => `${key}: ${parts[key].trim()}`)
     .filter((item) => !item.endsWith(":"))
     .join(" | ");
 }
 
-function getLocationDisplayValue(location: string) {
+export function getLocationDisplayValue(location: string) {
   const parts = parseLocationParts(location);
   return [
     parts.streetAddress,
@@ -103,12 +103,14 @@ function AddressField({
   value,
   optional = false,
   onChange,
+  key
 }: {
   label: string;
   placeholder: string;
   value: string;
   optional?: boolean;
   onChange: (value: string) => void;
+  key?:string
 }) {
   return (
     <label className="block">
@@ -126,7 +128,7 @@ function AddressField({
   );
 }
 
-function AddressComposer({
+export function AddressComposer({
   location,
   onChange,
 }: {
@@ -147,7 +149,7 @@ function AddressComposer({
           <div className="grid gap-4 sm:grid-cols-2">
             {addressFieldMeta.map((field) => (
               <AddressField
-                // key={field.key}
+                key={field.key}
                 label={field.label}
                 placeholder={field.placeholder}
                 optional={field.optional}

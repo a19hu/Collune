@@ -18,7 +18,7 @@ import {
   verifyOtp,
 } from "../lib/authApi";
 import { CreatorRegisterForm, CreatorSocialPlatform, SocialAccountForm, VerificationState } from "../types";
-import { StepsCreatorRegister } from "./StepsCreatorRegister";
+import { parseLocationParts, StepsCreatorRegister } from "./StepsCreatorRegister";
 import { formButton, normalizePhoneNumber } from "../lib/function";
 
 const totalSteps = 6;
@@ -242,6 +242,7 @@ const CreatorRegister = () => {
     setIsSubmitting(true);
 
     try {
+      const address = parseLocationParts(form.location.trim());
       const response = await registerCreator({
         user: {
           name: form.name.trim(),
@@ -252,6 +253,12 @@ const CreatorRegister = () => {
         display_name: form.name.trim(),
         category: form.category,
         location: form.location.trim(),
+        country: address.country,
+        state: address.state,
+        district: address.district,
+        city: address.city,
+        postalCode: address.postalCode,
+        streetAddress: address.streetAddress,
         languages: form.languages,
         collaboration_preferences: form.collaboration_preferences,
         bio: form.bio.trim(),

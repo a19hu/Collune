@@ -21,7 +21,13 @@ class CreatorRegisterSerializer(serializers.Serializer):
     user = RegisterUserSerializer()
     display_name = serializers.CharField(max_length=255, required=False, allow_blank=True)
     category = serializers.CharField(max_length=120, required=False, allow_blank=True)
-    location = serializers.CharField(max_length=160, required=False, allow_blank=True)
+    location = serializers.CharField(max_length=500, required=False, allow_blank=True)
+    country = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    state = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    district = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    city = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    postalCode = serializers.CharField(source="postal_code", max_length=32, required=False, allow_blank=True)
+    streetAddress = serializers.CharField(source="street_address", max_length=255, required=False, allow_blank=True)
     languages = serializers.ListField(child=serializers.CharField(max_length=80), required=False)
     collaboration_preferences = serializers.ListField(child=serializers.CharField(max_length=120), required=False)
     social_accounts = CreatorSocialAccountInputSerializer(many=True, required=False)
@@ -103,6 +109,8 @@ class CreatorProfileSerializer(serializers.ModelSerializer):
     profile_image_url = serializers.SerializerMethodField()
     is_profile_visible = serializers.BooleanField(source="user.is_profile_visible", read_only=True)
     verification_status = serializers.CharField(source="user.verification_status", read_only=True)
+    postalCode = serializers.CharField(source="postal_code", read_only=True)
+    streetAddress = serializers.CharField(source="street_address", read_only=True)
 
     class Meta:
         model = CreatorProfile
@@ -112,6 +120,12 @@ class CreatorProfileSerializer(serializers.ModelSerializer):
             "display_name",
             "category",
             "location",
+            "country",
+            "state",
+            "district",
+            "city",
+            "postalCode",
+            "streetAddress",
             "languages",
             "collaboration_preferences",
             "bio",
@@ -141,6 +155,8 @@ class CreatorsProfileListSerializer(serializers.ModelSerializer):
     profile_image_url = serializers.SerializerMethodField()
     is_profile_visible = serializers.BooleanField(source="user.is_profile_visible", read_only=True)
     verification_status = serializers.CharField(source="user.verification_status", read_only=True)
+    postalCode = serializers.CharField(source="postal_code", read_only=True)
+    streetAddress = serializers.CharField(source="street_address", read_only=True)
 
     class Meta:
         model = CreatorProfile
@@ -150,6 +166,12 @@ class CreatorsProfileListSerializer(serializers.ModelSerializer):
             "display_name",
             "category",
             "location",
+            "country",
+            "state",
+            "district",
+            "city",
+            "postalCode",
+            "streetAddress",
             "languages",
             "collaboration_preferences",
             "bio",

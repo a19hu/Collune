@@ -23,6 +23,7 @@ import {
   updateCreatorProfile,
 } from "../../lib/authApi";
 import type { CreatorListPlatformApi, CreatorProfileApi, CreatorSocialPlatform } from "../../types";
+import { AddressComposer, formatLocationParts, getLocationDisplayValue, parseLocationParts } from "../../pages/StepsCreatorRegister";
 
 type EditForm = {
   category: string;
@@ -63,9 +64,17 @@ function csvToList(value: string) {
 }
 
 function toEditForm(profile: CreatorProfileApi): EditForm {
+  const location = profile.location || formatLocationParts({
+    country: profile.country || "",
+    state: profile.state || "",
+    district: profile.district || "",
+    city: profile.city || "",
+    postalCode: profile.postalCode || "",
+    streetAddress: profile.streetAddress || "",
+  });
   return {
     category: profile.category || "",
-    location: profile.location || "",
+    location,
     languages: listToCsv(profile.languages),
     collaboration_preferences: listToCsv(profile.collaboration_preferences),
     work_with: listToCsv(profile.work_with),
@@ -201,8 +210,15 @@ export function CreatorProfile() {
     setMessage("");
 
     const body = new FormData();
+    const address = parseLocationParts(form.location);
     body.append("category", form.category);
     body.append("location", form.location);
+    body.append("country", address.country);
+    body.append("state", address.state);
+    body.append("district", address.district);
+    body.append("city", address.city);
+    body.append("postalCode", address.postalCode);
+    body.append("streetAddress", address.streetAddress);
     body.append("languages", JSON.stringify(csvToList(form.languages)));
     body.append("collaboration_preferences", JSON.stringify(csvToList(form.collaboration_preferences)));
     body.append("work_with", JSON.stringify(csvToList(form.work_with)));
@@ -271,7 +287,7 @@ export function CreatorProfile() {
                   </div>
                   <div>
                     <h1 className="text-2xl font-black">{profile.display_name || "Creator"}</h1>
-                    <p className="mt-1 text-sm font-semibold text-white/75">{form.category || "Category not added"} · {form.location || "Location not added"}</p>
+                    <p className="mt-1 text-sm font-semibold text-white/75">{form.category || "Category not added"} · {getLocationDisplayValue(form.location) || "Location not added"}</p>
                   </div>
                 </div>
                 <div className="rounded-[8px] bg-white/10 p-1">
@@ -320,6 +336,9 @@ export function CreatorProfile() {
               <TextInput label="Category" value={form.category} onChange={(value) => updateField("category", value)} placeholder="Political Commentary" />
               <TextInput label="Languages" value={form.languages} onChange={(value) => updateField("languages", value)} placeholder="Hindi, English" />
               <TextInput label="Collaboration preferences" value={form.collaboration_preferences} onChange={(value) => updateField("collaboration_preferences", value)} placeholder="Sponsored Posts, UGC Content" />
+            </div>
+            <div className="mt-4">
+              <AddressComposer location={form.location} onChange={(value) => updateField("location", value)} />
             </div>
           </Card>
 
@@ -419,7 +438,7 @@ export function CreatorProfile() {
                   <p className="mt-1 text-sm font-bold text-[#63708a]">{form.category || "Category not added"}</p>
                   <p className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#63708a]">
                     <MapPin className="h-3.5 w-3.5" />
-                    {form.location || "Location not added"}
+                    {getLocationDisplayValue(form.location) || "Location not added"}
                   </p>
                 </div>
               </div>
