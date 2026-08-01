@@ -125,7 +125,7 @@ const LandingPage = () => {
         <HeroBadge className="left-[max(60px,calc(48%-580px))] top-[480px] rotate-[12deg]" icon={<ShieldCheck className="h-6 w-6" />}>
           Trusted<br />Collaborations
         </HeroBadge>
-        <HeroBadge className="right-[max(350px,calc(50%-740px))] top-[485px] -rotate-[10deg] bg-[#8194ff]" icon={<Clock3 className="h-6 w-6" />}>
+        <HeroBadge className="right-[max(60px,calc(48%-580px))] top-[485px] -rotate-[10deg] bg-[#8194ff]" icon={<Clock3 className="h-6 w-6" />}>
           On time<br />Payments
         </HeroBadge>
 

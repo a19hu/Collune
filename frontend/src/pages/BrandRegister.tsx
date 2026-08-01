@@ -4,6 +4,7 @@ import {
   BriefcaseBusiness,
   Building2,
   Eye,
+  EyeClosed,
   Globe,
   Linkedin,
   Lock,
@@ -145,7 +146,8 @@ function BrandRegisterSteps({
             minLength={8}
             trailing={
               <button type="button" onClick={onTogglePassword} className="grid h-8 w-8 place-items-center rounded-md text-[#71809a] hover:bg-[#eef3ff]" aria-label={showPassword ? "Hide password" : "Show password"}>
-                <Eye className="h-5 w-5" />
+                                    {showPassword ? <Eye className="h-5 w-5" /> : <EyeClosed className="h-5 w-5" />}
+
               </button>
             }
             required
@@ -329,13 +331,16 @@ const BrandRegister = () => {
     successPatch: Partial<VerificationState>,
     fallbackError: string,
   ) => {
+    setSubmitError("");
     setVerificationStatus({ [loadingKey]: true, error: "", message: "" });
     try {
       await sendOtp(channel, target);
       setVerificationStatus(successPatch);
       return true;
     } catch (error) {
-      setVerificationStatus({ error: error instanceof Error ? error.message : fallbackError });
+      const message = error instanceof Error ? error.message : fallbackError;
+      setVerificationStatus({ error: message });
+      setSubmitError(message);
       return false;
     } finally {
       setVerificationStatus({ [loadingKey]: false });
@@ -343,6 +348,15 @@ const BrandRegister = () => {
   };
 
   const sendBrandVerificationOtps = async () => {
+    // const phoneSent = await sendContactOtp(
+    //   "PHONE",
+    //   normalizePhoneNumber(form.phone_no),
+    //   "isSendingPhone",
+    //   { phoneOtpSent: true, phoneVerified: false, message: "Phone OTP sent." },
+    //   "Could not send phone OTP.",
+    // );
+    // if (!phoneSent) return false;
+
     const emailSent = await sendContactOtp(
       "EMAIL",
       form.email.trim(),
@@ -350,16 +364,9 @@ const BrandRegister = () => {
       { emailSent: true, emailVerified: false, message: "Email OTP sent." },
       "Could not send email OTP.",
     );
-    if (!emailSent) return false;
 
-    const phoneSent = await sendContactOtp(
-      "PHONE",
-      normalizePhoneNumber(form.phone_no),
-      "isSendingPhone",
-      { phoneOtpSent: true, phoneVerified: false, message: "Phone OTP sent." },
-      "Could not send phone OTP.",
-    );
-    return phoneSent;
+    
+    return emailSent;
   };
 
   const verifyEmailOtp = async () => {
@@ -389,7 +396,7 @@ const BrandRegister = () => {
   const validateVerificationStep = () => {
     const missing: string[] = [];
     if (!verification.emailVerified) missing.push("Email OTP is not verified.");
-    if (!verification.phoneVerified) missing.push("Phone OTP is not verified.");
+    // if (!verification.phoneVerified) missing.push("Phone OTP is not verified.");
 
     if (missing.length) {
       setVerificationStatus({ error: missing.join(" "), message: "" });

@@ -52,13 +52,26 @@ const addressFieldMeta: Array<{
   { key: "streetAddress", label: "Street Address", placeholder: "House no., building, street", optional: true },
 ];
 
+function normalizeAddressFieldKey(rawKey: string): AddressFieldKey | null {
+  const normalizedKey = rawKey.trim().toLowerCase().replace(/[\s_-]+/g, "");
+
+  if (normalizedKey === "country") return "country";
+  if (normalizedKey === "state") return "state";
+  if (normalizedKey === "district") return "district";
+  if (normalizedKey === "city") return "city";
+  if (normalizedKey === "postalcode") return "postalCode";
+  if (normalizedKey === "streetaddress") return "streetAddress";
+
+  return null;
+}
+
 export function parseLocationParts(location: string): AddressParts {
   if (!location.trim()) return emptyAddressParts;
 
   const structuredParts = location.split("|").reduce<Partial<AddressParts>>((accumulator, item) => {
     const [rawKey, ...rest] = item.split(":");
-    const key = rawKey?.trim().toLowerCase() as AddressFieldKey | undefined;
-    if (!key || !addressFieldOrder.includes(key)) return accumulator;
+    const key = rawKey ? normalizeAddressFieldKey(rawKey) : null;
+    if (!key) return accumulator;
     accumulator[key] = rest.join(":").trim();
     return accumulator;
   }, {});
