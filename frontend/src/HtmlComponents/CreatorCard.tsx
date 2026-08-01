@@ -13,7 +13,7 @@ type CreatorProfileApi = {
 }
 
 
-export function CreatorCard({ creator, index }: { creator: CreatorProfileApi; index: number}) {
+export function CreatorCard({ creator, index,key }: { creator: CreatorProfileApi; index: number,key?:number}) {
   const [showPrivateToast, setShowPrivateToast] = useState(false);
   const imageUrl =  creator.profile_image || `https://i.pravatar.cc/640?img=${(index % 70) + 1}`;
   const username = creator.username ;

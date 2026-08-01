@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import string
 from datetime import timedelta
@@ -113,18 +114,79 @@ def brevo_headers():
     }
 
 def send_brevo_email_otp(target, code):
-
     sender_email = os.getenv("DEFAULT_FROM_EMAIL")
+    brevo_api_key = os.getenv("BREVO_API_KEY")
+    print(brevo_api_key)
     if not sender_email:
         raise RuntimeError("DEFAULT_FROM_EMAIL is not configured.")
-    try:
-        send_mail(
-                    subject="Your Collune verification code",
-                    message=f"Your Collune verification code is {code}. This code expires in {OTP_EXPIRY_MINUTES} minutes.",
-                    from_email=sender_email,
-                    recipient_list=[target],
-                    fail_silently=False,
-                )
+    # try:
+
+    BREVO_API_BASE_EMAIL = BREVO_API_BASE + "/smtp/email"
+    print(BREVO_API_BASE_EMAIL)
+
+    html_content = f"""
+        <!DOCTYPE html>
+        <html>
+            <body style="font-family: Arial, sans-serif;">
+                <h2>Verify your Collune account</h2>
+
+                <p>Your verification code is:</p>
+
+                <div style="
+                    font-size: 30px;
+                    font-weight: bold;
+                    letter-spacing: 8px;
+                    margin: 20px 0;
+                ">
+                    {code}
+                </div>
+
+                <p>This code will expire shortly.</p>
+                <p>Do not share this code with anyone.</p>
+
+                <p>Regards,<br>Collune Team</p>
+            </body>
+        </html>
+        """
+
+    payload = {
+            "sender": {
+                "name": "Collune",
+                "email": sender_email,
+            },
+            "to": [
+                {
+                    "email": target,
+                    "name": target,
+                }
+            ],
+            "subject": "Your Collune verification code",
+            "htmlContent": html_content,
+    }
+
+    headers = {
+            "accept": "application/json",
+            "api-key": brevo_api_key,
+            "content-type": "application/json",
+    }
+
+    try: 
+        requests.post(
+            BREVO_API_BASE_EMAIL,
+            json=payload,
+            headers=headers,
+            timeout=20,
+        )
+        
+        
+
+    #     send_mail(
+    #                 subject="Your Collune verification code",
+    #                 message=f"Your Collune verification code is {code}. This code expires in {OTP_EXPIRY_MINUTES} minutes.",
+    #                 from_email=sender_email,
+    #                 recipient_list=[target],
+    #                 fail_silently=False,
+    #             )
     except RuntimeError as error:
         print("sending error",error)
 

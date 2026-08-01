@@ -239,7 +239,6 @@ export async function getCreatorsList() {
   const data = await apiRequest<{ creators: CreatorListItemApi[] }>(
     "/creators/list/",
     {},
-    true,
   );
   return data.creators
 }

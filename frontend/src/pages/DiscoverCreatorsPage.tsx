@@ -161,7 +161,11 @@ export const DiscoverCreatorsPage = () => {
               <p className="col-span-full py-10 text-center text-sm font-black text-[#65718a]">Loading creators...</p>
             ) : visibleCreators.length ? (
               visibleCreators.map((creator, index) => (
-                <CreatorCard  creator={creator} index={index} />
+                <CreatorCard
+                  key={creator.creator_id || creator.username || `${creator.display_name}-${index}`}
+                  creator={creator}
+                  index={index}
+                />
               ))
             ) : (
               <p className="col-span-full py-10 text-center text-sm font-black text-[#65718a]">No creators match these filters.</p>

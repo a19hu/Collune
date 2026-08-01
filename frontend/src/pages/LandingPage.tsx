@@ -205,7 +205,11 @@ const LandingPage = () => {
             <p className="col-span-full py-8 text-sm font-black text-[#bf3f5f]">{creatorError}</p>
           ) : filteredCreators.length ? (
             filteredCreators.slice(0, 8).map((creator, index) => (
-              <CreatorCard creator={creator} index={index} />
+              <CreatorCard
+                key={creator.creator_id || creator.username || `${creator.display_name}-${index}`}
+                creator={creator}
+                index={index}
+              />
             ))
           ) : (
             <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">No creators available yet.</p>
