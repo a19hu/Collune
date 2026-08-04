@@ -12,6 +12,7 @@ import LoginPage from './pages/LoginPage.tsx';
 import { SideBarLayout } from './components/layout/SideBarLayout.tsx';
 import CreatorDashBoard from './components/Creator/CreatorDashBoard.tsx';
 import CreatorProfile from './components/Creator/CreatorProfile.tsx';
+import BrandProfile from './components/Brand/BrandProfile.tsx';
 import BrandDashBoard from './components/Brand/BrandDashBoard.tsx';
 import { BrandCampaigns } from './components/Brand/BrandCampaigns.tsx';
 import { CampaignApplicationsPage } from './components/Brand/Campaigns/CampaignApplicationsPage.tsx';
@@ -106,6 +107,7 @@ const App: React.FC = () => {
                     <Route element={<RequireAuth allowedRole="Brand" />}>
                         <Route path="/brand/*" element={<SideBarLayout />}>
                             <Route index element={<BrandDashBoard />} />
+                            <Route path="profile" element={<BrandProfile />} />
                             <Route path="shortlists" element={<BrandShortlists />} />
                             <Route path="shortlists/new_create" element={<ShortlistCreateForm />} />
                             <Route path="shortlists/:shortlistId/edit" element={<ShortlistCreateForm />} />

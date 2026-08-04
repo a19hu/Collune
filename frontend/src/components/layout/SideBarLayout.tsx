@@ -168,7 +168,7 @@ export const SideBarLayout = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const isBrand = mode === "brand";
   const isAdmin = mode === "admin";
-  const profilePath = isAdmin ? "/admin" : isBrand ? "/brand" : "/creator/profile";
+  const profilePath = isAdmin ? "/admin" : isBrand ? "/brand/profile" : "/creator/profile";
   const isVerified = currentUser.verification_status === "VERIFIED"
   const brandStatus = isVerified ? "verified-brand" : "under-review";
 
@@ -313,6 +313,19 @@ export const SideBarLayout = () => {
                 </HeaderButton>
               </>
             ) : undefined}
+          />
+        ),
+      },
+      {
+        matches: () => pathname === "/brand/profile",
+        render: () => (
+          <DashboardTopBar
+            title="Brand Profile"
+            status={brandStatus}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
           />
         ),
       },

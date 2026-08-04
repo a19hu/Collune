@@ -517,15 +517,19 @@ export type BrandLogoApi = {
 
 export type BrandProfileApi = {
   brand_id: string;
+  user?: UserAccount & { profile_id?: string };
   company_name: string;
   industry: string;
   website: string;
   company_size: string;
   linkedin_url: string;
+  logo?: string;
   logo_url: string;
   is_profile_visible: boolean;
   verification_status: string;
   profile_completion: number;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type BrandDashboardApi = {

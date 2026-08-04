@@ -18,6 +18,7 @@ const navByMode = {
   ],
   brand: [
     { label: "Dashboard", to: "/brand", icon: Home },
+    { label: "Profile", to: "/brand/profile", icon: UserRound },
     { label: "Campaigns", to: "/brand/campaigns", icon: FileText },
     { label: "Discover Creators", to: "/discover-creators", icon: Users },
     { label: "Shortlists", to: "/brand/shortlists", icon: Star },

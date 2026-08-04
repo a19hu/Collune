@@ -209,7 +209,12 @@ export async function registerBrandFormData(payload: BrandRegisterPayload, logo?
 }
 
 export async function getBrandMe() {
-  const data = await apiRequest<{ brand: BrandProfileApi }>("/brands/me/", {}, true);
+  const data = await apiRequest<{ brand: BrandProfileApi }>("/auth/brand/profile/", {}, true);
+  return data.brand;
+}
+
+export async function updateBrandProfile(body: FormData) {
+  const data = await apiPatchForm<{ brand: BrandProfileApi }>("/auth/brand/profile/", body, true);
   return data.brand;
 }
 
