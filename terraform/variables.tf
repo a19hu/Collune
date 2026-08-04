@@ -19,7 +19,7 @@ variable "instance_name" {
 
 variable "machine_type" {
   type    = string
-  default = "db-custom-2-3840"
+  default = "db-g1-small"
 }
 
 

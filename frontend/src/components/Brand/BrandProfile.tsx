@@ -233,9 +233,9 @@ export default function BrandProfile() {
     <div className="grid gap-6">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_380px]">
         <Card className="overflow-hidden">
-          <div className="border-b border-[#eef2fb] bg-[linear-gradient(135deg,#eef3ff_0%,#ffffff_85%)] px-6 py-6 sm:px-8">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex items-start gap-4">
+          <div className="border-b border-[#dfe7fb] bg-gradient-to-r from-[#eef4ff] via-[#f8fbff] to-[#e9f0ff] px-6 py-6 sm:px-8">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex min-w-0 items-center gap-4">
                 {logoPreview ? (
                   <img src={logoPreview} alt={profile.company_name} className="h-20 w-20 rounded-[18px] object-cover ring-4 ring-white" />
                 ) : (
@@ -243,12 +243,12 @@ export default function BrandProfile() {
                     {(form.company_name || profile.company_name || "BR").slice(0, 2).toUpperCase()}
                   </div>
                 )}
-                <div>
+                <div className="min-w-0 flex-1">
                   <div className="inline-flex items-center gap-2 rounded-full bg-[#ddfbea] px-3 py-1 text-xs font-black text-[#067647]">
                     <ShieldCheck className="h-3.5 w-3.5" />
                     {profile.verification_status === "VERIFIED" ? "Verified Brand" : "Under Review"}
                   </div>
-                  <h2 className="mt-3 text-[28px] font-black leading-tight text-[#173ca8]">{form.company_name || "Your brand profile"}</h2>
+                  <h2 className="mt-3 break-words text-[28px] font-black leading-tight text-[#173ca8]">{form.company_name || "Your brand profile"}</h2>
                   <p className="mt-2 max-w-[540px] text-sm font-medium leading-relaxed text-[#62708a]">
                     Keep this profile polished so creators and your internal team always see accurate brand information.
                   </p>
@@ -258,7 +258,7 @@ export default function BrandProfile() {
                 type="button"
                 onClick={saveProfile}
                 disabled={isSaving}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-[8px] bg-[#173fb5] px-5 text-sm font-black text-white transition hover:bg-[#11349b] disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 self-stretch rounded-[8px] bg-[#173fb5] px-5 text-sm font-black text-white transition hover:bg-[#11349b] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto sm:self-auto"
               >
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 {isSaving ? "Saving..." : "Save Changes"}

@@ -6,8 +6,8 @@ import logo from "../../assets/Logo.svg";
 
 export function ColluneLogo({ to = "/" }: { to?: string }) {
   return (
-    <Link to={to} aria-label="Collune home" className="flex items-center gap-2 text-[#214bc0]">
-      <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
+    <Link to={to} aria-label="Collune home" className="flex min-w-0 items-center gap-2 text-[#214bc0]">
+      <img src={logo} alt="Collune" className="h-[42px] w-[132px] sm:h-[48px] sm:w-[150px] lg:h-[53px] lg:w-[167px]" />
     </Link>
   );
 }
@@ -76,7 +76,7 @@ const Navbar = () => {
 
   return (
     <header className="fixed left-1/2 top-4 z-50 w-[calc(100%-32px)] max-w-7xl -translate-x-1/2 md:top-5">
-      <div className="grid grid-cols-[1fr_auto] items-center gap-4 lg:grid-cols-[1fr_auto_1fr]">
+      <div className="rounded-[28px] border border-[#d8e3ff] bg-gradient-to-r from-[#eef4ff]/95 via-[#f8fbff]/95 to-[#e8f0ff]/95 px-4 py-3 shadow-[0_18px_40px_rgba(45,66,140,0.12)] backdrop-blur-xl sm:px-5 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-4 lg:rounded-full lg:border-transparent lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none lg:backdrop-blur-0">
         <ColluneLogo to={'/#top'} />
 
         <nav className="hidden items-center gap-8 rounded-full border border-[#dce5fb] bg-white/85 px-11 py-4 shadow-[0_16px_34px_rgba(69,96,170,0.1)] backdrop-blur-xl lg:flex">
@@ -104,14 +104,14 @@ const Navbar = () => {
         </nav>
 
         {isAuthLoading ? (
-          <span className="h-11 w-32 justify-self-end rounded-full border border-[#dce5fb] bg-white/60" />
+          <span className="mt-3 h-11 w-32 rounded-full border border-[#dce5fb] bg-white/60 lg:mt-0 lg:justify-self-end" />
         ) : currentUser ? (
-          <div className="flex items-center justify-self-end gap-2">
+          <div className="mt-3 flex items-center justify-between gap-2 sm:justify-end lg:mt-0 lg:justify-self-end">
             <div ref={userMenuRef} className="relative">
               <button
                 type="button"
                 onClick={() => setIsUserMenuOpen((current) => !current)}
-                className="inline-flex min-h-11 items-center justify-center gap-3 rounded-full bg-white/75 px-3 text-sm font-black text-[#2449bd] backdrop-blur transition hover:bg-white"
+                className="inline-flex min-h-11 max-w-[calc(100vw-120px)] items-center justify-center gap-3 rounded-full bg-white/85 px-3 text-sm font-black text-[#2449bd] backdrop-blur transition hover:bg-white sm:max-w-none"
                 aria-haspopup="menu"
                 aria-expanded={isUserMenuOpen}
               >
@@ -155,8 +155,8 @@ const Navbar = () => {
             </button>
           </div>
         ) : (
-          <div className="flex items-center justify-self-end gap-2">
-            <Link to="/login" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-[#dce5fb] bg-white/75 px-5 text-sm font-black text-[#2b55c7] shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:bg-white">
+          <div className="mt-3 flex items-center justify-between gap-2 sm:justify-end lg:mt-0 lg:justify-self-end">
+            <Link to="/login" className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-full border border-[#dce5fb] bg-white/85 px-4 text-sm font-black text-[#2b55c7] shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:bg-white sm:flex-none sm:px-5">
               Log In
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -176,7 +176,7 @@ const Navbar = () => {
 
       <div
         id="mobile-navigation"
-        className={`${isMobileMenuOpen ? "pointer-events-auto visible mt-3 translate-y-0 opacity-100" : "pointer-events-none invisible mt-1 -translate-y-2 opacity-0"} rounded-[28px] border border-[#dce5fb] bg-white/95 p-4 shadow-[0_18px_40px_rgba(45,66,140,0.14)] backdrop-blur-xl transition duration-200 lg:hidden`}
+        className={`${isMobileMenuOpen ? "pointer-events-auto visible mt-3 translate-y-0 opacity-100" : "pointer-events-none invisible mt-1 -translate-y-2 opacity-0"} rounded-[28px] border border-[#d8e3ff] bg-gradient-to-b from-[#fdfefe]/98 via-[#f7faff]/98 to-[#edf3ff]/98 p-4 shadow-[0_18px_40px_rgba(45,66,140,0.14)] backdrop-blur-xl transition duration-200 lg:hidden`}
       >
         <nav className="flex flex-col gap-2" aria-label="Mobile navigation">
           {navItems.map((item) =>
