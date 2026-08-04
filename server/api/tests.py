@@ -111,6 +111,78 @@ class ColluneAuthTests(APITestCase):
         self.assertEqual(set(response.data["brands"][0].keys()), {"id", "logo"})
         self.assertEqual(response.data["brands"][0]["id"], str(brand.brand_id))
 
+    def test_brand_profile_view_returns_and_updates_brand_fields(self):
+        user = get_user_model().objects.create_user(
+            username="brand-profile-owner",
+            email="brand.profile@test.com",
+            password="StrongPass123!",
+            role=UserRole.BRAND,
+        )
+        BrandProfile.objects.create(
+            user=user,
+            company_name="Acme Labs",
+            industry="Technology",
+            website="https://acme.test",
+            company_size="11-50",
+            linkedin_url="https://linkedin.com/company/acme",
+        )
+        self.client.force_authenticate(user=user)
+
+        response = self.client.get(reverse("brand_profile"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["brand"]["company_name"], "Acme Labs")
+        self.assertEqual(response.data["brand"]["industry"], "Technology")
+        self.assertEqual(response.data["brand"]["website"], "https://acme.test")
+        self.assertEqual(response.data["brand"]["company_size"], "11-50")
+        self.assertEqual(response.data["brand"]["linkedin_url"], "https://linkedin.com/company/acme")
+
+        patch_response = self.client.patch(
+            reverse("brand_profile"),
+            {
+                "company_name": "Acme Global",
+                "industry": "Fintech",
+                "company_size": "51-200",
+                "is_profile_visible": False,
+            },
+            format="json",
+        )
+
+        self.assertEqual(patch_response.status_code, status.HTTP_200_OK)
+        user.refresh_from_db()
+        brand = user.brand_profile
+        self.assertEqual(brand.company_name, "Acme Global")
+        self.assertEqual(brand.industry, "Fintech")
+        self.assertEqual(brand.company_size, "51-200")
+        self.assertFalse(user.is_profile_visible)
+
+    def test_public_brand_profile_view_returns_visible_brand(self):
+        user = get_user_model().objects.create_user(
+            username="public-brand",
+            email="public.brand@test.com",
+            password="StrongPass123!",
+            role=UserRole.BRAND,
+            verification_status="VERIFIED",
+            is_profile_visible=True,
+        )
+        brand = BrandProfile.objects.create(
+            user=user,
+            company_name="Public Brand",
+            industry="Retail",
+            website="https://public-brand.test",
+            company_size="201-500",
+            linkedin_url="https://linkedin.com/company/public-brand",
+        )
+
+        response = self.client.get(reverse("brand_detail", args=[brand.brand_id]))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["brand"]["brand_id"], str(brand.brand_id))
+        self.assertEqual(response.data["brand"]["company_name"], "Public Brand")
+        self.assertEqual(response.data["brand"]["industry"], "Retail")
+        self.assertTrue(response.data["brand"]["verified"])
+        self.assertNotIn("user", response.data["brand"])
+
     def test_admin_can_create_internal_user_with_role_template_and_permissions(self):
         admin = get_user_model().objects.create_user(
             username="admin-user-manager",

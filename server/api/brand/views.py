@@ -708,8 +708,8 @@ class BrandProfileViewSet(viewsets.ModelViewSet):
         if self.request.user.role == UserRole.BRAND:
             return BrandProfile.objects.select_related("user").filter(user=self.request.user)
         return BrandProfile.objects.select_related("user").filter(
-            verification_status=VerificationStatus.VERIFIED,
-            is_profile_visible=True,
+            user__verification_status=VerificationStatus.VERIFIED,
+            user__is_profile_visible=True,
         )
 
     def get_permissions(self):
@@ -773,3 +773,72 @@ class CampaignViewSet(viewsets.ModelViewSet):
         )
         serializer = CampaignApplicationSerializer(application, context={"request": request})
         return Response({"application": serializer.data}, status=status.HTTP_201_CREATED)
+
+
+class BrandProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get_object(self, request):
+        return getattr(request.user, "brand_profile", None)
+
+    def get(self, request):
+        brand = self.get_object(request)
+        if not brand:
+            return Response({"error": "No Brand profile found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = BrandProfileSerializer(brand, context={"request": request})
+        return Response({"brand": serializer.data})
+
+    def patch(self, request):
+        brand = self.get_object(request)
+        if not brand:
+            return Response(
+                {"error": "No brand profile found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = BrandProfileSerializer(
+            brand,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        if "is_profile_visible" in request.data:
+            visible_value = request.data.get("is_profile_visible")
+            brand.user.is_profile_visible = str(visible_value).lower() in {"true", "1", "yes", "on"}
+            brand.user.save(update_fields=["is_profile_visible"])
+
+        return Response(
+            {"brand": BrandProfileSerializer(brand, context={"request": request}).data},
+            status=status.HTTP_200_OK,
+        )
+
+
+class PublicBrandProfileView(APIView):
+    permission_classes = [AllowAny]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request, brand_id):
+        brand = get_object_or_404(
+            BrandProfile.objects.select_related("user"),
+            brand_id=brand_id,
+            user__is_profile_visible=True,
+        )
+
+        response = {
+            "brand_id": str(brand.brand_id),
+            "company_name": brand.company_name,
+            "industry": brand.industry,
+            "website": brand.website,
+            "company_size": brand.company_size,
+            "linkedin_url": brand.linkedin_url,
+            "logo": request.build_absolute_uri(brand.logo.url) if brand.logo else None,
+            "verified": brand.user.verification_status == VerificationStatus.VERIFIED.value,
+            "is_profile_visible": brand.user.is_profile_visible,
+            "created_at": brand.created_at,
+            "updated_at": brand.updated_at,
+        }
+        return Response({"brand": response})

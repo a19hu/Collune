@@ -13,11 +13,13 @@ from .admin.views import (
 from .brand.views import (
     BrandDetailDashboardView,
     BrandLogoCarouselView,
+    BrandProfileView,
     BrandProfileViewSet,
     BrandRegisterView,
     BrandCampaignApplicationViewSet,
     CampaignReviewView,
     CampaignsViewSet,
+    PublicBrandProfileView,
     CampaignViewSet,
     ShortlistViewSet,
 )
@@ -65,6 +67,7 @@ urlpatterns = [
     path("auth/otp/verify/", OtpVerifyView.as_view(), name="otp_verify"),
     path("auth/me/", ProfileView.as_view(), name="profile"),
 
+    path("auth/brand/profile/", BrandProfileView.as_view(), name="brand_profile"),
     path("auth/creator/profile/", CreatorProfileView.as_view(), name="creator_profile"),
 
     path("brands/dashboard/", BrandDetailDashboardView.as_view(), name="brand_dashboard"),
@@ -82,6 +85,7 @@ urlpatterns = [
     path("brands/campaigns/<uuid:campaign_id>/", BrandCampaignApplicationViewSet.as_view(), name="brand_campaign_detail"),
     path("brand-shortlists/", ShortlistViewSet.as_view(), name="brand_shortlists"),
     path("brand-shortlists/<uuid:shortlist_id>/", ShortlistViewSet.as_view(), name="brand_shortlist_detail"),
+    path("brand/<uuid:brand_id>/", PublicBrandProfileView.as_view(), name="brand_detail"),
     path("creators/list/", CreatorListViewSet.as_view(), name="creators_list"),
     path("creator/<uuid:creator_id>/", CreatorListViewSet.as_view(), name="creator_detail"),
 
