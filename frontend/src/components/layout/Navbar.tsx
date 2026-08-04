@@ -76,7 +76,7 @@ const Navbar = () => {
 
   return (
     <header className="fixed left-1/2 top-4 z-50 w-[calc(100%-32px)] max-w-7xl -translate-x-1/2 md:top-5">
-      <div className="rounded-[28px] border border-[#d8e3ff] bg-gradient-to-r from-[#eef4ff]/95 via-[#f8fbff]/95 to-[#e8f0ff]/95 px-4 py-3 shadow-[0_18px_40px_rgba(45,66,140,0.12)] backdrop-blur-xl sm:px-5 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-4 lg:rounded-full lg:border-transparent lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none lg:backdrop-blur-0">
+      <div className="flex items-center justify-between gap-3 rounded-[28px] border border-[#d8e3ff] bg-gradient-to-r from-[#eef4ff]/95 via-[#f8fbff]/95 to-[#e8f0ff]/95 px-4 py-3 shadow-[0_18px_40px_rgba(45,66,140,0.12)] backdrop-blur-xl sm:px-5 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-4 lg:rounded-full lg:border-transparent lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none lg:backdrop-blur-0">
         <ColluneLogo to={'/#top'} />
 
         <nav className="hidden items-center gap-8 rounded-full border border-[#dce5fb] bg-white/85 px-11 py-4 shadow-[0_16px_34px_rgba(69,96,170,0.1)] backdrop-blur-xl lg:flex">
@@ -104,9 +104,9 @@ const Navbar = () => {
         </nav>
 
         {isAuthLoading ? (
-          <span className="mt-3 h-11 w-32 rounded-full border border-[#dce5fb] bg-white/60 lg:mt-0 lg:justify-self-end" />
+          <span className="h-11 w-32 shrink-0 rounded-full border border-[#dce5fb] bg-white/60 lg:justify-self-end" />
         ) : currentUser ? (
-          <div className="mt-3 flex items-center justify-between gap-2 sm:justify-end lg:mt-0 lg:justify-self-end">
+          <div className="flex shrink-0 items-center justify-end gap-2 lg:justify-self-end">
             <div ref={userMenuRef} className="relative">
               <button
                 type="button"
@@ -155,8 +155,8 @@ const Navbar = () => {
             </button>
           </div>
         ) : (
-          <div className="mt-3 flex items-center justify-between gap-2 sm:justify-end lg:mt-0 lg:justify-self-end">
-            <Link to="/login" className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-full border border-[#dce5fb] bg-white/85 px-4 text-sm font-black text-[#2b55c7] shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:bg-white sm:flex-none sm:px-5">
+          <div className="flex shrink-0 items-center justify-end gap-2 lg:justify-self-end">
+            <Link to="/login" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-[#dce5fb] bg-white/85 px-4 text-sm font-black text-[#2b55c7] shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:bg-white sm:px-5">
               Log In
               <ArrowRight className="h-4 w-4" />
             </Link>
