@@ -24,6 +24,12 @@ locals {
   backend_image                   = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}/collune-backend:${var.image_tag}"
   frontend_image                  = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}/collune-frontend:${var.frontend_image_tag}"
   backend_public_url              = "https://collune-backend-727341248620.asia-south1.run.app"
+  frontend_public_origins = [
+    "https://collune.com",
+    "https://www.collune.com",
+    "https://collune.vercel.app",
+    "https://collune-frontend-727341248620.asia-south1.run.app",
+  ]
 
   react_env = {
     VITE_API_BASE_URL = local.backend_public_url
@@ -52,23 +58,25 @@ locals {
 
     META_APP_ID            = var.meta_app_id
     META_APP_SECRET        = var.meta_app_secret
-    INSTAGRAM_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/instagram/callback/"
-    FRONTEND_URL           = "https://collune.vercel.app"
+    INSTAGRAM_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/instagram/callback"
+    FRONTEND_URL           = "https://collune.com"
+    CORS_ALLOWED_ORIGINS   = join(",", local.frontend_public_origins)
+    CSRF_TRUSTED_ORIGINS   = join(",", local.frontend_public_origins)
 
     GOOGLE_CLIENT_SECRET = var.google_client_secret
-    YOUTUBE_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/youtube/callback/"
+    YOUTUBE_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/youtube/callback"
     GOOGLE_CLIENT_ID     = var.google_client_id
     YOUTUBE_OAUTH_SCOPES = "openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly"
 
     X_CLIENT_ID     = var.x_client_id
     X_CLIENT_SECRET = var.x_client_secret
-    X_REDIRECT_URI  = "${local.backend_public_url}/api/v1/auth/x/callback/"
+    X_REDIRECT_URI  = "${local.backend_public_url}/api/v1/auth/x/callback"
     X_OAUTH_SCOPES  = "tweet.read users.read follows.read offline.access"
     X_BEARER_TOKEN  = var.x_bearer_token
 
     FACEBOOK_APP_ID       = var.facebook_app_id
     FACEBOOK_APP_SECRET   = var.facebook_app_secret
-    FACEBOOK_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/facebook/callback/"
+    FACEBOOK_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/facebook/callback"
   }
 }
 

@@ -167,6 +167,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "https://collune.vercel.app",
     "https://collune.com",
+    "https://www.collune.com",
     "https://collune-frontend-727341248620.asia-south1.run.app"
 ]
 
