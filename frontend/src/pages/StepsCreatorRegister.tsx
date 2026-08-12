@@ -11,7 +11,7 @@ export const inputClass =
 export const labelClass = "mb-2 block text-xs font-semibold text-[#6e7d99]";
 
 const languageOptions = ["Hindi", "English", "Punjabi", "Tamil", "Telugu", "Bengali", "Marathi", "Gujarati", "Kannada", "Malayalam"];
-const categoryOptions = ["Political Commentary", "Business & Finance", "Lifestyle", "Technology", "Beauty", "Travel", "Education"];
+const categoryOptions = ["", "Political Commentary", "Business & Finance", "Lifestyle", "Technology", "Beauty", "Travel", "Education"];
 const genderOptions = ["", "Female", "Male", "other"];
 
 const collaborationOptions = [
@@ -171,6 +171,7 @@ export function AddressComposer({
               />
             ))}
           </div>
+          <FieldError message={""} />
         </div>
       </div>
     </section>
@@ -242,6 +243,13 @@ function PreferenceTile({
   );
 }
 
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+
+  return <p className="mt-2 text-xs font-semibold text-[#d92d20]">{message}</p>;
+}
+
 function ReviewRow({
   icon,
   label,
@@ -287,6 +295,7 @@ function getSocialIcon(platform: SocialAccountForm["platform"]) {
 type StepContentProps = {
   step: number;
   form: CreatorRegisterForm;
+  fieldErrors: Partial<Record<string, string>>;
   showPassword: boolean;
   phoneOtp: string;
   socialAccounts: SocialAccountForm[];
@@ -308,6 +317,7 @@ type StepContentProps = {
 export const StepsCreatorRegister=({
   step,
   form,
+  fieldErrors,
   showPassword,
   phoneOtp,
   socialAccounts,
@@ -330,9 +340,9 @@ export const StepsCreatorRegister=({
       <>
         <RegisterStepHeader title="Create your account" copy="Let's get started with a few details." />
         <div className="mt-8 grid gap-4">
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Full Name" icon={<User className="h-5 w-5" />} value={form.name} onChange={onFieldChange("name")} placeholder="Aakrit Gupta" required />
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Email Address" icon={<Mail className="h-5 w-5" />} value={form.email} onChange={onFieldChange("email")} placeholder="aakrit.gupta@gmail.com" type="email" required />
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Phone Number" icon={<Phone className="h-5 w-5" />} value={form.phone_no} onChange={onFieldChange("phone_no")} placeholder="99999 44444" pattern="[0-9]{10}" type="tel" required maxLength={10} minLength={10} />
+          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Full Name" icon={<User className="h-5 w-5" />} value={form.name} onChange={onFieldChange("name")} placeholder="Aakrit Gupta" required><FieldError message={fieldErrors.name} /></HtmlInput>
+          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Email Address" icon={<Mail className="h-5 w-5" />} value={form.email} onChange={onFieldChange("email")} placeholder="aakrit.gupta@gmail.com" type="email" required><FieldError message={fieldErrors.email} /></HtmlInput>
+          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Phone Number" icon={<Phone className="h-5 w-5" />} value={form.phone_no} onChange={onFieldChange("phone_no")} placeholder="99999 44444" pattern="[0-9]{10}" type="tel" required maxLength={10} minLength={10}><FieldError message={fieldErrors.phone_no} /></HtmlInput>
           <HtmlInput
             labelClass={labelClass}
             inputClass={inputClass}
@@ -349,12 +359,15 @@ export const StepsCreatorRegister=({
               </button>
             }
             required
-          />
+          >
+            <FieldError message={fieldErrors.password} />
+          </HtmlInput>
         </div>
         <label className="mt-6 flex items-center gap-3 text-sm font-medium text-[#65758f]">
           <input type="checkbox" checked={form.acceptedTerms} onChange={onTermsChange} className="h-4 w-4 rounded border-[#9aa7ba]" required />
           I agree to the <Link className="text-[#6f80ff]" to="/creative-services-terms">Terms of Service</Link> & <Link className="text-[#6f80ff]" to="/privacy-policy">Privacy Policy</Link>
         </label>
+        <FieldError message={fieldErrors.acceptedTerms} />
       </>
     );
   }
@@ -376,6 +389,7 @@ export const StepsCreatorRegister=({
             onOtpChange={onEmailOtpChange}
             onVerify={onVerifyEmailOtp}
           />
+          <FieldError message={fieldErrors.emailOtp} />
           <VerificationBlock
             icon={<Phone className="h-5 w-5" />}
             title="Verify Phone"
@@ -408,6 +422,7 @@ export const StepsCreatorRegister=({
             />
           ))}
         </div>
+        <FieldError message={fieldErrors.selectedSocialPlatform} />
       </>
     );
   }
@@ -422,12 +437,14 @@ export const StepsCreatorRegister=({
             <span className="relative block">
               <Grid2X2 className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#707b91]" />
               <select value={form.category} onChange={onFieldChange("category")} className="h-12 w-full appearance-none rounded-xl border border-[#e0e0e0] bg-white px-10 text-sm font-medium text-[#202337] outline-none">
-                {categoryOptions.map((category) => <option key={category}>{category}</option>)}
+                {categoryOptions.map((category) => <option key={category} value={category}>{category || "Select creator category"}</option>)}
               </select>
               <ChevronDown className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#707b91]" />
             </span>
           </label>
+          <FieldError message={fieldErrors.category} />
           <AddressComposer location={form.location} onChange={onLocationChange} />
+          <FieldError message={fieldErrors.location} />
           <label className="block">
             <span className="mb-2 block text-xs font-semibold text-[#202337]">Gender</span>
             <span className="relative block">
@@ -438,6 +455,7 @@ export const StepsCreatorRegister=({
               <ChevronDown className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#707b91]" />
             </span>
           </label>
+          <FieldError message={fieldErrors.gender} />
           <label className="block">
             <span className="mb-2 block text-xs font-semibold text-[#202337]">Short Bio</span>
             <textarea
@@ -448,6 +466,7 @@ export const StepsCreatorRegister=({
               placeholder="Political commentator helping young audiences understand policy and governance."
             />
             <span className="-mt-7 mr-4 block text-right text-xs font-medium text-[#9aa7bf]">{form.bio.length} / 200</span>
+            <FieldError message={fieldErrors.bio} />
           </label>
           <label className="block">
             <span className="mb-2 block text-xs font-semibold text-[#202337]">About</span>
@@ -483,6 +502,7 @@ export const StepsCreatorRegister=({
             ))}
           </div>
           <span className="mb-3 mt-5 block text-xs font-semibold text-[#202337]">Content language</span>
+          <FieldError message={fieldErrors.collaboration_preferences} />
           <div className="flex flex-wrap gap-2">
             {languageOptions.map((language) => (
               <SelectablePill
@@ -495,6 +515,7 @@ export const StepsCreatorRegister=({
               </SelectablePill>
             ))}
           </div>
+          <FieldError message={fieldErrors.languages} />
         </div>
       </>
     );

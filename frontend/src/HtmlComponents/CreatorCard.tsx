@@ -1,4 +1,4 @@
-import { ArrowRight, BadgeCheck } from "lucide-react";
+import { ArrowRight, BadgeCheck, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 
@@ -15,7 +15,7 @@ type CreatorProfileApi = {
 
 export function CreatorCard({ creator, index,key }: { creator: CreatorProfileApi; index: number,key?:number}) {
   const [showPrivateToast, setShowPrivateToast] = useState(false);
-  const imageUrl =  creator.profile_image || `https://i.pravatar.cc/640?img=${(index % 70) + 1}`;
+  const imageUrl = creator.profile_image;
   const username = creator.username ;
   const isVerified = creator.verified === true || creator.verified === "VERIFIED";
   const isPrivate = !creator.creator_id;
@@ -34,7 +34,20 @@ export function CreatorCard({ creator, index,key }: { creator: CreatorProfileApi
         </div>
       ) : null}
       <div className="relative aspect-[1.55] overflow-hidden">
-        <img src={imageUrl} alt={creator.display_name} className="h-full w-full object-cover" />
+        {imageUrl && isVerified ? (
+          <img src={imageUrl} alt={creator.display_name} className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#eef3ff_0%,#f7f9ff_45%,#ebe7ff_100%)] text-[#93a3d8]">
+            <div className="flex flex-col items-center gap-3">
+              <span className="grid h-20 w-20 place-items-center rounded-full bg-white/80 shadow-[0_10px_24px_rgba(93,114,191,0.12)]">
+                <UserRound className="h-10 w-10" />
+              </span>
+              <span className="text-[11px] font-black uppercase tracking-[0.18em] text-[#8a99c2]">
+                {isVerified ? "Creator" : "Pending Profile"}
+              </span>
+            </div>
+          </div>
+        )}
         <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-white/75 px-2 py-1 text-[9px] font-black text-[#7690ff]">
           <BadgeCheck className="h-3 w-3 fill-current" />
           {isVerified ? "verified" :  "pending"}

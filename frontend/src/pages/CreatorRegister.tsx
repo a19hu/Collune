@@ -30,7 +30,7 @@ const initialCreatorForm: CreatorRegisterForm = {
   phone_no: "",
   password: "",
   acceptedTerms: false,
-  category: "Political Commentary",
+  category: "",
   location: "",
   languages: ["Hindi", "English"],
   collaboration_preferences: ["Product Launches", "UGC Content"],
@@ -94,19 +94,23 @@ const CreatorRegister = () => {
   const [registrationComplete, setRegistrationComplete] = useState(false);
   const [connectedPlatforms, setConnectedPlatforms] = useState<Record<CreatorSocialPlatform, boolean>>(initialConnectedPlatforms);
   const [submitError, setSubmitError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<string, string>>>({});
 
   const onFieldChange = (field: keyof CreatorRegisterForm) => (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => {
     setForm((current) => ({ ...current, [field]: event.target.value }));
+    setFieldErrors((current) => { const next = { ...current }; delete next[field]; return next; });
   };
 
   const onLocationChange = (value: string) => {
     setForm((current) => ({ ...current, location: value }));
+    setFieldErrors((current) => { const next = { ...current }; delete next.location; return next; });
   };
 
   const onTermsChange = (event: ChangeEvent<HTMLInputElement>) => {
     setForm((current) => ({ ...current, acceptedTerms: event.target.checked }));
+    setFieldErrors((current) => { const next = { ...current }; delete next.acceptedTerms; return next; });
   };
 
   const onToggleFormArrayValue = (field: "languages" | "collaboration_preferences", value: string) => {
@@ -119,6 +123,7 @@ const CreatorRegister = () => {
           : [...currentValues, value],
       };
     });
+    setFieldErrors((current) => { const next = { ...current }; delete next[field]; return next; });
   };
 
   const setVerificationStatus = (patch: Partial<VerificationState>) => {
@@ -173,6 +178,48 @@ const CreatorRegister = () => {
     });
   }, [registrationComplete]);
 
+  const validateCurrentStep = () => {
+    const nextErrors: Partial<Record<string, string>> = {};
+
+    if (step === 1) {
+      if (!form.name.trim()) nextErrors.name = "Full name is required.";
+      if (!form.email.trim()) nextErrors.email = "Email address is required.";
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) nextErrors.email = "Enter a valid email address.";
+      const phoneNumber = normalizePhoneNumber(form.phone_no);
+      if (!phoneNumber) nextErrors.phone_no = "Phone number is required.";
+      else if (!/^\d{10}$/.test(phoneNumber)) nextErrors.phone_no = "Enter a valid 10-digit phone number.";
+      if (!form.password.trim()) nextErrors.password = "Password is required.";
+      else if (form.password.trim().length < 8) nextErrors.password = "Password must be at least 8 characters.";
+      if (!form.acceptedTerms) nextErrors.acceptedTerms = "Please agree to the Terms of Service and Privacy Policy.";
+    }
+
+    if (step === 2 && !verification.emailVerified) {
+      if (!form.emailOtp.trim()) nextErrors.emailOtp = "Enter the email OTP to continue.";
+      else nextErrors.emailOtp = "Please verify your email OTP before continuing.";
+    }
+
+    if (step === 3 && !selectedSocialPlatform) {
+      nextErrors.selectedSocialPlatform = "Select at least one social platform to continue.";
+    }
+
+    if (step === 4) {
+      if (!form.category.trim()) nextErrors.category = "Creator category is required.";
+      if (!form.location.trim()) nextErrors.location = "Location details are required.";
+      const address = parseLocationParts(form.location);
+      if (!address.country.trim() || !address.state.trim() || !address.city.trim()) nextErrors.location = "Add at least country, state, and city.";
+      if (!form.gender.trim()) nextErrors.gender = "Please select your gender.";
+      if (!form.bio.trim()) nextErrors.bio = "Short bio is required.";
+    }
+
+    if (step === 5) {
+      if (!form.collaboration_preferences.length) nextErrors.collaboration_preferences = "Select at least one collaboration preference.";
+      if (!form.languages.length) nextErrors.languages = "Select at least one content language.";
+    }
+
+    setFieldErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
   const canContinue = useMemo(() => {
     if (step === 1) return Boolean(form.name.trim() && form.email.trim() && form.phone_no.trim() && form.password && form.acceptedTerms);
     if (step === 2) return verification.emailVerified;
@@ -184,6 +231,7 @@ const CreatorRegister = () => {
 
   const validateAccountStep = async () => {
     setSubmitError("");
+    setFieldErrors({});
 
     if (form.password.trim().length < 8) {
       setSubmitError("Password must be at least 8 characters.");
@@ -209,6 +257,7 @@ const CreatorRegister = () => {
   };
 
   const verifyEmailOtp = async () => {
+    setFieldErrors((current) => { const next = { ...current }; delete next.emailOtp; return next; });
     setVerificationStatus({ isCheckingEmail: true, error: "", message: "" });
     try {
       const email = form.email.trim();
@@ -313,6 +362,7 @@ const CreatorRegister = () => {
 
   const connectSocialDuringRegistration = async (platform: CreatorSocialPlatform) => {
     setSelectedSocialPlatform(platform);
+    setFieldErrors((current) => { const next = { ...current }; delete next.selectedSocialPlatform; return next; });
     localStorage.setItem("creatorRegisterSocialPlatform", platform);
     setVerificationStatus({ message: `${platform} selected. Continue to complete setup.`, error: "" });
   };
@@ -384,6 +434,8 @@ const CreatorRegister = () => {
         className="w-full max-w-[622px] rounded-2xl border border-[#e0e7fb] bg-white px-7 py-10 shadow-[0_0_0_1px_rgba(95,119,190,0.04),0_12px_34px_rgba(46,64,120,0.08)] md:px-10"
         onSubmit={async (event) => {
           event.preventDefault();
+          setSubmitError("");
+          if (!validateCurrentStep()) return;
           if (step === 1 && !(await validateAccountStep())) return;
           await formButton({
             step,
@@ -404,6 +456,7 @@ const CreatorRegister = () => {
           <StepsCreatorRegister
             step={step}
             form={form}
+            fieldErrors={fieldErrors}
             showPassword={showPassword}
             phoneOtp={phoneOtp}
             socialAccounts={socialAccounts}
@@ -428,7 +481,6 @@ const CreatorRegister = () => {
         <RegisterSubmitButtons
           isFinalStep={step === totalSteps}
           isSubmitting={isSubmitting}
-          disabled={!canContinue}
           showBack={step > 1}
           onBack={() => {
             setSubmitError("");
