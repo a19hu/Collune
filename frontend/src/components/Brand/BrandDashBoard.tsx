@@ -21,6 +21,7 @@ type Metric = {
   value: number;
   link: string;
   icon: LucideIcon;
+  ctaLabel: string;
 };
 
 const BrandDashBoard = () => {
@@ -53,9 +54,9 @@ const BrandDashBoard = () => {
 
 
   const metrics: Metric[] = [
-    { label: "Active Campaigns", value: brand?.no_of_active_campaigns || 0, link: "/brand/campaigns", icon: Flag },
-    { label: "Shortlists Submitted", value: brand?.no_of_active_shortlists || 0, link: "/brand/shortlists", icon: Star },
-    { label: "Collaborations Active", value: brand?.collaborations_active || 0, link: "/brand/shortlists", icon: Users },
+    { label: "Active Campaigns", value: brand?.no_of_active_campaigns || 0, link: "/brand/campaigns", icon: Flag, ctaLabel: "View all campaigns" },
+    { label: "Shortlists Submitted", value: brand?.no_of_active_shortlists || 0, link: "/brand/shortlists", icon: Star, ctaLabel: "View all shortlists" },
+    { label: "Collaborations Active", value: brand?.collaborations_active || 0, link: "/brand/shortlists", icon: Users, ctaLabel: "View all collaborations" },
   ];
 
   const confirmDelete = async () => {
@@ -86,7 +87,7 @@ const BrandDashBoard = () => {
           <p className="mt-6 text-base font-medium text-[#657084]">{metric.label}</p>
           <strong className="mt-3 block text-[46px] font-black leading-none text-black">{metric.value}</strong>
           <button type="button" onClick={() => navigate(metric.link)} className="mt-6 inline-flex items-center gap-2 text-base font-black text-[#7b83ff]">
-            View all {metric.label.toLowerCase().replace(" active", "s")} <ArrowRight className="h-4 w-4" />
+            {metric.ctaLabel} <ArrowRight className="h-4 w-4" />
           </button>
         </Panel>)}
       </div>

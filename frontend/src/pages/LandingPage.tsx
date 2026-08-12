@@ -162,7 +162,7 @@ const LandingPage = () => {
           </div>
         </div>
 
-        <a href="#creators" aria-label="Scroll to creators" className="absolute bottom-7 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-white text-[#9aa7c4] shadow-[0_12px_28px_rgba(68,90,158,0.1)]">
+        <a href="#featured-creators" aria-label="Scroll to creators" className="absolute bottom-7 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-white text-[#9aa7c4] shadow-[0_12px_28px_rgba(68,90,158,0.1)]">
           <ArrowDown className="h-4.5 w-4.5" />
         </a>
       </section>
@@ -313,13 +313,13 @@ const LandingPage = () => {
           structured, and successful.
         </p>
         <div className="relative mx-auto mt-8 grid max-w-[1088px] items-center gap-10 lg:mt-7 lg:grid-cols-[1fr_250px_1fr] lg:gap-12">
-          <span className="absolute left-[34.5%] top-[128px] hidden h-[398px] w-[56px] rounded-r-[54px] border-y-2 border-r-2 border-dashed border-[#9aaaff] lg:block" />
-          <span className="absolute right-[34.5%] top-[128px] hidden h-[398px] w-[56px] rounded-l-[54px] border-y-2 border-l-2 border-dashed border-[#9aaaff] lg:block" />
+          <span className="absolute left-[33%] top-[110px] hidden h-[398px] w-[56px] rounded-r-[54px] border-y-2 border-r-2 border-dashed border-[#9aaaff] lg:block" />
+          <span className="absolute right-[33%] top-[110px] hidden h-[398px] w-[56px] rounded-l-[54px] border-y-2 border-l-2 border-dashed border-[#9aaaff] lg:block" />
           <JourneyColumn title="For Brands" side="left" steps={brandSteps} />
           <div className="relative order-first grid min-h-[230px] place-items-center lg:order-none lg:min-h-[498px]">
-            <span className="absolute left-[-42px] top-1/2 hidden h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-[#8195ff] lg:block" />
-            <span className="absolute right-[-42px] top-1/2 hidden h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-[#8195ff] lg:block" />
-            <div className="relative z-10 grid h-[198px] w-[198px] place-items-center content-center rounded-full border-[18px] border-[#eeeaff] bg-white p-9 text-center text-[#8294ff] shadow-[0_18px_45px_rgba(129,149,255,0.16),0_0_0_16px_rgba(255,255,255,0.42)] md:h-[216px] md:w-[216px]">
+            <span className="absolute left-[-11px] top-1/2 hidden h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-[#8195ff] lg:block" />
+            <span className="absolute right-[-11px] top-1/2 hidden h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-[#8195ff] lg:block" />
+            <div className="relative z-10 mx-auto grid h-[216px] md:w-[216px] place-items-center content-center justify-items-center self-center rounded-full border-[18px] border-[#eeeaff] bg-white p-9 text-center text-[#8294ff] shadow-[0_18px_45px_rgba(129,149,255,0.16),0_0_0_16px_rgba(255,255,255,0.42)] md:h-[216px] md:w-[216px]">
               <span className="relative mb-1 grid h-[48px] w-[66px] place-items-center">
                 <UsersRound className="h-10 w-10 stroke-[3]" />
                 <Heart className="absolute -top-1 right-2 h-6 w-6 fill-white stroke-[3]" />

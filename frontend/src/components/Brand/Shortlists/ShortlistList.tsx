@@ -1,4 +1,5 @@
 import { Info, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { NewShortlistCard, ShortlistCard } from "./ShortlistUi";
 import { shortlistStatusOptions, type ShortlistItem, type ShortlistStatus } from "./shortlistData";
@@ -92,7 +93,7 @@ export function ShortlistList({
       <p className="mt-12 flex flex-wrap items-center justify-center gap-2 text-center text-sm font-medium text-[#657084]">
         <Info className="h-4 w-4" />
         Shortlists help our team understand the type of creators you're looking for.
-        <button type="button" className="font-black text-[#7b83ff]">Learn how shortlists work -&gt;</button>
+        <Link to="/#how-it-works" className="font-black text-[#7b83ff] transition hover:text-[#5e69ff]">Learn how shortlists work -&gt;</Link>
       </p>
     </div>
   );

@@ -49,7 +49,7 @@ const Footer = () => {
         <div className="md:col-span-2">
           <div className="flex flex-col gap-8 border-t border-[#dce3f4] pt-8 md:flex-row md:items-center md:justify-between">
             <small className="text-sm font-extrabold text-[#8a96ad]">
-              © 2026 Collune. All Rights Reserved.
+              © 2026 AIM INFORMATION TECHNOLOGY. All Rights Reserved.
             </small>
             <div className="flex flex-wrap gap-4" aria-label="Social platforms">
               {socialTiles.map((tile) => {

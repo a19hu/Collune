@@ -1,6 +1,6 @@
 import { useState,useMemo,ReactNode,useEffect } from "react";
 import { AlertCircle, ChevronRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { CampaignPanel } from "./Campaigns/CampaignUi";
 import { deleteBrandCampaign, getBrandCampaigns } from "@/src/lib/authApi";
@@ -116,7 +116,7 @@ export const BrandCampaigns = () => {
 
       <p className="mt-8 text-center text-sm font-medium text-[#63728a]">
         Campaigns help you attract the right creators and build meaningful collaborations.{" "}
-        <button type="button" className="font-black text-[#2f16ff]">Learn how campaigns work</button>
+        <Link to="/#how-it-works" className="font-black text-[#2f16ff] transition hover:text-[#173fb5]">Learn how campaigns work</Link>
       </p>
       <DeleteCampaignModal
         campaign={deleteTarget}

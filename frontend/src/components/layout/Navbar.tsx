@@ -6,7 +6,7 @@ import logo from "../../assets/Logo.svg";
 
 export function ColluneLogo({ to = "/" }: { to?: string }) {
   return (
-    <Link to={to} aria-label="Collune home" className="flex min-w-0 items-center gap-2 text-[#214bc0]">
+    <Link to={to} aria-label="Collune home" className="flex min-w-0 items-center gap-2 rounded-full bg-white/82 px-3 py-2 text-[#214bc0] shadow-[0_10px_24px_rgba(45,66,140,0.08)] backdrop-blur-sm sm:px-4 lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none lg:backdrop-blur-0">
       <img src={logo} alt="Collune" className="h-[42px] w-[132px] sm:h-[48px] sm:w-[150px] lg:h-[53px] lg:w-[167px]" />
     </Link>
   );
@@ -176,7 +176,7 @@ const Navbar = () => {
 
       <div
         id="mobile-navigation"
-        className={`${isMobileMenuOpen ? "pointer-events-auto visible mt-3 translate-y-0 opacity-100" : "pointer-events-none invisible mt-1 -translate-y-2 opacity-0"} rounded-[28px] border border-[#d8e3ff] bg-gradient-to-b from-[#fdfefe]/98 via-[#f7faff]/98 to-[#edf3ff]/98 p-4 shadow-[0_18px_40px_rgba(45,66,140,0.14)] backdrop-blur-xl transition duration-200 lg:hidden`}
+        className={`${isMobileMenuOpen ? "pointer-events-auto visible translate-y-0 opacity-100" : "pointer-events-none invisible -translate-y-2 opacity-0"} absolute left-0 right-0 top-full z-50 mt-3 rounded-[28px] border border-[#d8e3ff] bg-gradient-to-b from-[#fdfefe]/98 via-[#f7faff]/98 to-[#edf3ff]/98 p-4 shadow-[0_18px_40px_rgba(45,66,140,0.14)] backdrop-blur-xl transition duration-200 lg:hidden`}
       >
         <nav className="flex flex-col gap-2" aria-label="Mobile navigation">
           {navItems.map((item) =>
