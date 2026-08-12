@@ -29,6 +29,7 @@ const initialCreatorForm: CreatorRegisterForm = {
   emailOtp: "",
   phone_no: "",
   password: "",
+  acceptedTerms: false,
   category: "Political Commentary",
   location: "",
   languages: ["Hindi", "English"],
@@ -104,6 +105,10 @@ const CreatorRegister = () => {
     setForm((current) => ({ ...current, location: value }));
   };
 
+  const onTermsChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setForm((current) => ({ ...current, acceptedTerms: event.target.checked }));
+  };
+
   const onToggleFormArrayValue = (field: "languages" | "collaboration_preferences", value: string) => {
     setForm((current) => {
       const currentValues = current[field];
@@ -169,7 +174,7 @@ const CreatorRegister = () => {
   }, [registrationComplete]);
 
   const canContinue = useMemo(() => {
-    if (step === 1) return Boolean(form.name.trim() && form.email.trim() && form.phone_no.trim() && form.password);
+    if (step === 1) return Boolean(form.name.trim() && form.email.trim() && form.phone_no.trim() && form.password && form.acceptedTerms);
     if (step === 2) return verification.emailVerified;
     if (step === 3) return Boolean(selectedSocialPlatform);
     if (step === 4) return Boolean(form.category && form.location.trim() && form.bio.trim());
@@ -179,6 +184,17 @@ const CreatorRegister = () => {
 
   const validateAccountStep = async () => {
     setSubmitError("");
+
+    if (form.password.trim().length < 8) {
+      setSubmitError("Password must be at least 8 characters.");
+      return false;
+    }
+
+    if (!form.acceptedTerms) {
+      setSubmitError("Please agree to the Terms of Service and Privacy Policy.");
+      return false;
+    }
+
     try {
       const response = await checkEmailAvailability(form.email);
       if (!response.available) {
@@ -230,6 +246,16 @@ const CreatorRegister = () => {
 
   const submitCreatorRegistration = async (connectPlatform?: "instagram" | "youtube" | "facebook" | "x") => {
     setSubmitError("");
+
+    if (form.password.trim().length < 8) {
+      setSubmitError("Password must be at least 8 characters.");
+      return;
+    }
+
+    if (!form.acceptedTerms) {
+      setSubmitError("Please agree to the Terms of Service and Privacy Policy.");
+      return;
+    }
 
     const missingOtp: string[] = [];
     if (!verification.emailVerified) missingOtp.push("Email OTP is not verified.");
@@ -391,6 +417,7 @@ const CreatorRegister = () => {
             onConnectSocial={(platform) => void connectSocialDuringRegistration(platform)}
             onToggleFormArrayValue={onToggleFormArrayValue}
             onTogglePassword={() => setShowPassword((current) => !current)}
+            onTermsChange={onTermsChange}
             onVerifyEmailOtp={() => void verifyEmailOtp()}
             onVerifyPhoneOtp={() => void verifyPhoneOtp()}
           />

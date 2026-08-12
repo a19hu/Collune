@@ -304,6 +304,11 @@ const BrandRegister = () => {
   };
 
   const validateAccountStep = async () => {
+    if (form.password.trim().length < 8) {
+      setSubmitError("Password must be at least 8 characters.");
+      return false;
+    }
+
     if (form.password !== form.confirmPassword) {
       setSubmitError("Passwords do not match.");
       return false;
@@ -408,6 +413,11 @@ const BrandRegister = () => {
 
   const submitBrandRegistration = async () => {
     setSubmitError("");
+
+    if (form.password.trim().length < 8) {
+      setSubmitError("Password must be at least 8 characters.");
+      return;
+    }
 
     if (form.password !== form.confirmPassword) {
       setSubmitError("Passwords do not match.");

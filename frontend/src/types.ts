@@ -30,6 +30,7 @@ export type CreatorRegisterForm = {
   emailOtp: string;
   phone_no: string;
   password: string;
+  acceptedTerms: boolean;
   category: string;
   location: string;
   country?: string;

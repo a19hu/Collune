@@ -17,10 +17,17 @@ export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const trimmedPassword = password.trim();
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setAuthError("");
+
+    if (trimmedPassword.length < 8) {
+      setAuthError("Password must be at least 8 characters.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -104,6 +111,7 @@ export const LoginPage = () => {
                 }}
                 placeholder="Enter password"
                 type={showPassword ? "text" : "password"}
+                minLength={8}
                 trailing={
                   <button type="button" onClick={() => setShowPassword((current) => !current)} className="grid h-8 w-8 place-items-center rounded-md text-[#71809a] hover:bg-[#eef3ff]" aria-label={showPassword ? "Hide password" : "Show password"}>
                     {showPassword ? <Eye className="h-5 w-5" /> : <EyeClosed className="h-5 w-5" />}

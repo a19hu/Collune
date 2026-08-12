@@ -300,6 +300,7 @@ type StepContentProps = {
   onConnectSocial: (platform: SocialAccountForm["platform"]) => void;
   onToggleFormArrayValue: (field: "languages" | "collaboration_preferences", value: string) => void;
   onTogglePassword: () => void;
+  onTermsChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onVerifyEmailOtp: () => void;
   onVerifyPhoneOtp: () => void;
 };
@@ -320,6 +321,7 @@ export const StepsCreatorRegister=({
   onConnectSocial,
   onToggleFormArrayValue,
   onTogglePassword,
+  onTermsChange,
   onVerifyEmailOtp,
   onVerifyPhoneOtp,
 }: StepContentProps)=>{
@@ -340,6 +342,7 @@ export const StepsCreatorRegister=({
             onChange={onFieldChange("password")}
             placeholder="Minimum 8 characters"
             type={showPassword ? "text" : "password"}
+            minLength={8}
             trailing={
               <button type="button" onClick={onTogglePassword} className="grid h-8 w-8 place-items-center rounded-md text-[#71809a] hover:bg-[#eef3ff]" aria-label={showPassword ? "Hide password" : "Show password"}>
                 {!showPassword ? <EyeClosed className="h-5 w-5" /> :<Eye className="h-5 w-5" />}
@@ -348,10 +351,10 @@ export const StepsCreatorRegister=({
             required
           />
         </div>
-        <p className="mt-6 text-center text-xs font-medium text-[#738098]">
-          By continuing, you agree to Collune's <Link className="text-[#6f80ff]" to="/creative-services-terms"> Terms of Service</Link> and <Link className="text-[#6f80ff]" to="/privacy-policy">Privacy Policy</Link>.
-
-        </p>
+        <label className="mt-6 flex items-center gap-3 text-sm font-medium text-[#65758f]">
+          <input type="checkbox" checked={form.acceptedTerms} onChange={onTermsChange} className="h-4 w-4 rounded border-[#9aa7ba]" required />
+          I agree to the <Link className="text-[#6f80ff]" to="/creative-services-terms">Terms of Service</Link> & <Link className="text-[#6f80ff]" to="/privacy-policy">Privacy Policy</Link>
+        </label>
       </>
     );
   }

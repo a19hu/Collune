@@ -20,20 +20,20 @@ const navItems = [
       { label: "Featured Creators", href: "/#featured-creators" },
     ],
   },
-  {
-    label: "Brands",
-    items: [
-      { label: "Success Stories", href: "/success-stories" },
-    ],
-  },
+  // {
+  //   label: "Brands",
+  //   items: [
+  //     { label: "Success Stories", href: "/success-stories" },
+  //   ],
+  // },
   { label: "How it Works", href: "/#how-it-works" },
-  {
-    label: "Resources",
-    items: [
-      { label: "Blogs", href: "/blogs" },
-      { label: "FAQs", href: "/faqs" },
-    ],
-  },
+  // {
+  //   label: "Resources",
+  //   items: [
+  //     { label: "Blogs", href: "/blogs" },
+  //     { label: "FAQs", href: "/faqs" },
+  //   ],
+  // },
   { label: "About", href: "/about-collune" },
 ];
 
