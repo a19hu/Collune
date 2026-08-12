@@ -28,6 +28,8 @@ import { CampaignMarketplaceList } from './components/Creator/CampaignMarketplac
 import AppliedCampaigns from './components/Creator/AppliedCampaigns.tsx';
 import SavedCampaigns from './components/Creator/SavedCampaigns.tsx';
 import AboutCollune from './pages/AboutCollune.tsx';
+import BrandSubscriptionPage from './components/Brand/BrandSubscriptionPage.tsx';
+import CreatorSubscriptionPage from './components/Creator/CreatorSubscriptionPage.tsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.tsx';
 import TermsConditions from './pages/TermsConditions.tsx';
 import BrandServicesTerms from './pages/BrandServicesTerms.tsx';
@@ -102,6 +104,7 @@ const App: React.FC = () => {
                             <Route path="marketplace" element={<RequireVerified><CampaignMarketplaceList /></RequireVerified>} />
                             <Route path="applied-campaigns" element={<RequireVerified><AppliedCampaigns /></RequireVerified>} />
                             <Route path="saved-campaigns" element={<RequireVerified><SavedCampaigns /></RequireVerified>} />
+                            <Route path="creator-subscription" element={<CreatorSubscriptionPage />} />
                             <Route path="*" element={<NotFoundPage />} />
                         </Route>
                     </Route>
@@ -119,6 +122,8 @@ const App: React.FC = () => {
                             <Route path="campaigns/:campaignId/edit" element={<CampaignCreateForm />} />
                             <Route path="campaigns/:campaignId/recommended-creators" element={<RecommendedCreatorsPage />} />
                             <Route path="campaigns/:campaignId" element={<CampaignApplicationsPage />} />
+                            <Route path="brand-subscription" element={<BrandSubscriptionPage />} />
+
                             {/* <Route path="campaigns/:campaignId/applications" element={<CampaignApplicationsPage />} /> */}
                         </Route>
                     </Route>
