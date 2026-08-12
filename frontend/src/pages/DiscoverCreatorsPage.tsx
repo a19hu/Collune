@@ -7,23 +7,71 @@ import type { CreatorListItemApi } from "../types";
 import { Lock } from "lucide-react";
 import { CreatorCard } from "../HtmlComponents/CreatorCard.tsx";
 
-const categoryOptions = [
+const baseCategoryOptions = [
   "Fashion",
   "Beauty",
   "Fitness",
   "Food",
   "Travel",
   "Lifestyle",
+  "Education",
+  "Politics",
 ];
 
-const platformOptions = ["Instagram", "YouTube","Twitter", "Facebook"];
+const platformOptions = ["Instagram", "YouTube", "Twitter", "Facebook"];
 const platformValueMap: Record<string, string[]> = {
-  Instagram: ["INSTAGRAM"],
-  YouTube: ["YOUTUBE"],
-  Twitter: ["X", "TWITTER"],
-  Facebook: ["FACEBOOK"],
+  Instagram: ["INSTAGRAM", "INSTA"],
+  YouTube: ["YOUTUBE", "YT"],
+  Twitter: ["X", "TWITTER", "X TWITTER"],
+  Facebook: ["FACEBOOK", "FB"],
 };
 
+function normalizePlatform(value?: string) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+function platformMatchesFilter(filterValue: string, platformName?: string) {
+  const normalizedFilter = normalizePlatform(filterValue);
+  const normalizedPlatform = normalizePlatform(platformName);
+  const allowedValues = platformValueMap[filterValue] || [normalizedFilter];
+
+  return allowedValues.some((value) => normalizedPlatform === normalizePlatform(value));
+}
+
+function normalizeCategory(value?: string) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+function categoryMatchesFilter(filterValue: string, creatorCategory?: string) {
+  const normalizedFilter = normalizeCategory(filterValue);
+  const normalizedCreatorCategory = normalizeCategory(creatorCategory);
+
+  if (!normalizedFilter || !normalizedCreatorCategory) return false;
+  if (normalizedFilter === normalizedCreatorCategory) return true;
+
+  const aliasMap: Record<string, string[]> = {
+    politics: ["politics", "political", "political commentary", "government", "public affairs"],
+    education: ["education", "educational", "learning", "edtech"],
+    fitness: ["fitness", "health", "wellness"],
+    food: ["food", "cooking"],
+    travel: ["travel", "tourism"],
+    beauty: ["beauty", "skincare", "makeup"],
+    fashion: ["fashion", "style"],
+    lifestyle: ["lifestyle", "daily life"],
+  };
+
+  const aliases = aliasMap[normalizedFilter] || [normalizedFilter];
+  return aliases.some((alias) => normalizedCreatorCategory.includes(alias));
+}
 
 export const DiscoverCreatorsPage = () => {
   const { currentUser } = useAuth();
@@ -59,10 +107,21 @@ export const DiscoverCreatorsPage = () => {
   }, []);
 
   const locations = useMemo(() => Array.from(new Set(creators.map((creator) => creator.location).filter(Boolean))), [creators]);
+  const categoryOptions = useMemo(() => {
+    const creatorCategories = creators
+      .map((creator) => creator.category)
+      .filter(Boolean) as string[];
+
+    const merged = [...baseCategoryOptions, ...creatorCategories];
+    const unique = merged.filter((category, index) => index === merged.findIndex((item) => normalizeCategory(item) === normalizeCategory(category)));
+
+    return unique.sort((first, second) => first.localeCompare(second));
+  }, [creators]);
+
   const visibleCategoryOptions = useMemo(() => {
     const text = categoryQuery.trim().toLowerCase();
     return categoryOptions.filter((category) => !text || category.toLowerCase().includes(text));
-  }, [categoryQuery]);
+  }, [categoryOptions, categoryQuery]);
   const visibleLocationOptions = useMemo(() => {
     const text = locationQuery.trim().toLowerCase();
     return locations.filter((item) => !text || item.toLowerCase().includes(text));
@@ -83,11 +142,10 @@ export const DiscoverCreatorsPage = () => {
 
       if (!isBrand) return matchesText;
 
-      const matchesCategory = !selectedCategories.length || selectedCategories.includes(creator.category);
-      const matchesPlatform = !selectedPlatforms.length || platformData.some((account) => {
-        const accountPlatform = String(account.name).toUpperCase();
-        return selectedPlatforms.some((platform) => platformValueMap[platform]?.includes(accountPlatform));
-      });
+      const matchesCategory = !selectedCategories.length || selectedCategories.some((category) => categoryMatchesFilter(category, creator.category));
+      const matchesPlatform = !selectedPlatforms.length || platformData.some((account) =>
+        selectedPlatforms.some((platform) => platformMatchesFilter(platform, account.name)),
+      );
       const matchesFollowers = (creator.total_followers || 0) >= minFollowers;
       const matchesLocation = !location || creator.location === location;
       return matchesText && matchesCategory && matchesPlatform && matchesFollowers && matchesLocation;

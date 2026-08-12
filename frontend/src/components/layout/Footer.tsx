@@ -1,4 +1,9 @@
-import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
+import instagramIcon from "../../assets/icons8-instagram.svg";
+import youtubeIcon from "../../assets/icons8-youtube.svg";
+import redditIcon from "../../assets/icons8-reddit.svg";
+import facebookIcon from "../../assets/icons8-facebook.svg";
+import linkedinIcon from "../../assets/icons8-linkedin.svg";
+import xIcon from "../../assets/icons8-x.svg"
 import { Link } from "react-router-dom";
 import { ColluneLogo } from "./Navbar";
 
@@ -10,16 +15,13 @@ const footerLinks = [
   { label: "Terms & Conditions", href: "/terms-conditions" },
 ];
 
-function XIcon({ className }: { className?: string }) {
-  return <span className={className}>X</span>;
-}
-
 const socialTiles = [
-  { label: "Instagram", color: "bg-[#f77737]", href: "https://www.instagram.com/thecollune/", icon: Instagram },
-  { label: "LinkedIn", color: "bg-[#0a66c2]", href: "https://www.linkedin.com/company/thecollune/", icon: Linkedin },
-  { label: "X (Twitter)", color: "bg-[#111827]", href: "https://x.com/thecollune", icon: XIcon },
-  { label: "YouTube", color: "bg-[#ff0000]", href: "https://www.youtube.com/@thecollune", icon: Youtube },
-  { label: "Facebook", color: "bg-[#1877f2]", href: "https://www.facebook.com/thecollune", icon: Facebook },
+  { label: "Instagram", href: "https://www.instagram.com/thecollune/", iconSrc: instagramIcon },
+  { label: "LinkedIn", href: "https://www.linkedin.com/company/thecollune/", iconSrc: linkedinIcon },
+  { label: "X (Twitter)", href: "https://x.com/thecollune", iconSrc: xIcon },
+  { label: "YouTube", href: "https://www.youtube.com/@thecollune", iconSrc: youtubeIcon },
+  { label: "Facebook", href: "https://www.facebook.com/thecollune", iconSrc: facebookIcon },
+  { label: "Reddit", href: "https://www.reddit.com/@thecollune", iconSrc: redditIcon },
 ];
 
 const Footer = () => {
@@ -53,7 +55,6 @@ const Footer = () => {
             </small>
             <div className="flex flex-wrap gap-4" aria-label="Social platforms">
               {socialTiles.map((tile) => {
-                const Icon = tile.icon;
                 return (
                   <a
                     key={tile.label}
@@ -61,10 +62,10 @@ const Footer = () => {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={tile.label}
-                    className={`grid h-14 w-14 place-items-center rounded-[13px] ${tile.color} text-white transition hover:scale-105`}
+                    // className={`grid h-14 w-14 place-items-center rounded-[13px] ${tile.color} text-white transition hover:scale-105`}
                     title={tile.label}
                   >
-                    <Icon className="text-lg font-black leading-none" />
+                      <img src={tile.iconSrc} alt="" className="h-15 w-15 object-contain" />
                   </a>
                 );
               })}
