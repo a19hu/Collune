@@ -102,11 +102,13 @@ const App: React.FC = () => {
                             <Route path="marketplace" element={<RequireVerified><CampaignMarketplaceList /></RequireVerified>} />
                             <Route path="applied-campaigns" element={<RequireVerified><AppliedCampaigns /></RequireVerified>} />
                             <Route path="saved-campaigns" element={<RequireVerified><SavedCampaigns /></RequireVerified>} />
+                            <Route path="*" element={<NotFoundPage />} />
                         </Route>
                     </Route>
                     <Route element={<RequireAuth allowedRole="Brand" />}>
                         <Route path="/brand/*" element={<SideBarLayout />}>
                             <Route index element={<BrandDashBoard />} />
+                            <Route path="analytics" element={<BrandDashBoard />} />
                             <Route path="profile" element={<BrandProfile />} />
                             <Route path="shortlists" element={<BrandShortlists />} />
                             <Route path="shortlists/new_create" element={<ShortlistCreateForm />} />

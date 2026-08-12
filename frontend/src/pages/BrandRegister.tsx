@@ -518,6 +518,11 @@ const BrandRegister = () => {
         <RegisterSubmitButtons
           isFinalStep={step === totalSteps}
           isSubmitting={isSubmitting}
+          showBack={step > 1}
+          onBack={() => {
+            setSubmitError("");
+            setStep((current) => Math.max(1, current - 1));
+          }}
           finalLabel="Go to dashboard"
           submittingLabel="Creating brand..."
           className="mt-12"

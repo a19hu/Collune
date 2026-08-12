@@ -37,10 +37,13 @@ export function RegisterSubmitButtons({
   isSubmitting,
   disabled = false,
   onSkip,
+  onBack,
+  showBack = false,
   submitLabel = "Continue",
   finalLabel = "Continue to Dashboard",
   submittingLabel = "Creating account...",
   skipLabel = "Skip for now",
+  backLabel = "Back",
   className = "mt-6",
   buttonClassName = "inline-flex h-[52px] flex-1 items-center justify-center gap-3 rounded-xl bg-[#2447bd] text-[15px] font-black text-white shadow-[0_12px_24px_rgba(36,71,189,0.18)] transition hover:bg-[#183aa8] disabled:cursor-not-allowed disabled:opacity-70",
 }: {
@@ -48,21 +51,37 @@ export function RegisterSubmitButtons({
   isSubmitting: boolean;
   disabled?: boolean;
   onSkip?: () => void;
+  onBack?: () => void;
+  showBack?: boolean;
   submitLabel?: string;
   finalLabel?: string;
   submittingLabel?: string;
   skipLabel?: string;
+  backLabel?: string;
   className?: string;
   buttonClassName?: string;
 }) {
+  const showSkip = isFinalStep && onSkip;
+
   return (
-    <div className={`${className} ${isFinalStep && onSkip ? "grid gap-3" : "flex"}`}>
+    <div className={`${className} ${showSkip ? "grid gap-3" : "flex items-center gap-3"}`}>
+      {showBack ? (
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={isSubmitting}
+          className="inline-flex h-[52px] items-center justify-center rounded-xl border border-[#cfd8f6] bg-white px-6 text-[15px] font-black text-[#4b5b7c] transition hover:bg-[#f6f8ff] disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {backLabel}
+        </button>
+      ) : null}
+
       <button type="submit" disabled={isSubmitting || disabled} className={buttonClassName}>
         {isFinalStep && isSubmitting ? submittingLabel : isFinalStep ? finalLabel : submitLabel}
         <ArrowRight className="h-5 w-5" />
       </button>
 
-      {isFinalStep && onSkip ? (
+      {showSkip ? (
         <button
           type="button"
           onClick={onSkip}

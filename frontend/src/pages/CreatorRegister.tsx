@@ -429,6 +429,11 @@ const CreatorRegister = () => {
           isFinalStep={step === totalSteps}
           isSubmitting={isSubmitting}
           disabled={!canContinue}
+          showBack={step > 1}
+          onBack={() => {
+            setSubmitError("");
+            setStep((current) => Math.max(1, current - 1));
+          }}
           onSkip={() => void submitCreatorRegistration()}
         />
 
