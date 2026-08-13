@@ -2,7 +2,7 @@ import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext.tsx";
-import { getCreatorsList } from "../lib/authApi.ts";
+import { getBrandSavedCreators, getCreatorsList, removeBrandSavedCreator, saveBrandCreator } from "../lib/authApi.ts";
 import type { CreatorListItemApi } from "../types";
 import { Lock } from "lucide-react";
 import { CreatorCard } from "../HtmlComponents/CreatorCard.tsx";
@@ -86,6 +86,8 @@ export const DiscoverCreatorsPage = () => {
   const [location, setLocation] = useState("");
   const [categoryQuery, setCategoryQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
+  const [savedCreatorIds, setSavedCreatorIds] = useState<string[]>([]);
+  const [savingCreatorId, setSavingCreatorId] = useState("");
   const isBrand = currentUser?.role === "Brand";
 
   useEffect(() => {
@@ -105,6 +107,44 @@ export const DiscoverCreatorsPage = () => {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!isBrand) return;
+
+    let mounted = true;
+    getBrandSavedCreators()
+      .then((data) => {
+        if (!mounted) return;
+        setSavedCreatorIds(data.creators.map((item) => item.creator.id));
+      })
+      .catch(() => {
+        if (mounted) setSavedCreatorIds([]);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [isBrand]);
+
+  const toggleSavedCreator = async (creator: CreatorListItemApi) => {
+    if (!isBrand || !creator.creator_id || savingCreatorId) return;
+
+    const creatorId = creator.creator_id;
+    setSavingCreatorId(creatorId);
+    try {
+      if (savedCreatorIds.includes(creatorId)) {
+        await removeBrandSavedCreator(creatorId);
+        setSavedCreatorIds((items) => items.filter((item) => item !== creatorId));
+      } else {
+        await saveBrandCreator(creatorId);
+        setSavedCreatorIds((items) => [...items, creatorId]);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to update saved creator.");
+    } finally {
+      setSavingCreatorId("");
+    }
+  };
 
   const locations = useMemo(() => Array.from(new Set(creators.map((creator) => creator.location).filter(Boolean))), [creators]);
   const categoryOptions = useMemo(() => {
@@ -223,6 +263,10 @@ export const DiscoverCreatorsPage = () => {
                   key={creator.creator_id || creator.username || `${creator.display_name}-${index}`}
                   creator={creator}
                   index={index}
+                  isBrand={isBrand}
+                  isSaved={Boolean(creator.creator_id && savedCreatorIds.includes(creator.creator_id))}
+                  // isSaving={savingCreatorId === creator.creator_id}
+                  onToggleSaved={toggleSavedCreator}
                 />
               ))
             ) : (

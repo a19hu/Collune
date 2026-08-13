@@ -1,4 +1,4 @@
-import { ArrowRight, BadgeCheck, UserRound } from "lucide-react";
+import { ArrowRight, BadgeCheck, Bookmark, Trash2, Loader2, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 
@@ -13,7 +13,23 @@ type CreatorProfileApi = {
 }
 
 
-export function CreatorCard({ creator, index,key }: { creator: CreatorProfileApi; index: number,key?:number}) {
+export function CreatorCard({
+  creator,
+  index,
+  key,
+  isBrand,
+  isSaved = false,
+  isSaving = false,
+  onToggleSaved,
+}: {
+  creator: CreatorProfileApi;
+  index: number;
+  key?: number;
+  isBrand?: boolean;
+  isSaved?: boolean;
+  isSaving?: boolean;
+  onToggleSaved?: (creator: CreatorProfileApi) => void;
+}) {
   const [showPrivateToast, setShowPrivateToast] = useState(false);
   const imageUrl = creator.profile_image;
   const username = creator.username ;
@@ -48,13 +64,27 @@ export function CreatorCard({ creator, index,key }: { creator: CreatorProfileApi
             </div>
           </div>
         )}
-        <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-white/75 px-2 py-1 text-[9px] font-black text-[#7690ff]">
+        <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-white/75 px-2 py-1 text-[9px] font-black text-[#7690ff] backdrop-blur-sm">
           <BadgeCheck className="h-3 w-3 fill-current" />
           {isVerified ? "verified" :  "pending"}
         </span>
-        {/* <span className="absolute right-2.5 top-2.5 grid h-6 min-w-6 place-items-center rounded-full bg-white/85 px-1 text-xs font-black text-[#9aa6bc]">
-          {creator.audience_size ? `${Math.round(creator.audience_size / 1000)}k` : "i"}
-        </span> */}
+        {isBrand ? (
+          <button
+            type="button"
+            onClick={() => onToggleSaved?.(creator)}
+            disabled={isSaving || !creator.creator_id}
+            className={`absolute right-2.5 top-2.5 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border shadow-sm backdrop-blur-sm transition disabled:cursor-not-allowed disabled:opacity-60 ${isSaved ? "border-[#c9d7ff] bg-[#eef3ff]/95 text-[#1438c8]" : "border-white/70 bg-white/90 text-[#1438c8] hover:bg-white"}`}
+            aria-label={isSaved ? "Unsave creator" : "Save creator"}
+          >
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : isSaved ? (
+              <Bookmark className="h-4 w-4 fill-current" />
+            ) : (
+              <Bookmark className="h-4 w-4" />
+            )}
+          </button>
+        ) : null}
       </div>
       <div className="px-4 py-3">
         <h3 className="inline text-lg font-black text-[#314064]">{creator.display_name}</h3>

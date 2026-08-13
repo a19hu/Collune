@@ -1,4 +1,4 @@
-import { AlertCircle, Loader2, Trash2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Panel } from "../../HtmlComponents/BrandCard";
@@ -100,28 +100,19 @@ export default function SavedCreators() {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-7 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {savedCreators.map((savedCreator, index) => {
         const creator = mapSavedCreatorToCard(savedCreator);
         return (
-          <div
-            key={creator.creator_id || creator.username || `${creator.display_name}-${index}`}
-            // className="overflow-hidden rounded-lg"
-          >
-            <CreatorCard
-              creator={creator}
-              index={index}
-            />
-            <button
-              type="button"
-              onClick={() => removeCreator(savedCreator)}
-              disabled={removingId === savedCreator.saved_id}
-              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-b-lg border border-t-0 border-[#f3b7b7] bg-white px-4 text-[13px] font-black text-[#b42318] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {removingId === savedCreator.saved_id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-              Unsave Creator
-            </button>
-          </div>
+          <CreatorCard
+            key={index}
+            creator={creator}
+            index={index}
+            isBrand
+            isSaved
+            isSaving={removingId === savedCreator.saved_id}
+            onToggleSaved={() => removeCreator(savedCreator)}
+          />
         );
       })}
     </div>

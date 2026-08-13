@@ -9,6 +9,7 @@ import {
   Lock,
   MapPin,
   ShieldCheck,
+  Trash2,
   Twitter,
   UserRound,
 } from "lucide-react";
@@ -16,7 +17,7 @@ import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
 
 
 import { useAuth } from "../contexts/AuthContext";
-import { getCreatorPublicProfile, saveBrandCreator } from "../lib/authApi";
+import { getBrandSavedCreators, getCreatorPublicProfile, removeBrandSavedCreator, saveBrandCreator } from "../lib/authApi";
 import { AddCreatorToShortlistModal } from "../components/Brand/Shortlists/AddCreatorToShortlistModal";
 import type { CreatorPublicProfileApi, CreatorSocialPlatform } from "../types";
 import { formatUpdatedAt } from "../HtmlComponents/BrandCard";
@@ -97,24 +98,58 @@ function LockedMetricTile({ value, label, unlocked }: { value: string; label: st
 
 function BrandActions({ creator, isBrand }: { creator: CreatorPublicProfileApi; isBrand: boolean }) {
   const [isShortlistModalOpen, setIsShortlistModalOpen] = useState(false);
-  const [isSavingCreator, setIsSavingCreator] = useState(false);
+  const [isCheckingSaved, setIsCheckingSaved] = useState(false);
+  const [isTogglingSaved, setIsTogglingSaved] = useState(false);
+  const [isSavedCreator, setIsSavedCreator] = useState(false);
   const [saveCreatorMessage, setSaveCreatorMessage] = useState("");
   const [saveCreatorError, setSaveCreatorError] = useState("");
 
-  const handleSaveCreator = async () => {
-    if (!creator.creator_id || isSavingCreator) return;
+  useEffect(() => {
+    if (!isBrand || !creator.creator_id) return;
 
-    setIsSavingCreator(true);
+    let mounted = true;
+    setIsCheckingSaved(true);
+    setSaveCreatorError("");
+
+    getBrandSavedCreators()
+      .then((data) => {
+        if (!mounted) return;
+        setIsSavedCreator(data.creators.some((item) => item.creator.id === creator.creator_id));
+      })
+      .catch((err) => {
+        if (!mounted) return;
+        setSaveCreatorError(err instanceof Error ? err.message : "Unable to check saved creator status.");
+      })
+      .finally(() => {
+        if (mounted) setIsCheckingSaved(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [creator.creator_id, isBrand]);
+
+  const handleToggleSavedCreator = async () => {
+    if (!creator.creator_id || isTogglingSaved || isCheckingSaved) return;
+
+    setIsTogglingSaved(true);
     setSaveCreatorError("");
     setSaveCreatorMessage("");
 
     try {
-      await saveBrandCreator(creator.creator_id);
-      setSaveCreatorMessage("Creator saved successfully.");
+      if (isSavedCreator) {
+        await removeBrandSavedCreator(creator.creator_id);
+        setIsSavedCreator(false);
+        setSaveCreatorMessage("Creator removed from saved.");
+      } else {
+        await saveBrandCreator(creator.creator_id);
+        setIsSavedCreator(true);
+        setSaveCreatorMessage("Creator saved successfully.");
+      }
     } catch (err) {
-      setSaveCreatorError(err instanceof Error ? err.message : "Unable to save creator.");
+      setSaveCreatorError(err instanceof Error ? err.message : `Unable to ${isSavedCreator ? "remove" : "save"} creator.`);
     } finally {
-      setIsSavingCreator(false);
+      setIsTogglingSaved(false);
     }
   };
 
@@ -133,12 +168,11 @@ function BrandActions({ creator, isBrand }: { creator: CreatorPublicProfileApi; 
             </button>
             <button
               type="button"
-              onClick={handleSaveCreator}
-              disabled={isSavingCreator || !creator.creator_id}
-              className="flex h-12 items-center justify-center gap-2 rounded-[6px] bg-[#1438c8] text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={handleToggleSavedCreator}
+              disabled={isTogglingSaved || isCheckingSaved || !creator.creator_id}
+              className={`flex h-12 items-center justify-center gap-2 rounded-[6px] text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${isSavedCreator ? "border border-[#c9d7ff] bg-[#eef3ff] text-[#1438c8]" : "bg-[#1438c8] text-white"}`}
             >
-              {isSavingCreator ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {isSavingCreator ? "Saving..." : "Save Creator"}
+              {isCheckingSaved ? "Checking..." : isTogglingSaved ? (isSavedCreator ? "Removing..." : "Saving...") : isSavedCreator ? "Saved" : "Save Creator"}
             </button>
           </div>
           {saveCreatorMessage ? <p className="mt-3 text-xs font-bold text-[#067647]">{saveCreatorMessage}</p> : null}
