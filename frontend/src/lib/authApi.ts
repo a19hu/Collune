@@ -11,6 +11,7 @@ import type {
   BrandProfileApi,
   BrandRegisterPayload,
   BrandRegisterResponse,
+  BrandSavedCreatorsResponse,
   BrandShortlistApi,
   BrandShortlistPayload,
   CampaignApi,
@@ -450,6 +451,18 @@ export function getCreatorSavedCampaigns() {
 
 export function removeSavedCampaign(campaignId: string) {
   return apiDelete<{ message: string; saved: boolean; removed: boolean }>("/creator/saved-campaigns/", { campaign_id: campaignId }, true);
+}
+
+export function getBrandSavedCreators() {
+  return apiRequest<BrandSavedCreatorsResponse>("/brand/saved-creators/", {}, true);
+}
+
+export function saveBrandCreator(creatorId: string) {
+  return apiPost<{ message: string; saved: boolean }>("/brand/saved-creators/", { creator_id: creatorId }, true);
+}
+
+export function removeBrandSavedCreator(creatorId: string) {
+  return apiDelete<{ message: string; saved: boolean; removed: boolean }>("/brand/saved-creators/", { creator_id: creatorId }, true);
 }
 
 export async function getBrandShortlists(page = 1, pageSize = 10) {

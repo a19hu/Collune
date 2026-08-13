@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 
 from ..models import (
-    ApplicationStatus, BrandProfile, BrandShortlist, Campaign, CampaignApplication, CreatorProfile, ShortlistStatus, UserRole, VerificationStatus,
+    ApplicationStatus, BrandProfile, BrandSavedCreator, BrandShortlist, Campaign, CampaignApplication, CreatorProfile, ShortlistStatus, UserRole, VerificationStatus,
 )
 from ..permissions import IsBrand, IsCreator, IsVerifiedColluneMember
 from ..common.services import auth_response, create_user, parse_payload
@@ -842,3 +842,122 @@ class PublicBrandProfileView(APIView):
             "updated_at": brand.updated_at,
         }
         return Response({"brand": response})
+
+
+class BrandSavedCreatorView(APIView):
+    permission_classes = [IsAuthenticated, IsBrand]
+
+    def get_brand(self, request):
+        return getattr(request.user, "brand_profile", None)
+
+    def get(self, request):
+        brand = self.get_brand(request)
+
+        if not brand:
+            return Response(
+                {"error": "Brand profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        saved_creators = (
+            BrandSavedCreator.objects.select_related("creator", "creator__user")
+            .filter(brand=brand)
+            .order_by("-created_at")
+        )
+
+        data = []
+        for saved_creator in saved_creators:
+            creator = saved_creator.creator
+            data.append(
+                {
+                    "saved_id": str(saved_creator.saved_id),
+                    "saved_at": saved_creator.created_at.isoformat(),
+                    "creator": {
+                        "id": str(creator.creator_id),
+                        "display_name": creator.display_name,
+                        "niche": creator.category,
+                        "location": creator.location,
+                        "bio": creator.bio,
+                        "profile_photo": request.build_absolute_uri(creator.profile_image.url) if creator.profile_image else None,
+                        "verified": creator.user.verification_status == VerificationStatus.VERIFIED.value,
+                        "username": creator.user.username,
+                    },
+                }
+            )
+
+        return Response(
+            {
+                "creators": data,
+                "count": len(data),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def post(self, request):
+        brand = self.get_brand(request)
+
+        if not brand:
+            return Response(
+                {"error": "Brand profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        creator_id = request.data.get("creator_id")
+
+        if not creator_id:
+            return Response(
+                {"creator_id": ["This field is required."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            creator = CreatorProfile.objects.get(creator_id=creator_id)
+        except CreatorProfile.DoesNotExist:
+            return Response(
+                {"error": "Creator not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        _, created = BrandSavedCreator.objects.get_or_create(
+            brand=brand,
+            creator=creator,
+        )
+
+        return Response(
+            {
+                "message": "saved successfully",
+                "saved": True,
+            },
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+    def delete(self, request):
+        brand = self.get_brand(request)
+
+        if not brand:
+            return Response(
+                {"error": "Brand profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        creator_id = request.data.get("creator_id")
+
+        if not creator_id:
+            return Response(
+                {"creator_id": ["This field is required."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        deleted, _ = BrandSavedCreator.objects.filter(
+            brand=brand,
+            creator_id=creator_id,
+        ).delete()
+
+        return Response(
+            {
+                "message": "creator removed from saved",
+                "saved": False,
+                "removed": deleted > 0,
+            },
+            status=status.HTTP_200_OK,
+        )

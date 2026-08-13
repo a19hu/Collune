@@ -217,7 +217,7 @@ const LandingPage = () => {
         </div>
         <div className="mt-10">
           <HtmlButton
-            buttonName="Explore all 250+ Creators"
+            buttonName={`Explore all ${Math.max(filteredCreators.length, creators.length, 0)} Creators`}
             variant="light"
             onClick={() => navigate("/discover-creators")}
             />
@@ -245,8 +245,8 @@ const LandingPage = () => {
                 <i className="-ml-3 h-9 w-9 rounded-full bg-[#a995ff]" />
                 <i className="-ml-3 h-9 w-9 rounded-full bg-white" />
               </span>
-              <strong><span className="text-[#b4a2ff]">10,000+</span> Collaborations</strong>
-              <small className="text-sm font-extrabold text-[#76839e]">powered by trust</small>
+              <strong><span className="text-[#b4a2ff]">Verified</span> Collaborations</strong>
+              <small className="text-sm font-extrabold text-[#76839e]">built on trust and accountability</small>
             </div>
           </div>
 

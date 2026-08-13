@@ -16,6 +16,7 @@ from .brand.views import (
     BrandProfileView,
     BrandProfileViewSet,
     BrandRegisterView,
+    BrandSavedCreatorView,
     BrandCampaignApplicationViewSet,
     CampaignReviewView,
     CampaignsViewSet,
@@ -88,6 +89,8 @@ urlpatterns = [
     path("brand/<uuid:brand_id>/", PublicBrandProfileView.as_view(), name="brand_detail"),
     path("creators/list/", CreatorListViewSet.as_view(), name="creators_list"),
     path("creator/<uuid:creator_id>/", CreatorListViewSet.as_view(), name="creator_detail"),
+    path("brand/saved-creators/", BrandSavedCreatorView.as_view(), name="brand_saved_creators"),
+
 
 
     path("auth/instagram/connect/", InstagramConnectView.as_view(), name="instagram_connect"),

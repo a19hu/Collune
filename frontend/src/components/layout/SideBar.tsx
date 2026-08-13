@@ -22,6 +22,7 @@ const navByMode = {
     { label: "Profile", to: "/brand/profile", icon: UserRound },
     { label: "Campaigns", to: "/brand/campaigns", icon: FileText },
     { label: "Discover Creators", to: "/discover-creators", icon: Users },
+    { label: "Saved Creators", to: "/brand/saved-creators", icon: Star, lockedWhenUnverified: true },
     { label: "Shortlists", to: "/brand/shortlists", icon: Star },
     { label: "Subscription", to: "/brand/brand-subscription", icon: Sparkles },
   ],

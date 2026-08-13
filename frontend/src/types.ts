@@ -223,6 +223,25 @@ export type CreatorSavedCampaignsResponse = {
   campaigns: CreatorSavedCampaignApi[];
   count: number;
 };
+export type BrandSavedCreatorItemApi = {
+  id: string;
+  display_name: string;
+  niche: string;
+  location: string;
+  bio: string;
+  profile_photo: string | null;
+  verified: boolean;
+  username?: string;
+};
+export type BrandSavedCreatorApi = {
+  saved_id: string;
+  saved_at: string;
+  creator: BrandSavedCreatorItemApi;
+};
+export type BrandSavedCreatorsResponse = {
+  creators: BrandSavedCreatorApi[];
+  count: number;
+};
 export type CreatorCampaignListParams = {
   page?: number;
   pageSize?: number;

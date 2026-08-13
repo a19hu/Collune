@@ -274,3 +274,17 @@ class BrandShortlist(models.Model):
 
     def __str__(self):
         return f"{self.brand.company_name} - {self.title}"
+
+
+class BrandSavedCreator(models.Model):
+    saved_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    brand = models.ForeignKey(BrandProfile, on_delete=models.CASCADE, related_name="saved_creators")
+    creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="saved_by_brands")
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ("brand", "creator")
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.creator.display_name} saved {self.brand.company_name}"

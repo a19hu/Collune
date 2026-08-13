@@ -29,6 +29,7 @@ import AppliedCampaigns from './components/Creator/AppliedCampaigns.tsx';
 import SavedCampaigns from './components/Creator/SavedCampaigns.tsx';
 import AboutCollune from './pages/AboutCollune.tsx';
 import BrandSubscriptionPage from './components/Brand/BrandSubscriptionPage.tsx';
+import SavedCreators from './components/Brand/SavedCreators.tsx';
 import CreatorSubscriptionPage from './components/Creator/CreatorSubscriptionPage.tsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.tsx';
 import TermsConditions from './pages/TermsConditions.tsx';
@@ -113,6 +114,7 @@ const App: React.FC = () => {
                             <Route index element={<BrandDashBoard />} />
                             <Route path="analytics" element={<BrandDashBoard />} />
                             <Route path="profile" element={<BrandProfile />} />
+                            <Route path="saved-creators" element={<RequireVerified><SavedCreators /></RequireVerified>} />
                             <Route path="shortlists" element={<BrandShortlists />} />
                             <Route path="shortlists/new_create" element={<ShortlistCreateForm />} />
                             <Route path="shortlists/:shortlistId/edit" element={<ShortlistCreateForm />} />
