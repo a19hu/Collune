@@ -1,4 +1,4 @@
-import { sendOtp } from "./authApi";
+import { sendOtp, sendWhatsAppOtp } from "./authApi";
 import type { CreatorRegisterForm, VerificationState } from "../types";
 
 type FormButtonOptions = {
@@ -56,14 +56,18 @@ export const formButton = async ({
             { emailSent: true, emailVerified: false, message: "Email OTP sent." },
             "Could not send email OTP.",
         );
-        // const phoneSent = await sendContactOtp(
-        //     "PHONE",
-        //     normalizePhoneNumber(form.phone_no),
-        //     "isSendingPhone",
-        //     { phoneOtpSent: true, phoneVerified: false, message: "Phone OTP sent." },
-        //     "Could not send phone OTP.",
-        // );
-        if (!emailSent) return;
+        setVerificationStatus({ isSendingPhone: true, error: "", message: "" });
+        let whatsappSent = false;
+        try {
+            await sendWhatsAppOtp(normalizePhoneNumber(form.phone_no));
+            setVerificationStatus({ phoneOtpSent: true, phoneVerified: false, message: "WhatsApp OTP sent." });
+            whatsappSent = true;
+        } catch (error) {
+            setVerificationStatus({ error: error instanceof Error ? error.message : "Could not send WhatsApp OTP." });
+        } finally {
+            setVerificationStatus({ isSendingPhone: false });
+        }
+        if (!emailSent || !whatsappSent) return;
         goNext();
         return;
     }
@@ -71,7 +75,7 @@ export const formButton = async ({
     if (step === 2) {
         const missing: string[] = [];
         if (!verification.emailVerified) missing.push("Email OTP is not verified.");
-        // if (!verification.phoneVerified) missing.push("Phone OTP is not verified.");
+        if (!verification.phoneVerified) missing.push("WhatsApp OTP is not verified.");
 
         if (missing.length) {
             setVerificationStatus({ error: missing.join(" "), message: "" });

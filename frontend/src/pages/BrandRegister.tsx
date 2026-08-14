@@ -24,7 +24,7 @@ import { AuthSwitchLink, RegisterError, RegisterStepHeader, RegisterSubmitButton
 import Register from "../components/layout/Register";
 import { useAuth } from "../contexts/AuthContext";
 import { authStorage } from "../contexts/authStorage";
-import { checkEmailAvailability, registerBrandFormData, sendOtp, verifyOtp } from "../lib/authApi";
+import { checkEmailAvailability, registerBrandFormData, sendOtp, sendWhatsAppOtp, verifyOtp, verifyWhatsAppOtp } from "../lib/authApi";
 import { normalizePhoneNumber } from "../lib/function";
 import type { BrandRegisterForm, VerificationState } from "../types";
 import { inputClass, labelClass } from "./StepsCreatorRegister";
@@ -180,7 +180,7 @@ function BrandRegisterSteps({
         <div className="mt-12">
           <RegisterStepHeader
             title="Verify your contact"
-            copy="Enter the verification codes sent to your work email and phone."
+            copy="Enter the verification codes sent to your work email and WhatsApp number."
             titleClassName="text-[30px] font-black tracking-normal text-[#202337]"
             copyClassName="mt-6 text-base font-medium text-[#65758f]"
           />
@@ -200,8 +200,8 @@ function BrandRegisterSteps({
           />
           <VerificationBlock
             icon={<Phone className="h-5 w-5" />}
-            title="Verify Phone"
-            target={form.phone_no || "your phone"}
+            title="Verify WhatsApp"
+            target={form.phone_no || "your WhatsApp number"}
             otp={phoneOtp}
             otpSent={verification.phoneOtpSent}
             verified={verification.phoneVerified}
@@ -354,14 +354,20 @@ const BrandRegister = () => {
   };
 
   const sendBrandVerificationOtps = async () => {
-    // const phoneSent = await sendContactOtp(
-    //   "PHONE",
-    //   normalizePhoneNumber(form.phone_no),
-    //   "isSendingPhone",
-    //   { phoneOtpSent: true, phoneVerified: false, message: "Phone OTP sent." },
-    //   "Could not send phone OTP.",
-    // );
-    // if (!phoneSent) return false;
+    setSubmitError("");
+    setVerificationStatus({ isSendingPhone: true, error: "", message: "" });
+    let whatsappSent = false;
+    try {
+      await sendWhatsAppOtp(normalizePhoneNumber(form.phone_no));
+      setVerificationStatus({ phoneOtpSent: true, phoneVerified: false, message: "WhatsApp OTP sent." });
+      whatsappSent = true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not send WhatsApp OTP.";
+      setVerificationStatus({ error: message });
+      setSubmitError(message);
+    } finally {
+      setVerificationStatus({ isSendingPhone: false });
+    }
 
     const emailSent = await sendContactOtp(
       "EMAIL",
@@ -371,8 +377,8 @@ const BrandRegister = () => {
       "Could not send email OTP.",
     );
 
-    
-    return emailSent;
+
+    return emailSent && whatsappSent;
   };
 
   const verifyEmailOtp = async () => {
@@ -390,10 +396,10 @@ const BrandRegister = () => {
   const verifyPhoneOtp = async () => {
     setVerificationStatus({ isVerifyingPhone: true, error: "", message: "" });
     try {
-      // await verifyOtp("PHONE", normalizePhoneNumber(form.phone_no), phoneOtp);
-      setVerificationStatus({ phoneVerified: true, message: "Phone number verified." });
+      await verifyWhatsAppOtp(normalizePhoneNumber(form.phone_no), phoneOtp);
+      setVerificationStatus({ phoneVerified: true, message: "WhatsApp number verified." });
     } catch (error) {
-      setVerificationStatus({ error: error instanceof Error ? error.message : "Invalid phone OTP." });
+      setVerificationStatus({ error: error instanceof Error ? error.message : "Invalid WhatsApp OTP." });
     } finally {
       setVerificationStatus({ isVerifyingPhone: false });
     }
@@ -402,7 +408,7 @@ const BrandRegister = () => {
   const validateVerificationStep = () => {
     const missing: string[] = [];
     if (!verification.emailVerified) missing.push("Email OTP is not verified.");
-    // if (!verification.phoneVerified) missing.push("Phone OTP is not verified.");
+    if (!verification.phoneVerified) missing.push("WhatsApp OTP is not verified.");
 
     if (missing.length) {
       setVerificationStatus({ error: missing.join(" "), message: "" });

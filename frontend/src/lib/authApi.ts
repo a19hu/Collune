@@ -358,6 +358,14 @@ export async function verifyOtp(channel: OtpChannel, target: string, code: strin
   return apiPost<OtpResponse>("/auth/otp/verify/", { channel, target, code });
 }
 
+export async function sendWhatsAppOtp(target: string) {
+  return sendOtp("PHONE", target);
+}
+
+export async function verifyWhatsAppOtp(target: string, code: string) {
+  return verifyOtp("PHONE", target, code);
+}
+
 function appendCampaignPayload(body: FormData, payload: CampaignPayload) {
   Object.entries(payload).forEach(([key, value]) => {
     if (value === undefined || value === null || value === "") return;

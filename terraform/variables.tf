@@ -116,6 +116,12 @@ variable "brevo_api_key" {
 
 }
 
+variable "aisensy_api_key" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
 variable "django_superuser_username" {
   type    = string
   default = ""

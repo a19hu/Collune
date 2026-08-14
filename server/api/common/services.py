@@ -185,21 +185,60 @@ def send_brevo_email_otp(target, code):
         logger.exception("Brevo email API request failed.")
         raise
 
-def send_brevo_sms_otp(target, code):
-    sender = os.getenv("BREVO_SMS_SENDER", "Collune")[:11]
+def send_aisensy_whatsapp_otp(target, code):
+    api_key = get_env("AISENSY_API_KEY")
+    if not api_key:
+        raise RuntimeError("AISENSY_API_KEY is not configured.")
+
     payload = {
-        "sender": sender,
-        "recipient": target,
-        "content": f"Your Collune verification code is {code}. It expires in {OTP_EXPIRY_MINUTES} minutes.",
-        "type": "transactional",
-        "tag": "creator_registration",
+        "apiKey": api_key,
+        "campaignName": get_env("AISENSY_CAMPAIGN_NAME", "collune_otp"),
+        "destination": target,
+        "userName": code,
+        "templateParams": ["$FirstName"],
+        "source": get_env("AISENSY_SOURCE", "new-landing-page form"),
+        "media": {},
+        "buttons": [
+            {
+                "type": "button",
+                "sub_type": "url",
+                "index": 0,
+                "parameters": [
+                    {
+                        "type": "text",
+                        "text": code,
+                    }
+                ],
+            }
+        ],
+        "carouselCards": [],
+        "location": {},
+        "attributes": {},
+        "paramsFallbackValue": {
+            "FirstName": get_env("AISENSY_FALLBACK_FIRST_NAME", "user"),
+        },
     }
-    response = requests.post(f"{BREVO_API_BASE}/transactionalSMS/sms", json=payload, headers=brevo_headers(), timeout=15)
-    response.raise_for_status()
+
+    response = requests.post(
+        get_env("AISENSY_API_URL", "https://backend.aisensy.com/campaign/t1/api/v2"),
+        json=payload,
+        headers={"Content-Type": "application/json"},
+        timeout=20,
+    )
+    try:
+        response.raise_for_status()
+    except requests.HTTPError as error:
+        body = error.response.text[:500] if error.response is not None else ""
+        logger.error(
+            "AiSensy WhatsApp API rejected OTP send. status=%s body=%s",
+            getattr(error.response, "status_code", "unknown"),
+            body,
+        )
+        raise
+
 
 def send_otp_message(otp):
     if otp.channel == OtpChannel.EMAIL:
-
         send_brevo_email_otp(otp.target, otp.code)
         return
-    send_brevo_sms_otp(otp.target, otp.code)
+    send_aisensy_whatsapp_otp(otp.target, otp.code)

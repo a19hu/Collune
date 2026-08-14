@@ -258,6 +258,19 @@ export const SideBarLayout = () => {
           />
         ),
       },
+      {
+        matches: () => pathname === "/creator/creator-subscription",
+        render: () => (
+          <DashboardTopBar
+            title="Subscription"
+            status={isVerified ? "verified-creator" : "under-review"}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+          />
+        ),
+      },
     ];
 
     return topRoutes.find((route) => route.matches())?.render() ?? null;
@@ -343,6 +356,19 @@ export const SideBarLayout = () => {
         ),
       },
       {
+        matches: () => pathname === "/brand/brand-subscription",
+        render: () => (
+          <DashboardTopBar
+            title="Subscription"
+            status={brandStatus}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+          />
+        ),
+      },
+      {
         matches: () => pathname === "/creator",
         render: () => (
           <DashboardTopBar
@@ -394,6 +420,7 @@ export const SideBarLayout = () => {
             currentUser={currentUser}
             logout={logout}
             profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
           />
         ),
       },

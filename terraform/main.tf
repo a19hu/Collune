@@ -51,6 +51,7 @@ locals {
     EMAIL_HOST_PASSWORD = var.email_host_password
     DEFAULT_FROM_EMAIL  = "noreply@collune.com"
     BREVO_API_KEY       = var.brevo_api_key
+    AISENSY_API_KEY     = var.aisensy_api_key
 
     DJANGO_SUPERUSER_USERNAME = var.django_superuser_username
     DJANGO_SUPERUSER_EMAIL    = var.django_superuser_email

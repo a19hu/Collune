@@ -50,13 +50,13 @@ class CreatorRegisterSerializer(serializers.Serializer):
             is_verified=True,
         ).exists():
             missing["email"] = "Email OTP is not verified."
-        # if phone and not OtpVerification.objects.filter(
-        #     channel=OtpChannel.PHONE,
-        #     target=phone,
-        #     purpose="creator_registration",
-        #     is_verified=True,
-        # ).exists():
-        #     missing["phone_no"] = "Phone OTP is not verified."
+        if phone and not OtpVerification.objects.filter(
+            channel=OtpChannel.PHONE,
+            target=phone,
+            purpose="creator_registration",
+            is_verified=True,
+        ).exists():
+            missing["phone_no"] = "Phone OTP is not verified."
         if missing:
             raise serializers.ValidationError({"otp": missing})
         return attrs

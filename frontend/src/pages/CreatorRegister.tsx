@@ -16,6 +16,7 @@ import {
   getYouTubeConnectUrl,
   registerCreator,
   verifyOtp,
+  verifyWhatsAppOtp,
 } from "../lib/authApi";
 import { CreatorRegisterForm, CreatorSocialPlatform, SocialAccountForm, VerificationState } from "../types";
 import { parseLocationParts, StepsCreatorRegister } from "./StepsCreatorRegister";
@@ -278,10 +279,10 @@ const CreatorRegister = () => {
     setVerificationStatus({ isVerifyingPhone: true, error: "", message: "" });
     try {
       const phoneNumber = normalizePhoneNumber(form.phone_no);
-      // await verifyOtp("PHONE", phoneNumber, phoneOtp);
-      setVerificationStatus({ phoneVerified: true, message: "Phone number verified." });
+      await verifyWhatsAppOtp(phoneNumber, phoneOtp);
+      setVerificationStatus({ phoneVerified: true, message: "WhatsApp number verified." });
     } catch (error) {
-      setVerificationStatus({ error: error instanceof Error ? error.message : "Invalid phone OTP." });
+      setVerificationStatus({ error: error instanceof Error ? error.message : "Invalid WhatsApp OTP." });
     } finally {
       setVerificationStatus({ isVerifyingPhone: false });
     }
@@ -309,7 +310,7 @@ const CreatorRegister = () => {
 
     const missingOtp: string[] = [];
     if (!verification.emailVerified) missingOtp.push("Email OTP is not verified.");
-    // if (!verification.phoneVerified) missingOtp.push("Phone OTP is not verified.");
+    if (!verification.phoneVerified) missingOtp.push("WhatsApp OTP is not verified.");
     if (missingOtp.length) {
       setSubmitError(missingOtp.join(" "));
       return;
