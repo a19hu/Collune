@@ -28,6 +28,7 @@ import { checkEmailAvailability, registerBrandFormData, sendOtp, verifyOtp } fro
 import { normalizePhoneNumber } from "../lib/function";
 import type { BrandRegisterForm, VerificationState } from "../types";
 import { inputClass, labelClass } from "./StepsCreatorRegister";
+import { showProjectToast } from "../HtmlComponents/HtmlRoster";
 
 const totalSteps = 4;
 const maxLogoSizeBytes = 2 * 1024 * 1024;
@@ -444,9 +445,12 @@ const BrandRegister = () => {
       authStorage.setTokens(response.access, response.refresh, response.token);
       authStorage.setUser(response.user);
       setSessionUser(response.user);
+      showProjectToast("success", "Registration successful", "Your brand account has been created.");
       navigate("/brand", { replace: true });
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : "Could not create your brand account.");
+      const message = error instanceof Error ? error.message : "Could not create your brand account.";
+      setSubmitError(message);
+      showProjectToast("error", "Registration failed", message);
     } finally {
       setIsSubmitting(false);
     }

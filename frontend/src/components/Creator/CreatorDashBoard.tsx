@@ -18,6 +18,7 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import { applyToCampaign, getCreatorDashboard, saveCreatorCampaign } from "../../lib/authApi";
 import type { CreatorDashboardApi } from "../../types";
 import { Panel } from "@/src/HtmlComponents/BrandCard";
+import { showProjectToast } from "../../HtmlComponents/HtmlRoster";
 import { UnderReviewDashboard } from "./UnderReviewDashboard";
 
 type DashboardContext = { isVerified?: boolean };
@@ -200,6 +201,10 @@ function VerifiedDashboard({
     try {
       await applyToCampaign(campaign.id);
       updateRecommendedCampaign(campaign.id, { applied: true });
+      showProjectToast("success", "Application sent", "Your campaign application has been submitted.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to apply to this campaign.";
+      showProjectToast("error", "Application failed", message);
     } finally {
       setApplyingId("");
     }
@@ -211,6 +216,10 @@ function VerifiedDashboard({
     try {
       await saveCreatorCampaign(campaign.id);
       updateRecommendedCampaign(campaign.id, { saved: true });
+      showProjectToast("success", "Campaign saved", "The campaign has been added to your saved list.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to save this campaign.";
+      showProjectToast("error", "Save failed", message);
     } finally {
       setSavingId("");
     }

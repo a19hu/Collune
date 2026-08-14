@@ -131,7 +131,7 @@ const LandingPage = () => {
 
         <div className="relative z-10 flex w-full max-w-[780px] flex-col items-center text-center">
           <SectionLabel>More Than a Marketplace</SectionLabel>
-          <h1 className="mb-5 mt-7 text-[clamp(46px,6vw,70px)] font-normal leading-[1.02] tracking-normal text-[#173fb5]">
+          <h1 className="mb-5 mt-7 text-[clamp(46px,6vw,70px)] font-black leading-[1.02] tracking-normal text-[#173fb5]">
             Where Brands And Creators
             <span className="block italic text-[#ad9bff]">Build What Lasts.</span>
           </h1>
@@ -144,7 +144,7 @@ const LandingPage = () => {
               Join as a Partner
             </HeroButton>
           </div>
-          <div className="mt-10 flex flex-wrap justify-center gap-x-4 gap-y-3 text-xs font-normal text-[#8291c1]">
+          <div className="mt-10 flex flex-wrap justify-center gap-x-4 gap-y-3 text-xs font-black text-[#8291c1]">
             {[
               ["Verified Creators", BadgeCheck],
               ["Secure Payments", ShieldCheck],
@@ -170,17 +170,17 @@ const LandingPage = () => {
       <section className="bg-[#edf3ff] px-6 py-10">
           
           {brandLogoError ? (
-            <p className="py-6 text-center text-sm font-normal text-[#bf3f5f]">{brandLogoError}</p>
+            <p className="py-6 text-center text-sm font-black text-[#bf3f5f]">{brandLogoError}</p>
           ) : brandLogos.length ? (
             <BrandLogoCarousel logos={brandLogos} />
           ) : (
-            <p className="py-6 text-center text-sm font-normal text-[#7b8aaa]">Brand logos will appear here once brands upload them.</p>
+            <p className="py-6 text-center text-sm font-black text-[#7b8aaa]">Brand logos will appear here once brands upload them.</p>
           )}
       </section>
 
       <section id="featured-creators" className="px-6 py-20 text-center">
         <SectionLabel>Featured Creators</SectionLabel>
-        <p className="mx-auto mt-8 max-w-xl text-[16px] font-normal leading-tight text-[#4e5c77]">
+        <p className="mx-auto mt-8 max-w-xl text-[16px] font-extrabold leading-tight text-[#4e5c77]">
           Explore a curated network of verified creators across industries,
           audiences, and content styles.
         </p>
@@ -190,7 +190,7 @@ const LandingPage = () => {
               key={tab}
               type="button"
               onClick={() => setSelectedCreatorCategory(tab)}
-              className={`min-h-10 rounded-full text-[13px] font-normal transition ${
+              className={`min-h-10 rounded-full text-[13px] font-black transition ${
                 selectedCreatorCategory === tab ? "bg-[#b6a3ff] text-white" : "text-[#2450bf] hover:bg-[#eef3ff]"
               }`}
             >
@@ -200,9 +200,9 @@ const LandingPage = () => {
         </div>
         <div className="mx-auto grid max-w-7xl gap-7 md:grid-cols-2 lg:grid-cols-4">
           {isLoadingCreators ? (
-            <p className="col-span-full py-8 text-sm font-normal text-[#7b8aaa]">Loading creators...</p>
+            <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">Loading creators...</p>
           ) : creatorError ? (
-            <p className="col-span-full py-8 text-sm font-normal text-[#bf3f5f]">{creatorError}</p>
+            <p className="col-span-full py-8 text-sm font-black text-[#bf3f5f]">{creatorError}</p>
           ) : filteredCreators.length ? (
             filteredCreators.slice(0, 8).map((creator, index) => (
               <CreatorCard
@@ -212,7 +212,7 @@ const LandingPage = () => {
               />
             ))
           ) : (
-            <p className="col-span-full py-8 text-sm font-normal text-[#7b8aaa]">No creators available yet.</p>
+            <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">No creators available yet.</p>
           )}
         </div>
         <div className="mt-10">
@@ -227,11 +227,11 @@ const LandingPage = () => {
       <section id="about" className="bg-[#f5f7ff] px-6 py-20">
         <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1.08fr_96px_1fr]">
           <div className="text-center lg:text-left">
-            <div className="inline-flex min-h-7 min-w-[270px] items-center justify-center gap-2 rounded-full border border-[#dce5ff] bg-white/30 px-8 text-[12px] font-normal uppercase text-[#3956c8]">
+            <div className="inline-flex min-h-7 min-w-[270px] items-center justify-center gap-2 rounded-full border border-[#dce5ff] bg-white/30 px-8 text-[12px] font-black uppercase text-[#3956c8]">
               <span className="h-2.5 w-2.5 rounded-full bg-[#8095ff] shadow-[0_0_0_5px_rgba(128,149,255,0.16)]" />
               Trust And Accountability
             </div>
-            <h3 className="mb-5 mt-8 text-[clamp(30px,5vw,46px)] font-normal leading-none tracking-normal text-[#173bb5]">
+            <h3 className="mb-5 mt-8 text-[clamp(30px,5vw,46px)] font-black leading-none tracking-normal text-[#173bb5]">
               Trust isn't a Feature.
               <span className="block italic text-[#b4a2ff]">It's the foundation of every collaboration.</span>
             </h3>
@@ -239,13 +239,13 @@ const LandingPage = () => {
               Collune ensures every collaboration is built on transparency,
               accountability, and mutual respect, so you can focus on creating impact.
             </p>
-            <div className="mt-9 inline-grid grid-cols-[auto_1fr] items-center gap-x-4 text-left text-[16px] font-normal text-[#8292ea]">
+            <div className="mt-9 inline-grid grid-cols-[auto_1fr] items-center gap-x-4 text-left text-[16px] font-black text-[#8292ea]">
               <span className="row-span-2 flex">
                 <i className="h-9 w-9 rounded-full bg-[#7890ff]" />
                 <i className="-ml-3 h-9 w-9 rounded-full bg-[#a995ff]" />
                 <i className="-ml-3 h-9 w-9 rounded-full bg-white" />
               </span>
-              <span><span className="text-[#b4a2ff]">Verified</span> Collaborations</span>
+              <strong><span className="text-[#b4a2ff]">Verified</span> Collaborations</strong>
               <small className="text-sm font-normal text-[#76839e]">built on trust and accountability</small>
             </div>
           </div>
@@ -269,7 +269,7 @@ const LandingPage = () => {
                     <Icon className="h-8 w-8" />
                   </span>
                   <div>
-                    <h3 className="mb-1 text-[17px] font-normal leading-tight text-[#465064]">{card.title}</h3>
+                    <h3 className="mb-1 text-[17px] font-black leading-tight text-[#465064]">{card.title}</h3>
                     <p className="max-w-[270px] text-[13px] font-normal leading-tight text-[#758097]">{card.text}</p>
                   </div>
                   <span className="hidden h-5 w-5 place-items-center rounded-full bg-[#8296ff] text-white sm:grid">
@@ -281,7 +281,7 @@ const LandingPage = () => {
           </div>
         </div>
 
-        <div className="mx-auto mt-14 grid max-w-7xl gap-5 rounded-[18px] bg-white px-6 py-6 text-[13px] font-normal text-[#8290aa] shadow-[0_10px_28px_rgba(65,85,148,0.04)] md:grid-cols-2 lg:grid-cols-[1.75fr_repeat(3,auto)] lg:px-10">
+        <div className="mx-auto mt-14 grid max-w-7xl gap-5 rounded-[18px] bg-white px-6 py-6 text-[13px] font-extrabold text-[#8290aa] shadow-[0_10px_28px_rgba(65,85,148,0.04)] md:grid-cols-2 lg:grid-cols-[1.75fr_repeat(3,auto)] lg:px-10">
           <p className="flex items-center gap-4">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#dfe7ff] text-[#8296ff]">
               <ShieldCheck className="h-4.5 w-4.5" />
@@ -305,7 +305,7 @@ const LandingPage = () => {
 
       <section id="how-it-works" className="bg-[#f3f6ff] px-6 pb-24 pt-4 text-center">
         <SectionLabel className="min-w-[235px] bg-white/35">How It Works</SectionLabel>
-        <h2 className="mb-6 mt-7 text-[clamp(42px,5.35vw,66px)] font-normal leading-none tracking-normal text-[#153fb8]">
+        <h2 className="mb-6 mt-7 text-[clamp(42px,5.35vw,66px)] font-black leading-none tracking-normal text-[#153fb8]">
           Two Journeys. <span className="italic text-[#ad9bff]">One collaboration</span>
         </h2>
         <p className="mx-auto max-w-xl text-[15px] font-normal leading-tight text-[#566179]">
@@ -324,7 +324,7 @@ const LandingPage = () => {
                 <UsersRound className="h-10 w-10 stroke-[3]" />
                 <Heart className="absolute -top-1 right-2 h-6 w-6 fill-white stroke-[3]" />
               </span>
-              <span className="text-[20px] font-normal leading-none">Collaborate</span>
+              <strong className="text-[20px] font-black leading-none">Collaborate</strong>
               <span className="mt-1 max-w-[124px] text-[10px] font-normal leading-[1.05] text-[#8b96ab]">Build meaningful partnerships that create real impact.</span>
             </div>
           </div>
@@ -333,10 +333,10 @@ const LandingPage = () => {
       </section>
 
       <section id="brands" className="bg-[linear-gradient(115deg,#6d68de_0%,#0c3bb7_48%,#36a8d0_100%)] px-6 py-24 text-center text-white">
-        <h2 className="mb-5 text-[clamp(42px,5vw,64px)] font-normal leading-none tracking-normal">
+        <h2 className="mb-5 text-[clamp(42px,5vw,64px)] font-black leading-none tracking-normal">
           Ready to build better <span className="italic text-[#b3a2ff]">collaborations?</span>
         </h2>
-        <p className="text-[15px] font-normal text-white/80">Join a growing network of verified creators and ambitious brands.</p>
+        <p className="text-[15px] font-extrabold text-white/80">Join a growing network of verified creators and ambitious brands.</p>
         <div className="mt-10 flex flex-wrap justify-center gap-5">
           <HtmlButton
             buttonName="Join as a Partner"
@@ -358,7 +358,7 @@ const LandingPage = () => {
 
 function SectionLabel({ children, className = "" }: { children: string; className?: string }) {
   return (
-    <div className={`inline-flex min-h-7 min-w-[min(330px,100%)] items-center justify-center gap-2 rounded-full border border-[#dae3ff] bg-white/60 px-8 text-[12px] font-normal uppercase text-[#2a54cf] ${className}`}>
+    <div className={`inline-flex min-h-7 min-w-[min(330px,100%)] items-center justify-center gap-2 rounded-full border border-[#dae3ff] bg-white/60 px-8 text-[12px] font-black uppercase text-[#2a54cf] ${className}`}>
       <span className="h-2 w-2 rounded-full bg-[#8195ff] shadow-[0_0_0_4px_rgba(129,149,255,0.13)]" />
       {children}
     </div>
@@ -395,7 +395,7 @@ function HeroBadge({
   icon: ReactNode;
 }) {
   return (
-    <div className={`absolute z-20 hidden items-center gap-2 rounded-[15px] bg-[#a996ff] px-5 py-3 text-[13px] font-normal leading-tight text-white shadow-[0_18px_30px_rgba(122,107,235,0.23)] lg:inline-flex ${className}`}>
+    <div className={`absolute z-20 hidden items-center gap-2 rounded-[15px] bg-[#a996ff] px-5 py-3 text-[13px] font-black leading-tight text-white shadow-[0_18px_30px_rgba(122,107,235,0.23)] lg:inline-flex ${className}`}>
       {icon}
       <span>{children}</span>
     </div>
@@ -417,7 +417,7 @@ function HeroButton({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex h-[52px] min-w-[205px] items-center justify-center gap-3 rounded-full px-6 text-[13px] font-normal shadow-[0_14px_24px_rgba(28,57,176,0.18)] transition hover:-translate-y-0.5 ${
+      className={`inline-flex h-[52px] min-w-[205px] items-center justify-center gap-3 rounded-full px-6 text-[13px] font-black shadow-[0_14px_24px_rgba(28,57,176,0.18)] transition hover:-translate-y-0.5 ${
         variant === "solid"
           ? "bg-[#2448bd] text-white"
           : "border border-[#dce5ff] bg-white text-[#2448bd]"
@@ -513,13 +513,13 @@ function PartnerJoinModal({
             <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/18">
               <Sparkles className="h-5 w-5" />
             </span>
-            <h2 id="partner-modal-title" className="mt-5 text-[30px] font-normal leading-none tracking-normal">
+            <h2 id="partner-modal-title" className="mt-5 text-[30px] font-black leading-none tracking-normal">
               Choose your partner path
             </h2>
-            <p className="mt-4 text-sm font-normal leading-snug text-white/78">
+            <p className="mt-4 text-sm font-extrabold leading-snug text-white/78">
               Tell us how you want to join Collune so we can take you to the right signup flow.
             </p>
-            <div className="mt-8 grid gap-3 text-xs font-normal text-white/78">
+            <div className="mt-8 grid gap-3 text-xs font-black text-white/78">
               <span className="inline-flex items-center gap-2">
                 <BadgeCheck className="h-4 w-4 text-[#b9abff]" />
                 Verified profiles
@@ -576,9 +576,9 @@ function PartnerChoiceCard({
         {icon}
       </span>
       <span className="min-w-0">
-        <span className="block text-lg font-normal leading-tight text-[#22345e]">{title}</span>
-        <span className="mt-1 block text-[13px] font-normal leading-tight text-[#748098]">{text}</span>
-        <span className="mt-3 inline-flex items-center gap-2 text-[12px] font-normal uppercase text-[#2448bd]">
+        <strong className="block text-lg font-black leading-tight text-[#22345e]">{title}</strong>
+        <span className="mt-1 block text-[13px] font-extrabold leading-tight text-[#748098]">{text}</span>
+        <span className="mt-3 inline-flex items-center gap-2 text-[12px] font-black uppercase text-[#2448bd]">
           {action}
           <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
         </span>
@@ -598,7 +598,7 @@ function JourneyColumn({
 }) {
   return (
     <div className="relative z-10 mx-auto w-full max-w-[354px] lg:mx-0">
-      <div className="mb-6 inline-flex min-w-[205px] items-center justify-center gap-2 rounded-full border border-[#dce5ff] bg-white/20 px-5 py-2 text-[13px] font-normal uppercase text-[#3558c9]">
+      <div className="mb-6 inline-flex min-w-[205px] items-center justify-center gap-2 rounded-full border border-[#dce5ff] bg-white/20 px-5 py-2 text-[13px] font-black uppercase text-[#3558c9]">
         {side === "left" ? <Star className="h-3.5 w-3.5" /> : <UserRound className="h-3.5 w-3.5" />}
         {title}
       </div>
@@ -616,14 +616,14 @@ function JourneyColumn({
                   side === "left" ? "-left-5" : "-right-5"
                 }`}
               />
-              <span className={`absolute top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border-2 border-[#8ea1ff] bg-[#f3f6ff] text-[13px] font-normal leading-none text-[#8094ff] ${side === "left" ? "-left-[39px]" : "-right-[39px]"}`}>
+              <span className={`absolute top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border-2 border-[#8ea1ff] bg-[#f3f6ff] text-[13px] font-black leading-none text-[#8094ff] ${side === "left" ? "-left-[39px]" : "-right-[39px]"}`}>
                 {index + 1}
               </span>
               <span className="grid h-[60px] w-[60px] place-items-center rounded-[7px] bg-[#e0e8ff] text-[#8194ff] md:h-[72px] md:w-[72px]">
                 <Icon className="h-8 w-8 stroke-[2.6]" />
               </span>
               <div>
-                <h3 className="mb-1 text-[17px] font-normal leading-none text-[#3f485a]">{step.title}</h3>
+                <h3 className="mb-1 text-[17px] font-black leading-none text-[#3f485a]">{step.title}</h3>
                 <p className="text-[12px] font-normal leading-tight text-[#748098]">{step.text}</p>
               </div>
             </article>

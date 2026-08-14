@@ -7,6 +7,7 @@ import { deliverablePrices, platforms } from "./campaignData";
 import { createCampaign, getBrandCampaignDetail, reviewCampaign, updateBrandCampaign } from "../../../lib/authApi";
 import type { BrandCampaignDetailApi, CampaignPayload, CampaignReviewResponse } from "../../../types";
 import { RegisterError } from "../../../HtmlComponents/RegisterFormParts";
+import { showProjectToast } from "../../../HtmlComponents/HtmlRoster";
 
 type CampaignFormState = Omit<CampaignPayload, "minimum_followers" | "deliverable_pricing" | "platforms"> & {
   minimum_followers: string;
@@ -354,14 +355,18 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
     try {
       if (campaignId) {
         await updateBrandCampaign(campaignId, reviewPayload, brandGuidelines, coverImage);
+        showProjectToast("success", "Campaign updated", "Your campaign changes have been saved.");
         navigate(`/brand/campaigns/${campaignId}`);
       } else {
         await createCampaign(reviewPayload, brandGuidelines, coverImage);
+        showProjectToast("success", "Campaign created", "Your campaign has been published.");
         onCreated?.();
         navigate("/brand/campaigns");
       }
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Could not publish campaign.");
+      const message = submitError instanceof Error ? submitError.message : "Could not publish campaign.";
+      setError(message);
+      showProjectToast("error", "Campaign save failed", message);
     } finally {
       setIsSubmitting(false);
     }

@@ -30,7 +30,7 @@ const Footer = () => {
       <div className="mx-auto grid max-w-7xl gap-12 md:grid-cols-[1fr_auto]">
         <div>
           <ColluneLogo />
-          <p className="mt-5 max-w-xs text-[15px] font-extrabold leading-tight text-[#6d7a9b]">
+          <p className="mt-5 max-w-xs text-[15px] font-normal leading-tight text-[#6d7a9b]">
             Connecting brands and creators through trust, accountability, and
             meaningful collaboration.
           </p>

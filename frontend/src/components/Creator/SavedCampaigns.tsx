@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Panel } from "../../HtmlComponents/BrandCard";
 import { getCreatorSavedCampaigns, removeSavedCampaign } from "../../lib/authApi";
 import type { CreatorSavedCampaignApi } from "../../types";
+import { showProjectToast } from "../../HtmlComponents/HtmlRoster";
 
 function formatDate(value?: string | null) {
   if (!value) return "Not set";
@@ -112,8 +113,11 @@ export function SavedCampaigns() {
     try {
       await removeSavedCampaign(savedCampaign.campaign.id);
       setSavedCampaigns((items) => items.filter((item) => item.saved_id !== savedCampaign.saved_id));
+      showProjectToast("info", "Campaign removed", "The campaign has been removed from your saved list.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to remove saved campaign.");
+      const message = err instanceof Error ? err.message : "Unable to remove saved campaign.";
+      setError(message);
+      showProjectToast("error", "Remove failed", message);
     } finally {
       setRemovingId("");
     }

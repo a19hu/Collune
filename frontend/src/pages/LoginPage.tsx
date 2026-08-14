@@ -8,6 +8,7 @@ import { RegisterError } from "../HtmlComponents/RegisterFormParts";
 import { useAuth } from "../contexts/AuthContext";
 import { authStorage } from "../contexts/authStorage";
 import { inputClass, labelClass } from "./StepsCreatorRegister";
+import { showProjectToast } from "../HtmlComponents/HtmlRoster";
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -24,7 +25,9 @@ export const LoginPage = () => {
     setAuthError("");
 
     if (trimmedPassword.length < 8) {
-      setAuthError("Password must be at least 8 characters.");
+      const message = "Password must be at least 8 characters.";
+      setAuthError(message);
+      showProjectToast("error", "Login failed", message);
       return;
     }
 
@@ -33,9 +36,12 @@ export const LoginPage = () => {
     try {
       const user = await login(email.trim(), password);
       authStorage.setRememberedEmail(user.email || email.trim());
+      showProjectToast("success", "Login successful", `Welcome back${user.name ? `, ${user.name}` : ""}.`);
       navigate(user.role === "Brand" ? "/brand" : user.role === "Creator" ? "/creator" : "/admin", { replace: true });
     } catch (error) {
-      setAuthError("Something went wrong. Please check your credentials and try again.");
+      const message = "Something went wrong. Please check your credentials and try again.";
+      setAuthError(message);
+      showProjectToast("error", "Login failed", message);
     } finally {
       setIsSubmitting(false);
     }

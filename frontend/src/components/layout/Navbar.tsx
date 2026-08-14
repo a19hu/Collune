@@ -6,7 +6,7 @@ import logo from "../../assets/Logo.svg";
 
 export function ColluneLogo({ to = "/" }: { to?: string }) {
   return (
-    <Link to={to} aria-label="Collune home" className="flex min-w-0 items-center gap-2 rounded-full bg-white/82 px-3 py-2 text-[#214bc0] shadow-[0_10px_24px_rgba(45,66,140,0.08)] backdrop-blur-sm sm:px-4 lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none lg:backdrop-blur-0">
+    <Link to={to} aria-label="Collune home" className="flex min-w-0 items-center gap-2 px-3 py-2  ">
       <img src={logo} alt="Collune" className="h-[42px] w-[132px] sm:h-[48px] sm:w-[150px] lg:h-[53px] lg:w-[167px]" />
     </Link>
   );

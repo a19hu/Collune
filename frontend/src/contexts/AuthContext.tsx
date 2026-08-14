@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { loginWithEmail, signOutApi } from '../lib/authApi';
 import type { UserAccount } from '../types';
 import { authStorage } from './authStorage';
+import { showProjectToast } from '../HtmlComponents/HtmlRoster';
 
 type AuthContextValue = {
   currentUser: UserAccount | null;
@@ -87,6 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       clearSession();
       setCurrentUser(null);
+      showProjectToast('info', 'Logged out', 'You have been signed out successfully.');
       navigate('/login', { replace: true });
     }
   }, [navigate]);
@@ -95,6 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const handleSessionExpired = () => {
       clearSession();
       setCurrentUser(null);
+      showProjectToast('error', 'Session expired', 'Please log in again to continue.');
       navigate('/login', { replace: true });
     };
 

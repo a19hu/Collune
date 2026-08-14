@@ -24,6 +24,7 @@ import {
 } from "../../lib/authApi";
 import type { CreatorListPlatformApi, CreatorProfileApi, CreatorSocialPlatform } from "../../types";
 import { AddressComposer, formatLocationParts, getLocationDisplayValue, parseLocationParts } from "../../pages/StepsCreatorRegister";
+import { showProjectToast } from "../../HtmlComponents/HtmlRoster";
 
 type EditForm = {
   category: string;
@@ -179,8 +180,15 @@ export function CreatorProfile() {
         const params = new URLSearchParams(window.location.search);
         const connected = ["instagram", "youtube", "facebook", "x"].find((key) => params.get(key) === "connected");
         const failed = ["instagram", "youtube", "facebook", "x"].find((key) => params.get(key) === "error");
-        if (connected) setMessage(`${connected.toUpperCase()} connected.`);
-        if (failed) setError(`${failed.toUpperCase()} connection failed. Please try again.`);
+        if (connected) {
+          setMessage(`${connected.toUpperCase()} connected.`);
+          showProjectToast("success", "Platform connected", `${connected.toUpperCase()} connected successfully.`);
+        }
+        if (failed) {
+          const message = `${failed.toUpperCase()} connection failed. Please try again.`;
+          setError(message);
+          showProjectToast("error", "Connection failed", message);
+        }
       })
       .catch((err: Error) => {
         if (mounted) setError(err.message || "Unable to load creator profile.");
@@ -233,8 +241,11 @@ export function CreatorProfile() {
       setProfile(updated);
       setForm(toEditForm(updated));
       setMessage("Profile updated.");
+      showProjectToast("success", "Profile updated", "Your creator profile has been saved.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to update creator profile.");
+      const message = err instanceof Error ? err.message : "Unable to update creator profile.";
+      setError(message);
+      showProjectToast("error", "Profile update failed", message);
     } finally {
       setIsSaving(false);
     }
@@ -254,7 +265,9 @@ export function CreatorProfile() {
               : await getXConnectUrl();
       window.location.href = response.auth_url;
     } catch (err) {
-      setError(err instanceof Error ? err.message : `Unable to connect ${platform}.`);
+      const message = err instanceof Error ? err.message : `Unable to connect ${platform}.`;
+      setError(message);
+      showProjectToast("error", "Connection failed", message);
       setConnectingPlatform("");
     }
   }

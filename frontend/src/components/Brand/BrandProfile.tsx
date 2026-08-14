@@ -17,6 +17,7 @@ import {
 
 import { getBrandMe, updateBrandProfile } from "../../lib/authApi";
 import type { BrandProfileApi } from "../../types";
+import { showProjectToast } from "../../HtmlComponents/HtmlRoster";
 
 type BrandProfileForm = {
   company_name: string;
@@ -133,8 +134,6 @@ export default function BrandProfile() {
   const [form, setForm] = useState<BrandProfileForm | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
   const [logoPreview, setLogoPreview] = useState("");
 
   useEffect(() => {
@@ -149,7 +148,7 @@ export default function BrandProfile() {
         setLogoPreview(data.logo_url || "");
       })
       .catch((err: Error) => {
-        if (mounted) setError(err.message || "Unable to load brand profile.");
+        if (mounted) showProjectToast("error", "Profile update failed", err.message);
       })
       .finally(() => {
         if (mounted) setIsLoading(false);
@@ -183,8 +182,6 @@ export default function BrandProfile() {
   async function saveProfile() {
     if (!form) return;
     setIsSaving(true);
-    setMessage("");
-    setError("");
 
     const body = new FormData();
     body.append("company_name", form.company_name.trim());
@@ -200,9 +197,10 @@ export default function BrandProfile() {
       setProfile(updated);
       setForm(toForm(updated));
       setLogoPreview(updated.logo_url || "");
-      setMessage("Brand profile updated successfully.");
+      showProjectToast("success", "Profile updated", "Your brand profile has been saved.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to update brand profile.");
+      const message = err instanceof Error ? err.message : "Unable to update brand profile.";
+      showProjectToast("error", "Profile update failed", message);
     } finally {
       setIsSaving(false);
     }
@@ -224,7 +222,7 @@ export default function BrandProfile() {
   if (!profile || !form) {
     return (
       <Card className="p-6">
-        <p className="text-sm font-semibold text-[#b42318]">{error || "Brand profile is not available."}</p>
+        <p className="text-sm font-semibold text-[#b42318]">{"Brand profile is not available."}</p>
       </Card>
     );
   }
@@ -267,18 +265,6 @@ export default function BrandProfile() {
           </div>
 
           <div className="grid gap-6 px-6 py-6 sm:px-8">
-            {message ? (
-              <div className="flex items-center gap-2 rounded-[8px] border border-[#abefc6] bg-[#ecfdf3] px-4 py-3 text-sm font-semibold text-[#067647]">
-                <CheckCircle2 className="h-4 w-4" />
-                {message}
-              </div>
-            ) : null}
-            {error ? (
-              <div className="rounded-[8px] border border-[#fecdca] bg-[#fef3f2] px-4 py-3 text-sm font-semibold text-[#b42318]">
-                {error}
-              </div>
-            ) : null}
-
             <div className="grid gap-5 lg:grid-cols-2">
               <TextField
                 label="Company Name"

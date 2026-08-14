@@ -17,6 +17,7 @@ import {
   timelineIcons,
 } from "./MarketplaceUi";
 import { mapCreatorCampaignDetailToMarketplace, type MarketplaceCampaign } from "./marketplaceData";
+import { showProjectToast } from "../../../HtmlComponents/HtmlRoster";
 
 export function CampaignMarketplaceDetail() {
   const { campaignId } = useParams();
@@ -76,8 +77,11 @@ export function CampaignMarketplaceDetail() {
     try {
       await applyToCampaign(campaign.id);
       setAppliedIds((ids) => ids.includes(campaign.id) ? ids : [...ids, campaign.id]);
+      showProjectToast("success", "Application sent", "Your campaign application has been submitted.");
     } catch (err) {
-      setApplyError(err instanceof Error ? err.message : "Unable to apply to this campaign.");
+      const message = err instanceof Error ? err.message : "Unable to apply to this campaign.";
+      setApplyError(message);
+      showProjectToast("error", "Application failed", message);
     } finally {
       setIsApplying(false);
     }

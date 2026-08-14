@@ -6,6 +6,7 @@ import { applyToCampaign, getCreatorCampaigns, saveCreatorCampaign } from "@/src
 import type { CreatorCampaignListParams } from "@/src/types";
 import { CampaignActionCard, Panel } from "./MarketplaceUi";
 import { mapCreatorCampaignToMarketplace, type MarketplaceCampaign } from "./marketplaceData";
+import { showProjectToast } from "../../../HtmlComponents/HtmlRoster";
 
 type SortKey = NonNullable<CreatorCampaignListParams["sort"]>;
 
@@ -104,8 +105,11 @@ export function CampaignMarketplaceList() {
     try {
       await applyToCampaign(campaign.id);
       updateCampaign(campaign.id, { applied: true });
+      showProjectToast("success", "Application sent", "Your campaign application has been submitted.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to apply to this campaign.");
+      const message = err instanceof Error ? err.message : "Unable to apply to this campaign.";
+      setError(message);
+      showProjectToast("error", "Application failed", message);
     } finally {
       setApplyingId("");
     }
@@ -117,8 +121,11 @@ export function CampaignMarketplaceList() {
     try {
       await saveCreatorCampaign(campaign.id);
       updateCampaign(campaign.id, { saved: true });
+      showProjectToast("success", "Campaign saved", "The campaign has been added to your saved list.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to save this campaign.");
+      const message = err instanceof Error ? err.message : "Unable to save this campaign.";
+      setError(message);
+      showProjectToast("error", "Save failed", message);
     } finally {
       setSavingId("");
     }

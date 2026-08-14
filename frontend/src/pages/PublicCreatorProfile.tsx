@@ -102,15 +102,12 @@ function BrandActions({ creator, isBrand }: { creator: CreatorPublicProfileApi; 
   const [isCheckingSaved, setIsCheckingSaved] = useState(false);
   const [isTogglingSaved, setIsTogglingSaved] = useState(false);
   const [isSavedCreator, setIsSavedCreator] = useState(false);
-  const [saveCreatorMessage, setSaveCreatorMessage] = useState("");
-  const [saveCreatorError, setSaveCreatorError] = useState("");
 
   useEffect(() => {
     if (!isBrand || !creator.creator_id) return;
 
     let mounted = true;
     setIsCheckingSaved(true);
-    setSaveCreatorError("");
 
     getBrandSavedCreators()
       .then((data) => {
@@ -119,7 +116,7 @@ function BrandActions({ creator, isBrand }: { creator: CreatorPublicProfileApi; 
       })
       .catch((err) => {
         if (!mounted) return;
-        setSaveCreatorError(err instanceof Error ? err.message : "Unable to check saved creator status.");
+        showProjectToast("error",err instanceof Error ? err.message : "Unable to check saved creator status.");
       })
       .finally(() => {
         if (mounted) setIsCheckingSaved(false);
@@ -134,24 +131,19 @@ function BrandActions({ creator, isBrand }: { creator: CreatorPublicProfileApi; 
     if (!creator.creator_id || isTogglingSaved || isCheckingSaved) return;
 
     setIsTogglingSaved(true);
-    setSaveCreatorError("");
-    setSaveCreatorMessage("");
 
     try {
       if (isSavedCreator) {
         await removeBrandSavedCreator(creator.creator_id);
         setIsSavedCreator(false);
-        setSaveCreatorMessage("Creator removed from saved.");
         showProjectToast("info", "Creator removed", "The creator has been removed from your saved list.");
       } else {
         await saveBrandCreator(creator.creator_id);
         setIsSavedCreator(true);
-        setSaveCreatorMessage("Creator saved successfully.");
         showProjectToast("success", "Creator saved", "The creator has been added to your saved list.");
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : `Unable to ${isSavedCreator ? "remove" : "save"} creator.`;
-      setSaveCreatorError(message);
       showProjectToast("error", "Save action failed", message);
     } finally {
       setIsTogglingSaved(false);
@@ -180,8 +172,6 @@ function BrandActions({ creator, isBrand }: { creator: CreatorPublicProfileApi; 
               {isCheckingSaved ? "Checking..." : isTogglingSaved ? (isSavedCreator ? "Removing..." : "Saving...") : isSavedCreator ? "Saved" : "Save Creator"}
             </button>
           </div>
-          {saveCreatorMessage ? <p className="mt-3 text-xs font-bold text-[#067647]">{saveCreatorMessage}</p> : null}
-          {saveCreatorError ? <p className="mt-3 text-xs font-bold text-[#b42318]">{saveCreatorError}</p> : null}
         </Panel>
         <AddCreatorToShortlistModal
           creator={creator}

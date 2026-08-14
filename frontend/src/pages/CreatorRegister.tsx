@@ -20,6 +20,7 @@ import {
 import { CreatorRegisterForm, CreatorSocialPlatform, SocialAccountForm, VerificationState } from "../types";
 import { parseLocationParts, StepsCreatorRegister } from "./StepsCreatorRegister";
 import { formButton, normalizePhoneNumber } from "../lib/function";
+import { showProjectToast } from "../HtmlComponents/HtmlRoster";
 
 const totalSteps = 6;
 
@@ -351,9 +352,12 @@ const CreatorRegister = () => {
       }
       localStorage.removeItem("creatorRegisterSocialPlatform");
       setRegistrationComplete(true);
+      showProjectToast("success", "Registration successful", "Your creator account has been created.");
       void loadSocialConnectionStatus();
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : "Could not create your creator account.");
+      const message = error instanceof Error ? error.message : "Could not create your creator account.";
+      setSubmitError(message);
+      showProjectToast("error", "Registration failed", message);
       setIsConnecting("");
     } finally {
       setIsSubmitting(false);

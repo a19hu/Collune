@@ -6,6 +6,7 @@ import { createBrandShortlist, getBrandShortlist, getCreatorsList, updateBrandSh
 import type { BrandShortlistPayload, BrandShortlistStatusApi, CreatorListItemApi } from "../../../types";
 import { CampaignPanel, CampaignSection, SelectInput, TextArea, TextInput } from "../Campaigns/CampaignUi";
 import { PlatformSelector } from "../Campaigns/CampaignCreateForm";
+import { showProjectToast } from "../../../HtmlComponents/HtmlRoster";
 
 type ShortlistFormState = {
   title: string;
@@ -161,13 +162,17 @@ export function ShortlistCreateForm() {
       const payload = buildPayload(form, status || "DRAFT", creatorIds);
       if (shortlistId) {
         await updateBrandShortlist(shortlistId, payload);
+        showProjectToast("success", "Shortlist updated", "Your shortlist changes have been saved.");
         navigate(`/brand/shortlists/${shortlistId}`);
       } else {
         const created = await createBrandShortlist(payload);
+        showProjectToast("success", "Shortlist created", "Your shortlist has been created.");
         navigate(`/brand/shortlists/${created.shortlist_id}`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to save shortlist.");
+      const message = err instanceof Error ? err.message : "Unable to save shortlist.";
+      setError(message);
+      showProjectToast("error", "Shortlist save failed", message);
     } finally {
       setIsSubmitting(false);
     }
