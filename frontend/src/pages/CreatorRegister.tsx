@@ -231,6 +231,9 @@ const CreatorRegister = () => {
     return true;
   }, [form, selectedSocialPlatform, step, verification.emailVerified]);
 
+  const isOtpSending = step === 1 && (verification.isSendingEmail || verification.isSendingPhone);
+  const isBusy = isSubmitting || isOtpSending;
+
   const validateAccountStep = async () => {
     setSubmitError("");
     setFieldErrors({});
@@ -485,7 +488,9 @@ const CreatorRegister = () => {
 
         <RegisterSubmitButtons
           isFinalStep={step === totalSteps}
-          isSubmitting={isSubmitting}
+          isSubmitting={isBusy}
+          disabled={!canContinue}
+          loadingLabel="Sending OTPs..."
           showBack={step > 1}
           onBack={() => {
             setSubmitError("");

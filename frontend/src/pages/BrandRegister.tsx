@@ -418,6 +418,9 @@ const BrandRegister = () => {
     return true;
   };
 
+  const isOtpSending = step === 1 && (verification.isSendingEmail || verification.isSendingPhone);
+  const isBusy = isSubmitting || isOtpSending;
+
   const submitBrandRegistration = async () => {
     setSubmitError("");
 
@@ -527,7 +530,8 @@ const BrandRegister = () => {
 
         <RegisterSubmitButtons
           isFinalStep={step === totalSteps}
-          isSubmitting={isSubmitting}
+          isSubmitting={isBusy}
+          loadingLabel="Sending OTPs..."
           showBack={step > 1}
           onBack={() => {
             setSubmitError("");

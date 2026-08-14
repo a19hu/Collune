@@ -1,5 +1,5 @@
 import type { ChangeEvent, ReactNode } from "react";
-import { ArrowRight, CheckCircle, Plus, X } from "lucide-react";
+import { ArrowRight, CheckCircle, Loader2, Plus, X } from "lucide-react";
 
 export function RegisterStepHeader({
   title,
@@ -42,6 +42,7 @@ export function RegisterSubmitButtons({
   submitLabel = "Continue",
   finalLabel = "Continue to Dashboard",
   submittingLabel = "Creating account...",
+  loadingLabel = "Please wait...",
   skipLabel = "Skip for now",
   backLabel = "Back",
   className = "mt-6",
@@ -56,6 +57,7 @@ export function RegisterSubmitButtons({
   submitLabel?: string;
   finalLabel?: string;
   submittingLabel?: string;
+  loadingLabel?: string;
   skipLabel?: string;
   backLabel?: string;
   className?: string;
@@ -77,8 +79,8 @@ export function RegisterSubmitButtons({
       ) : null}
 
       <button type="submit" disabled={isSubmitting || disabled} className={buttonClassName}>
-        {isFinalStep && isSubmitting ? submittingLabel : isFinalStep ? finalLabel : submitLabel}
-        <ArrowRight className="h-5 w-5" />
+        {isSubmitting ? (isFinalStep ? submittingLabel : loadingLabel) : isFinalStep ? finalLabel : submitLabel}
+        {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />}
       </button>
 
       {showSkip ? (

@@ -194,8 +194,8 @@ def send_aisensy_whatsapp_otp(target, code):
         "apiKey": api_key,
         "campaignName": get_env("AISENSY_CAMPAIGN_NAME", "collune_otp"),
         "destination": target,
-        "userName": code,
-        "templateParams": ["$FirstName"],
+        "userName": "Collune",
+        "templateParams": code,
         "source": get_env("AISENSY_SOURCE", "new-landing-page form"),
         "media": {},
         "buttons": [
