@@ -29,6 +29,8 @@ from .common.views import (
     LoginView,
     OtpSendView,
     OtpVerifyView,
+    PasswordResetConfirmView,
+    PasswordResetRequestView,
     ProfileView,
     SignoutView,
 )
@@ -66,6 +68,8 @@ urlpatterns = [
     path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("auth/otp/send/", OtpSendView.as_view(), name="otp_send"),
     path("auth/otp/verify/", OtpVerifyView.as_view(), name="otp_verify"),
+    path("auth/password-reset/request/", PasswordResetRequestView.as_view(), name="password_reset_request"),
+    path("auth/password-reset/confirm/", PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
     path("auth/me/", ProfileView.as_view(), name="profile"),
 
     path("auth/brand/profile/", BrandProfileView.as_view(), name="brand_profile"),

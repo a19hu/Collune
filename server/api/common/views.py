@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from ..models import (
     OtpVerification,
 )
-from .serializers import AuthUserSerializer, LoginSerializer, OtpSendSerializer, OtpVerifySerializer
+from .serializers import AuthUserSerializer, LoginSerializer, OtpSendSerializer, OtpVerifySerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer
 from .services import OTP_EXPIRY_MINUTES, OTP_MAX_ATTEMPTS, auth_response, create_otp, normalize_otp_target, send_otp_message
 
 User = get_user_model()
@@ -122,3 +122,83 @@ class OtpVerifyView(APIView):
         otp.verified_at = timezone.now()
         otp.save(update_fields=["attempts", "is_verified", "verified_at"])
         return Response({"message": "OTP verified.", "channel": channel, "target": target})
+
+
+class PasswordResetRequestView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        user = User.objects.filter(email__iexact=email).first()
+
+        if user:
+            otp = create_otp("EMAIL", email, purpose="password_reset")
+            try:
+                send_otp_message(otp)
+            except requests.RequestException as exc:
+                otp.delete()
+                logger.exception("Password reset OTP send failed for email=%s", email)
+                return Response(
+                    {"error": "Could not send reset code through Brevo.", "detail": str(exc)},
+                    status=status.HTTP_502_BAD_GATEWAY,
+                )
+            except RuntimeError as exc:
+                otp.delete()
+                return Response({"error": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(
+            {
+                "message": "If an account exists for this email, a reset code has been sent.",
+                "email": email,
+                "expires_in": OTP_EXPIRY_MINUTES * 60,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        code = serializer.validated_data["code"]
+        new_password = serializer.validated_data["new_password"]
+
+        otp = OtpVerification.objects.filter(
+            channel="EMAIL",
+            target=email,
+            purpose="password_reset",
+            is_verified=False,
+        ).first()
+        if not otp:
+            return Response({"error": "No active reset code found."}, status=status.HTTP_400_BAD_REQUEST)
+        if otp.expires_at <= timezone.now():
+            return Response({"error": "Reset code has expired."}, status=status.HTTP_400_BAD_REQUEST)
+        if otp.attempts >= OTP_MAX_ATTEMPTS:
+            return Response({"error": "Too many reset attempts."}, status=status.HTTP_400_BAD_REQUEST)
+
+        otp.attempts += 1
+        if otp.code != code:
+            otp.save(update_fields=["attempts"])
+            return Response({"error": "Invalid reset code."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(email__iexact=email).first()
+        if not user:
+            otp.is_verified = True
+            otp.verified_at = timezone.now()
+            otp.save(update_fields=["attempts", "is_verified", "verified_at"])
+            return Response({"message": "Password reset completed."}, status=status.HTTP_200_OK)
+
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+        Token.objects.filter(user=user).delete()
+
+        otp.is_verified = True
+        otp.verified_at = timezone.now()
+        otp.save(update_fields=["attempts", "is_verified", "verified_at"])
+
+        return Response({"message": "Password reset completed."}, status=status.HTTP_200_OK)

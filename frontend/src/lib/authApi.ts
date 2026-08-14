@@ -194,6 +194,19 @@ export async function checkEmailAvailability(email: string) {
   return apiRequest<EmailAvailabilityResponse>(`/auth/email-availability/?email=${query}`);
 }
 
+
+
+export async function requestPasswordReset(email: string) {
+  return apiPost<{ message: string; email: string; expires_in: number }>("/auth/password-reset/request/", { email: email.trim() });
+}
+
+export async function confirmPasswordReset(email: string, code: string, newPassword: string) {
+  return apiPost<{ message: string }>("/auth/password-reset/confirm/", {
+    email: email.trim(),
+    code: code.trim(),
+    new_password: newPassword,
+  });
+}
 export async function registerCreator(payload: CreatorRegisterPayload) {
   return apiPost<CreatorRegisterResponse>("/auth/creators/register/", payload);
 }

@@ -203,7 +203,11 @@ export function SideBar({ isVerified = false, mode = "creator", isMobileOpen = f
                 </p>
               </div>
             </div>
-            <button className="mt-4 h-[62px] w-full rounded-lg border-2 border-[#64738e] text-sm font-black text-[#64738e]">
+            <button 
+              onClick={() => {
+                window.location.href = "mailto:thecollune@gmail.com";
+              }}
+              className="mt-4 h-[62px] w-full rounded-lg border-2 border-[#64738e] text-sm font-black text-[#64738e]">
               Contact
               <br />
               Support

@@ -73,3 +73,19 @@ class OtpSendSerializer(serializers.Serializer):
 
 class OtpVerifySerializer(OtpSendSerializer):
     code = serializers.CharField(max_length=6, min_length=6)
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        return value.strip().lower()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    code = serializers.CharField(max_length=6, min_length=6)
+    new_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate_email(self, value):
+        return value.strip().lower()

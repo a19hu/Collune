@@ -125,6 +125,9 @@ export const LoginPage = () => {
                 }
                 required
               />
+              <p>
+                <Link to="/forgot-password" className="font-normal text-[#2447bd]">Forgot Password?</Link>
+              </p>
             </div>
 
             <RegisterError message={authError} />

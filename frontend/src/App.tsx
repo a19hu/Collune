@@ -9,6 +9,7 @@ import { NotFoundPage } from './pages/NotFoundPage.tsx';
 import MainLayout from './components/layout/MainLayout.tsx';
 import BrandRegister from './pages/BrandRegister.tsx';
 import LoginPage from './pages/LoginPage.tsx';
+import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
 import { SideBarLayout } from './components/layout/SideBarLayout.tsx';
 import CreatorDashBoard from './components/Creator/CreatorDashBoard.tsx';
 import CreatorProfile from './components/Creator/CreatorProfile.tsx';
@@ -144,6 +145,7 @@ const App: React.FC = () => {
                     <Route path="/creator-register" element={<CreatorRegister />} />
                     <Route path="/brand-register" element={<BrandRegister />} />
                     <Route path="/login" element={<LoginPage />} />
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     <Route path="*" element={<NotFoundPage />} />
 
                 </Routes>

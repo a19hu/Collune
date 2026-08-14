@@ -87,20 +87,20 @@ def normalize_otp_target(channel, target):
         return value.lower()
     return value.replace(" ", "")
 
-def create_otp(channel, target):
+def create_otp(channel, target, purpose="creator_registration"):
     normalized_target = normalize_otp_target(channel, target)
     code = get_random_string(6, allowed_chars=string.digits)
     OtpVerification.objects.filter(
         channel=channel,
         target=normalized_target,
-        purpose="creator_registration",
+        purpose=purpose,
         is_verified=False,
     ).delete()
     return OtpVerification.objects.create(
         channel=channel,
         target=normalized_target,
         code=code,
-        purpose="creator_registration",
+        purpose=purpose,
         expires_at=timezone.now() + timedelta(minutes=OTP_EXPIRY_MINUTES),
     )
 
