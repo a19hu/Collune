@@ -41,6 +41,7 @@ import AdminCreators from './components/Admin/AdminCreators.tsx';
 import AdminBrands from './components/Admin/AdminBrands.tsx';
 import AdminCampaigns from './components/Admin/AdminCampaigns.tsx';
 import AdminShortlists from './components/Admin/AdminShortlists.tsx';
+import { ProjectToastContainer } from './HtmlComponents/HtmlRoster.tsx';
 
 function isInternalWorkspaceRole(role: UserAccount["role"]) {
     return role !== "Brand" && role !== "Creator";
@@ -81,6 +82,7 @@ const App: React.FC = () => {
 
     return (
         <BrowserRouter>
+            <ProjectToastContainer />
             <AuthProvider>
                 <Routes>
                     <Route element={<MainLayout />}>

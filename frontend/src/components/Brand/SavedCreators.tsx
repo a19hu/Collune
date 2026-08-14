@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { Panel } from "../../HtmlComponents/BrandCard";
 import { CreatorCard } from "../../HtmlComponents/CreatorCard";
+import { showProjectToast } from "../../HtmlComponents/HtmlRoster";
 import { getBrandSavedCreators, removeBrandSavedCreator } from "../../lib/authApi";
 import type { BrandSavedCreatorApi } from "../../types";
 
@@ -55,8 +56,11 @@ export default function SavedCreators() {
     try {
       await removeBrandSavedCreator(creatorId);
       setSavedCreators((items) => items.filter((item) => item.saved_id !== savedCreator.saved_id));
+      showProjectToast("info", "Creator removed", "The creator has been removed from your saved list.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to remove saved creator.");
+      const message = err instanceof Error ? err.message : "Unable to remove saved creator.";
+      setError(message);
+      showProjectToast("error", "Remove failed", message);
     } finally {
       setRemovingId("");
     }

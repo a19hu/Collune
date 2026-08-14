@@ -21,6 +21,7 @@ import { getBrandSavedCreators, getCreatorPublicProfile, removeBrandSavedCreator
 import { AddCreatorToShortlistModal } from "../components/Brand/Shortlists/AddCreatorToShortlistModal";
 import type { CreatorPublicProfileApi, CreatorSocialPlatform } from "../types";
 import { formatUpdatedAt } from "../HtmlComponents/BrandCard";
+import { showProjectToast } from "../HtmlComponents/HtmlRoster";
 import { getLocationDisplayValue } from "./StepsCreatorRegister";
 
 const fallbackPortfolio = [
@@ -141,13 +142,17 @@ function BrandActions({ creator, isBrand }: { creator: CreatorPublicProfileApi; 
         await removeBrandSavedCreator(creator.creator_id);
         setIsSavedCreator(false);
         setSaveCreatorMessage("Creator removed from saved.");
+        showProjectToast("info", "Creator removed", "The creator has been removed from your saved list.");
       } else {
         await saveBrandCreator(creator.creator_id);
         setIsSavedCreator(true);
         setSaveCreatorMessage("Creator saved successfully.");
+        showProjectToast("success", "Creator saved", "The creator has been added to your saved list.");
       }
     } catch (err) {
-      setSaveCreatorError(err instanceof Error ? err.message : `Unable to ${isSavedCreator ? "remove" : "save"} creator.`);
+      const message = err instanceof Error ? err.message : `Unable to ${isSavedCreator ? "remove" : "save"} creator.`;
+      setSaveCreatorError(message);
+      showProjectToast("error", "Save action failed", message);
     } finally {
       setIsTogglingSaved(false);
     }

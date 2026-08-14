@@ -6,6 +6,7 @@ import { getBrandSavedCreators, getCreatorsList, removeBrandSavedCreator, saveBr
 import type { CreatorListItemApi } from "../types";
 import { Lock } from "lucide-react";
 import { CreatorCard } from "../HtmlComponents/CreatorCard.tsx";
+import { showProjectToast } from "../HtmlComponents/HtmlRoster.tsx";
 
 const baseCategoryOptions = [
   "Fashion",
@@ -135,12 +136,16 @@ export const DiscoverCreatorsPage = () => {
       if (savedCreatorIds.includes(creatorId)) {
         await removeBrandSavedCreator(creatorId);
         setSavedCreatorIds((items) => items.filter((item) => item !== creatorId));
+        showProjectToast("info", "Creator removed", "The creator has been removed from your saved list.");
       } else {
         await saveBrandCreator(creatorId);
         setSavedCreatorIds((items) => [...items, creatorId]);
+        showProjectToast("success", "Creator saved", "The creator has been added to your saved list.");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to update saved creator.");
+      const message = err instanceof Error ? err.message : "Unable to update saved creator.";
+      setError(message);
+      showProjectToast("error", "Save action failed", message);
     } finally {
       setSavingCreatorId("");
     }
