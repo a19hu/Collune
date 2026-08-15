@@ -342,7 +342,7 @@ export const StepsCreatorRegister=({
         <div className="mt-8 grid gap-4">
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Full Name" icon={<User className="h-5 w-5" />} value={form.name} onChange={onFieldChange("name")} placeholder="Aakrit Gupta" required><FieldError message={fieldErrors.name} /></HtmlInput>
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Email Address" icon={<Mail className="h-5 w-5" />} value={form.email} onChange={onFieldChange("email")} placeholder="aakrit.gupta@gmail.com" type="email" required><FieldError message={fieldErrors.email} /></HtmlInput>
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Phone Number" icon={<Phone className="h-5 w-5" />} value={form.phone_no} onChange={onFieldChange("phone_no")} placeholder="99999 44444" pattern="[0-9]{10}" type="tel" required maxLength={10} minLength={10}><FieldError message={fieldErrors.phone_no} /></HtmlInput>
+          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="WhatsApp Phone Number" icon={<Phone className="h-5 w-5" />} value={form.phone_no} onChange={onFieldChange("phone_no")} placeholder="99999 44444" pattern="[0-9]{10}" type="tel" required maxLength={10} minLength={10}><FieldError message={fieldErrors.phone_no} /></HtmlInput>
           <HtmlInput
             labelClass={labelClass}
             inputClass={inputClass}
@@ -528,7 +528,7 @@ export const StepsCreatorRegister=({
         <div className="grid gap-7">
           <ReviewRow icon={<User className="h-5 w-5" />} label="Full Name" value={form.name} />
           <ReviewRow icon={<Mail className="h-5 w-5" />} label="Email" value={form.email} />
-          <ReviewRow icon={<Phone className="h-5 w-5" />} label="Phone Number" value={form.phone_no} />
+          <ReviewRow icon={<Phone className="h-5 w-5" />} label="WhatsApp Phone Number" value={form.phone_no} />
           <ReviewRow icon={<Grid2X2 className="h-5 w-5" />} label="Creator Category" value={form.category} />
           <ReviewRow icon={<MapPin className="h-5 w-5" />} label="Location" value={getLocationDisplayValue(form.location)} />
           <ReviewRow icon={<Globe className="h-5 w-5" />} label="Content Languages" value={form.languages.join(", ")} />

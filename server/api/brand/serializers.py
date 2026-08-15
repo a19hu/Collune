@@ -19,6 +19,20 @@ class BrandRegisterSerializer(serializers.Serializer):
     website = serializers.URLField(required=False, allow_blank=True)
     company_size = serializers.CharField(max_length=64, required=False, allow_blank=True)
     linkedin_url = serializers.URLField(required=False, allow_blank=True)
+    about_brand = serializers.CharField(required=False, allow_blank=True, min_length=500, max_length=1000)
+    gst_number = serializers.CharField(max_length=64, required=False, allow_blank=True)
+    cin_registration_number = serializers.CharField(max_length=64, required=False, allow_blank=True)
+    year_established = serializers.IntegerField(required=False, allow_null=True)
+    headquarters_city = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    headquarters_state = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    headquarters_country = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    instagram_url = serializers.URLField(required=False, allow_blank=True)
+    facebook_url = serializers.URLField(required=False, allow_blank=True)
+    x_url = serializers.URLField(required=False, allow_blank=True)
+    youtube_url = serializers.URLField(required=False, allow_blank=True)
+    gst_certificate = serializers.FileField(required=False, allow_null=True)
+    pan_card = serializers.FileField(required=False, allow_null=True)
+    company_registration_certificate = serializers.FileField(required=False, allow_null=True)
     logo = serializers.ImageField(required=False, allow_null=True)
 
 class BrandDashboardSerializer(serializers.Serializer):
@@ -50,9 +64,23 @@ class BrandProfileSerializer(serializers.ModelSerializer):
             "user",
             "company_name",
             "industry",
+            "about_brand",
             "website",
             "company_size",
             "linkedin_url",
+            "gst_number",
+            "cin_registration_number",
+            "year_established",
+            "headquarters_city",
+            "headquarters_state",
+            "headquarters_country",
+            "instagram_url",
+            "facebook_url",
+            "x_url",
+            "youtube_url",
+            "gst_certificate",
+            "pan_card",
+            "company_registration_certificate",
             "logo",
             "logo_url",
             "is_profile_visible",
@@ -69,13 +97,34 @@ class BrandProfileSerializer(serializers.ModelSerializer):
             return ""
         return request.build_absolute_uri(obj.logo.url) if request else obj.logo.url
 
+    def validate_about_brand(self, value):
+        if value and len(value.strip()) < 100:
+            raise serializers.ValidationError("About Brand must be at least 100 characters when provided.")
+        if len(value) > 1000:
+            raise serializers.ValidationError("About Brand cannot exceed 1000 characters.")
+        return value
+
     def get_profile_completion(self, obj):
         fields = [
             obj.company_name,
             obj.industry,
+            obj.about_brand,
             obj.website,
             obj.company_size,
             obj.linkedin_url,
+            obj.gst_number,
+            obj.cin_registration_number,
+            obj.year_established,
+            obj.headquarters_city,
+            obj.headquarters_state,
+            obj.headquarters_country,
+            obj.instagram_url,
+            obj.facebook_url,
+            obj.x_url,
+            obj.youtube_url,
+            obj.gst_certificate,
+            obj.pan_card,
+            obj.company_registration_certificate,
             obj.logo,
         ]
         filled = sum(bool(value) for value in fields)
@@ -215,3 +264,4 @@ class BrandShortlistSerializer(serializers.ModelSerializer):
         if value not in ShortlistStatus.values:
             raise serializers.ValidationError("Invalid shortlist status.")
         return value
+

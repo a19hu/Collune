@@ -215,10 +215,23 @@ export async function registerBrand(payload: BrandRegisterPayload) {
   return apiPost<BrandRegisterResponse>("/auth/brands/register/", payload);
 }
 
-export async function registerBrandFormData(payload: BrandRegisterPayload, logo?: File | null) {
+export async function registerBrandFormData(
+  payload: BrandRegisterPayload,
+  files?: {
+    logo?: File | null;
+    gst_certificate?: File | null;
+    pan_card?: File | null;
+    company_registration_certificate?: File | null;
+  },
+) {
   const body = new FormData();
   body.append("payload", JSON.stringify(payload));
-  if (logo) body.append("logo", logo, logo.name);
+  if (files?.logo) body.append("logo", files.logo, files.logo.name);
+  if (files?.gst_certificate) body.append("gst_certificate", files.gst_certificate, files.gst_certificate.name);
+  if (files?.pan_card) body.append("pan_card", files.pan_card, files.pan_card.name);
+  if (files?.company_registration_certificate) {
+    body.append("company_registration_certificate", files.company_registration_certificate, files.company_registration_certificate.name);
+  }
   return apiPostForm<BrandRegisterResponse>("/auth/brands/register/", body);
 }
 

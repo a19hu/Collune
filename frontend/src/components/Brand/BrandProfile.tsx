@@ -6,13 +6,18 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
+  Facebook,
+  FileText,
   Globe2,
+  Instagram,
   Linkedin,
   Loader2,
+  MapPin,
   Save,
   ShieldCheck,
   Sparkles,
   Upload,
+  Youtube,
 } from "lucide-react";
 
 import { getBrandMe, updateBrandProfile } from "../../lib/authApi";
@@ -22,10 +27,24 @@ import { showProjectToast } from "../../HtmlComponents/HtmlRoster";
 type BrandProfileForm = {
   company_name: string;
   industry: string;
+  about_brand: string;
   website: string;
   company_size: string;
   linkedin_url: string;
+  gst_number: string;
+  cin_registration_number: string;
+  year_established: string;
+  headquarters_city: string;
+  headquarters_state: string;
+  headquarters_country: string;
+  instagram_url: string;
+  facebook_url: string;
+  x_url: string;
+  youtube_url: string;
   is_profile_visible: boolean;
+  gst_certificate: File | null;
+  pan_card: File | null;
+  company_registration_certificate: File | null;
   logo: File | null;
 };
 
@@ -36,10 +55,24 @@ function toForm(profile: BrandProfileApi): BrandProfileForm {
   return {
     company_name: profile.company_name || "",
     industry: profile.industry || "",
+    about_brand: profile.about_brand || "",
     website: profile.website || "",
     company_size: profile.company_size || "",
     linkedin_url: profile.linkedin_url || "",
+    gst_number: profile.gst_number || "",
+    cin_registration_number: profile.cin_registration_number || "",
+    year_established: profile.year_established ? String(profile.year_established) : "",
+    headquarters_city: profile.headquarters_city || "",
+    headquarters_state: profile.headquarters_state || "",
+    headquarters_country: profile.headquarters_country || "",
+    instagram_url: profile.instagram_url || "",
+    facebook_url: profile.facebook_url || "",
+    x_url: profile.x_url || "",
+    youtube_url: profile.youtube_url || "",
     is_profile_visible: profile.is_profile_visible ?? true,
+    gst_certificate: null,
+    pan_card: null,
+    company_registration_certificate: null,
     logo: null,
   };
 }
@@ -97,6 +130,39 @@ function TextField({
   );
 }
 
+function TextAreaField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  rows = 5,
+  helper,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  rows?: number;
+  helper?: string;
+}) {
+  return (
+    <label className="grid gap-2">
+      <div className="flex items-center justify-between gap-3">
+        <Label>{label}</Label>
+        <span className="text-xs font-semibold text-[#7b879e]">{value.trim().length}/1000</span>
+      </div>
+      <textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        rows={rows}
+        placeholder={placeholder}
+        className="min-h-[140px] rounded-[8px] border border-[#d7deea] bg-white px-4 py-3 text-sm font-semibold text-[#25304a] outline-none transition focus:border-[#3659d7] focus:ring-4 focus:ring-[#3659d7]/10"
+      />
+      {helper ? <span className="text-xs font-medium text-[#7b879e]">{helper}</span> : null}
+    </label>
+  );
+}
+
 function SelectField({
   label,
   value,
@@ -126,6 +192,44 @@ function SelectField({
         ))}
       </select>
     </label>
+  );
+}
+
+function FileUploadField({
+  label,
+  onChange,
+  fileName,
+  helper,
+}: {
+  label: string;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  fileName: string;
+  helper: string;
+}) {
+  return (
+    <label className="grid gap-2">
+      <Label>{label}</Label>
+      <div className="relative flex min-h-[112px] items-center justify-center rounded-[10px] border-2 border-dashed border-[#d7deea] bg-[#f9fbff] px-5 text-center">
+        <input type="file" onChange={onChange} className="absolute inset-0 cursor-pointer opacity-0" aria-label={label} />
+        <div>
+          <FileText className="mx-auto h-6 w-6 text-[#6f7da0]" />
+          <p className="mt-3 text-sm font-black text-[#21314f]">{fileName || `Upload ${label.toLowerCase()}`}</p>
+          <p className="mt-1 text-xs font-medium text-[#73819b]">{helper}</p>
+        </div>
+      </div>
+    </label>
+  );
+}
+
+function SectionCard({ title, description, children }: { title: string; description: string; children: ReactNode }) {
+  return (
+    <div className="rounded-[12px] border border-[#e3e9f7] bg-[#fbfcff] p-5 sm:p-6">
+      <div className="mb-5">
+        <p className="text-sm font-black text-[#173ca8]">{title}</p>
+        <p className="mt-1 text-sm font-medium text-[#62708a]">{description}</p>
+      </div>
+      {children}
+    </div>
   );
 }
 
@@ -179,6 +283,14 @@ export default function BrandProfile() {
     updateField("logo", file);
   }
 
+  function onDocumentChange(
+    key: "gst_certificate" | "pan_card" | "company_registration_certificate",
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0] || null;
+    updateField(key, file);
+  }
+
   async function saveProfile() {
     if (!form) return;
     setIsSaving(true);
@@ -186,10 +298,26 @@ export default function BrandProfile() {
     const body = new FormData();
     body.append("company_name", form.company_name.trim());
     body.append("industry", form.industry.trim());
+    body.append("about_brand", form.about_brand.trim());
     body.append("website", normalizeUrl(form.website));
     body.append("company_size", form.company_size.trim());
     body.append("linkedin_url", normalizeUrl(form.linkedin_url));
+    body.append("gst_number", form.gst_number.trim());
+    body.append("cin_registration_number", form.cin_registration_number.trim());
+    if (form.year_established.trim()) {
+      body.append("year_established", form.year_established.trim());
+    }
+    body.append("headquarters_city", form.headquarters_city.trim());
+    body.append("headquarters_state", form.headquarters_state.trim());
+    body.append("headquarters_country", form.headquarters_country.trim());
+    body.append("instagram_url", normalizeUrl(form.instagram_url));
+    body.append("facebook_url", normalizeUrl(form.facebook_url));
+    body.append("x_url", normalizeUrl(form.x_url));
+    body.append("youtube_url", normalizeUrl(form.youtube_url));
     body.append("is_profile_visible", String(form.is_profile_visible));
+    if (form.gst_certificate) body.append("gst_certificate", form.gst_certificate);
+    if (form.pan_card) body.append("pan_card", form.pan_card);
+    if (form.company_registration_certificate) body.append("company_registration_certificate", form.company_registration_certificate);
     if (form.logo) body.append("logo", form.logo);
 
     try {
@@ -265,72 +393,184 @@ export default function BrandProfile() {
           </div>
 
           <div className="grid gap-6 px-6 py-6 sm:px-8">
-            <div className="grid gap-5 lg:grid-cols-2">
-              <TextField
-                label="Company Name"
-                value={form.company_name}
-                onChange={(value) => updateField("company_name", value)}
-                placeholder="Your company name"
-              />
-              <SelectField
-                label="Industry"
-                value={form.industry}
-                onChange={(value) => updateField("industry", value)}
-                options={industryOptions}
-                placeholder="Select industry"
-              />
-              <TextField
-                label="Website"
-                type="url"
-                value={form.website}
-                onChange={(value) => updateField("website", value)}
-                placeholder="https://www.yourbrand.com"
-              />
-              <SelectField
-                label="Company Size"
-                value={form.company_size}
-                onChange={(value) => updateField("company_size", value)}
-                options={companySizeOptions}
-                placeholder="Select company size"
-              />
-            </div>
+            <SectionCard title="Brand Basics" description="Update the primary details creators see first.">
+              <div className="grid gap-5 lg:grid-cols-2">
+                <TextField
+                  label="Company Name"
+                  value={form.company_name}
+                  onChange={(value) => updateField("company_name", value)}
+                  placeholder="Your company name"
+                />
+                <SelectField
+                  label="Industry"
+                  value={form.industry}
+                  onChange={(value) => updateField("industry", value)}
+                  options={industryOptions}
+                  placeholder="Select industry"
+                />
+                <TextField
+                  label="Website"
+                  type="url"
+                  value={form.website}
+                  onChange={(value) => updateField("website", value)}
+                  placeholder="https://www.yourbrand.com"
+                />
+                <SelectField
+                  label="Company Size"
+                  value={form.company_size}
+                  onChange={(value) => updateField("company_size", value)}
+                  options={companySizeOptions}
+                  placeholder="Select company size"
+                />
+              </div>
+              <div className="mt-5">
+                <TextAreaField
+                  label="About Brand"
+                  value={form.about_brand}
+                  onChange={(value) => updateField("about_brand", value)}
+                  placeholder="Tell creators what your brand stands for, what you sell, who you serve, and why they should collaborate with you."
+                  helper="Use at least 100 characters for a stronger public profile."
+                />
+              </div>
+            </SectionCard>
 
-            <TextField
-              label="LinkedIn Company Page"
-              type="url"
-              value={form.linkedin_url}
-              onChange={(value) => updateField("linkedin_url", value)}
-              placeholder="https://linkedin.com/company/your-brand"
-            />
+            <SectionCard title="Business Details" description="Add compliance and company identity details for a more complete profile.">
+              <div className="grid gap-5 lg:grid-cols-2">
+                <TextField
+                  label="GST Number"
+                  value={form.gst_number}
+                  onChange={(value) => updateField("gst_number", value)}
+                  placeholder="Enter GST number"
+                />
+                <TextField
+                  label="CIN / Registration Number"
+                  value={form.cin_registration_number}
+                  onChange={(value) => updateField("cin_registration_number", value)}
+                  placeholder="Enter CIN or registration number"
+                />
+                <TextField
+                  label="Year Established"
+                  value={form.year_established}
+                  onChange={(value) => updateField("year_established", value.replace(/[^0-9]/g, "").slice(0, 4))}
+                  placeholder="e.g. 2018"
+                />
+                <TextField
+                  label="LinkedIn Company Page"
+                  type="url"
+                  value={form.linkedin_url}
+                  onChange={(value) => updateField("linkedin_url", value)}
+                  placeholder="https://linkedin.com/company/your-brand"
+                />
+              </div>
+            </SectionCard>
 
-            <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-              <label className="grid gap-2">
-                <Label>Brand Logo</Label>
-                <div className="relative flex min-h-[136px] items-center justify-center rounded-[10px] border-2 border-dashed border-[#d7deea] bg-[#f9fbff] px-6 text-center">
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
-                    onChange={onLogoChange}
-                    className="absolute inset-0 cursor-pointer opacity-0"
-                    aria-label="Upload brand logo"
-                  />
-                  <div>
-                    <Upload className="mx-auto h-7 w-7 text-[#6f7da0]" />
-                    <p className="mt-3 text-sm font-black text-[#21314f]">{form.logo ? form.logo.name : "Upload a square logo"}</p>
-                    <p className="mt-1 text-xs font-medium text-[#73819b]">PNG, JPG, or WebP works best.</p>
+            <SectionCard title="Headquarters" description="Help creators understand where your brand is based.">
+              <div className="grid gap-5 lg:grid-cols-3">
+                <TextField
+                  label="City"
+                  value={form.headquarters_city}
+                  onChange={(value) => updateField("headquarters_city", value)}
+                  placeholder="City"
+                />
+                <TextField
+                  label="State"
+                  value={form.headquarters_state}
+                  onChange={(value) => updateField("headquarters_state", value)}
+                  placeholder="State or region"
+                />
+                <TextField
+                  label="Country"
+                  value={form.headquarters_country}
+                  onChange={(value) => updateField("headquarters_country", value)}
+                  placeholder="Country"
+                />
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Social Presence" description="Add all your active channels so creators can verify and explore your brand.">
+              <div className="grid gap-5 lg:grid-cols-2">
+                <TextField
+                  label="Instagram URL"
+                  type="url"
+                  value={form.instagram_url}
+                  onChange={(value) => updateField("instagram_url", value)}
+                  placeholder="https://instagram.com/yourbrand"
+                />
+                <TextField
+                  label="Facebook URL"
+                  type="url"
+                  value={form.facebook_url}
+                  onChange={(value) => updateField("facebook_url", value)}
+                  placeholder="https://facebook.com/yourbrand"
+                />
+                <TextField
+                  label="X / Twitter URL"
+                  type="url"
+                  value={form.x_url}
+                  onChange={(value) => updateField("x_url", value)}
+                  placeholder="https://x.com/yourbrand"
+                />
+                <TextField
+                  label="YouTube URL"
+                  type="url"
+                  value={form.youtube_url}
+                  onChange={(value) => updateField("youtube_url", value)}
+                  placeholder="https://youtube.com/@yourbrand"
+                />
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Brand Assets" description="Keep your logo and key documents ready for reviews and trust checks.">
+              <div className="grid gap-5 xl:grid-cols-2">
+                <label className="grid gap-2 xl:col-span-2">
+                  <Label>Brand Logo</Label>
+                  <div className="relative flex min-h-[136px] items-center justify-center rounded-[10px] border-2 border-dashed border-[#d7deea] bg-[#f9fbff] px-6 text-center">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
+                      onChange={onLogoChange}
+                      className="absolute inset-0 cursor-pointer opacity-0"
+                      aria-label="Upload brand logo"
+                    />
+                    <div>
+                      <Upload className="mx-auto h-7 w-7 text-[#6f7da0]" />
+                      <p className="mt-3 text-sm font-black text-[#21314f]">{form.logo ? form.logo.name : "Upload a square logo"}</p>
+                      <p className="mt-1 text-xs font-medium text-[#73819b]">PNG, JPG, or WebP works best.</p>
+                    </div>
                   </div>
-                </div>
-              </label>
+                </label>
 
-              <button
-                type="button"
-                onClick={() => updateField("is_profile_visible", !form.is_profile_visible)}
-                className={`inline-flex h-12 items-center justify-center gap-2 rounded-[8px] px-4 text-sm font-black ${form.is_profile_visible ? "bg-[#ddfbea] text-[#067647]" : "bg-[#fee4e2] text-[#b42318]"}`}
-              >
-                {form.is_profile_visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                {form.is_profile_visible ? "Profile Visible" : "Profile Hidden"}
-              </button>
-            </div>
+                <FileUploadField
+                  label="GST Certificate"
+                  onChange={(event) => onDocumentChange("gst_certificate", event)}
+                  fileName={form.gst_certificate?.name || profile.gst_certificate || ""}
+                  helper="Upload the latest certificate if available."
+                />
+                <FileUploadField
+                  label="PAN Card"
+                  onChange={(event) => onDocumentChange("pan_card", event)}
+                  fileName={form.pan_card?.name || profile.pan_card || ""}
+                  helper="Useful for verification and internal records."
+                />
+                <FileUploadField
+                  label="Company Registration Certificate"
+                  onChange={(event) => onDocumentChange("company_registration_certificate", event)}
+                  fileName={form.company_registration_certificate?.name || profile.company_registration_certificate || ""}
+                  helper="Add your official incorporation document."
+                />
+
+                <div className="flex items-end xl:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => updateField("is_profile_visible", !form.is_profile_visible)}
+                    className={`inline-flex h-12 w-full items-center justify-center gap-2 rounded-[8px] px-4 text-sm font-black xl:w-auto ${form.is_profile_visible ? "bg-[#ddfbea] text-[#067647]" : "bg-[#fee4e2] text-[#b42318]"}`}
+                  >
+                    {form.is_profile_visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                    {form.is_profile_visible ? "Profile Visible" : "Profile Hidden"}
+                  </button>
+                </div>
+              </div>
+            </SectionCard>
           </div>
         </Card>
 
@@ -359,6 +599,16 @@ export default function BrandProfile() {
                 <div>
                   <p className="text-xs font-black uppercase tracking-wide text-[#7b879e]">Industry</p>
                   <p className="mt-1 text-sm font-bold text-[#1d203a]">{form.industry || "Not selected yet"}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 rounded-[10px] bg-[#f8faff] p-4">
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-[#eef3ff] text-[#3659d7]"><MapPin className="h-5 w-5" /></span>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wide text-[#7b879e]">Headquarters</p>
+                  <p className="mt-1 text-sm font-bold text-[#1d203a]">
+                    {[form.headquarters_city, form.headquarters_state, form.headquarters_country].filter(Boolean).join(", ") || "Add your headquarters"
+                    }
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3 rounded-[10px] bg-[#f8faff] p-4">
@@ -400,6 +650,42 @@ export default function BrandProfile() {
               >
                 <span className="inline-flex items-center gap-2"><Linkedin className="h-4 w-4" /> LinkedIn</span>
                 <span>{form.linkedin_url ? "Open" : "Add link"}</span>
+              </a>
+              <a
+                href={normalizeUrl(form.instagram_url) || "#"}
+                target="_blank"
+                rel="noreferrer"
+                className={`flex items-center justify-between rounded-[10px] border px-4 py-3 text-sm font-black ${form.instagram_url ? "border-[#dce4f0] text-[#173ca8] hover:bg-[#f8faff]" : "border-[#eef2fb] text-[#98a2b3]"}`}
+              >
+                <span className="inline-flex items-center gap-2"><Instagram className="h-4 w-4" /> Instagram</span>
+                <span>{form.instagram_url ? "Open" : "Add link"}</span>
+              </a>
+              <a
+                href={normalizeUrl(form.facebook_url) || "#"}
+                target="_blank"
+                rel="noreferrer"
+                className={`flex items-center justify-between rounded-[10px] border px-4 py-3 text-sm font-black ${form.facebook_url ? "border-[#dce4f0] text-[#173ca8] hover:bg-[#f8faff]" : "border-[#eef2fb] text-[#98a2b3]"}`}
+              >
+                <span className="inline-flex items-center gap-2"><Facebook className="h-4 w-4" /> Facebook</span>
+                <span>{form.facebook_url ? "Open" : "Add link"}</span>
+              </a>
+              <a
+                href={normalizeUrl(form.youtube_url) || "#"}
+                target="_blank"
+                rel="noreferrer"
+                className={`flex items-center justify-between rounded-[10px] border px-4 py-3 text-sm font-black ${form.youtube_url ? "border-[#dce4f0] text-[#173ca8] hover:bg-[#f8faff]" : "border-[#eef2fb] text-[#98a2b3]"}`}
+              >
+                <span className="inline-flex items-center gap-2"><Youtube className="h-4 w-4" /> YouTube</span>
+                <span>{form.youtube_url ? "Open" : "Add link"}</span>
+              </a>
+              <a
+                href={normalizeUrl(form.x_url) || "#"}
+                target="_blank"
+                rel="noreferrer"
+                className={`flex items-center justify-between rounded-[10px] border px-4 py-3 text-sm font-black ${form.x_url ? "border-[#dce4f0] text-[#173ca8] hover:bg-[#f8faff]" : "border-[#eef2fb] text-[#98a2b3]"}`}
+              >
+                <span className="inline-flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> X / Twitter</span>
+                <span>{form.x_url ? "Open" : "Add link"}</span>
               </a>
             </div>
           </Card>

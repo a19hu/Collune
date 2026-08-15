@@ -56,10 +56,24 @@ export type BrandRegisterForm = {
   acceptedTerms: boolean;
   company_name: string;
   industry: string;
+  about_brand: string;
   website: string;
   company_size: string;
   linkedin_url: string;
+  gst_number: string;
+  cin_registration_number: string;
+  year_established: string;
+  headquarters_city: string;
+  headquarters_state: string;
+  headquarters_country: string;
+  instagram_url: string;
+  facebook_url: string;
+  x_url: string;
+  youtube_url: string;
   logo: File | null;
+  gst_certificate: File | null;
+  pan_card: File | null;
+  company_registration_certificate: File | null;
 };
 
 export type SocialAccountForm = {
@@ -521,9 +535,20 @@ export type BrandRegisterPayload = {
   user: RegisterUserPayload;
   company_name: string;
   industry?: string;
+  about_brand?: string;
   website?: string;
   company_size?: string;
   linkedin_url?: string;
+  gst_number?: string;
+  cin_registration_number?: string;
+  year_established?: number;
+  headquarters_city?: string;
+  headquarters_state?: string;
+  headquarters_country?: string;
+  instagram_url?: string;
+  facebook_url?: string;
+  x_url?: string;
+  youtube_url?: string;
 };
 
 export type BrandRegisterResponse = LoginResponse & {
@@ -540,9 +565,23 @@ export type BrandProfileApi = {
   user?: UserAccount & { profile_id?: string };
   company_name: string;
   industry: string;
+  about_brand?: string;
   website: string;
   company_size: string;
   linkedin_url: string;
+  gst_number?: string;
+  cin_registration_number?: string;
+  year_established?: number | null;
+  headquarters_city?: string;
+  headquarters_state?: string;
+  headquarters_country?: string;
+  instagram_url?: string;
+  facebook_url?: string;
+  x_url?: string;
+  youtube_url?: string;
+  gst_certificate?: string | null;
+  pan_card?: string | null;
+  company_registration_certificate?: string | null;
   logo?: string;
   logo_url: string;
   is_profile_visible: boolean;
