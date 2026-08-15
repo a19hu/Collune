@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from .models import BrandProfile, Campaign, CreatorProfile, OtpChannel, OtpVerification, UserRole
+from .common.services import send_aisensy_whatsapp_otp
 
 
 class ColluneAuthTests(APITestCase):
@@ -226,6 +227,28 @@ class ColluneAuthTests(APITestCase):
         hidden_models = {"session", "token", "contenttype", "tokenproxy", "permission", "group", "otpverification"}
         response_models = {item["model"] for item in response.data["data"]}
         self.assertTrue(hidden_models.isdisjoint(response_models))
+
+    @patch("api.common.services.requests.post")
+    def test_aisensy_payload_matches_expected_shape(self, mock_post):
+        with patch.dict(
+            "os.environ",
+            {
+                "AISENSY_API_KEY": "test-api-key",
+                "AISENSY_CAMPAIGN_NAME": "collune_otp",
+                "AISENSY_SOURCE": "new-landing-page form",
+            },
+            clear=False,
+        ):
+            mock_post.return_value.raise_for_status.return_value = None
+
+            send_aisensy_whatsapp_otp("917654418778", "123456")
+
+        _, kwargs = mock_post.call_args
+        self.assertEqual(kwargs["json"]["templateParams"], ["123456"])
+        self.assertEqual(
+            kwargs["json"]["buttons"][0]["parameters"][0]["text"],
+            "123456",
+        )
 
     def test_public_lists_respect_profile_visibility(self):
         visible_brand_response = self.client.post(

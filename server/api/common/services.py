@@ -190,12 +190,14 @@ def send_aisensy_whatsapp_otp(target, code):
     if not api_key:
         raise RuntimeError("AISENSY_API_KEY is not configured.")
 
+    code_text = str(code)
+
     payload = {
         "apiKey": api_key,
         "campaignName": get_env("AISENSY_CAMPAIGN_NAME", "collune_otp"),
         "destination": target,
         "userName": "Collune",
-        "templateParams": code,
+        "templateParams": [code_text],
         "source": get_env("AISENSY_SOURCE", "new-landing-page form"),
         "media": {},
         "buttons": [
@@ -206,7 +208,7 @@ def send_aisensy_whatsapp_otp(target, code):
                 "parameters": [
                     {
                         "type": "text",
-                        "text": code,
+                        "text": code_text,
                     }
                 ],
             }
