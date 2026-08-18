@@ -69,9 +69,10 @@ class OtpSendView(APIView):
         serializer.is_valid(raise_exception=True)
         channel = serializer.validated_data["channel"]
         target = normalize_otp_target(channel, serializer.validated_data["target"])
+        user_name = serializer.validated_data.get("userName")
         otp = create_otp(channel, target)
         try:
-            send_otp_message(otp)
+            send_otp_message(otp, user_name=user_name)
         except requests.RequestException as exc:
             otp.delete()
             logger.exception("OTP send failed for channel=%s target=%s", channel, target)

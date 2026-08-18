@@ -37,7 +37,7 @@ export const formButton = async ({
     ) => {
         setVerificationStatus({ [loadingKey]: true, error: "", message: "" });
         try {
-            await sendOtp(channel, target);
+            await sendOtp(channel, target, form.name.trim());
             setVerificationStatus(successPatch);
             return true;
         } catch (error) {
@@ -59,7 +59,7 @@ export const formButton = async ({
         setVerificationStatus({ isSendingPhone: true, error: "", message: "" });
         let whatsappSent = false;
         try {
-            await sendWhatsAppOtp(normalizePhoneNumber(form.phone_no));
+            await sendWhatsAppOtp(normalizePhoneNumber(form.phone_no), form.name.trim());
             setVerificationStatus({ phoneOtpSent: true, phoneVerified: false, message: "WhatsApp OTP sent." });
             whatsappSent = true;
         } catch (error) {
