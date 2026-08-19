@@ -79,7 +79,7 @@ const Navbar = () => {
       <div className="flex items-center justify-between gap-3 rounded-[28px] border border-[#d8e3ff] bg-gradient-to-r from-[#eef4ff]/95 via-[#f8fbff]/95 to-[#e8f0ff]/95 px-4 py-3 shadow-[0_18px_40px_rgba(45,66,140,0.12)] backdrop-blur-xl sm:px-5 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-4 lg:rounded-full lg:border-transparent lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none lg:backdrop-blur-0">
         <ColluneLogo to={'/#top'} />
 
-        <nav className="hidden items-center gap-8 rounded-full border border-[#dce5fb] bg-white/85 px-11 py-4 shadow-[0_16px_34px_rgba(69,96,170,0.1)] backdrop-blur-xl lg:flex">
+        <nav className="hidden items-center gap-8 rounded-full border border-[#dce5fb] bg-white/85 px-11 py-1 shadow-[0_16px_34px_rgba(69,96,170,0.1)] backdrop-blur-xl lg:flex">
           {navItems.map((item) =>
             item.items ? (
               <div className="group relative py-2" key={item.label}>

@@ -25,15 +25,29 @@ import {
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { getBrandLogos, getCreatorsList } from "../lib/authApi";
-import type { BrandLogoApi, CreatorListItemApi } from "../types";
+import { applyToCampaign, getBrandLogos, getCreatorDashboard, getCreatorsList, saveCreatorCampaign } from "../lib/authApi";
+import type { BrandLogoApi, CreatorDashboardApi, CreatorListItemApi } from "../types";
 import heroCreator1 from "../assets/collune/hero-creator-1.jpg";
 import heroCreator2 from "../assets/collune/hero-creator-2.jpg";
 import heroCreator3 from "../assets/collune/hero-creator-3.jpg";
 import heroCreator4 from "../assets/collune/hero-creator-4.jpg";
 import HtmlButton from "../HtmlComponents/HtmlButton";
 import { CreatorCard } from "../HtmlComponents/CreatorCard";
+import { Panel } from "../HtmlComponents/BrandCard";
+import { showProjectToast } from "../HtmlComponents/HtmlRoster";
 import { useAuth } from "../contexts/AuthContext";
+import { CampaignCard } from "../components/Creator/CampaignMarketplace/MarketplaceUi";
+
+const fallbackCampaignImage = "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80";
+
+type RecommendedCampaign = NonNullable<CreatorDashboardApi["campaigns"]>[number];
+
+function formatCampaignDeadline(value: string | null) {
+  if (!value) return "Deadline not set";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+}
 
 const trustCards = [
   {
@@ -67,8 +81,6 @@ const creatorSteps = [
   { icon: MessageCircle, title: "Collaborate", text: "Work on exciting campaigns and grow together." },
 ];
 
-
-
 const LandingPage = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -79,6 +91,9 @@ const LandingPage = () => {
   const [brandLogoError, setBrandLogoError] = useState("");
   const [selectedCreatorCategory, setSelectedCreatorCategory] = useState("All Creators");
   const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
+  const [recommendedCampaigns, setRecommendedCampaigns] = useState<RecommendedCampaign[]>([]);
+  const [applyingId, setApplyingId] = useState("");
+  const [savingId, setSavingId] = useState("");
   const creatorCategories = useMemo(() => {
     const categories = creators.map((creator) => creator.category).filter(Boolean);
     return ["All Creators", ...Array.from(new Set(categories)).slice(0, 4)];
@@ -113,6 +128,56 @@ const LandingPage = () => {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!(currentUser && currentUser.role === "Creator" && currentUser.verification_status === "VERIFIED")) return;
+    let isMounted = true;
+
+    getCreatorDashboard()
+      .then((data) => {
+        if (isMounted) setRecommendedCampaigns(data?.campaigns ?? []);
+      })
+      .catch(() => {
+        if (isMounted) setRecommendedCampaigns([]);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUser]);
+
+  const updateRecommendedCampaign = (campaignId: string, updates: Partial<RecommendedCampaign>) => {
+    setRecommendedCampaigns((items) => items.map((item) => (item.id === campaignId ? { ...item, ...updates } : item)));
+  };
+
+  const onApplyRecommended = async (campaign: RecommendedCampaign) => {
+    if (campaign.applied || applyingId) return;
+    setApplyingId(campaign.id);
+    try {
+      await applyToCampaign(campaign.id);
+      updateRecommendedCampaign(campaign.id, { applied: true });
+      showProjectToast("success", "Application sent", "Your campaign application has been submitted.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to apply to this campaign.";
+      showProjectToast("error", "Application failed", message);
+    } finally {
+      setApplyingId("");
+    }
+  };
+
+  const onSaveRecommended = async (campaign: RecommendedCampaign) => {
+    if (campaign.saved || savingId) return;
+    setSavingId(campaign.id);
+    try {
+      await saveCreatorCampaign(campaign.id);
+      updateRecommendedCampaign(campaign.id, { saved: true });
+      showProjectToast("success", "Campaign saved", "The campaign has been added to your saved list.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to save this campaign.";
+      showProjectToast("error", "Save failed", message);
+    } finally {
+      setSavingId("");
+    }
+  };
 
   return (
     <main id="top" className="min-h-screen overflow-hidden bg-[#f3f6ff] font-sans text-[#17327c]">
@@ -283,6 +348,25 @@ const LandingPage = () => {
             ?
             <section id="featured-campaigns" className="px-6 py-20 text-center">
               <SectionLabel>Featured Campaigns</SectionLabel>
+              {recommendedCampaigns.length ? (
+                <div className="mx-auto mt-10 grid max-w-7xl gap-6 text-left xl:grid-cols-3">
+                  {recommendedCampaigns.slice(0, 3).map((campaign, index) => (
+                    <CampaignCard
+                      key={campaign.id}
+                      campaign={campaign}
+                      index={index}
+                      onApply={onApplyRecommended}
+                      onSave={onSaveRecommended}
+                      isApplying={applyingId === campaign.id}
+                      isSaving={savingId === campaign.id}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="mx-auto mt-8 max-w-xl text-[16px] font-normal leading-tight text-[#4e5c77]">
+                  We will show recommended campaigns here when active campaigns match your profile.
+                </p>
+              )}
               <div className="mt-10">
                 <HtmlButton
                   buttonName={`View all Campaigns`}
@@ -481,6 +565,74 @@ const LandingPage = () => {
     </main>
   );
 };
+
+// function CampaignCard({
+//   campaign,
+//   index,
+//   onApply,
+//   onSave,
+//   isApplying,
+//   isSaving,
+// }: {
+//   campaign: RecommendedCampaign;
+//   index: number;
+//   onApply: (campaign: RecommendedCampaign) => void;
+//   onSave: (campaign: RecommendedCampaign) => void;
+//   isApplying?: boolean;
+//   isSaving?: boolean;
+// }) {
+//   const navigate = useNavigate();
+//   const image = campaign.cover_image || fallbackCampaignImage;
+//   const deadline = formatCampaignDeadline(campaign.deadline);
+//   const openCampaign = () => navigate(`/creator/marketplace/${campaign.id}`);
+
+//   return (
+//     <Panel className="overflow-hidden text-left">
+//       <div
+//         role="button"
+//         tabIndex={0}
+//         onClick={openCampaign}
+//         onKeyDown={(event) => {
+//           if (event.key === "Enter" || event.key === " ") openCampaign();
+//         }}
+//         className="relative h-48 cursor-pointer"
+//       >
+//         <img src={image} alt="" className="h-full w-full object-cover" />
+//         {index < 2 ? <span className="absolute left-4 top-4 rounded-full bg-[#2f31e7] px-4 py-2 text-xs font-black text-white">New</span> : null}
+//         <button
+//           type="button"
+//           disabled={campaign.saved || isSaving}
+//           onClick={(event) => {
+//             event.stopPropagation();
+//             onSave(campaign);
+//           }}
+//           className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-white disabled:opacity-70"
+//         >
+//           <Bookmark className={`h-5 w-5 text-[#4635ff] ${campaign.saved ? "fill-current" : ""}`} />
+//         </button>
+//       </div>
+//       <div className="p-6">
+//         <button type="button" onClick={openCampaign} className="block text-left">
+//           <h3 className="text-xl font-black text-[#1d203a]">{campaign.title}</h3>
+//         </button>
+//         <p className="mt-2 text-sm font-black uppercase tracking-wide text-[#1f22ff]">Recommended match</p>
+//         <p className="mt-4 min-h-[48px] text-[15px] font-medium leading-snug text-[#6f7889]">{campaign.objective || "Campaign objective not provided."}</p>
+//         <span className="mt-4 inline-flex rounded-full bg-[#8b74ff] px-4 py-2 text-xs font-black text-white">{campaign.looking_for || "Creators"}</span>
+//         <div className="mt-5 flex items-end justify-between gap-4">
+//           <p className="text-sm font-medium text-[#6f7889]">Deadline: {deadline}</p>
+//           <button
+//             type="button"
+//             onClick={() => onApply(campaign)}
+//             disabled={campaign.applied || isApplying}
+//             className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#2f31e7] px-4 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-70"
+//           >
+//             {campaign.applied ? "Applied" : isApplying ? "Applying..." : "Apply"} {!campaign.applied && !isApplying ? <ArrowRight className="h-4 w-4" /> : null}
+//           </button>
+//         </div>
+//       </div>
+//     </Panel>
+//   );
+// }
 
 function SectionLabel({ children, className = "" }: { children: string; className?: string }) {
   return (
