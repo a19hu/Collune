@@ -363,16 +363,16 @@ export async function refreshYouTubeVideos() {
   return data.creator;
 }
 
-export async function sendOtp(channel: OtpChannel, target: string) {
-  return apiPost<OtpResponse>("/auth/otp/send/", { channel, target });
+export async function sendOtp(channel: OtpChannel, target: string, userName?: string) {
+  return apiPost<OtpResponse>("/auth/otp/send/", { channel, target, userName });
 }
 
 export async function verifyOtp(channel: OtpChannel, target: string, code: string) {
   return apiPost<OtpResponse>("/auth/otp/verify/", { channel, target, code });
 }
 
-export async function sendWhatsAppOtp(target: string) {
-  return sendOtp("PHONE", target);
+export async function sendWhatsAppOtp(target: string, userName?: string) {
+  return sendOtp("PHONE", target, userName);
 }
 
 export async function verifyWhatsAppOtp(target: string, code: string) {

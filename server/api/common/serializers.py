@@ -67,9 +67,13 @@ class RegisterUserSerializer(serializers.Serializer):
 class OtpSendSerializer(serializers.Serializer):
     channel = serializers.ChoiceField(choices=OtpChannel.choices)
     target = serializers.CharField(max_length=255)
+    userName = serializers.CharField(max_length=255, required=False, allow_blank=True)
 
     def validate_target(self, value):
         return value.strip().lower() if "@" in value else value.strip().replace(" ", "")
+
+    def validate_userName(self, value):
+        return value.strip()
 
 class OtpVerifySerializer(OtpSendSerializer):
     code = serializers.CharField(max_length=6, min_length=6)

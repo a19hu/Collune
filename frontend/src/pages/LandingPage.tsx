@@ -199,7 +199,7 @@ const LandingPage = () => {
                   </div>
                 </div>
 
-                <a href="#featured-creators" aria-label="Scroll to creators" className="absolute bottom-7 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-white text-[#9aa7c4] shadow-[0_12px_28px_rgba(68,90,158,0.1)]">
+                <a href="#featured-campaigns" aria-label="Scroll to campaigns" className="absolute bottom-7 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-white text-[#9aa7c4] shadow-[0_12px_28px_rgba(68,90,158,0.1)]">
                   <ArrowDown className="h-4.5 w-4.5" />
                 </a>
               </section>
@@ -277,72 +277,70 @@ const LandingPage = () => {
           </section>
         )
       }
-      <section id="featured-creators" className="px-6 py-20 text-center">
-        {
-          currentUser && currentUser.role === "Creator" ?
-           currentUser && currentUser.verification_status == "VERIFIED"
-           ?
-            <>
-            <SectionLabel>Featured Campaigns</SectionLabel>
-
-            <div className="mt-10">
+      {
+        currentUser && currentUser.role === "Creator" ?
+          currentUser && currentUser.verification_status == "VERIFIED"
+            ?
+            <section id="featured-campaigns" className="px-6 py-20 text-center">
+              <SectionLabel>Featured Campaigns</SectionLabel>
+              <div className="mt-10">
                 <HtmlButton
                   buttonName={`View all Campaigns`}
                   variant="light"
                   onClick={() => navigate("/creator/marketplace")}
                 />
               </div>
-            </>
-            :<>
-            <SectionLabel>Featured Campaigns</SectionLabel>
-            </>
+            </section>
             :
-            <>
-              <SectionLabel>Featured Creators</SectionLabel>
-              <p className="mx-auto mt-8 max-w-xl text-[16px] font-normal leading-tight text-[#4e5c77]">
-                Explore a curated network of verified creators across industries,
-                audiences, and content styles.
-              </p>
-              <div className="mx-auto my-12 grid max-w-[850px] grid-cols-2 gap-1.5 rounded-[24px] border border-[#d9e2fb] bg-white p-2 md:grid-cols-5 md:rounded-full">
-                {creatorCategories.map((tab) => (
-                  <button
-                    key={tab}
-                    type="button"
-                    onClick={() => setSelectedCreatorCategory(tab)}
-                    className={`min-h-10 rounded-full text-[13px] font-black transition ${selectedCreatorCategory === tab ? "bg-[#b6a3ff] text-white" : "text-[#2450bf] hover:bg-[#eef3ff]"
-                      }`}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
-              <div className="mx-auto grid max-w-7xl gap-7 md:grid-cols-2 lg:grid-cols-4">
-                {isLoadingCreators ? (
-                  <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">Loading creators...</p>
-                ) : creatorError ? (
-                  <p className="col-span-full py-8 text-sm font-black text-[#bf3f5f]">{creatorError}</p>
-                ) : filteredCreators.length ? (
-                  filteredCreators.slice(0, 8).map((creator, index) => (
-                    <CreatorCard
-                      key={creator.creator_id || creator.username || `${creator.display_name}-${index}`}
-                      creator={creator}
-                      index={index}
-                    />
-                  ))
-                ) : (
-                  <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">No creators available yet.</p>
-                )}
-              </div>
-              <div className="mt-10">
-                <HtmlButton
-                  buttonName={`Explore all ${Math.max(filteredCreators.length, creators.length, 0)} Creators`}
-                  variant="light"
-                  onClick={() => navigate("/discover-creators")}
-                />
-              </div>
-            </>
-        }
-      </section>
+            <section id="featured-campaigns" className="px-6 py-20 text-center">
+              <SectionLabel>Featured Campaigns</SectionLabel>
+            </section>
+          :
+          <section id="featured-creators" className="px-6 py-20 text-center">
+            <SectionLabel>Featured Creators</SectionLabel>
+            <p className="mx-auto mt-8 max-w-xl text-[16px] font-normal leading-tight text-[#4e5c77]">
+              Explore a curated network of verified creators across industries,
+              audiences, and content styles.
+            </p>
+            <div className="mx-auto my-12 grid max-w-[850px] grid-cols-2 gap-1.5 rounded-[24px] border border-[#d9e2fb] bg-white p-2 md:grid-cols-5 md:rounded-full">
+              {creatorCategories.map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setSelectedCreatorCategory(tab)}
+                  className={`min-h-10 rounded-full text-[13px] font-black transition ${selectedCreatorCategory === tab ? "bg-[#b6a3ff] text-white" : "text-[#2450bf] hover:bg-[#eef3ff]"
+                    }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+            <div className="mx-auto grid max-w-7xl gap-7 md:grid-cols-2 lg:grid-cols-4">
+              {isLoadingCreators ? (
+                <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">Loading creators...</p>
+              ) : creatorError ? (
+                <p className="col-span-full py-8 text-sm font-black text-[#bf3f5f]">{creatorError}</p>
+              ) : filteredCreators.length ? (
+                filteredCreators.slice(0, 8).map((creator, index) => (
+                  <CreatorCard
+                    key={creator.creator_id || creator.username || `${creator.display_name}-${index}`}
+                    creator={creator}
+                    index={index}
+                  />
+                ))
+              ) : (
+                <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">No creators available yet.</p>
+              )}
+            </div>
+            <div className="mt-10">
+              <HtmlButton
+                buttonName={`Explore all ${Math.max(filteredCreators.length, creators.length, 0)} Creators`}
+                variant="light"
+                onClick={() => navigate("/discover-creators")}
+              />
+            </div>
+          </section>
+      }
 
       <section id="about" className="bg-[#f5f7ff] px-6 py-20">
         <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1.08fr_96px_1fr]">
@@ -546,8 +544,8 @@ function HeroButton({
       type="button"
       onClick={onClick}
       className={`inline-flex h-[52px] min-w-[205px] items-center justify-center gap-3 rounded-full px-6 text-[13px] font-black shadow-[0_14px_24px_rgba(28,57,176,0.18)] transition hover:-translate-y-0.5 ${variant === "solid"
-          ? "bg-[#2448bd] text-white"
-          : "border border-[#dce5ff] bg-white text-[#2448bd]"
+        ? "bg-[#2448bd] text-white"
+        : "border border-[#dce5ff] bg-white text-[#2448bd]"
         }`}
     >
       <span className={`grid h-8 w-8 place-items-center rounded-full ${variant === "solid" ? "bg-white/30 text-white" : "bg-[#2448bd] text-white"}`}>

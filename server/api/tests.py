@@ -245,10 +245,29 @@ class ColluneAuthTests(APITestCase):
 
         _, kwargs = mock_post.call_args
         self.assertEqual(kwargs["json"]["templateParams"], ["123456"])
+        self.assertEqual(kwargs["json"]["userName"], "Collune")
         self.assertEqual(
             kwargs["json"]["buttons"][0]["parameters"][0]["text"],
             "123456",
         )
+
+    @patch("api.common.services.requests.post")
+    def test_aisensy_payload_uses_frontend_username(self, mock_post):
+        with patch.dict(
+            "os.environ",
+            {
+                "AISENSY_API_KEY": "test-api-key",
+                "AISENSY_CAMPAIGN_NAME": "collune_otp",
+                "AISENSY_SOURCE": "new-landing-page form",
+            },
+            clear=False,
+        ):
+            mock_post.return_value.raise_for_status.return_value = None
+
+            send_aisensy_whatsapp_otp("917654418778", "123456", user_name="Aman")
+
+        _, kwargs = mock_post.call_args
+        self.assertEqual(kwargs["json"]["userName"], "Aman")
 
     def test_public_lists_respect_profile_visibility(self):
         visible_brand_response = self.client.post(

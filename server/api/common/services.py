@@ -185,7 +185,7 @@ def send_brevo_email_otp(target, code):
         logger.exception("Brevo email API request failed.")
         raise
 
-def send_aisensy_whatsapp_otp(target, code):
+def send_aisensy_whatsapp_otp(target, code, user_name=None):
     api_key = get_env("AISENSY_API_KEY")
     if not api_key:
         raise RuntimeError("AISENSY_API_KEY is not configured.")
@@ -196,7 +196,7 @@ def send_aisensy_whatsapp_otp(target, code):
         "apiKey": api_key,
         "campaignName": get_env("AISENSY_CAMPAIGN_NAME", "collune_otp"),
         "destination": target,
-        "userName": "Collune",
+        "userName": user_name or "Collune",
         "templateParams": [code_text],
         "source": get_env("AISENSY_SOURCE", "new-landing-page form"),
         "media": {},
@@ -239,8 +239,8 @@ def send_aisensy_whatsapp_otp(target, code):
         raise
 
 
-def send_otp_message(otp):
+def send_otp_message(otp, user_name=None):
     if otp.channel == OtpChannel.EMAIL:
         send_brevo_email_otp(otp.target, otp.code)
         return
-    send_aisensy_whatsapp_otp(otp.target, otp.code)
+    send_aisensy_whatsapp_otp(otp.target, otp.code, user_name=user_name)

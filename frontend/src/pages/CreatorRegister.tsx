@@ -188,7 +188,7 @@ const CreatorRegister = () => {
       if (!form.email.trim()) nextErrors.email = "Email address is required.";
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) nextErrors.email = "Enter a valid email address.";
       const phoneNumber = normalizePhoneNumber(form.phone_no);
-      if (!phoneNumber) nextErrors.phone_no = "WhatsApp Phone number is required.";
+      if (!phoneNumber) nextErrors.phone_no = "WhatsApp number is required.";
       else if (!/^\d{10}$/.test(phoneNumber)) nextErrors.phone_no = "Enter a valid 10-digit phone number.";
       if (!form.password.trim()) nextErrors.password = "Password is required.";
       else if (form.password.trim().length < 8) nextErrors.password = "Password must be at least 8 characters.";
