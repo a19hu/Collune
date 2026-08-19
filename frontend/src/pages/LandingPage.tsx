@@ -37,6 +37,7 @@ import { Panel } from "../HtmlComponents/BrandCard";
 import { showProjectToast } from "../HtmlComponents/HtmlRoster";
 import { useAuth } from "../contexts/AuthContext";
 import { CampaignCard } from "../components/Creator/CampaignMarketplace/MarketplaceUi";
+import { mapCreatorCampaignToMarketplace } from "../components/Creator/CampaignMarketplace/marketplaceData";
 
 const fallbackCampaignImage = "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80";
 
@@ -237,6 +238,11 @@ const LandingPage = () => {
           : currentUser && currentUser.role === "Creator" ?
             <>
               <section className="relative grid min-h-[calc(100vh-1px)] place-items-center px-5 pb-20 pt-28">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.96)_0%,rgba(243,246,255,0.94)_38%,rgba(243,246,255,0.99)_100%)]" />
+              <div className="absolute left-1/2 top-[18%] h-[320px] w-[320px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(173,155,255,0.16)_0%,rgba(173,155,255,0)_72%)] blur-2xl" />
+              <div className="absolute left-[18%] top-[58%] h-[220px] w-[220px] rounded-full bg-[radial-gradient(circle,rgba(141,160,255,0.12)_0%,rgba(141,160,255,0)_74%)] blur-2xl" />
+              <div className="absolute right-[18%] top-[54%] h-[220px] w-[220px] rounded-full bg-[radial-gradient(circle,rgba(141,160,255,0.12)_0%,rgba(141,160,255,0)_74%)] blur-2xl" />
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(137,153,255,0.18)_1.2px,transparent_1.2px),linear-gradient(90deg,rgba(137,153,255,0.18)_1.2px,transparent_1.2px)] [background-position:center_center] [background-size:30px_30px] [mask-image:radial-gradient(circle_at_center,black_78%,transparent_100%)]" />
 
                 <FloatingPhoto image={heroCreator1} className="left-[max(78px,calc(50%-592px))] top-[200px] h-[126px] w-[136px] rotate-[6deg] [&>span]:-bottom-4 [&>span]:-right-5" icon={<Check className="h-6 w-6" />} />
                 <FloatingPhoto image={heroCreator4} className="right-[max(110px,calc(50%-570px))] top-[655px] h-[138px] w-[146px] rotate-[8deg] [&>span]:-right-5 [&>span]:-top-4 [&>span]:bg-[#a893ff]" icon={<BadgeCheck className="h-5 w-5" />} />
@@ -360,15 +366,10 @@ const LandingPage = () => {
               <SectionLabel>Featured Campaigns</SectionLabel>
               {recommendedCampaigns.length ? (
                 <div className="mx-auto mt-10 grid max-w-7xl gap-6 text-left xl:grid-cols-3">
-                  {recommendedCampaigns.slice(0, 3).map((campaign, index) => (
+                  {recommendedCampaigns.slice(0, 3).map((campaign) => (
                     <CampaignCard
                       key={campaign.id}
-                      campaign={campaign}
-                      // index={index}
-                      // onApply={onApplyRecommended}
-                      // onSave={onSaveRecommended}
-                      // isApplying={applyingId === campaign.id}
-                      // isSaving={savingId === campaign.id}
+                      campaign={mapCreatorCampaignToMarketplace(campaign)}
                     />
                   ))}
                 </div>
