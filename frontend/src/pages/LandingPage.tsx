@@ -19,6 +19,7 @@ import {
   Upload,
   UsersRound,
   UserRound,
+  PlayCircleIcon,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -32,6 +33,7 @@ import heroCreator3 from "../assets/collune/hero-creator-3.jpg";
 import heroCreator4 from "../assets/collune/hero-creator-4.jpg";
 import HtmlButton from "../HtmlComponents/HtmlButton";
 import { CreatorCard } from "../HtmlComponents/CreatorCard";
+import { useAuth } from "../contexts/AuthContext";
 
 const trustCards = [
   {
@@ -69,6 +71,7 @@ const creatorSteps = [
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [brandLogos, setBrandLogos] = useState<BrandLogoApi[]>([]);
   const [creators, setCreators] = useState<CreatorListItemApi[]>([]);
   const [isLoadingCreators, setIsLoadingCreators] = useState(true);
@@ -113,115 +116,232 @@ const LandingPage = () => {
 
   return (
     <main id="top" className="min-h-screen overflow-hidden bg-[#f3f6ff] font-sans text-[#17327c]">
-      <section className="relative grid min-h-[calc(100vh-1px)] place-items-center px-5 pb-20 pt-28">
-        <div className="absolute left-[max(120px,calc(50%-565px))] top-[280px] hidden h-[500px] w-[178px] rounded-l-[170px] border-l-[3px] border-dashed border-[#b9a8ff] opacity-80 lg:block" />
-        <div className="absolute right-[max(120px,calc(50%-565px))] top-[278px] hidden h-[450px] w-[178px] rounded-r-[170px] border-r-[3px] border-dashed border-[#b9a8ff] opacity-80 lg:block" />
+      {
+        currentUser && currentUser.role === "Brand" ?
+          <>
+            <section className="relative grid min-h-[calc(100vh-1px)] place-items-center px-5 pb-20 pt-28">
+              <div className="relative z-10 flex w-full max-w-[780px] flex-col items-center text-center">
+                <SectionLabel>More Than a creator Marketplace</SectionLabel>
+                <h1 className="mb-5 mt-7 text-[clamp(46px,6vw,70px)] font-black leading-[1.02] tracking-normal text-[#173fb5]">
+                  Find Creators
+                  <span className="block italic text-[#ad9bff]">Who Get Your Brand.</span>
+                </h1>
+                <p className="max-w-xl text-[15px] font-normal leading-snug text-[#4e5c77]">
+                  Find verified ceators, build meaningful collaborations,
+                  and manage campaigns with trust, clarity, and accountability.
+                </p>
+                <div className="mt-9 flex flex-wrap justify-center gap-4">
+                  <HtmlButton variant={""} onClick={() => navigate('/brand')}
+                    buttonName="Proceed to Dashboard">
+                    <PlayCircleIcon className="h-6 w-6" /> Proceed to Dashboard
+                  </HtmlButton>
+                </div>
+                <div className="mt-10 flex flex-wrap justify-center gap-x-4 gap-y-3 text-xs font-black text-[#8291c1]">
+                  {[
+                    ["Verified Creators", BadgeCheck],
+                    ["Secure Payments", ShieldCheck],
+                    ["Structured Workflows", Sparkles],
+                  ].map(([label, Icon], index) => {
+                    const BenefitIcon = Icon;
+                    return (
+                      <span key={label as string} className="inline-flex items-center gap-2">
+                        {index ? <span className="h-4 w-px bg-[#b9c4e5]" /> : null}
+                        <BenefitIcon className="h-4 w-4 rounded-full bg-[#8da0ff] p-0.5 text-white" />
+                        {label as string}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
 
-        <FloatingPhoto image={heroCreator1} className="left-[max(78px,calc(50%-592px))] top-[200px] h-[126px] w-[136px] rotate-[6deg] [&>span]:-bottom-4 [&>span]:-right-5" icon={<Check className="h-6 w-6" />} />
-        <FloatingPhoto image={heroCreator2} className="right-[max(94px,calc(50%-585px))] top-[204px] h-[130px] w-[124px] -rotate-[7deg] [&>span]:bottom-4 [&>span]:-left-7" icon={<Star className="h-5 w-5" />} />
-        <FloatingPhoto image={heroCreator3} className="left-[max(94px,calc(50%-575px))] top-[655px] h-[128px] w-[134px] -rotate-[7deg] [&>span]:-bottom-5 [&>span]:-left-4 [&>span]:bg-[#a893ff]" icon={<Boxes className="h-5 w-5" />} />
-        <FloatingPhoto image={heroCreator4} className="right-[max(110px,calc(50%-570px))] top-[655px] h-[138px] w-[146px] rotate-[8deg] [&>span]:-right-5 [&>span]:-top-4 [&>span]:bg-[#a893ff]" icon={<BadgeCheck className="h-5 w-5" />} />
+              <a href="#featured-creators" aria-label="Scroll to creators" className="absolute bottom-7 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-white text-[#9aa7c4] shadow-[0_12px_28px_rgba(68,90,158,0.1)]">
+                <ArrowDown className="h-4.5 w-4.5" />
+              </a>
+            </section>
+          </>
+          : currentUser && currentUser.role === "Creator" ?
+            <>
+              <section className="relative grid min-h-[calc(100vh-1px)] place-items-center px-5 pb-20 pt-28">
 
-        <HeroBadge className="left-[max(60px,calc(48%-580px))] top-[480px] rotate-[12deg]" icon={<ShieldCheck className="h-6 w-6" />}>
-          Trusted<br />Collaborations
-        </HeroBadge>
-        <HeroBadge className="right-[max(60px,calc(48%-580px))] top-[485px] -rotate-[10deg] bg-[#8194ff]" icon={<Clock3 className="h-6 w-6" />}>
-          On time<br />Payments
-        </HeroBadge>
+                <FloatingPhoto image={heroCreator1} className="left-[max(78px,calc(50%-592px))] top-[200px] h-[126px] w-[136px] rotate-[6deg] [&>span]:-bottom-4 [&>span]:-right-5" icon={<Check className="h-6 w-6" />} />
+                <FloatingPhoto image={heroCreator4} className="right-[max(110px,calc(50%-570px))] top-[655px] h-[138px] w-[146px] rotate-[8deg] [&>span]:-right-5 [&>span]:-top-4 [&>span]:bg-[#a893ff]" icon={<BadgeCheck className="h-5 w-5" />} />
 
-        <div className="relative z-10 flex w-full max-w-[780px] flex-col items-center text-center">
-          <SectionLabel>More Than a Marketplace</SectionLabel>
-          <h1 className="mb-5 mt-7 text-[clamp(46px,6vw,70px)] font-black leading-[1.02] tracking-normal text-[#173fb5]">
-            Where Brands And Creators
-            <span className="block italic text-[#ad9bff]">Build What Lasts.</span>
-          </h1>
-          <p className="max-w-xl text-[15px] font-normal leading-snug text-[#4e5c77]">
-            We bring trust, alignment, and accountability into every collaboration,
-            so outcomes speak louder than reach.
-          </p>
-          <div className="mt-9 flex flex-wrap justify-center gap-4">
-            <HeroButton onClick={() => setIsPartnerModalOpen(true)} icon={<UsersRound className="h-4 w-4" />}>
-              Join as a Partner
-            </HeroButton>
-          </div>
-          <div className="mt-10 flex flex-wrap justify-center gap-x-4 gap-y-3 text-xs font-black text-[#8291c1]">
-            {[
-              ["Verified Creators", BadgeCheck],
-              ["Secure Payments", ShieldCheck],
-              ["Structured Workflows", Sparkles],
-            ].map(([label, Icon], index) => {
-              const BenefitIcon = Icon;
-              return (
-                <span key={label as string} className="inline-flex items-center gap-2">
-                  {index ? <span className="h-4 w-px bg-[#b9c4e5]" /> : null}
-                  <BenefitIcon className="h-4 w-4 rounded-full bg-[#8da0ff] p-0.5 text-white" />
-                  {label as string}
-                </span>
-              );
-            })}
-          </div>
-        </div>
+                <div className="relative z-10 flex w-full max-w-[780px] flex-col items-center text-center">
+                  <SectionLabel>More Than a Creator Platform</SectionLabel>
+                  <h1 className="mb-5 mt-7 text-[clamp(46px,6vw,60px)] font-black leading-[1.02] tracking-normal text-[#173fb5]">
+                    Your Creativity.
+                    <span className="block italic text-[#ad9bff]">Your Next Opportunity.</span>
+                  </h1>
+                  <p className="max-w-xl text-[15px] font-normal leading-snug text-[#4e5c77]">
+                    Find the right, build meaningful collabrations, and turn your creativity into opportunities that actually grow with you.
+                  </p>
+                  <div className="mt-9 flex flex-wrap justify-center gap-4">
+                    <HtmlButton onClick={() => navigate('/creator')}
+                      buttonName="Proceed to Dashboard">
+                      <PlayCircleIcon className="h-6 w-6" /> Proceed to Dashboard
+                    </HtmlButton>
+                  </div>
+                  <div className="mt-10 flex flex-wrap justify-center gap-x-4 gap-y-3 text-xs font-black text-[#8291c1]">
+                    {[
+                      ["Verified Creators", BadgeCheck],
+                      ["Secure Payments", ShieldCheck],
+                      ["Structured Workflows", Sparkles],
+                    ].map(([label, Icon], index) => {
+                      const BenefitIcon = Icon;
+                      return (
+                        <span key={label as string} className="inline-flex items-center gap-2">
+                          {index ? <span className="h-4 w-px bg-[#b9c4e5]" /> : null}
+                          <BenefitIcon className="h-4 w-4 rounded-full bg-[#8da0ff] p-0.5 text-white" />
+                          {label as string}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
 
-        <a href="#featured-creators" aria-label="Scroll to creators" className="absolute bottom-7 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-white text-[#9aa7c4] shadow-[0_12px_28px_rgba(68,90,158,0.1)]">
-          <ArrowDown className="h-4.5 w-4.5" />
-        </a>
-      </section>
+                <a href="#featured-creators" aria-label="Scroll to creators" className="absolute bottom-7 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-white text-[#9aa7c4] shadow-[0_12px_28px_rgba(68,90,158,0.1)]">
+                  <ArrowDown className="h-4.5 w-4.5" />
+                </a>
+              </section>
+            </>
+            :
+            <>
+              <section className="relative grid min-h-[calc(100vh-1px)] place-items-center px-5 pb-20 pt-28">
+                <div className="absolute left-[max(120px,calc(50%-565px))] top-[280px] hidden h-[500px] w-[178px] rounded-l-[170px] border-l-[3px] border-dashed border-[#b9a8ff] opacity-80 lg:block" />
+                <div className="absolute right-[max(120px,calc(50%-565px))] top-[278px] hidden h-[450px] w-[178px] rounded-r-[170px] border-r-[3px] border-dashed border-[#b9a8ff] opacity-80 lg:block" />
 
-      <section className="bg-[#edf3ff] px-6 py-10">
-          
-          {brandLogoError ? (
-            <p className="py-6 text-center text-sm font-black text-[#bf3f5f]">{brandLogoError}</p>
-          ) : brandLogos.length ? (
-            <BrandLogoCarousel logos={brandLogos} />
-          ) : (
-            <p className="py-6 text-center text-sm font-black text-[#7b8aaa]">Brand logos will appear here once brands upload them.</p>
-          )}
-      </section>
+                <FloatingPhoto image={heroCreator1} className="left-[max(78px,calc(50%-592px))] top-[200px] h-[126px] w-[136px] rotate-[6deg] [&>span]:-bottom-4 [&>span]:-right-5" icon={<Check className="h-6 w-6" />} />
+                <FloatingPhoto image={heroCreator2} className="right-[max(94px,calc(50%-585px))] top-[204px] h-[130px] w-[124px] -rotate-[7deg] [&>span]:bottom-4 [&>span]:-left-7" icon={<Star className="h-5 w-5" />} />
+                <FloatingPhoto image={heroCreator3} className="left-[max(94px,calc(50%-575px))] top-[655px] h-[128px] w-[134px] -rotate-[7deg] [&>span]:-bottom-5 [&>span]:-left-4 [&>span]:bg-[#a893ff]" icon={<Boxes className="h-5 w-5" />} />
+                <FloatingPhoto image={heroCreator4} className="right-[max(110px,calc(50%-570px))] top-[655px] h-[138px] w-[146px] rotate-[8deg] [&>span]:-right-5 [&>span]:-top-4 [&>span]:bg-[#a893ff]" icon={<BadgeCheck className="h-5 w-5" />} />
 
+                <HeroBadge className="left-[max(60px,calc(48%-580px))] top-[480px] rotate-[12deg]" icon={<ShieldCheck className="h-6 w-6" />}>
+                  Trusted<br />Collaborations
+                </HeroBadge>
+                <HeroBadge className="right-[max(60px,calc(48%-580px))] top-[485px] -rotate-[10deg] bg-[#8194ff]" icon={<Clock3 className="h-6 w-6" />}>
+                  On time<br />Payments
+                </HeroBadge>
+
+                <div className="relative z-10 flex w-full max-w-[780px] flex-col items-center text-center">
+                  <SectionLabel>More Than a Marketplace</SectionLabel>
+                  <h1 className="mb-5 mt-7 text-[clamp(46px,6vw,70px)] font-black leading-[1.02] tracking-normal text-[#173fb5]">
+                    Where Brands And Creators
+                    <span className="block italic text-[#ad9bff]">Build What Lasts.</span>
+                  </h1>
+                  <p className="max-w-xl text-[15px] font-normal leading-snug text-[#4e5c77]">
+                    We bring trust, alignment, and accountability into every collaboration,
+                    so outcomes speak louder than reach.
+                  </p>
+                  <div className="mt-9 flex flex-wrap justify-center gap-4">
+                    <HeroButton onClick={() => setIsPartnerModalOpen(true)} icon={<UsersRound className="h-4 w-4" />}>
+                      Join as a Partner
+                    </HeroButton>
+                  </div>
+                  <div className="mt-10 flex flex-wrap justify-center gap-x-4 gap-y-3 text-xs font-black text-[#8291c1]">
+                    {[
+                      ["Verified Creators", BadgeCheck],
+                      ["Secure Payments", ShieldCheck],
+                      ["Structured Workflows", Sparkles],
+                    ].map(([label, Icon], index) => {
+                      const BenefitIcon = Icon;
+                      return (
+                        <span key={label as string} className="inline-flex items-center gap-2">
+                          {index ? <span className="h-4 w-px bg-[#b9c4e5]" /> : null}
+                          <BenefitIcon className="h-4 w-4 rounded-full bg-[#8da0ff] p-0.5 text-white" />
+                          {label as string}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <a href="#featured-creators" aria-label="Scroll to creators" className="absolute bottom-7 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-white text-[#9aa7c4] shadow-[0_12px_28px_rgba(68,90,158,0.1)]">
+                  <ArrowDown className="h-4.5 w-4.5" />
+                </a>
+              </section>
+            </>
+      }
+      {
+        currentUser && (currentUser.role === "Creator" || currentUser.role === "Brand"
+          ? null
+          :
+          <section className="bg-[#edf3ff] px-6 py-10">
+
+            {brandLogoError ? (
+              <p className="py-6 text-center text-sm font-black text-[#bf3f5f]">{brandLogoError}</p>
+            ) : brandLogos.length ? (
+              <BrandLogoCarousel logos={brandLogos} />
+            ) : (
+              <p className="py-6 text-center text-sm font-black text-[#7b8aaa]">Brand logos will appear here once brands upload them.</p>
+            )}
+          </section>
+        )
+      }
       <section id="featured-creators" className="px-6 py-20 text-center">
-        <SectionLabel>Featured Creators</SectionLabel>
-        <p className="mx-auto mt-8 max-w-xl text-[16px] font-extrabold leading-tight text-[#4e5c77]">
-          Explore a curated network of verified creators across industries,
-          audiences, and content styles.
-        </p>
-        <div className="mx-auto my-12 grid max-w-[850px] grid-cols-2 gap-1.5 rounded-[24px] border border-[#d9e2fb] bg-white p-2 md:grid-cols-5 md:rounded-full">
-          {creatorCategories.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setSelectedCreatorCategory(tab)}
-              className={`min-h-10 rounded-full text-[13px] font-black transition ${
-                selectedCreatorCategory === tab ? "bg-[#b6a3ff] text-white" : "text-[#2450bf] hover:bg-[#eef3ff]"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-        <div className="mx-auto grid max-w-7xl gap-7 md:grid-cols-2 lg:grid-cols-4">
-          {isLoadingCreators ? (
-            <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">Loading creators...</p>
-          ) : creatorError ? (
-            <p className="col-span-full py-8 text-sm font-black text-[#bf3f5f]">{creatorError}</p>
-          ) : filteredCreators.length ? (
-            filteredCreators.slice(0, 8).map((creator, index) => (
-              <CreatorCard
-                key={creator.creator_id || creator.username || `${creator.display_name}-${index}`}
-                creator={creator}
-                index={index}
-              />
-            ))
-          ) : (
-            <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">No creators available yet.</p>
-          )}
-        </div>
-        <div className="mt-10">
-          <HtmlButton
-            buttonName={`Explore all ${Math.max(filteredCreators.length, creators.length, 0)} Creators`}
-            variant="light"
-            onClick={() => navigate("/discover-creators")}
-            />
-        </div>
+        {
+          currentUser && currentUser.role === "Creator" ?
+           currentUser && currentUser.verification_status == "VERIFIED"
+           ?
+            <>
+            <SectionLabel>Featured Campaigns</SectionLabel>
+
+            <div className="mt-10">
+                <HtmlButton
+                  buttonName={`View all Campaigns`}
+                  variant="light"
+                  onClick={() => navigate("/creator/marketplace")}
+                />
+              </div>
+            </>
+            :<>
+            <SectionLabel>Featured Campaigns</SectionLabel>
+            </>
+            :
+            <>
+              <SectionLabel>Featured Creators</SectionLabel>
+              <p className="mx-auto mt-8 max-w-xl text-[16px] font-normal leading-tight text-[#4e5c77]">
+                Explore a curated network of verified creators across industries,
+                audiences, and content styles.
+              </p>
+              <div className="mx-auto my-12 grid max-w-[850px] grid-cols-2 gap-1.5 rounded-[24px] border border-[#d9e2fb] bg-white p-2 md:grid-cols-5 md:rounded-full">
+                {creatorCategories.map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setSelectedCreatorCategory(tab)}
+                    className={`min-h-10 rounded-full text-[13px] font-black transition ${selectedCreatorCategory === tab ? "bg-[#b6a3ff] text-white" : "text-[#2450bf] hover:bg-[#eef3ff]"
+                      }`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+              <div className="mx-auto grid max-w-7xl gap-7 md:grid-cols-2 lg:grid-cols-4">
+                {isLoadingCreators ? (
+                  <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">Loading creators...</p>
+                ) : creatorError ? (
+                  <p className="col-span-full py-8 text-sm font-black text-[#bf3f5f]">{creatorError}</p>
+                ) : filteredCreators.length ? (
+                  filteredCreators.slice(0, 8).map((creator, index) => (
+                    <CreatorCard
+                      key={creator.creator_id || creator.username || `${creator.display_name}-${index}`}
+                      creator={creator}
+                      index={index}
+                    />
+                  ))
+                ) : (
+                  <p className="col-span-full py-8 text-sm font-black text-[#7b8aaa]">No creators available yet.</p>
+                )}
+              </div>
+              <div className="mt-10">
+                <HtmlButton
+                  buttonName={`Explore all ${Math.max(filteredCreators.length, creators.length, 0)} Creators`}
+                  variant="light"
+                  onClick={() => navigate("/discover-creators")}
+                />
+              </div>
+            </>
+        }
       </section>
 
       <section id="about" className="bg-[#f5f7ff] px-6 py-20">
@@ -332,18 +452,26 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section id="brands" className="bg-[linear-gradient(115deg,#6d68de_0%,#0c3bb7_48%,#36a8d0_100%)] px-6 py-24 text-center text-white">
-        <h2 className="mb-5 text-[clamp(42px,5vw,64px)] font-black leading-none tracking-normal">
-          Ready to build better <span className="italic text-[#b3a2ff]">collaborations?</span>
-        </h2>
-        <p className="text-[15px] font-extrabold text-white/80">Join a growing network of verified creators and ambitious brands.</p>
-        <div className="mt-10 flex flex-wrap justify-center gap-5">
-          <HtmlButton
-            buttonName="Join as a Partner"
-            onClick={() => setIsPartnerModalOpen(true)}
-            />
-        </div>
-      </section>
+      {
+        currentUser && (currentUser.role === "Creator" || currentUser.role === "Brand"
+          ? null
+          :
+          <section id="brands" className="bg-[linear-gradient(115deg,#6d68de_0%,#0c3bb7_48%,#36a8d0_100%)] px-6 py-24 text-center text-white">
+            <h2 className="mb-5 text-[clamp(42px,5vw,64px)] font-black leading-none tracking-normal">
+              Ready to build better <span className="italic text-[#b3a2ff]">collaborations?</span>
+            </h2>
+            <p className="text-[15px] font-extrabold text-white/80">Join a growing network of verified creators and ambitious brands.</p>
+            <div className="mt-10 flex flex-wrap justify-center gap-5">
+              <HtmlButton
+                buttonName="Join as a Partner"
+                onClick={() => setIsPartnerModalOpen(true)}
+              />
+            </div>
+          </section>
+        )
+      }
+
+
       <PartnerJoinModal
         isOpen={isPartnerModalOpen}
         onClose={() => setIsPartnerModalOpen(false)}
@@ -417,11 +545,10 @@ function HeroButton({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex h-[52px] min-w-[205px] items-center justify-center gap-3 rounded-full px-6 text-[13px] font-black shadow-[0_14px_24px_rgba(28,57,176,0.18)] transition hover:-translate-y-0.5 ${
-        variant === "solid"
+      className={`inline-flex h-[52px] min-w-[205px] items-center justify-center gap-3 rounded-full px-6 text-[13px] font-black shadow-[0_14px_24px_rgba(28,57,176,0.18)] transition hover:-translate-y-0.5 ${variant === "solid"
           ? "bg-[#2448bd] text-white"
           : "border border-[#dce5ff] bg-white text-[#2448bd]"
-      }`}
+        }`}
     >
       <span className={`grid h-8 w-8 place-items-center rounded-full ${variant === "solid" ? "bg-white/30 text-white" : "bg-[#2448bd] text-white"}`}>
         {icon}
@@ -603,18 +730,16 @@ function JourneyColumn({
         {title}
       </div>
       <div
-        className={`relative grid gap-8 before:absolute before:bottom-10 before:top-10 before:border-l-2 before:border-dashed before:border-[#9aaaff] before:content-[''] ${
-          side === "left" ? "before:left-[-27px]" : "before:right-[-27px]"
-        }`}
+        className={`relative grid gap-8 before:absolute before:bottom-10 before:top-10 before:border-l-2 before:border-dashed before:border-[#9aaaff] before:content-[''] ${side === "left" ? "before:left-[-27px]" : "before:right-[-27px]"
+          }`}
       >
         {steps.map((step, index) => {
           const Icon = step.icon;
           return (
             <article key={step.title} className="relative grid min-h-[98px] grid-cols-[72px_1fr] items-center gap-3 rounded-[18px] bg-white px-4 py-4 text-left shadow-[0_10px_22px_rgba(45,63,132,0.07)] md:grid-cols-[80px_1fr]">
               <span
-                className={`absolute top-1/2 hidden h-px w-5 -translate-y-1/2 border-t-2 border-dashed border-[#9aaaff] lg:block ${
-                  side === "left" ? "-left-5" : "-right-5"
-                }`}
+                className={`absolute top-1/2 hidden h-px w-5 -translate-y-1/2 border-t-2 border-dashed border-[#9aaaff] lg:block ${side === "left" ? "-left-5" : "-right-5"
+                  }`}
               />
               <span className={`absolute top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border-2 border-[#8ea1ff] bg-[#f3f6ff] text-[13px] font-black leading-none text-[#8094ff] ${side === "left" ? "-left-[39px]" : "-right-[39px]"}`}>
                 {index + 1}
