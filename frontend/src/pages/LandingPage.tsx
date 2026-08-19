@@ -184,7 +184,13 @@ const LandingPage = () => {
       {
         currentUser && currentUser.role === "Brand" ?
           <>
-            <section className="relative grid min-h-[calc(100vh-1px)] place-items-center px-5 pb-20 pt-28">
+            <section className="relative grid min-h-[calc(100vh-1px)] place-items-center overflow-hidden px-5 pb-20 pt-28">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.96)_0%,rgba(243,246,255,0.94)_38%,rgba(243,246,255,0.99)_100%)]" />
+              <div className="absolute left-1/2 top-[18%] h-[320px] w-[320px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(173,155,255,0.16)_0%,rgba(173,155,255,0)_72%)] blur-2xl" />
+              <div className="absolute left-[18%] top-[58%] h-[220px] w-[220px] rounded-full bg-[radial-gradient(circle,rgba(141,160,255,0.12)_0%,rgba(141,160,255,0)_74%)] blur-2xl" />
+              <div className="absolute right-[18%] top-[54%] h-[220px] w-[220px] rounded-full bg-[radial-gradient(circle,rgba(141,160,255,0.12)_0%,rgba(141,160,255,0)_74%)] blur-2xl" />
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(137,153,255,0.18)_1.2px,transparent_1.2px),linear-gradient(90deg,rgba(137,153,255,0.18)_1.2px,transparent_1.2px)] [background-position:center_center] [background-size:30px_30px] [mask-image:radial-gradient(circle_at_center,black_78%,transparent_100%)]" />
+
               <div className="relative z-10 flex w-full max-w-[780px] flex-col items-center text-center">
                 <SectionLabel>More Than a creator Marketplace</SectionLabel>
                 <h1 className="mb-5 mt-7 text-[clamp(46px,6vw,70px)] font-black leading-[1.02] tracking-normal text-[#173fb5]">
@@ -196,8 +202,12 @@ const LandingPage = () => {
                   and manage campaigns with trust, clarity, and accountability.
                 </p>
                 <div className="mt-9 flex flex-wrap justify-center gap-4">
-                  <HtmlButton variant={""} onClick={() => navigate('/brand')}
-                    buttonName="Proceed to Dashboard">
+                  <HtmlButton
+                    variant="light"
+                    onClick={() => navigate('/brand')}
+                    buttonName="Proceed to Dashboard"
+                    className="min-h-[54px] gap-3 px-8 text-[14px] font-black text-[#2151cd] shadow-[0_22px_42px_rgba(88,110,194,0.16)]"
+                  >
                     <PlayCircleIcon className="h-6 w-6" /> Proceed to Dashboard
                   </HtmlButton>
                 </div>
@@ -354,11 +364,11 @@ const LandingPage = () => {
                     <CampaignCard
                       key={campaign.id}
                       campaign={campaign}
-                      index={index}
-                      onApply={onApplyRecommended}
-                      onSave={onSaveRecommended}
-                      isApplying={applyingId === campaign.id}
-                      isSaving={savingId === campaign.id}
+                      // index={index}
+                      // onApply={onApplyRecommended}
+                      // onSave={onSaveRecommended}
+                      // isApplying={applyingId === campaign.id}
+                      // isSaving={savingId === campaign.id}
                     />
                   ))}
                 </div>

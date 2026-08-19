@@ -1,11 +1,11 @@
 import { ArrowRight } from "lucide-react";
-import type { ButtonHTMLAttributes, ReactNode,ChangeEventHandler } from "react";
+import type { ButtonHTMLAttributes, MouseEventHandler, ReactNode } from "react";
 
 type HtmlButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
     children?: ReactNode;
-    variant?: string;
+    variant?: "primary" | "light";
     buttonName:string;
-    onClick:ChangeEventHandler<HTMLInputElement>;
+    onClick: MouseEventHandler<HTMLButtonElement>;
 
 };
 
@@ -23,7 +23,7 @@ const HtmlButton = ({
         className={`inline-flex min-h-[46px] items-center justify-center gap-2 rounded-full px-7 text-sm font-black transition hover:-translate-y-0.5 ${
         variant === "primary"
           ? "bg-[#174bd2] text-white shadow-[0_14px_24px_rgba(27,71,207,0.22)]"
-          : "border border-[#dbe5ff] bg-white text-[#174bc6] shadow-[0_12px_26px_rgba(75,103,191,0.12)]"
+          : "border border-[#dbe5ff] bg-white text-[#174bc6] shadow-[0_16px_30px_rgba(75,103,191,0.14)]"
       } ${props.className ?? ""}`}
         >
             {children ?? buttonName}
