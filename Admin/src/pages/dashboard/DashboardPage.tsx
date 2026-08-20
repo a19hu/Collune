@@ -1,21 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Users,
-  Sparkles,
-  Building2,
-  Megaphone,
-  CheckCircle2,
-  Clock,
-  ArrowUpRight,
-  ArrowDownRight,
-  TrendingUp,
-  Shield,
-  Activity,
-  Layers,
-  ArrowRight,
-  FileSpreadsheet,
-} from 'lucide-react';
-import {
   ResponsiveContainer,
   LineChart,
   Line,
@@ -31,10 +15,8 @@ import {
   Legend,
 } from 'recharts';
 import { statsService } from '../../services/statsService';
-import { auditLogService } from '../../services/auditLogService';
-import { DashboardStats, AuditLog } from '../../types';
-import { formatCompactNumber, timeAgo } from '../../utils/formatters';
-import { StatusBadge } from '../../components/common/StatusBadge';
+import { DashboardStats } from '../../types';
+import { formatCompactNumber } from '../../utils/formatters';
 import { useAuth } from '../../context/AuthContext';
 
 interface DashboardPageProps {
@@ -48,96 +30,28 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onRouteChange }) =
   const [growthRange, setGrowthRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
   const [campaignData, setCampaignData] = useState<any[]>([]);
   const [categoryData, setCategoryData] = useState<any[]>([]);
-  const [recentLogs, setRecentLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
       try {
-        const [s, g, c, cat, logs] = await Promise.all([
+        const [s, g, c, cat] = await Promise.all([
           statsService.getDashboardStats(),
           statsService.getUserGrowth(growthRange),
           statsService.getCampaignOverview(),
           statsService.getCategoryDistribution(),
-          auditLogService.getLogs(),
         ]);
         setStats(s);
         setGrowthData(g);
         setCampaignData(c);
         setCategoryData(cat);
-        setRecentLogs(logs.slice(0, 6));
       } finally {
         setIsLoading(false);
       }
     }
     loadData();
   }, [growthRange]);
-
-  const kpis = stats
-    ? [
-        {
-          label: 'Total Creators',
-          value: formatCompactNumber(stats.totalCreators),
-          subValue: `${stats.verifiedCreators.toLocaleString()} verified`,
-          change: '+12.4%',
-          isPositive: true,
-          icon: Sparkles,
-          color: 'text-indigo-600 dark:text-indigo-400',
-          bgColor: 'bg-indigo-50 dark:bg-indigo-950/50',
-          route: '/admin/creators',
-          permission: 'creators.view',
-        },
-        {
-          label: 'Pending Verification',
-          value: stats.pendingCreatorVerification.toString(),
-          subValue: 'Requires KYC review',
-          change: '-2.3%',
-          isPositive: true,
-          icon: Clock,
-          color: 'text-amber-600 dark:text-amber-400',
-          bgColor: 'bg-amber-50 dark:bg-amber-950/50',
-          route: '/admin/creators',
-          permission: 'creators.verify',
-        },
-        {
-          label: 'Total Brands',
-          value: formatCompactNumber(stats.totalBrands),
-          subValue: `${stats.verifiedBrands.toLocaleString()} verified`,
-          change: '+8.1%',
-          isPositive: true,
-          icon: Building2,
-          color: 'text-sky-600 dark:text-sky-400',
-          bgColor: 'bg-sky-50 dark:bg-sky-950/50',
-          route: '/admin/brands',
-          permission: 'brands.view',
-        },
-        {
-          label: 'Active Campaigns',
-          value: stats.activeCampaigns.toString(),
-          subValue: `${stats.completedCampaigns.toLocaleString()} completed`,
-          change: '+15.2%',
-          isPositive: true,
-          icon: Megaphone,
-          color: 'text-pink-600 dark:text-pink-400',
-          bgColor: 'bg-pink-50 dark:bg-pink-950/50',
-          route: '/admin/campaigns',
-          permission: 'campaigns.view',
-        },
-        {
-          label: 'Internal Staff Users',
-          value: stats.internalStaffUsers.toString(),
-          subValue: 'Across 8 departments',
-          change: '+4.0%',
-          isPositive: true,
-          icon: Users,
-          color: 'text-emerald-600 dark:text-emerald-400',
-          bgColor: 'bg-emerald-50 dark:bg-emerald-950/50',
-          route: '/admin/users',
-          permission: 'users.view',
-        },
-      ]
-    : [];
 
   return (
     <div className="space-y-6">
@@ -150,18 +64,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onRouteChange }) =
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Real-time analytics and management controls for Collune Influencer Ecosystem.
           </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {hasPermission('exports.view') && (
-            <button
-              onClick={() => onRouteChange('/admin/exports')}
-              className="px-3.5 py-2 text-xs font-semibold rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-              <span>Export Reports</span>
-            </button>
-          )}
         </div>
       </div>
 
@@ -247,7 +149,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onRouteChange }) =
       </div>
 
       {/* Grid: Platform Growth & Creator Categories */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
         {/* Platform Growth (2 cols) */}
         <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
           <div className="flex items-center justify-between mb-4">
@@ -310,110 +212,91 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onRouteChange }) =
             </ResponsiveContainer>
           </div>
         </div>
-
-        {/* Creator Categories (1 col) */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between">
-          <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-4">Creator Categories</h3>
-          <div className="flex flex-col gap-3.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Fashion & Beauty</span>
-              </div>
-              <span className="text-xs font-bold text-slate-900 dark:text-slate-100">34%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Tech & Gadgets</span>
-              </div>
-              <span className="text-xs font-bold text-slate-900 dark:text-slate-100">21%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Fitness & Health</span>
-              </div>
-              <span className="text-xs font-bold text-slate-900 dark:text-slate-100">18%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Gaming & Esports</span>
-              </div>
-              <span className="text-xs font-bold text-slate-900 dark:text-slate-100">15%</span>
-            </div>
-            <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">TOTAL VERIFIED</span>
-              <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                {stats ? stats.verifiedCreators.toLocaleString() : '8,720'}
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* Recent Activity Table (Full Width) */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
-        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">Recent Activity</h3>
-          {hasPermission('audit_logs.view') && (
-            <button
-              onClick={() => onRouteChange('/admin/audit')}
-              className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
-            >
-              View All
-            </button>
-          )}
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
-                <th className="px-4 py-3">ENTITY</th>
-                <th className="px-4 py-3">ACTION</th>
-                <th className="px-4 py-3">PERFORMED BY</th>
-                <th className="px-4 py-3">TIME</th>
-                <th className="px-4 py-3 text-right">STATUS</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {recentLogs.map((log) => {
-                const isVerified = log.action.includes('VERIFY') || log.action.includes('APPROVED');
-                const isDraft = log.action.includes('DRAFT') || log.action.includes('CREATE');
-                const isExport = log.action.includes('EXPORT');
+      {/* Grid: Campaign Status & Category Distribution (Full Width) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Campaign Status Overview (2 cols) */}
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">Campaign Status Overview</h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">Monthly campaigns by lifecycle stage</p>
+            </div>
+            {hasPermission('campaigns.view') && (
+              <button
+                onClick={() => onRouteChange('/admin/campaigns')}
+                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors cursor-pointer"
+              >
+                View All
+              </button>
+            )}
+          </div>
 
-                return (
-                  <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                    <td className="px-4 py-3 font-bold text-slate-700 dark:text-slate-300">
-                      {log.targetName || log.description.split(' ')[0] || 'System'}{' '}
-                      <span className="text-[10px] font-normal text-slate-400">
-                        {log.targetId ? `(${log.targetId})` : ''}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{log.description}</td>
-                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{log.userName}</td>
-                    <td className="px-4 py-3 text-slate-400">{timeAgo(log.timestamp)}</td>
-                    <td className="px-4 py-3 text-right">
-                      <span
-                        className={`px-2 py-0.5 rounded font-bold text-[10px] uppercase ${
-                          isVerified
-                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
-                            : isDraft
-                            ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300'
-                            : isExport
-                            ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
-                            : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
-                        }`}
-                      >
-                        {log.action}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="h-[260px] w-full pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={campaignData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} opacity={0.5} />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#0f172a',
+                    borderColor: '#1e293b',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '11px',
+                  }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                <Bar dataKey="active" name="Active" stackId="a" fill="#6366f1" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="completed" name="Completed" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="draft" name="Draft" stackId="a" fill="#f59e0b" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="paused" name="Paused" stackId="a" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Category Distribution (1 col) */}
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex flex-col">
+          <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-2">Creator Category Split</h3>
+          <p className="text-[11px] text-slate-400 -mt-1 mb-2">Share of creators by primary category</p>
+          <div className="h-[220px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={45}
+                  outerRadius={80}
+                  paddingAngle={2}
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#0f172a',
+                    borderColor: '#1e293b',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '11px',
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-1">
+            {categoryData.slice(0, 6).map((cat) => (
+              <div key={cat.name} className="flex items-center gap-1.5 min-w-0">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 truncate">{cat.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

@@ -27,9 +27,8 @@ import { CampaignsPage } from './pages/campaigns/CampaignsPage';
 import { CampaignDetailPage } from './pages/campaigns/CampaignDetailPage';
 import { ShortlistsPage } from './pages/shortlists/ShortlistsPage';
 import { ShortlistDetailPage } from './pages/shortlists/ShortlistDetailPage';
-import { ExportsPage } from './pages/exports/ExportsPage';
-import { AuditLogsPage } from './pages/audit/AuditLogsPage';
-import { SettingsPage } from './pages/settings/SettingsPage';
+// import { ExportsPage } from './pages/exports/ExportsPage';
+import { LoginPage } from './pages/auth/LoginPage';
 
 // Wrapper for User Detail route to extract params
 const UserDetailWrapper: React.FC = () => {
@@ -69,6 +68,16 @@ const ShortlistDetailWrapper: React.FC = () => {
 const AppShell: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  // Public login screen — rendered without the admin chrome (sidebar/topbar).
+  if (location.pathname === '/login') {
+    return isAuthenticated ? <Navigate to="/admin/dashboard" replace /> : <LoginPage />;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <AdminLayout
@@ -191,24 +200,24 @@ const AppShell: React.FC = () => {
         />
 
         {/* Exports */}
-        <Route
+        {/* <Route
           path="/admin/exports"
           element={
             <ProtectedRoute permission="exports.view">
               <ExportsPage />
             </ProtectedRoute>
           }
-        />
+        /> */}
 
         {/* Audit Logs */}
-        <Route
+        {/* <Route
           path="/admin/audit"
           element={
             <ProtectedRoute permission="audit.view">
               <AuditLogsPage />
             </ProtectedRoute>
           }
-        />
+        /> */}
 
         {/* Settings */}
         {/* <Route

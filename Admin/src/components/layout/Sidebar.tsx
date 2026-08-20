@@ -12,11 +12,12 @@ import {
   Settings,
   ChevronRight,
   ChevronDown,
+  LogOut,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Permission } from '../../types';
 import { cn } from '../../utils/cn';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 // @ts-ignore - SVG module type declaration not found, but import works via bundler asset handling
 import logo from "../../assests/Logo.svg";
 
@@ -25,7 +26,6 @@ interface NavItem {
   id: string;
   icon: React.ElementType;
   permission: Permission | string;
-  badge?: string | number;
 }
 
 interface NavSection {
@@ -46,8 +46,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isMobileOpen = false,
   onMobileClose,
 }) => {
-  const { currentUser, currentRole, roles, switchDemoRole, hasPermission } = useAuth();
+  const { currentUser, currentRole, roles, switchDemoRole, hasPermission, logout } = useAuth();
   const [showRoleMenu, setShowRoleMenu] = React.useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    setShowRoleMenu(false);
+    logout();
+    navigate('/login');
+  };
 
   const navSections: NavSection[] = [
     {
@@ -85,8 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           name: 'Creators',
           id: '/admin/creators',
           icon: Sparkles,
-          permission: 'creators.view',
-          badge: '428',
+          permission: 'creators.view'
         },
         {
           name: 'Brands',
@@ -98,31 +104,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           name: 'Campaigns',
           id: '/admin/campaigns',
           icon: Megaphone,
-          permission: 'campaigns.view',
-          badge: '326',
+          permission: 'campaigns.view'
         },
         {
           name: 'Shortlists',
           id: '/admin/shortlists',
           icon: Bookmark,
           permission: 'shortlists.view',
-        },
-      ],
-    },
-    {
-      title: 'Operations',
-      items: [
-        {
-          name: 'Data Exports',
-          id: '/admin/exports',
-          icon: DownloadCloud,
-          permission: 'exports.view',
-        },
-        {
-          name: 'Audit Logs',
-          id: '/admin/audit',
-          icon: FileSpreadsheet,
-          permission: 'audit_logs.view',
         },
       ],
     },
@@ -189,12 +177,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       />
                       <span className="truncate">{item.name}</span>
                     </div>
-
-                    {item.badge && !isActive && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-medium">
-                        {item.badge}
-                      </span>
-                    )}
 
                     {isActive && <ChevronRight className="w-3.5 h-3.5 text-white/80 shrink-0" />}
                   </button>
@@ -264,6 +246,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </button>
                   );
                 })}
+              </div>
+              <div className="pt-1 mt-1 border-t border-slate-800">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs font-semibold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Log Out</span>
+                </button>
               </div>
             </div>
           )}

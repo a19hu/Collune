@@ -29,11 +29,13 @@ export const Header: React.FC<HeaderProps> = ({
     currentUser,
     currentRole,
     switchDemoRole,
+    logout,
   } = useAuth();
 
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [omniQuery, setOmniQuery] = useState('');
+
 
   return (
     <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 shrink-0 transition-colors">
@@ -109,13 +111,12 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="border-t border-slate-100 dark:border-slate-800 pt-1">
                   <button
                     onClick={() => {
-                      switchDemoRole('ROLE-SUPER-ADMIN');
-                      setShowUserDropdown(false);
+                      logout();
                     }}
                     className="w-full text-left px-3 py-1.5 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-md transition-colors flex items-center gap-2 cursor-pointer"
                   >
                     <LogOut className="w-3.5 h-3.5" />
-                    <span>Reset to Super Admin</span>
+                    <span>Log out</span>
                   </button>
                 </div>
               </div>

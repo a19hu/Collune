@@ -5,13 +5,8 @@ import {
   Edit2,
   Copy,
   Trash2,
-  Lock,
-  CheckCircle2,
   Users,
-  Layers,
-  Sparkles,
   Check,
-  X,
 } from 'lucide-react';
 import { Role, Permission } from '../../types';
 import { roleService } from '../../services/roleService';

@@ -9,6 +9,9 @@ interface AuthContextType {
   currentUser: StaffUser;
   currentRole: Role;
   roles: Role[];
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<StaffUser>;
+  logout: () => void;
   hasPermission: (permission: Permission | string) => boolean;
   switchDemoRole: (roleId: string) => void;
   refreshRoles: () => Promise<void>;
@@ -18,6 +21,19 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Demo-only session gate: no real backend, so any listed staff email + this password unlocks the portal.
+const DEMO_LOGIN_PASSWORD = 'Collune@123';
+const AUTH_SESSION_KEY = 'collune_admin_session';
+
+function readStoredSession(): { roleId: string } | null {
+  try {
+    const raw = localStorage.getItem(AUTH_SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
 const DEMO_USERS_BY_ROLE: Record<string, Partial<StaffUser>> = {
   'ROLE-SUPER-ADMIN': {
@@ -86,8 +102,10 @@ const DEMO_USERS_BY_ROLE: Record<string, Partial<StaffUser>> = {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const storedSession = readStoredSession();
   const [roles, setRoles] = useState<Role[]>(DEFAULT_ROLES);
-  const [activeRoleId, setActiveRoleId] = useState<string>('ROLE-SUPER-ADMIN');
+  const [activeRoleId, setActiveRoleId] = useState<string>(storedSession?.roleId || 'ROLE-SUPER-ADMIN');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!storedSession);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const { info } = useToast();
 
@@ -154,6 +172,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [roles, info]
   );
 
+  const login = useCallback((email: string, password: string): Promise<StaffUser> => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const normalizedEmail = email.trim().toLowerCase();
+        const matchedRoleId = Object.entries(DEMO_USERS_BY_ROLE).find(
+          ([, profile]) => profile.email?.toLowerCase() === normalizedEmail
+        )?.[0];
+
+        if (!matchedRoleId || password !== DEMO_LOGIN_PASSWORD) {
+          reject(new Error('Invalid email or password.'));
+          return;
+        }
+
+        setActiveRoleId(matchedRoleId);
+        setIsAuthenticated(true);
+        localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ roleId: matchedRoleId }));
+
+        const profile = DEMO_USERS_BY_ROLE[matchedRoleId];
+        const role = roles.find((r) => r.id === matchedRoleId) || DEFAULT_ROLES[0];
+        resolve({
+          id: profile.id || 'ADM-DEMO',
+          name: profile.name || role.name,
+          email: profile.email || normalizedEmail,
+          phone: '+91 98765 43210',
+          avatarUrl: profile.avatarUrl,
+          department: (profile.department as any) || 'Administration',
+          roleId: role.id,
+          roleName: role.name,
+          status: 'Active',
+          lastLogin: 'Just now',
+          createdAt: '2025-01-01T00:00:00Z',
+        });
+      }, 400);
+    });
+  }, [roles]);
+
+  const logout = useCallback(() => {
+    setIsAuthenticated(false);
+    localStorage.removeItem(AUTH_SESSION_KEY);
+  }, []);
+
   const logAdminAction = useCallback(
     async (action: AuditAction, module: ModuleName, description: string, targetId?: string) => {
       await auditLogService.logAction({
@@ -187,6 +246,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         currentUser,
         currentRole,
         roles,
+        isAuthenticated,
+        login,
+        logout,
         hasPermission,
         switchDemoRole,
         refreshRoles,
