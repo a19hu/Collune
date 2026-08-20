@@ -46,6 +46,9 @@ export type Permission =
   | 'campaigns.close'
   | 'campaigns.delete'
   | 'campaigns.export'
+  // Shortlists
+  | 'shortlists.view'
+  | 'shortlists.export'
   // Exports
   | 'exports.view'
   | 'exports.creator'
@@ -67,6 +70,7 @@ export type ModuleName =
   | 'Creators'
   | 'Brands'
   | 'Campaigns'
+  | 'Shortlists'
   | 'Exports'
   | 'Audit Logs'
   | 'Settings';
@@ -257,6 +261,38 @@ export interface Campaign {
 }
 
 export type ExportType = 'Creator Data' | 'Brand Data' | 'Campaign Data' | 'Internal User Data';
+
+export type ShortlistStatus = 'Draft' | 'Submitted';
+
+export interface ShortlistCreatorRef {
+  id: string;
+  name: string;
+  avatarUrl: string;
+  category: CreatorCategory | string;
+  platform: 'Instagram' | 'YouTube' | 'LinkedIn' | 'X';
+  followers: number;
+}
+
+export interface Shortlist {
+  id: string;
+  shortlistCode: string; // e.g. SL-5012
+  title: string;
+  brandId: string;
+  brandName: string;
+  brandLogo: string;
+  status: ShortlistStatus;
+  purpose: string;
+  notes: string;
+  platforms: ('Instagram' | 'YouTube' | 'LinkedIn' | 'X')[];
+  categories: string;
+  audience: string;
+  budgetRange: string;
+  startDate: string;
+  endDate: string;
+  creators: ShortlistCreatorRef[];
+  createdAt: string;
+  updatedAt: string;
+}
 export type ExportFormat = 'CSV' | 'Excel' | 'JSON';
 export type ExportStatus = 'Completed' | 'Processing' | 'Failed';
 

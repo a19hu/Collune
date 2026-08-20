@@ -6,6 +6,7 @@ import {
   Sparkles,
   Building2,
   Megaphone,
+  Bookmark,
   DownloadCloud,
   FileSpreadsheet,
   Settings,
@@ -15,6 +16,9 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { Permission } from '../../types';
 import { cn } from '../../utils/cn';
+import { Link } from 'react-router-dom';
+// @ts-ignore - SVG module type declaration not found, but import works via bundler asset handling
+import logo from "../../assests/Logo.svg";
 
 interface NavItem {
   name: string;
@@ -97,6 +101,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
           permission: 'campaigns.view',
           badge: '326',
         },
+        {
+          name: 'Shortlists',
+          id: '/admin/shortlists',
+          icon: Bookmark,
+          permission: 'shortlists.view',
+        },
       ],
     },
     {
@@ -116,17 +126,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
         },
       ],
     },
-    {
-      title: 'System',
-      items: [
-        {
-          name: 'Settings',
-          id: '/admin/settings',
-          icon: Settings,
-          permission: 'settings.view',
-        },
-      ],
-    },
+    // {
+    //   title: 'System',
+    //   items: [
+    //     {
+    //       name: 'Settings',
+    //       id: '/admin/settings',
+    //       icon: Settings,
+    //       permission: 'settings.view',
+    //     },
+    //   ],
+    // },
   ];
 
   // Filter out sections where user has 0 visible items
@@ -147,17 +157,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const sidebarContent = (
     <div className="flex flex-col h-full bg-[#0F172A] text-white shrink-0 border-r border-slate-800">
       {/* Brand Header */}
-      <div className="p-6 flex items-center gap-3 border-b border-slate-800 shrink-0">
-        <div
-          onClick={() => handleNavClick('/admin/dashboard')}
-          className="flex items-center gap-3 cursor-pointer group"
-        >
-          <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center font-bold text-lg text-white shadow-sm">
-            C
-          </div>
-          <span className="text-xl font-bold tracking-tight text-white">Collune</span>
+       <div className="flex items-center justify-between px-6 pb-6 pt-6 lg:px-16 border-b border-slate-800">
+          <Link to="/" onClick={() => handleNavClick('/admin/dashboard')}>
+            <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
+          </Link>
         </div>
-      </div>
+      
 
       {/* Navigation Sections */}
       <nav className="flex-1 p-4 space-y-6 overflow-y-auto">

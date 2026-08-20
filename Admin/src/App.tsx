@@ -25,6 +25,8 @@ import { BrandsPage } from './pages/brands/BrandsPage';
 import { BrandDetailPage } from './pages/brands/BrandDetailPage';
 import { CampaignsPage } from './pages/campaigns/CampaignsPage';
 import { CampaignDetailPage } from './pages/campaigns/CampaignDetailPage';
+import { ShortlistsPage } from './pages/shortlists/ShortlistsPage';
+import { ShortlistDetailPage } from './pages/shortlists/ShortlistDetailPage';
 import { ExportsPage } from './pages/exports/ExportsPage';
 import { AuditLogsPage } from './pages/audit/AuditLogsPage';
 import { SettingsPage } from './pages/settings/SettingsPage';
@@ -55,6 +57,13 @@ const CampaignDetailWrapper: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   return <CampaignDetailPage campaignId={id || '1'} onRouteChange={(r) => navigate(r)} />;
+};
+
+// Wrapper for Shortlist Detail route
+const ShortlistDetailWrapper: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  return <ShortlistDetailPage shortlistId={id || '1'} onRouteChange={(r) => navigate(r)} />;
 };
 
 const AppShell: React.FC = () => {
@@ -159,6 +168,24 @@ const AppShell: React.FC = () => {
           element={
             <ProtectedRoute permission="campaigns.view">
               <CampaignDetailWrapper />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Shortlists */}
+        <Route
+          path="/admin/shortlists"
+          element={
+            <ProtectedRoute permission="shortlists.view">
+              <ShortlistsPage onRouteChange={(r) => navigate(r)} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/shortlists/:id"
+          element={
+            <ProtectedRoute permission="shortlists.view">
+              <ShortlistDetailWrapper />
             </ProtectedRoute>
           }
         />

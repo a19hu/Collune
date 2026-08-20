@@ -259,6 +259,20 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     description: 'Download campaign metrics, ROI, and deliverable stats',
   },
 
+  // Shortlists
+  {
+    key: 'shortlists.view',
+    label: 'View Shortlists',
+    module: 'Shortlists',
+    description: 'Browse brand shortlists, selected creators, and submission status',
+  },
+  {
+    key: 'shortlists.export',
+    label: 'Export Shortlist Data',
+    module: 'Shortlists',
+    description: 'Download shortlist records and selected creator rosters',
+  },
+
   // Exports
   {
     key: 'exports.view',
@@ -321,6 +335,7 @@ export const MODULES: ModuleName[] = [
   'Creators',
   'Brands',
   'Campaigns',
+  'Shortlists',
   'Exports',
   'Audit Logs',
   'Settings',
@@ -370,6 +385,7 @@ export const DEFAULT_ROLES: Role[] = [
       'creators.view', 'creators.create', 'creators.edit', 'creators.verify', 'creators.approve', 'creators.reject', 'creators.activate', 'creators.deactivate', 'creators.export',
       'brands.view', 'brands.create', 'brands.edit', 'brands.verify', 'brands.approve', 'brands.reject', 'brands.activate', 'brands.deactivate', 'brands.export',
       'campaigns.view', 'campaigns.create', 'campaigns.edit', 'campaigns.approve', 'campaigns.pause', 'campaigns.close', 'campaigns.export',
+      'shortlists.view', 'shortlists.export',
       'exports.view', 'exports.creator', 'exports.brand', 'exports.campaign', 'exports.user',
       'audit_logs.view',
       'settings.view',
@@ -388,6 +404,7 @@ export const DEFAULT_ROLES: Role[] = [
       'creators.view', 'creators.create', 'creators.edit', 'creators.verify', 'creators.approve', 'creators.reject', 'creators.activate', 'creators.deactivate', 'creators.export',
       'brands.view', 'brands.create', 'brands.edit', 'brands.verify', 'brands.approve', 'brands.reject', 'brands.activate', 'brands.deactivate', 'brands.export',
       'campaigns.view', 'campaigns.create', 'campaigns.edit', 'campaigns.approve', 'campaigns.pause', 'campaigns.close', 'campaigns.export',
+      'shortlists.view', 'shortlists.export',
       'exports.view', 'exports.creator', 'exports.brand', 'exports.campaign',
       'audit_logs.view',
     ],
@@ -418,6 +435,7 @@ export const DEFAULT_ROLES: Role[] = [
     permissions: [
       'dashboard.view',
       'campaigns.view', 'campaigns.create', 'campaigns.edit', 'campaigns.approve', 'campaigns.pause', 'campaigns.close',
+      'shortlists.view',
       'creators.view',
       'brands.view',
     ],
@@ -434,6 +452,7 @@ export const DEFAULT_ROLES: Role[] = [
       'dashboard.view',
       'brands.view', 'brands.create', 'brands.edit', 'brands.verify', 'brands.approve', 'brands.reject', 'brands.activate', 'brands.deactivate',
       'campaigns.view', 'campaigns.create', 'campaigns.edit',
+      'shortlists.view',
       'creators.view',
     ],
     userCount: 4,
@@ -450,6 +469,7 @@ export const DEFAULT_ROLES: Role[] = [
       'creators.view', 'creators.export',
       'brands.view', 'brands.export',
       'campaigns.view', 'campaigns.export',
+      'shortlists.view', 'shortlists.export',
       'users.view', 'users.export',
       'exports.view', 'exports.creator', 'exports.brand', 'exports.campaign', 'exports.user',
     ],
