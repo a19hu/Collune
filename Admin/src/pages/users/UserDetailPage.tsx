@@ -1,18 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
   ArrowLeft,
-  Mail,
-  Phone,
   Building,
   Shield,
-  Clock,
-  Calendar,
   CheckCircle2,
   Lock,
   Edit2,
   Trash2,
-  Activity,
-  AlertTriangle,
 } from 'lucide-react';
 import { StaffUser, Role, AuditLog } from '../../types';
 import { userService } from '../../services/userService';
@@ -192,19 +186,6 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({ userId, onRouteC
               {isSuperAdmin ? 'All' : role?.permissions.length || 0}
             </span>
           </button>
-          <button
-            onClick={() => setActiveTab('activity')}
-            className={`pb-2 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'activity'
-                ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
-          >
-            <span>Activity Logs</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px]">
-              {userLogs.length}
-            </span>
-          </button>
         </div>
       </div>
 
@@ -326,38 +307,6 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({ userId, onRouteC
               );
             })}
           </div>
-        </div>
-      )}
-
-      {activeTab === 'activity' && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-            Recorded Audit Trail Events
-          </h3>
-          {userLogs.length === 0 ? (
-            <p className="text-xs text-slate-500 py-8 text-center">
-              No direct audit logs recorded for this staff user yet.
-            </p>
-          ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
-              {userLogs.map((log) => (
-                <div key={log.id} className="py-3 flex items-start justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <StatusBadge status={log.action} showIcon={false} className="text-[10px]" />
-                      <span className="font-semibold text-slate-800 dark:text-slate-200">
-                        {log.module}
-                      </span>
-                    </div>
-                    <p className="text-slate-600 dark:text-slate-400 mt-1">{log.description}</p>
-                  </div>
-                  <span className="text-slate-400 text-[11px] shrink-0 font-mono">
-                    {timeAgo(log.timestamp)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
 

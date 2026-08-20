@@ -13,75 +13,75 @@ jobs:
       contents: read
       id-token: write
 
-    env:
-      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-      REGION: ${{ secrets.GCP_REGION }}
-      REPOSITORY: collune
-      IMAGE_NAME: collune-backend
-      TF_IN_AUTOMATION: "true"
+    # env:
+    #   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+    #   REGION: ${{ secrets.GCP_REGION }}
+    #   REPOSITORY: collune
+    #   IMAGE_NAME: collune-backend
+    #   TF_IN_AUTOMATION: "true"
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Authenticate to GCP
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      # - name: Authenticate to GCP
+      #   uses: google-github-actions/auth@v2
+      #   with:
+      #     workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      #     service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      - name: Set up gcloud CLI
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ env.PROJECT_ID }}
+      # - name: Set up gcloud CLI
+      #   uses: google-github-actions/setup-gcloud@v2
+      #   with:
+      #     project_id: ${{ env.PROJECT_ID }}
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
+      # - name: Set up Terraform
+      #   uses: hashicorp/setup-terraform@v3
 
-      - name: Configure Docker for Artifact Registry
-        run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+      # - name: Configure Docker for Artifact Registry
+      #   run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
 
-      - name: Build and push backend image
-        working-directory: server
-        run: |
-          SHORT_SHA="${GITHUB_SHA::8}"
-          IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${IMAGE_NAME}"
+      # - name: Build and push backend image
+      #   working-directory: server
+      #   run: |
+      #     SHORT_SHA="${GITHUB_SHA::8}"
+      #     IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${IMAGE_NAME}"
 
-          docker build \
-            -t "${IMAGE_URI}:${SHORT_SHA}" \
-            -t "${IMAGE_URI}:latest" \
-            .
+      #     docker build \
+      #       -t "${IMAGE_URI}:${SHORT_SHA}" \
+      #       -t "${IMAGE_URI}:latest" \
+      #       .
 
-          docker push "${IMAGE_URI}:${SHORT_SHA}"
-          docker push "${IMAGE_URI}:latest"
+      #     docker push "${IMAGE_URI}:${SHORT_SHA}"
+      #     docker push "${IMAGE_URI}:latest"
 
-          echo "IMAGE_TAG=${SHORT_SHA}" >> "${GITHUB_ENV}"
+      #     echo "IMAGE_TAG=${SHORT_SHA}" >> "${GITHUB_ENV}"
 
-      - name: Terraform init
-        working-directory: terraform
-        run: terraform init
+      # - name: Terraform init
+      #   working-directory: terraform
+      #   run: terraform init
 
-      - name: Deploy Cloud Run service and job only
-        working-directory: terraform
-        run: |
-          terraform apply -auto-approve \
-            -target=google_cloud_run_service.default \
-            -target=google_cloud_run_v2_job.migrate \
-            -target=google_cloud_run_service_iam_member.public_access \
-            -var="project_id=${PROJECT_ID}" \
-            -var="region=${REGION}" \
-            -var="image_tag=${IMAGE_TAG}" \
-            -var="db_password=${{ secrets.DB_PASSWORD }}" \
-            -var="bucket_name=${{ secrets.BUCKET_NAME }}" \
-            -var="email_host_user=${{ secrets.EMAIL_HOST_USER }}" \
-            -var="email_host_password=${{ secrets.EMAIL_HOST_PASSWORD }}" \
-            -var="django_superuser_username=${{ secrets.DJANGO_SUPERUSER_USERNAME }}" \
-            -var="django_superuser_email=${{ secrets.DJANGO_SUPERUSER_EMAIL }}" \
-            -var="django_superuser_password=${{ secrets.DJANGO_SUPERUSER_PASSWORD }}" \
-            -var="meta_app_id=${{ secrets.META_APP_ID }}" \
-            -var="meta_app_secret=${{ secrets.META_APP_SECRET }}" \
-            -var="google_client_id=${{ secrets.GOOGLE_CLIENT_ID }}" \
-            -var="google_client_secret=${{ secrets.GOOGLE_CLIENT_SECRET }}" \
-            -var="x_client_id=${{ secrets.X_CLIENT_ID }}" \
-            -var="x_client_secret=${{ secrets.X_CLIENT_SECRET }}" \
-            -var="x_bearer_token=${{ secrets.X_BEARER_TOKEN }}"
+      # - name: Deploy Cloud Run service and job only
+      #   working-directory: terraform
+      #   run: |
+      #     terraform apply -auto-approve \
+      #       -target=google_cloud_run_service.default \
+      #       -target=google_cloud_run_v2_job.migrate \
+      #       -target=google_cloud_run_service_iam_member.public_access \
+      #       -var="project_id=${PROJECT_ID}" \
+      #       -var="region=${REGION}" \
+      #       -var="image_tag=${IMAGE_TAG}" \
+      #       -var="db_password=${{ secrets.DB_PASSWORD }}" \
+      #       -var="bucket_name=${{ secrets.BUCKET_NAME }}" \
+      #       -var="email_host_user=${{ secrets.EMAIL_HOST_USER }}" \
+      #       -var="email_host_password=${{ secrets.EMAIL_HOST_PASSWORD }}" \
+      #       -var="django_superuser_username=${{ secrets.DJANGO_SUPERUSER_USERNAME }}" \
+      #       -var="django_superuser_email=${{ secrets.DJANGO_SUPERUSER_EMAIL }}" \
+      #       -var="django_superuser_password=${{ secrets.DJANGO_SUPERUSER_PASSWORD }}" \
+      #       -var="meta_app_id=${{ secrets.META_APP_ID }}" \
+      #       -var="meta_app_secret=${{ secrets.META_APP_SECRET }}" \
+      #       -var="google_client_id=${{ secrets.GOOGLE_CLIENT_ID }}" \
+      #       -var="google_client_secret=${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+      #       -var="x_client_id=${{ secrets.X_CLIENT_ID }}" \
+      #       -var="x_client_secret=${{ secrets.X_CLIENT_SECRET }}" \
+      #       -var="x_bearer_token=${{ secrets.X_BEARER_TOKEN }}"

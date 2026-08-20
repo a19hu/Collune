@@ -126,17 +126,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         },
       ],
     },
-    // {
-    //   title: 'System',
-    //   items: [
-    //     {
-    //       name: 'Settings',
-    //       id: '/admin/settings',
-    //       icon: Settings,
-    //       permission: 'settings.view',
-    //     },
-    //   ],
-    // },
   ];
 
   // Filter out sections where user has 0 visible items

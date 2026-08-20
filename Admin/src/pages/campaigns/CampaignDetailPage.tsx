@@ -258,16 +258,6 @@ export const CampaignDetailPage: React.FC<CampaignDetailPageProps> = ({
           >
             Required Deliverables ({campaign.deliverables.length})
           </button>
-          <button
-            onClick={() => setActiveTab('analytics')}
-            className={`pb-2 border-b-2 transition-colors cursor-pointer ${
-              activeTab === 'analytics'
-                ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
-          >
-            Live Performance Metrics
-          </button>
         </div>
       </div>
 
@@ -340,54 +330,6 @@ export const CampaignDetailPage: React.FC<CampaignDetailPageProps> = ({
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'analytics' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-            <div className="flex items-center justify-between text-slate-500 text-xs">
-              <span>Total Video Views</span>
-              <Eye className="w-4 h-4 text-indigo-500" />
-            </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-2">
-              3,482,900
-            </div>
-            <div className="text-[11px] text-emerald-600 font-semibold mt-1">+24% vs Benchmark</div>
-          </div>
-
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-            <div className="flex items-center justify-between text-slate-500 text-xs">
-              <span>Audience Likes</span>
-              <Heart className="w-4 h-4 text-rose-500" />
-            </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-2">
-              214,800
-            </div>
-            <div className="text-[11px] text-slate-400 mt-1">Direct engagement</div>
-          </div>
-
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-            <div className="flex items-center justify-between text-slate-500 text-xs">
-              <span>Comments & Inquiries</span>
-              <MessageSquare className="w-4 h-4 text-sky-500" />
-            </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-2">
-              18,420
-            </div>
-            <div className="text-[11px] text-slate-400 mt-1">High purchase intent</div>
-          </div>
-
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-            <div className="flex items-center justify-between text-slate-500 text-xs">
-              <span>Shares & Saves</span>
-              <Share2 className="w-4 h-4 text-amber-500" />
-            </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-2">
-              42,910
-            </div>
-            <div className="text-[11px] text-emerald-600 font-semibold mt-1">Viral reach multiplier</div>
           </div>
         </div>
       )}

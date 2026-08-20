@@ -211,14 +211,14 @@ const AppShell: React.FC = () => {
         />
 
         {/* Settings */}
-        <Route
+        {/* <Route
           path="/admin/settings"
           element={
             <ProtectedRoute permission="settings.view">
               <SettingsPage />
             </ProtectedRoute>
           }
-        />
+        /> */}
 
         {/* 404 Fallback */}
         <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
