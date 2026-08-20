@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext.tsx";
 import { getBrandSavedCreators, getCreatorsList, removeBrandSavedCreator, saveBrandCreator } from "../lib/authApi.ts";
-import type { CreatorListItemApi } from "../types";
+import type { CreatorListItemApi } from "../types.ts";
 import { Lock } from "lucide-react";
 import { CreatorCard } from "../HtmlComponents/CreatorCard.tsx";
 import { showProjectToast } from "../HtmlComponents/HtmlRoster.tsx";

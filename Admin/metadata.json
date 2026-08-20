@@ -1,0 +1,6 @@
+{
+  "name": "Collune Admin Dashboard",
+  "description": "Enterprise RBAC Admin Dashboard for Collune influencer marketing platform connecting Admins, Brands, and Creators.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
