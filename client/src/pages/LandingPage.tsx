@@ -334,7 +334,7 @@ const LandingPage = () => {
             </>
       }
       {
-        currentUser && (currentUser.role === "Creator" || currentUser.role === "Brand"
+        currentUser && (currentUser.role === "Creator" || currentUser.role === "Brand")
           ? null
           :
           <section className="bg-[#edf3ff] px-6 py-10">
@@ -347,7 +347,6 @@ const LandingPage = () => {
               <p className="py-6 text-center text-sm font-black text-[#7b8aaa]">Brand logos will appear here once brands upload them.</p>
             )}
           </section>
-        )
       }
       {
         currentUser && currentUser.role === "Creator" ?
@@ -537,7 +536,7 @@ const LandingPage = () => {
       </section>
 
       {
-        currentUser && (currentUser.role === "Creator" || currentUser.role === "Brand"
+        currentUser && (currentUser.role === "Creator" || currentUser.role === "Brand")
           ? null
           :
           <section id="brands" className="bg-[linear-gradient(115deg,#6d68de_0%,#0c3bb7_48%,#36a8d0_100%)] px-6 py-24 text-center text-white">
@@ -552,7 +551,6 @@ const LandingPage = () => {
               />
             </div>
           </section>
-        )
       }
 
 
