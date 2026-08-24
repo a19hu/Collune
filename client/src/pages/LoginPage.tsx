@@ -12,7 +12,7 @@ import { showProjectToast } from "../HtmlComponents/HtmlRoster";
 
 export const LoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, setSessionUser } = useAuth();
   const [email, setEmail] = useState(() => authStorage.getRememberedEmail());
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -32,6 +32,14 @@ export const LoginPage = () => {
 
     try {
       const user = await login(email.trim(), password);
+
+      if (user.role !== "Brand" && user.role !== "Creator") {
+        setSessionUser(null);
+        authStorage.setRememberedEmail(user.email || email.trim());
+        showProjectToast("error", "Login blocked", "Admin users cannot log in from the client frontend.");
+        return;
+      }
+
       authStorage.setRememberedEmail(user.email || email.trim());
       showProjectToast("success", "Login successful", `Welcome back${user.name ? `, ${user.name}` : ""}.`);
       navigate("/");
