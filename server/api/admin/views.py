@@ -8,6 +8,7 @@ from ..models import BrandProfile
 from ..permissions import IsAdminUserRole
 from .serializers import (
     AdminCampaignWriteSerializer,
+    AdminCreatorWriteSerializer,
     AdminManagedUserSerializer,
     AdminRoleSerializer,
     AdminRoleWriteSerializer,
@@ -276,16 +277,36 @@ class CreatorTableView(APIView):
 class AdminCreatorDetailView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUserRole]
 
-    def get(self, request, creator_id):
-        creator = (
+    def get_object(self, creator_id):
+        return (
             CreatorProfile.objects.select_related("user")
             .prefetch_related("social_accounts", "applications")
             .filter(creator_id=creator_id)
             .first()
         )
+
+    def get(self, request, creator_id):
+        creator = self.get_object(creator_id)
         if not creator:
             return Response({"error": "Creator not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response({"creator": serialize_admin_creator(creator, request=request)})
+
+    def patch(self, request, creator_id):
+        creator = self.get_object(creator_id)
+        if not creator:
+            return Response({"error": "Creator not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = AdminCreatorWriteSerializer(
+            creator,
+            data=request.data,
+            partial=True,
+            context={"creator": creator},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        refreshed_creator = self.get_object(creator_id)
+        return Response({"creator": serialize_admin_creator(refreshed_creator, request=request)})
 
 
 class BrandTableView(APIView):

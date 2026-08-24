@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ArrowRight,
+  Compass,
   Flag,
-  Loader2,
-  MoreVertical,
-  Plus,
   Star,
   Users,
   type LucideIcon,
@@ -18,7 +16,7 @@ import { DeleteCampaignModal } from "./BrandCampaigns";
 
 type Metric = {
   label: string;
-  value: number;
+  value: number | string;
   link: string;
   icon: LucideIcon;
   ctaLabel: string;
@@ -57,6 +55,13 @@ const BrandDashBoard = () => {
     { label: "Active Campaigns", value: brand?.no_of_active_campaigns || 0, link: "/brand/campaigns", icon: Flag, ctaLabel: "View all campaigns" },
     { label: "Shortlists Submitted", value: brand?.no_of_active_shortlists || 0, link: "/brand/shortlists", icon: Star, ctaLabel: "View all shortlists" },
     { label: "Collaborations Active", value: brand?.collaborations_active || 0, link: "/brand/shortlists", icon: Users, ctaLabel: "View all collaborations" },
+    {
+      label: "Browse creator profiles and shortlist new partners directly from your dashboard.",
+      value: "",
+      link: "/discover-creators",
+      icon: Compass,
+      ctaLabel: "Open creator discovery",
+    },
   ];
 
   const confirmDelete = async () => {
@@ -79,7 +84,7 @@ const BrandDashBoard = () => {
 
   return (
 <>
-      <div className="grid gap-6 xl:grid-cols-3">
+      <div className="grid gap-6 xl:grid-cols-4">
         {metrics.map((metric) => <Panel className="min-h-[224px] p-7">
           <span className="grid h-12 w-12 place-items-center rounded-full bg-[#ebe5ff] text-[#6a75ff]">
             <metric.icon className="h-6 w-6" />
@@ -148,13 +153,13 @@ const BrandDashBoard = () => {
   );
 };
 
-function SectionHeader({ title, path }: { title: string; path: string }) {
+function SectionHeader({ title, path }: { title: string; path?: string }) {
   const navigate = useNavigate();
 
   return (
     <div className="mb-7 flex items-center justify-between gap-4">
       <h3 className="text-[26px] font-black tracking-normal text-black font-bold">{title}</h3>
-      <button type="button" onClick={() => navigate(path)} className="text-base font-black text-[#7b83ff]">View all</button>
+      {path ? <button type="button" onClick={() => navigate(path)} className="text-base font-black text-[#7b83ff]">View all</button> : null}
     </div>
   );
 }

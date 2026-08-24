@@ -203,16 +203,26 @@ export interface AdminCreatorSocialApi {
 export interface AdminCreatorApi {
   id: string;
   name: string;
+  displayName?: string;
   handle: string;
   email: string;
   phone: string;
   avatarUrl: string;
   bio: string;
+  about?: string;
   category: string;
   languages: string[];
+  collaborationPreferences?: string[];
+  workWith?: string[];
   location: string;
   city: string;
   country: string;
+  state?: string;
+  district?: string;
+  postalCode?: string;
+  streetAddress?: string;
+  gender?: string;
+  isProfileVisible?: boolean;
   totalFollowers: number;
   primaryEngagementRate: number;
   verificationStatus: string;
@@ -229,6 +239,33 @@ export function getAdminCreators() {
 
 export function getAdminCreator(creatorId: string) {
   return apiRequest<{ creator: AdminCreatorApi }>(`/admin/creators/${creatorId}/`, {}, true).then((res) => res.creator);
+}
+
+export interface AdminCreatorWritePayload {
+  name?: string;
+  email?: string;
+  phone?: string;
+  displayName?: string;
+  category?: string;
+  bio?: string;
+  about?: string;
+  gender?: string;
+  languages?: string[];
+  collaborationPreferences?: string[];
+  workWith?: string[];
+  location?: string;
+  city?: string;
+  state?: string;
+  district?: string;
+  country?: string;
+  postalCode?: string;
+  streetAddress?: string;
+  isProfileVisible?: boolean;
+  socials?: AdminCreatorSocialApi[];
+}
+
+export function updateAdminCreator(creatorId: string, payload: AdminCreatorWritePayload) {
+  return apiPatch<{ creator: AdminCreatorApi }>(`/admin/creators/${creatorId}/`, payload, true).then((res) => res.creator);
 }
 
 export function updateCreatorStatus(

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   ArrowLeft,
+  Edit2,
   Sparkles,
   MapPin,
   Globe,
@@ -24,6 +25,7 @@ import { campaignService } from '../../services/campaignService';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { PermissionGuard } from '../../components/permissions/PermissionGuard';
+import { CreatorFormModal } from './CreatorFormModal';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { formatCompactNumber, formatCurrency, formatDate } from '../../utils/formatters';
@@ -47,6 +49,7 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
 
   const [verifyModal, setVerifyModal] = useState<VerificationStatus | null>(null);
   const [suspendModal, setSuspendModal] = useState<boolean>(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -179,6 +182,16 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
 
           {/* Action Toolbar */}
           <div className="flex items-center gap-2 flex-wrap">
+            <PermissionGuard permission="creators.edit">
+              <button
+                onClick={() => setIsEditOpen(true)}
+                className="px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <Edit2 className="w-3.5 h-3.5 text-slate-500" />
+                <span>Edit Profile</span>
+              </button>
+            </PermissionGuard>
+
             <PermissionGuard permission="creators.verify">
               {creator.verificationStatus !== 'Verified' && (
                 <button
@@ -547,6 +560,13 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
         }
         confirmText={creator.accountStatus === 'Active' ? 'Deactivate Account' : 'Reactivate Account'}
         variant={creator.accountStatus === 'Active' ? 'warning' : 'primary'}
+      />
+
+      <CreatorFormModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        creator={creator}
+        onSuccess={(updatedCreator) => setCreator(updatedCreator)}
       />
     </div>
   );

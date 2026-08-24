@@ -1,6 +1,8 @@
 import { Creator, VerificationStatus, AccountStatus } from '../types';
 import * as api from '../lib/api';
 
+export type UpdateCreatorPayload = api.AdminCreatorWritePayload;
+
 let creatorsState: Creator[] = [];
 
 const VERIFICATION_TO_BACKEND: Record<VerificationStatus, string> = {
@@ -46,8 +48,13 @@ export const creatorService = {
     throw new Error('Creator creation is not available in the admin frontend.');
   },
 
-  updateCreator: async (): Promise<Creator> => {
-    throw new Error('Creator editing is not available in the admin frontend.');
+  updateCreator: async (id: string, payload: UpdateCreatorPayload): Promise<Creator> => {
+    const updated = await api.updateAdminCreator(id, payload);
+    const creator = mapApiCreator(updated);
+    creatorsState = creatorsState.some((c) => c.id === id)
+      ? creatorsState.map((c) => (c.id === id ? creator : c))
+      : [creator, ...creatorsState];
+    return creator;
   },
 
   updateVerification: async (id: string, status: VerificationStatus): Promise<Creator> => {

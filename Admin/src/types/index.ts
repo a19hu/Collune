@@ -138,17 +138,27 @@ export interface SocialProfile {
 export interface Creator {
   id: string;
   name: string;
+  displayName?: string;
   handle: string;
   email: string;
   phone: string;
   avatarUrl: string;
   coverUrl?: string;
   bio: string;
+  about?: string;
   category: CreatorCategory;
   languages: string[];
+  collaborationPreferences?: string[];
+  workWith?: string[];
   location: string;
   city: string;
   country: string;
+  state?: string;
+  district?: string;
+  postalCode?: string;
+  streetAddress?: string;
+  gender?: string;
+  isProfileVisible?: boolean;
   totalFollowers: number;
   primaryEngagementRate: number;
   verificationStatus: VerificationStatus;

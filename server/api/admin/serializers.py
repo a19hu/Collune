@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
@@ -9,6 +10,9 @@ from ..models import (
     BrandProfile,
     Campaign,
     CampaignStatus,
+    CreatorProfile,
+    CreatorSocialAccount,
+    SocialPlatform,
     User,
     UserRole,
     UserAdminRole,
@@ -204,6 +208,144 @@ class AdminUserCreateSerializer(serializers.Serializer):
         )
 
         return user
+
+
+SOCIAL_PLATFORM_FROM_LABEL = {
+    "instagram": SocialPlatform.INSTAGRAM,
+    "youtube": SocialPlatform.YOUTUBE,
+    "x": SocialPlatform.X,
+    "facebook": SocialPlatform.FACEBOOK,
+}
+
+
+class AdminCreatorSocialWriteSerializer(serializers.Serializer):
+    platform = serializers.CharField(max_length=24)
+    handle = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    followers = serializers.IntegerField(required=False, min_value=0, default=0)
+    engagementRate = serializers.FloatField(required=False, min_value=0, default=0)
+    url = serializers.URLField(required=False, allow_blank=True)
+
+    def validate_platform(self, value):
+        normalized = SOCIAL_PLATFORM_FROM_LABEL.get(value.strip().lower())
+        if not normalized:
+            raise serializers.ValidationError("Unsupported social platform.")
+        return normalized
+
+
+class AdminCreatorWriteSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    email = serializers.EmailField(required=False)
+    phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    displayName = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    category = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    bio = serializers.CharField(required=False, allow_blank=True)
+    about = serializers.CharField(required=False, allow_blank=True)
+    gender = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    languages = serializers.ListField(child=serializers.CharField(max_length=80), required=False)
+    collaborationPreferences = serializers.ListField(child=serializers.CharField(max_length=120), required=False)
+    workWith = serializers.ListField(child=serializers.CharField(max_length=120), required=False)
+    location = serializers.CharField(max_length=500, required=False, allow_blank=True)
+    city = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    state = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    district = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    country = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    postalCode = serializers.CharField(max_length=32, required=False, allow_blank=True)
+    streetAddress = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    isProfileVisible = serializers.BooleanField(required=False)
+    socials = AdminCreatorSocialWriteSerializer(many=True, required=False)
+
+    def validate_email(self, value):
+        value = value.strip().lower()
+        queryset = User.objects.filter(email__iexact=value)
+        creator = self.context.get("creator")
+        if creator:
+            queryset = queryset.exclude(pk=creator.user.pk)
+        if queryset.exists():
+            raise serializers.ValidationError("This email is already registered.")
+        return value
+
+    def validate_phone(self, value):
+        normalized = value.strip()
+        if not normalized:
+            return ""
+        queryset = User.objects.filter(phone_no=normalized)
+        creator = self.context.get("creator")
+        if creator:
+            queryset = queryset.exclude(pk=creator.user.pk)
+        if queryset.exists():
+            raise serializers.ValidationError("This phone number is already registered.")
+        return normalized
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        socials_data = validated_data.pop("socials", None)
+
+        user = instance.user
+        user_field_map = {
+            "name": "name",
+            "email": "email",
+            "phone": "phone_no",
+            "isProfileVisible": "is_profile_visible",
+        }
+        user_dirty = []
+        for payload_key, model_key in user_field_map.items():
+            if payload_key in validated_data:
+                setattr(user, model_key, validated_data.pop(payload_key))
+                user_dirty.append(model_key)
+        if user_dirty:
+            user.save(update_fields=user_dirty)
+
+        creator_field_map = {
+            "displayName": "display_name",
+            "category": "category",
+            "bio": "bio",
+            "about": "about",
+            "gender": "gender",
+            "languages": "languages",
+            "collaborationPreferences": "collaboration_preferences",
+            "workWith": "work_with",
+            "location": "location",
+            "city": "city",
+            "state": "state",
+            "district": "district",
+            "country": "country",
+            "postalCode": "postal_code",
+            "streetAddress": "street_address",
+        }
+        creator_dirty = []
+        for payload_key, model_key in creator_field_map.items():
+            if payload_key in validated_data:
+                setattr(instance, model_key, validated_data.pop(payload_key))
+                creator_dirty.append(model_key)
+        if creator_dirty:
+            instance.save(update_fields=creator_dirty)
+
+        if socials_data is not None:
+            existing_accounts = {account.platform: account for account in instance.social_accounts.all()}
+            submitted_platforms = set()
+            for social_data in socials_data:
+                platform = social_data["platform"]
+                submitted_platforms.add(platform)
+                handle = social_data.get("handle", "").strip()
+                defaults = {
+                    "handle": handle or platform.title(),
+                    "username": handle.lstrip("@"),
+                    "url": social_data.get("url", "").strip(),
+                    "followers": social_data.get("followers", 0),
+                    "engagement_rate": social_data.get("engagementRate", 0),
+                    "is_connected": bool(handle or social_data.get("url", "").strip()),
+                }
+                account = existing_accounts.get(platform)
+                if account:
+                    for attr, value in defaults.items():
+                        setattr(account, attr, value)
+                    account.save(update_fields=list(defaults.keys()))
+                else:
+                    CreatorSocialAccount.objects.create(creator=instance, platform=platform, **defaults)
+
+            instance.social_accounts.exclude(platform__in=submitted_platforms).delete()
+
+        return instance
 
 
 class AdminCampaignWriteSerializer(serializers.Serializer):
