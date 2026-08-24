@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BadgeCheck, Building2, ChevronDown, CircleHelp, FileText, Home, ListChecks, LogOut, ShieldCheck, ShoppingBag, Sparkles, Star, UserRound, Users, X } from "lucide-react";
+import { BadgeCheck, ChevronDown, CircleHelp, FileText, Home, LogOut, ShoppingBag, Sparkles, Star, UserRound, Users, X } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import logo from "../../assets/Logo.svg";
 import { useAuth } from "../../contexts/AuthContext";
 import { getBrandMe } from "../../lib/authApi";
 import type { BrandProfileApi } from "../../types";
 
-export type SidebarMode = "creator" | "brand" | "admin";
+export type SidebarMode = "creator" | "brand";
 
 const navByMode = {
   creator: [
@@ -26,14 +26,6 @@ const navByMode = {
     { label: "Shortlists", to: "/brand/shortlists", icon: Star },
     { label: "Subscription", to: "/brand/brand-subscription", icon: Sparkles },
   ],
-  admin: [
-    { label: "Dashboard", to: "/admin", icon: Home },
-    { label: "Users", to: "/admin/users", icon: UserRound },
-    { label: "Creators", to: "/admin/creators", icon: BadgeCheck },
-    { label: "Brands", to: "/admin/brands", icon: Building2 },
-    { label: "Campaigns", to: "/admin/campaigns", icon: FileText },
-    { label: "Shortlists", to: "/admin/shortlists", icon: ListChecks },
-  ],
 };
 
 type SideBarProps = {
@@ -50,7 +42,6 @@ export function SideBar({ isVerified = false, mode = "creator", isMobileOpen = f
   const [isBrandMenuOpen, setIsBrandMenuOpen] = useState(false);
   const brandMenuRef = useRef<HTMLDivElement | null>(null);
   const isBrand = mode === "brand";
-  const isAdmin = mode === "admin";
   const brandName = brandProfile?.company_name || currentUser?.name || "Acme Labs";
   const brandInitials = useMemo(() => {
     const words = brandName.trim().split(/\s+/).filter(Boolean);
@@ -110,33 +101,29 @@ export function SideBar({ isVerified = false, mode = "creator", isMobileOpen = f
           </Link>
         </div>
 
-        {isBrand || isAdmin ? (
+        {isBrand ? (
           <div ref={brandMenuRef} data-tour="brand-account-switcher" className="relative px-4 pb-5">
             <button
               type="button"
               onClick={() => setIsBrandMenuOpen((open) => !open)}
               className="flex h-[58px] w-full items-center gap-3 rounded-lg border border-[#e1e6ef] bg-white px-3 text-left shadow-sm"
             >
-              {isAdmin ? (
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#173fb5] text-white">
-                  <ShieldCheck className="h-5 w-5" />
-                </span>
-              ) : brandProfile?.logo_url ? (
+              {brandProfile?.logo_url ? (
                 <img src={brandProfile.logo_url} alt={brandName} className="h-9 w-9 rounded-md object-cover" />
               ) : (
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#4b22ff] text-sm font-black text-white">
                   {brandInitials}
                 </span>
               )}
-              <span className="min-w-0 flex-1 truncate text-sm font-black text-black">{isAdmin ? currentUser?.name || "Admin" : brandName}</span>
+              <span className="min-w-0 flex-1 truncate text-sm font-black text-black">{brandName}</span>
               <ChevronDown className={`h-5 w-5 text-[#657084] transition ${isBrandMenuOpen ? "rotate-180" : ""}`} />
             </button>
 
             {isBrandMenuOpen ? (
               <div className="absolute left-4 right-4 top-[68px] z-40 rounded-lg border border-[#e1e6ef] bg-white p-2 shadow-[0_12px_30px_rgba(20,30,60,0.14)]">
                 <div className="border-b border-[#eef1f6] px-3 py-3">
-                  <p className="truncate text-sm font-black text-[#1d203a]">{isAdmin ? currentUser?.name || "Admin" : brandName}</p>
-                  <p className="mt-1 truncate text-xs font-medium text-[#657084]">{currentUser?.email || (isAdmin ? "Admin account" : "Brand account")}</p>
+                  <p className="truncate text-sm font-black text-[#1d203a]">{brandName}</p>
+                  <p className="mt-1 truncate text-xs font-medium text-[#657084]">{currentUser?.email || "Brand account"}</p>
                 </div>
                 <button
                   type="button"
@@ -166,7 +153,7 @@ export function SideBar({ isVerified = false, mode = "creator", isMobileOpen = f
                 >
                   <Icon className="h-5 w-5" />
                   <span className="flex-1">{item.label}</span>
-                  <Building2 className="h-4 w-4 text-[#7c8798]" />
+                  <CircleHelp className="h-4 w-4 text-[#7c8798]" />
                 </button>
               );
             }

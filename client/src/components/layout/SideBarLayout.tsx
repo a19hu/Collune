@@ -10,7 +10,7 @@ import { WebsiteTutorial } from "./WebsiteTutorial";
 
 function useDashboardState() {
   const location = useLocation();
-  const mode: SidebarMode = location.pathname.startsWith("/admin") ? "admin" : location.pathname.startsWith("/brand") ? "brand" : "creator";
+  const mode: SidebarMode = location.pathname.startsWith("/brand") ? "brand" : "creator";
   const pathname = location.pathname.replace(/\/$/, "") || "/";
 
   return { mode, pathname };
@@ -167,8 +167,7 @@ export const SideBarLayout = () => {
   const navigate = useNavigate();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const isBrand = mode === "brand";
-  const isAdmin = mode === "admin";
-  const profilePath = isAdmin ? "/admin" : isBrand ? "/brand/profile" : "/creator/profile";
+  const profilePath = isBrand ? "/brand/profile" : "/creator/profile";
   const isVerified = currentUser.verification_status === "VERIFIED"
   const brandStatus = isVerified ? "verified-brand" : "under-review";
 
@@ -276,27 +275,6 @@ export const SideBarLayout = () => {
     return topRoutes.find((route) => route.matches())?.render() ?? null;
   }
 
-  function TopComponentsAdmin() {
-    const topRoutes = [
-      { matches: () => pathname === "/admin", title: "Admin Dashboard" },
-      { matches: () => pathname === "/admin/users", title: "Users" },
-      { matches: () => pathname === "/admin/creators", title: "Creators" },
-      { matches: () => pathname === "/admin/brands", title: "Brands" },
-      { matches: () => pathname === "/admin/campaigns", title: "Campaigns" },
-      { matches: () => pathname === "/admin/shortlists", title: "Shortlists" },
-    ];
-    const route = topRoutes.find((item) => item.matches());
-
-    return (
-      <DashboardTopBar
-        title={route?.title || "Admin"}
-        currentUser={currentUser}
-        logout={logout}
-        profilePath={profilePath}
-        onOpenSidebar={() => setIsMobileSidebarOpen(true)}
-      />
-    );
-  }
 
   function TopComponentsBrand() {
     const topRoutes = [
@@ -479,13 +457,7 @@ export const SideBarLayout = () => {
       <div className="lg:pl-[270px]">
         <main className="min-h-[calc(100vh-98px)] bg-white px-4 py-0 sm:px-6 lg:px-8">
           <div className="min-h-screen bg-white pt-5 sm:pt-8">
-            {
-              isAdmin ?
-                <TopComponentsAdmin /> :
-              isBrand ?
-                <TopComponentsBrand /> :
-                <TopComponentsCreator />
-            }
+            {isBrand ? <TopComponentsBrand /> : <TopComponentsCreator />}
             <div data-tour="page-content">
               <Outlet context={{ isVerified, mode }} />
             </div>

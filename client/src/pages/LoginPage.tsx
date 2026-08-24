@@ -16,17 +16,14 @@ export const LoginPage = () => {
   const [email, setEmail] = useState(() => authStorage.getRememberedEmail());
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [authError, setAuthError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const trimmedPassword = password.trim();
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    setAuthError("");
 
     if (trimmedPassword.length < 8) {
       const message = "Password must be at least 8 characters.";
-      setAuthError(message);
       showProjectToast("error", "Login failed", message);
       return;
     }
@@ -37,10 +34,9 @@ export const LoginPage = () => {
       const user = await login(email.trim(), password);
       authStorage.setRememberedEmail(user.email || email.trim());
       showProjectToast("success", "Login successful", `Welcome back${user.name ? `, ${user.name}` : ""}.`);
-      navigate(user.role === "Brand" ? "/brand" : user.role === "Creator" ? "/creator" : "/admin", { replace: true });
+      navigate("/");
     } catch (error) {
       const message = "Something went wrong. Please check your credentials and try again.";
-      setAuthError(message);
       showProjectToast("error", "Login failed", message);
     } finally {
       setIsSubmitting(false);
@@ -98,7 +94,6 @@ export const LoginPage = () => {
                 icon={<Mail className="h-5 w-5" />}
                 value={email}
                 onChange={(event) => {
-                  setAuthError("");
                   setEmail(event.target.value);
                 }}
                 placeholder="you@company.com"
@@ -112,7 +107,6 @@ export const LoginPage = () => {
                 icon={<Lock className="h-5 w-5" />}
                 value={password}
                 onChange={(event) => {
-                  setAuthError("");
                   setPassword(event.target.value);
                 }}
                 placeholder="Enter password"
@@ -129,8 +123,6 @@ export const LoginPage = () => {
                 <Link to="/forgot-password" className="font-normal text-[#2447bd]">Forgot Password?</Link>
               </p>
             </div>
-
-            <RegisterError message={authError} />
 
             <button
               type="submit"

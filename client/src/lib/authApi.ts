@@ -1,9 +1,4 @@
 import type {
-  AdminBrandTableItem,
-  AdminCampaignTableItem,
-  AdminCreateUserPayload,
-  AdminCreatorTableItem,
-  AdminManagedUserItem,
   BrandCampaignListResponse,
   BrandLogoApi,
   BrandCampaignDetailApi,
@@ -35,7 +30,6 @@ import type {
   OtpChannel,
   OtpResponse,
   PaginatedResponse,
-  AdminShortlistTableItem,
 } from "../types";
 import { authStorage } from "../contexts/authStorage";
 
@@ -285,44 +279,12 @@ export async function getCreatorsList() {
   return data.creators
 }
 
-export async function getAdminCampaigns() {
-  const data = await apiRequest<{ data: AdminCampaignTableItem[] }>("/admin/campaigns/", {}, true);
-  return data.data;
-}
 
-export async function getAdminUsers() {
-  const data = await apiRequest<{ data: AdminManagedUserItem[] }>("/admin/users/", {}, true);
-  return data.data;
-}
 
-export async function createAdminUser(payload: AdminCreateUserPayload) {
-  const data = await apiPost<{ user: AdminManagedUserItem }>("/admin/users/", payload, true);
-  return data.user;
-}
 
-export async function getAdminBrands() {
-  const data = await apiRequest<{ data: AdminBrandTableItem[] }>("/admin/brands/", {}, true);
-  return data.data;
-}
 
-export async function getAdminCreators() {
-  const data = await apiRequest<{ data: AdminCreatorTableItem[] }>("/admin/creators/", {}, true);
-  return data.data;
-}
 
-export async function getAdminShortlists() {
-  const data = await apiRequest<{ data: AdminShortlistTableItem[] }>("/admin/shortlists/", {}, true);
-  return data.data;
-}
 
-export async function updateAdminVerification(profileType: "brands" | "creators", profileId: string, verificationStatus: "PENDING" | "VERIFIED") {
-  const data = await apiPatch<{ profile: unknown }>(
-    `/verification/${profileType}/${profileId}/`,
-    { verification_status: verificationStatus },
-    true,
-  );
-  return data.profile;
-}
 
 export async function getCreatorPublicProfile(creatorId: string) {
   const data = await apiRequest<{ creator: CreatorPublicProfileApi }>(`/creator/${creatorId}/`, {}, true);

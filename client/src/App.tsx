@@ -36,20 +36,10 @@ import PrivacyPolicy from './pages/PrivacyPolicy.tsx';
 import TermsConditions from './pages/TermsConditions.tsx';
 import BrandServicesTerms from './pages/BrandServicesTerms.tsx';
 import CreativeServicesTerms from './pages/CreativeServicesTerms.tsx';
-import AdminDashboard from './components/Admin/AdminDashboard.tsx';
-import AdminUsers from './components/Admin/AdminUsers.tsx';
-import AdminCreators from './components/Admin/AdminCreators.tsx';
-import AdminBrands from './components/Admin/AdminBrands.tsx';
-import AdminCampaigns from './components/Admin/AdminCampaigns.tsx';
-import AdminShortlists from './components/Admin/AdminShortlists.tsx';
 import { ProjectToastContainer } from './HtmlComponents/HtmlRoster.tsx';
 
-function isInternalWorkspaceRole(role: UserAccount["role"]) {
-    return role !== "Brand" && role !== "Creator";
-}
-
 function getDashboardPath(role: UserAccount["role"]) {
-    return role === "Brand" ? "/brand" : role === "Creator" ? "/creator" : "/admin";
+    return role === "Brand" ? "/brand" : role === "Creator" ? "/creator" : "/";
 }
 
 function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
@@ -57,11 +47,7 @@ function RequireAuth({ allowedRole }: { allowedRole: UserAccount['role'] }) {
 
     if (isAuthLoading) return <LoadingPage />;
     if (!currentUser) return <Navigate to="/login" replace />;
-    if (allowedRole === "Admin") {
-        if (!isInternalWorkspaceRole(currentUser.role)) {
-            return <Navigate to={getDashboardPath(currentUser.role)} replace />;
-        }
-    } else if (currentUser.role !== allowedRole) {
+    if (currentUser.role !== allowedRole) {
         return <Navigate to={getDashboardPath(currentUser.role)} replace />;
     }
 
@@ -130,16 +116,6 @@ const App: React.FC = () => {
                             <Route path="brand-subscription" element={<BrandSubscriptionPage />} />
 
                             {/* <Route path="campaigns/:campaignId/applications" element={<CampaignApplicationsPage />} /> */}
-                        </Route>
-                    </Route>
-                    <Route element={<RequireAuth allowedRole="Admin" />}>
-                        <Route path="/admin/*" element={<SideBarLayout />}>
-                            <Route index element={<AdminDashboard />} />
-                            <Route path="users" element={<AdminUsers />} />
-                            <Route path="creators" element={<AdminCreators />} />
-                            <Route path="brands" element={<AdminBrands />} />
-                            <Route path="campaigns" element={<AdminCampaigns />} />
-                            <Route path="shortlists" element={<AdminShortlists />} />
                         </Route>
                     </Route>
                     <Route path="/creator-register" element={<CreatorRegister />} />

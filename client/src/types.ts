@@ -1,25 +1,7 @@
-export type InternalUserRoleLabel =
-  | "Super Admin"
-  | "Admin"
-  | "Operations Manager"
-  | "Sales & Marketing Manager"
-  | "Project Manager"
-  | "Analytics Manager"
-  | "Team Member / Executive";
-
-export type InternalUserRoleCode =
-  | "SUPER_ADMIN"
-  | "ADMIN"
-  | "OPERATIONS_MANAGER"
-  | "SALES_MARKETING_MANAGER"
-  | "PROJECT_MANAGER"
-  | "ANALYTICS_MANAGER"
-  | "TEAM_MEMBER";
-
 export type UserAccount = {
   name: string;
   email: string;
-  role: InternalUserRoleLabel | 'Creator' | 'Brand';
+  role: 'Creator' | 'Brand' | string;
   verification_status:string;
 };
 
@@ -600,71 +582,6 @@ export type BrandDashboardApi = {
   active_campaigns: BrandCampaignListItemApi[];
   active_shortlists?: Array<BrandShortlistApi | { id: string; name: string; status: string }>;
   submitted_shortlists?: BrandShortlistApi[];
-};
-
-export type AdminCampaignTableItem = {
-  id: string;
-  brand_id: string;
-  title: string;
-  brand: string;
-  applications_received_count: number;
-  recommended_creators_count: number;
-};
-export type AdminPermissionItem = {
-  id: number;
-  name: string;
-  codename: string;
-  app_label: string;
-  model: string;
-};
-export type AdminManagedUserItem = {
-  user_id: string;
-  name: string;
-  email: string;
-  phone_no: string | null;
-  verification_status: "PENDING" | "VERIFIED";
-  is_active: boolean;
-  userrole?: {
-    role_name: InternalUserRoleCode;
-    permissions: string;
-    Purpose: string | null;
-  } | null;
-};
-export type AdminCreateUserPayload = {
-  name: string;
-  email: string;
-  phone_no?: string;
-  password: string;
-  role: InternalUserRoleCode;
-  is_active?: boolean;
-};
-export type AdminCreatorTableItem = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  category: string;
-  visibility: boolean;
-  verification: "PENDING" | "VERIFIED";
-};
-export type AdminBrandTableItem = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  industry: string;
-  visibility: boolean;
-  verification: "PENDING" | "VERIFIED";
-  campaigns_count: number;
-};
-export type AdminShortlistTableItem = {
-  id: string;
-  brand_id: string;
-  title: string;
-  brand: string;
-  creators_count: number;
-  start_date: string | null;
-  end_date: string | null;
 };
 
 export type CreatorDashboardApi = {

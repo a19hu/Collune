@@ -40,7 +40,7 @@ const navItems = [
 const Navbar = () => {
   const location = useLocation();
   const { currentUser, isAuthLoading, logout } = useAuth();
-  const dashboardPath = currentUser?.role === "Brand" ? "/brand" : currentUser?.role === "Creator" ? "/creator" : "/admin";
+  const dashboardPath = currentUser?.role === "Brand" ? "/brand" : currentUser?.role === "Creator" ? "/creator" : "/";
   const userInitial = currentUser?.name?.trim().charAt(0).toUpperCase() || currentUser?.email?.trim().charAt(0).toUpperCase() || "U";
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
