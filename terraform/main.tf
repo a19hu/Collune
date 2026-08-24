@@ -23,12 +23,14 @@ locals {
   cloud_run_service_account_email = var.cloud_run_service_account_email != "" ? var.cloud_run_service_account_email : "${data.google_project.current.number}-compute@developer.gserviceaccount.com"
   backend_image                   = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}/collune-backend:${var.image_tag}"
   frontend_image                  = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}/collune-frontend:${var.frontend_image_tag}"
+  admin_frontend_image            = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}/collune-admin:${var.admin_frontend_image_tag}"
   backend_public_url              = "https://collune-backend-727341248620.asia-south1.run.app"
   frontend_public_origins = [
     "https://collune.com",
     "https://www.collune.com",
     "https://collune.vercel.app",
     "https://collune-frontend-727341248620.asia-south1.run.app",
+    "https://collune-admin-727341248620.asia-south1.run.app",
   ]
 
   react_env = {
@@ -240,6 +242,66 @@ resource "google_cloud_run_service" "frontend" {
   }
 }
 
+resource "google_cloud_run_service" "admin_frontend" {
+  name     = "collune-admin"
+  location = var.region
+  project  = var.project_id
+
+  template {
+    spec {
+      containers {
+        image = local.admin_frontend_image
+
+        ports {
+          container_port = 8080
+        }
+
+        dynamic "env" {
+          for_each = local.react_env
+          content {
+            name  = env.key
+            value = env.value
+          }
+        }
+
+        resources {
+          limits = {
+            cpu    = "1000m"
+            memory = "512Mi"
+          }
+        }
+      }
+      service_account_name  = local.cloud_run_service_account_email
+      timeout_seconds       = 60
+      container_concurrency = 80
+    }
+
+    metadata {
+      annotations = {
+        "autoscaling.knative.dev/maxScale"     = "10"
+        "run.googleapis.com/startup-cpu-boost" = "true"
+      }
+      labels = {
+        commit-sha = "d6fc5aed5f6dbacf1f6cdbcce1b9131750bc1ebd"
+        managed-by = "gcp-cloud-build-deploy-cloud-run"
+      }
+    }
+  }
+
+  traffic {
+    latest_revision = true
+    percent         = 100
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].metadata[0].annotations["run.googleapis.com/client-name"],
+      template[0].metadata[0].annotations["run.googleapis.com/client-version"],
+      template[0].metadata[0].labels["client.knative.dev/nonce"],
+    ]
+  }
+}
+
 # IAM roles for the Cloud Run service account
 resource "google_project_iam_member" "cloudsql_client" {
   project = var.project_id
@@ -292,11 +354,19 @@ resource "google_cloud_run_v2_job" "migrate" {
 
 }
 
-# Allow unauthenticated access to the Cloud Run service (for Flutter app)
-resource "google_cloud_run_service_iam_member" "public_access" {
+# Allow unauthenticated access to the public web frontends
+resource "google_cloud_run_service_iam_member" "frontend_public_access" {
   location = google_cloud_run_service.frontend.location
   project  = google_cloud_run_service.frontend.project
   service  = google_cloud_run_service.frontend.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
+resource "google_cloud_run_service_iam_member" "admin_frontend_public_access" {
+  location = google_cloud_run_service.admin_frontend.location
+  project  = google_cloud_run_service.admin_frontend.project
+  service  = google_cloud_run_service.admin_frontend.name
   role     = "roles/run.invoker"
   member   = "allUsers"
 }

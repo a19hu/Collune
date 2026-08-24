@@ -92,6 +92,11 @@ variable "frontend_image_tag" {
   default = "latest"
 }
 
+variable "admin_frontend_image_tag" {
+  type    = string
+  default = "latest"
+}
+
 variable "cloud_run_service_account_email" {
   description = "Service account email used by Cloud Run service/job. Empty value means use Compute Engine default service account for the selected project."
   type        = string

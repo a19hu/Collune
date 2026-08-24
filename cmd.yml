@@ -15,8 +15,10 @@ gcloud auth configure-docker \
 GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token) terraform apply -auto-approve
 sudo docker build -t asia-south1-docker.pkg.dev/collune/collune/collune-backend:latest . 
 docker push asia-south1-docker.pkg.dev/collune/collune/collune-backend:latest
-sudo docker build -t asia-south1-docker.pkg.dev/collune/collune/collune-frontend:latest . 
+sudo docker build -t asia-south1-docker.pkg.dev/collune/collune/collune-frontend:latest ./client 
 docker push asia-south1-docker.pkg.dev/collune/collune/collune-frontend:latest
+sudo docker build -t asia-south1-docker.pkg.dev/collune/collune/collune-admin:latest ./Admin 
+docker push asia-south1-docker.pkg.dev/collune/collune/collune-admin:latest
 
 gcloud builds submit --tag asia-south1-docker.pkg.dev/collune/collune-server/collune-backend:latest .
 
@@ -27,6 +29,11 @@ gcloud run services add-iam-policy-binding collune-backend \
     --role="roles/run.invoker"
 
 gcloud run services add-iam-policy-binding collune-frontend \
+    --region=asia-south1 \
+    --member="allUsers" \
+    --role="roles/run.invoker"
+
+gcloud run services add-iam-policy-binding collune-admin \
     --region=asia-south1 \
     --member="allUsers" \
     --role="roles/run.invoker"
