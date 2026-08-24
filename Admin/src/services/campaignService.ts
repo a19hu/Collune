@@ -6,11 +6,11 @@ let campaignsState: Campaign[] = [...mockCampaigns];
 
 const STATUS_TO_BACKEND: Record<CampaignStatus, string> = {
   Draft: 'DRAFT',
-  'Pending Approval': 'PENDING_APPROVAL',
+  'Pending Approval': 'DRAFT',
   Active: 'ACTIVE',
   Paused: 'PAUSED',
   Completed: 'COMPLETED',
-  Cancelled: 'CANCELLED',
+  Cancelled: 'PAUSED',
 };
 
 function deliverablesToText(deliverables: CampaignDeliverable[]): string {
@@ -63,12 +63,10 @@ export const campaignService = {
       target_audience: campaignData.targetAudience,
       platforms: campaignData.platforms,
       budget: campaignData.budget,
-      creators_required: campaignData.creatorsRequired,
       deliverables_text: deliverablesToText(campaignData.deliverables),
       start_date: campaignData.startDate,
       end_date: campaignData.endDate,
       status: STATUS_TO_BACKEND[campaignData.status],
-      campaign_manager: campaignData.campaignManager,
     });
     const campaign = mapApiCampaign(created);
     campaignsState = [campaign, ...campaignsState];
@@ -85,12 +83,10 @@ export const campaignService = {
       target_audience: updates.targetAudience,
       platforms: updates.platforms,
       budget: updates.budget,
-      creators_required: updates.creatorsRequired,
       deliverables_text: updates.deliverables ? deliverablesToText(updates.deliverables) : undefined,
       start_date: updates.startDate,
       end_date: updates.endDate,
       status: updates.status ? STATUS_TO_BACKEND[updates.status] : undefined,
-      campaign_manager: updates.campaignManager,
     });
     const campaign = mapApiCampaign(updated);
     campaignsState = campaignsState.map((c) => (c.id === id ? campaign : c));

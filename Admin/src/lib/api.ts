@@ -362,12 +362,10 @@ export interface CampaignWritePayload {
   target_audience?: string;
   platforms?: string[];
   budget?: number;
-  creators_required?: number;
   deliverables_text?: string;
   start_date?: string;
   end_date?: string;
   status?: string;
-  campaign_manager?: string;
 }
 
 export function getAdminCampaigns() {
@@ -439,4 +437,3 @@ export interface AdminDashboardApi {
 export function getAdminDashboard(range: '7d' | '30d' | '90d' | '1y' = '30d') {
   return apiRequest<AdminDashboardApi>(`/admin/dashboard/?range=${range}`, {}, true);
 }
-

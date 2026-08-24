@@ -46,6 +46,10 @@ ACCOUNT_STATUS_LABELS = {
     "SUSPENDED": "Suspended",
 }
 
+
+def _account_status_label(user):
+    return ACCOUNT_STATUS_LABELS["ACTIVE"] if user.is_active else ACCOUNT_STATUS_LABELS["INACTIVE"]
+
 SOCIAL_PLATFORM_LABELS = {
     "INSTAGRAM": "Instagram",
     "YOUTUBE": "YouTube",
@@ -89,7 +93,7 @@ def serialize_admin_creator(creator, request=None):
         "totalFollowers": total_followers,
         "primaryEngagementRate": round(primary_engagement, 1),
         "verificationStatus": VERIFICATION_STATUS_LABELS.get(creator.user.verification_status, "Unverified"),
-        "accountStatus": ACCOUNT_STATUS_LABELS.get(creator.user.account_status, "Active"),
+        "accountStatus": _account_status_label(creator.user),
         "socials": [
             {
                 "platform": SOCIAL_PLATFORM_LABELS.get(account.platform, account.platform.title()),
@@ -193,7 +197,7 @@ def serialize_admin_brand(brand, request=None):
         "phone": brand.user.phone_no or "",
         "address": address,
         "verificationStatus": VERIFICATION_STATUS_LABELS.get(brand.user.verification_status, "Unverified"),
-        "accountStatus": ACCOUNT_STATUS_LABELS.get(brand.user.account_status, "Active"),
+        "accountStatus": _account_status_label(brand.user),
         "totalCampaigns": total_campaigns,
         "activeCampaigns": active_campaigns,
         "creatorsHired": creators_hired,
@@ -210,11 +214,9 @@ def serialize_admin_brand(brand, request=None):
 
 CAMPAIGN_STATUS_LABELS = {
     "DRAFT": "Draft",
-    "PENDING_APPROVAL": "Pending Approval",
     "ACTIVE": "Active",
     "PAUSED": "Paused",
     "COMPLETED": "Completed",
-    "CANCELLED": "Cancelled",
 }
 
 CAMPAIGN_STATUS_FROM_LABEL = {label: code for code, label in CAMPAIGN_STATUS_LABELS.items()}
@@ -259,13 +261,13 @@ def serialize_admin_campaign(campaign, request=None):
         "targetAudience": campaign.audience_type,
         "platforms": [SOCIAL_PLATFORM_LABELS.get(p, p) for p in (campaign.platforms or [])],
         "budget": float(campaign.total_budget),
-        "creatorsRequired": campaign.creators_required,
+        "creatorsRequired": max(creators_selected, applications.count()),
         "creatorsSelected": creators_selected,
         "applicationsCount": applications.count(),
         "startDate": campaign.start_date.isoformat() if campaign.start_date else "",
         "endDate": campaign.end_date.isoformat() if campaign.end_date else "",
         "status": CAMPAIGN_STATUS_LABELS.get(campaign.status, "Draft"),
-        "campaignManager": campaign.campaign_manager,
+        "campaignManager": "",
         "deliverables": deliverables,
         "deliverablesTotal": len(deliverables),
         "deliverablesCompleted": 0,

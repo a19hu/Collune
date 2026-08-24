@@ -22,10 +22,8 @@ from .services import (
     serialize_admin_creator,
     serialize_admin_shortlist,
 )
-from ..brand.serializers import BrandProfileSerializer
-from ..creator.serializers import CreatorProfileSerializer
 from ..models import (
-    AccountStatus, AdminRole, ApplicationStatus, BrandShortlist, Campaign, CreatorProfile, User, UserRole, VerificationStatus,
+    AdminRole, ApplicationStatus, BrandShortlist, Campaign, CreatorProfile, User, UserRole, VerificationStatus,
 )
 
 class VerificationView(APIView):
@@ -54,18 +52,18 @@ class VerificationView(APIView):
             profile.user.verification_status = verification_value
             update_fields.append("verification_status")
         if account_value is not None:
-            if account_value not in AccountStatus.values:
+            normalized_account_value = str(account_value).upper()
+            if normalized_account_value not in {"ACTIVE", "INACTIVE", "SUSPENDED"}:
                 return Response({"account_status": ["Invalid account status."]}, status=status.HTTP_400_BAD_REQUEST)
-            profile.user.account_status = account_value
-            profile.user.is_active = account_value == AccountStatus.ACTIVE
-            update_fields.extend(["account_status", "is_active"])
+            profile.user.is_active = normalized_account_value == "ACTIVE"
+            update_fields.append("is_active")
 
         profile.user.save(update_fields=update_fields)
         profile.save(update_fields=["updated_at"])
 
         if profile_type == "creators":
             return Response({"profile": serialize_admin_creator(profile, request=request)})
-        return Response({"profile": BrandProfileSerializer(profile, context={"request": request}).data})
+        return Response({"profile": serialize_admin_brand(profile, request=request)})
 
 
 class AdminDashboardView(APIView):

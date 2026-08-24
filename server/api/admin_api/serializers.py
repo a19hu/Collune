@@ -215,12 +215,10 @@ class AdminCampaignWriteSerializer(serializers.Serializer):
     target_audience = serializers.CharField(max_length=120, required=False, allow_blank=True)
     platforms = serializers.ListField(child=serializers.CharField(), required=False)
     budget = serializers.DecimalField(max_digits=12, decimal_places=2, required=False)
-    creators_required = serializers.IntegerField(required=False, min_value=0)
     deliverables_text = serializers.CharField(required=False, allow_blank=True)
     start_date = serializers.DateField(required=False, allow_null=True)
     end_date = serializers.DateField(required=False, allow_null=True)
     status = serializers.ChoiceField(choices=CampaignStatus.choices, required=False)
-    campaign_manager = serializers.CharField(max_length=255, required=False, allow_blank=True)
 
     FIELD_MAP = {
         "title": "title",
@@ -230,12 +228,10 @@ class AdminCampaignWriteSerializer(serializers.Serializer):
         "category": "category",
         "platforms": "platforms",
         "budget": "total_budget",
-        "creators_required": "creators_required",
         "deliverables_text": "deliverables",
         "start_date": "start_date",
         "end_date": "end_date",
         "status": "status",
-        "campaign_manager": "campaign_manager",
     }
 
     def validate_brand_id(self, value):

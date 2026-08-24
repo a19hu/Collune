@@ -14,7 +14,7 @@ const VERIFICATION_TO_BACKEND: Record<VerificationStatus, string> = {
 const ACCOUNT_TO_BACKEND: Record<AccountStatus, string> = {
   Active: 'ACTIVE',
   Inactive: 'INACTIVE',
-  Suspended: 'SUSPENDED',
+  Suspended: 'INACTIVE',
 };
 
 function mapApiBrand(apiBrand: api.AdminBrandApi): Brand {
