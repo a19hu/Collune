@@ -136,29 +136,6 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onRouteChange }) => {
       ),
     },
     {
-      key: 'department',
-      header: 'Department',
-      render: (row) => (
-        <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-          {row.department}
-        </span>
-      ),
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (row) => <StatusBadge status={row.status} />,
-    },
-    {
-      key: 'lastLogin',
-      header: 'Last Login',
-      render: (row) => (
-        <span className="text-xs text-slate-500">
-          {row.lastLogin.includes('T') ? timeAgo(row.lastLogin) : row.lastLogin}
-        </span>
-      ),
-    },
-    {
       key: 'actions',
       header: 'Actions',
       sortable: false,

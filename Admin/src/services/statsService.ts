@@ -5,15 +5,39 @@ import {
   mockCampaignOverviewData,
   mockCategoryDistribution,
 } from '../mocks/mockData';
+import * as api from '../lib/api';
+
+export interface DashboardData {
+  stats: DashboardStats;
+  growth: api.AdminDashboardGrowthPointApi[];
+  campaignOverview: api.AdminCampaignOverviewPointApi[];
+  categoryDistribution: api.AdminCategoryDistributionPointApi[];
+}
 
 export const statsService = {
+  // Single call that fetches every dashboard section from the backend in one go.
+  getDashboardData: async (timeRange: '7d' | '30d' | '90d' | '1y' = '30d'): Promise<DashboardData> => {
+    try {
+      return await api.getAdminDashboard(timeRange);
+    } catch (err) {
+      // Not authenticated yet, or backend unreachable — fall back to the mock catalog.
+      const [stats, growth, campaignOverview, categoryDistribution] = await Promise.all([
+        statsService.getDashboardStats(),
+        statsService.getUserGrowth(timeRange),
+        statsService.getCampaignOverview(),
+        statsService.getCategoryDistribution(),
+      ]);
+      return { stats, growth, campaignOverview, categoryDistribution };
+    }
+  },
+
   getDashboardStats: async (): Promise<DashboardStats> => {
     return new Promise((resolve) => {
       setTimeout(() => resolve({ ...mockDashboardStats }), 150);
     });
   },
 
-  getUserGrowth: async (timeRange: '7d' | '30d' | '90d' | '1y' = '30d') => {
+  getUserGrowth: async (timeRange: '7d' | '30d' | '90d' | '1y' = '30d'): Promise<api.AdminDashboardGrowthPointApi[]> => {
     return new Promise((resolve) => {
       let data = [...mockUserGrowthData];
       if (timeRange === '7d') {
@@ -44,13 +68,13 @@ export const statsService = {
     });
   },
 
-  getCampaignOverview: async () => {
+  getCampaignOverview: async (): Promise<api.AdminCampaignOverviewPointApi[]> => {
     return new Promise((resolve) => {
       setTimeout(() => resolve([...mockCampaignOverviewData]), 150);
     });
   },
 
-  getCategoryDistribution: async () => {
+  getCategoryDistribution: async (): Promise<api.AdminCategoryDistributionPointApi[]> => {
     return new Promise((resolve) => {
       setTimeout(() => resolve([...mockCategoryDistribution]), 150);
     });

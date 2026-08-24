@@ -55,11 +55,6 @@ export type Permission =
   | 'exports.brand'
   | 'exports.campaign'
   | 'exports.user'
-  // Audit Logs
-  | 'audit_logs.view'
-  // Settings
-  | 'settings.view'
-  | 'settings.edit'
   // Wildcard for Super Admin
   | '*';
 
@@ -71,9 +66,7 @@ export type ModuleName =
   | 'Brands'
   | 'Campaigns'
   | 'Shortlists'
-  | 'Exports'
-  | 'Audit Logs'
-  | 'Settings';
+  | 'Exports';
 
 export interface PermissionDefinition {
   key: Permission;
@@ -144,7 +137,6 @@ export interface SocialProfile {
 
 export interface Creator {
   id: string;
-  creatorCode: string; // e.g. CR-10482
   name: string;
   handle: string;
   email: string;
@@ -163,8 +155,6 @@ export interface Creator {
   accountStatus: AccountStatus;
   socials: SocialProfile[];
   completedCampaigns: number;
-  totalEarnings: number;
-  rating: number; // out of 5
   joinedAt: string;
   documents?: {
     type: string;
@@ -187,13 +177,10 @@ export type BrandIndustry =
 
 export interface Brand {
   id: string;
-  brandCode: string; // e.g. BR-8042
   name: string;
   logoUrl: string;
   industry: BrandIndustry;
   website: string;
-  contactPerson: string;
-  contactRole: string;
   email: string;
   phone: string;
   address: string;

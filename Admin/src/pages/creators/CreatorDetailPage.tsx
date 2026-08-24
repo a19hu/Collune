@@ -132,9 +132,7 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
   }
 
   const socialChannels = creator.socials || (creator as any).socialAccounts || [];
-  const baseCommercialPrice =
-    (creator as any).basePrice ||
-    Math.round((creator.totalEarnings || 75000) / Math.max(1, creator.completedCampaigns || 5));
+  const baseCommercialPrice = (creator as any).basePrice || 75000;
   const memberSince = creator.joinedAt || (creator as any).joinedDate || new Date().toISOString();
 
   return (
@@ -166,7 +164,7 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
               <div className="text-xs text-slate-500 flex items-center gap-2 flex-wrap font-mono">
                 <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{creator.handle}</span>
                 <span>•</span>
-                <span>{creator.creatorCode}</span>
+                <span>{creator.id}</span>
                 <span>•</span>
                 <span className="flex items-center gap-1 text-slate-400 font-sans">
                   <MapPin className="w-3.5 h-3.5" />
@@ -219,7 +217,7 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
         </div>
 
         {/* Highlight Stats Strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
           <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-850/60 border border-slate-100 dark:border-slate-800">
             <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
               Total Reach
@@ -230,16 +228,6 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
             <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
               {creator.primaryEngagementRate}% Primary ER
             </div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-850/60 border border-slate-100 dark:border-slate-800">
-            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-              Total Earnings
-            </div>
-            <div className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1 font-mono">
-              {formatCurrency(creator.totalEarnings)}
-            </div>
-            <div className="text-[10px] text-slate-400 mt-0.5">Direct Brand Payouts</div>
           </div>
 
           <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-850/60 border border-slate-100 dark:border-slate-800">
@@ -485,7 +473,7 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
                 Verified Document Attachment
               </div>
               <p className="text-[11px] text-slate-400">
-                Aadhaar_Front_Back_{creator.creatorCode}.pdf (2.4 MB)
+                Aadhaar_Front_Back_{creator.id}.pdf (2.4 MB)
               </p>
               <button
                 onClick={() => success('Preview opened', 'Simulated viewing encrypted KYC scan')}

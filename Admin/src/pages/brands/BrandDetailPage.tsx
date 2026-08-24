@@ -122,7 +122,7 @@ export const BrandDetailPage: React.FC<BrandDetailPageProps> = ({ brandId, onRou
                 <StatusBadge status={brand.verificationStatus} />
               </div>
               <div className="text-xs text-slate-500 flex items-center gap-2 flex-wrap font-mono">
-                <span>{brand.brandCode}</span>
+                <span>{brand.id}</span>
                 <span>•</span>
                 <span className="font-sans text-indigo-600 dark:text-indigo-400 font-semibold">
                   {brand.industry}
@@ -130,7 +130,7 @@ export const BrandDetailPage: React.FC<BrandDetailPageProps> = ({ brandId, onRou
                 <span>•</span>
                 <span className="flex items-center gap-1 text-slate-400 font-sans">
                   <MapPin className="w-3.5 h-3.5" />
-                  {brand.location}
+                  {brand.address}
                 </span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-400 max-w-xl line-clamp-2 pt-1 font-sans">
@@ -180,12 +180,12 @@ export const BrandDetailPage: React.FC<BrandDetailPageProps> = ({ brandId, onRou
 
           <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-850/60 border border-slate-100 dark:border-slate-800">
             <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-              Primary Contact
+              Contact Email
             </div>
             <div className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-1 truncate">
-              {brand.contactPerson}
+              {brand.email}
             </div>
-            <div className="text-[10px] text-slate-400 mt-0.5 truncate">{brand.email}</div>
+            <div className="text-[10px] text-slate-400 mt-0.5 truncate">{brand.phone}</div>
           </div>
 
           <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-850/60 border border-slate-100 dark:border-slate-800">
@@ -201,7 +201,7 @@ export const BrandDetailPage: React.FC<BrandDetailPageProps> = ({ brandId, onRou
               <span>{brand.website.replace('https://', '')}</span>
               <ExternalLink className="w-3 h-3 shrink-0" />
             </a>
-            <div className="text-[10px] text-slate-400 mt-0.5">Joined {formatDate(brand.createdAt)}</div>
+            <div className="text-[10px] text-slate-400 mt-0.5">Joined {formatDate(brand.joinedAt)}</div>
           </div>
         </div>
 
@@ -261,7 +261,7 @@ export const BrandDetailPage: React.FC<BrandDetailPageProps> = ({ brandId, onRou
               </div>
               <div className="py-2.5 flex items-center justify-between">
                 <span className="text-slate-500">Registered Office</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">{brand.location}</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{brand.address}</span>
               </div>
               <div className="py-2.5 flex items-center justify-between">
                 <span className="text-slate-500">Billing Currency</span>

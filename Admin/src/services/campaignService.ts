@@ -1,51 +1,100 @@
-import { Campaign, CampaignStatus } from '../types';
+import { Campaign, CampaignStatus, CampaignDeliverable } from '../types';
 import { mockCampaigns } from '../mocks/mockData';
+import * as api from '../lib/api';
 
 let campaignsState: Campaign[] = [...mockCampaigns];
 
+const STATUS_TO_BACKEND: Record<CampaignStatus, string> = {
+  Draft: 'DRAFT',
+  'Pending Approval': 'PENDING_APPROVAL',
+  Active: 'ACTIVE',
+  Paused: 'PAUSED',
+  Completed: 'COMPLETED',
+  Cancelled: 'CANCELLED',
+};
+
+function deliverablesToText(deliverables: CampaignDeliverable[]): string {
+  return deliverables.map((d) => d.title).join(', ');
+}
+
+function mapApiCampaign(apiCampaign: api.AdminCampaignApi): Campaign {
+  return {
+    ...apiCampaign,
+    category: apiCampaign.category as Campaign['category'],
+    platforms: apiCampaign.platforms as Campaign['platforms'],
+    status: apiCampaign.status as CampaignStatus,
+    deliverables: apiCampaign.deliverables.map((d) => ({ ...d, platform: d.platform as any, type: d.type as any })),
+  };
+}
+
 export const campaignService = {
   getCampaigns: async (): Promise<Campaign[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve([...campaignsState]), 150);
-    });
+    try {
+      const apiCampaigns = await api.getAdminCampaigns();
+      campaignsState = apiCampaigns.map(mapApiCampaign);
+      return [...campaignsState];
+    } catch (err) {
+      // Not authenticated yet, or backend unreachable — keep working off the mock catalog.
+      return [...campaignsState];
+    }
   },
 
   getCampaignById: async (id: string): Promise<Campaign | null> => {
-    return new Promise((resolve) => {
+    try {
+      const apiCampaign = await api.getAdminCampaign(id);
+      const campaign = mapApiCampaign(apiCampaign);
+      campaignsState = campaignsState.some((c) => c.id === campaign.id)
+        ? campaignsState.map((c) => (c.id === campaign.id ? campaign : c))
+        : [campaign, ...campaignsState];
+      return campaign;
+    } catch (err) {
       const campaign = campaignsState.find((c) => c.id === id || c.campaignCode === id) || null;
-      setTimeout(() => resolve(campaign ? { ...campaign } : null), 100);
-    });
+      return campaign ? { ...campaign } : null;
+    }
   },
 
   createCampaign: async (campaignData: Omit<Campaign, 'id' | 'campaignCode' | 'createdAt' | 'deliverablesTotal' | 'deliverablesCompleted' | 'creatorsSelected' | 'applicationsCount'>): Promise<Campaign> => {
-    return new Promise((resolve) => {
-      const nextNum = 2050 + campaignsState.length + 1;
-      const deliverablesTotal = campaignData.deliverables.reduce((acc, d) => acc + d.quantity, 0);
-      const newCampaign: Campaign = {
-        ...campaignData,
-        id: `CMP-${String(campaignsState.length + 1).padStart(3, '0')}`,
-        campaignCode: `CMP-${nextNum}`,
-        creatorsSelected: 0,
-        applicationsCount: 0,
-        deliverablesTotal,
-        deliverablesCompleted: 0,
-        createdAt: new Date().toISOString(),
-      };
-      campaignsState = [newCampaign, ...campaignsState];
-      setTimeout(() => resolve(newCampaign), 200);
+    const created = await api.createAdminCampaign({
+      title: campaignData.title,
+      brand_id: campaignData.brandId,
+      category: campaignData.category,
+      description: campaignData.description,
+      objective: campaignData.objective,
+      target_audience: campaignData.targetAudience,
+      platforms: campaignData.platforms,
+      budget: campaignData.budget,
+      creators_required: campaignData.creatorsRequired,
+      deliverables_text: deliverablesToText(campaignData.deliverables),
+      start_date: campaignData.startDate,
+      end_date: campaignData.endDate,
+      status: STATUS_TO_BACKEND[campaignData.status],
+      campaign_manager: campaignData.campaignManager,
     });
+    const campaign = mapApiCampaign(created);
+    campaignsState = [campaign, ...campaignsState];
+    return campaign;
   },
 
   updateCampaign: async (id: string, updates: Partial<Campaign>): Promise<Campaign> => {
-    return new Promise((resolve, reject) => {
-      const index = campaignsState.findIndex((c) => c.id === id || c.campaignCode === id);
-      if (index === -1) {
-        reject(new Error('Campaign not found'));
-        return;
-      }
-      campaignsState[index] = { ...campaignsState[index], ...updates };
-      setTimeout(() => resolve({ ...campaignsState[index] }), 200);
+    const updated = await api.updateAdminCampaign(id, {
+      title: updates.title,
+      brand_id: updates.brandId,
+      category: updates.category,
+      description: updates.description,
+      objective: updates.objective,
+      target_audience: updates.targetAudience,
+      platforms: updates.platforms,
+      budget: updates.budget,
+      creators_required: updates.creatorsRequired,
+      deliverables_text: updates.deliverables ? deliverablesToText(updates.deliverables) : undefined,
+      start_date: updates.startDate,
+      end_date: updates.endDate,
+      status: updates.status ? STATUS_TO_BACKEND[updates.status] : undefined,
+      campaign_manager: updates.campaignManager,
     });
+    const campaign = mapApiCampaign(updated);
+    campaignsState = campaignsState.map((c) => (c.id === id ? campaign : c));
+    return campaign;
   },
 
   updateStatus: async (id: string, status: CampaignStatus): Promise<Campaign> => {
@@ -53,14 +102,8 @@ export const campaignService = {
   },
 
   deleteCampaign: async (id: string): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-      const init = campaignsState.length;
-      campaignsState = campaignsState.filter((c) => c.id !== id && c.campaignCode !== id);
-      if (campaignsState.length === init) {
-        reject(new Error('Campaign not found'));
-        return;
-      }
-      setTimeout(() => resolve(true), 200);
-    });
+    await api.deleteAdminCampaign(id);
+    campaignsState = campaignsState.filter((c) => c.id !== id);
+    return true;
   },
 };

@@ -1,13 +1,35 @@
 import { StaffUser } from '../types';
 import { mockStaffUsers } from '../mocks/mockData';
+import * as api from '../lib/api';
 
 let usersState: StaffUser[] = [...mockStaffUsers];
 
+function mapApiUser(apiUser: api.AdminManagedUserApi): StaffUser {
+  const assignedRole = apiUser.userrole?.assigned_role;
+  return {
+    id: apiUser.user_id,
+    name: apiUser.name,
+    email: apiUser.email,
+    phone: apiUser.phone_no || '',
+    department: 'Administration',
+    roleId: assignedRole?.role_id || apiUser.userrole?.role_name || 'UNASSIGNED',
+    roleName: assignedRole?.name || apiUser.userrole?.role_name || 'Unassigned',
+    status: apiUser.is_active ? 'Active' : 'Inactive',
+    lastLogin: apiUser.last_login_at || 'Never',
+    createdAt: apiUser.created_at,
+  };
+}
+
 export const userService = {
   getUsers: async (): Promise<StaffUser[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve([...usersState]), 150);
-    });
+    try {
+      const apiUsers = await api.getStaffUsers();
+      usersState = apiUsers.map(mapApiUser);
+      return [...usersState];
+    } catch (err) {
+      // Not authenticated yet, or backend unreachable — keep working off the mock catalog.
+      return [...usersState];
+    }
   },
 
   getUserById: async (id: string): Promise<StaffUser | null> => {
@@ -17,18 +39,20 @@ export const userService = {
     });
   },
 
-  createUser: async (userData: Omit<StaffUser, 'id' | 'createdAt' | 'lastLogin'>): Promise<StaffUser> => {
-    return new Promise((resolve) => {
-      const nextId = `ADM-${String(usersState.length + 1).padStart(3, '0')}`;
-      const newUser: StaffUser = {
-        ...userData,
-        id: nextId,
-        createdAt: new Date().toISOString(),
-        lastLogin: 'Never',
-      };
-      usersState = [newUser, ...usersState];
-      setTimeout(() => resolve(newUser), 200);
+  createUser: async (
+    userData: Omit<StaffUser, 'id' | 'createdAt' | 'lastLogin'> & { password: string }
+  ): Promise<StaffUser> => {
+    const created = await api.createStaffUser({
+      name: userData.name,
+      email: userData.email,
+      phone_no: userData.phone,
+      password: userData.password,
+      assigned_role_name: userData.roleName,
+      is_active: userData.status === 'Active',
     });
+    const newUser = mapApiUser(created);
+    usersState = [newUser, ...usersState];
+    return newUser;
   },
 
   updateUser: async (id: string, updates: Partial<StaffUser>): Promise<StaffUser> => {

@@ -171,7 +171,6 @@ export const mockStaffUsers: StaffUser[] = [
 export const mockCreators: Creator[] = [
   {
     id: 'CR-001',
-    creatorCode: 'CR-10482',
     name: 'Ananya Sharma',
     handle: '@ananyasharma',
     email: 'ananya@creatorsphere.in',
@@ -189,8 +188,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 42,
-    totalEarnings: 3850000,
-    rating: 4.9,
     joinedAt: '2025-01-15T10:00:00Z',
     socials: [
       { platform: 'Instagram', handle: '@ananyasharma', followers: 425000, engagementRate: 5.8, url: 'https://instagram.com' },
@@ -206,7 +203,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-002',
-    creatorCode: 'CR-10483',
     name: 'Rahul Verma',
     handle: '@techwithrahul',
     email: 'rahul@techbytes.media',
@@ -224,8 +220,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 68,
-    totalEarnings: 6200000,
-    rating: 4.8,
     joinedAt: '2025-01-18T12:30:00Z',
     socials: [
       { platform: 'YouTube', handle: 'TechWithRahul', followers: 650000, engagementRate: 7.8, url: 'https://youtube.com' },
@@ -239,7 +233,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-003',
-    creatorCode: 'CR-10484',
     name: 'Kusha Kapila',
     handle: '@kushakapila',
     email: 'kusha.collabs@kapilamedia.com',
@@ -257,8 +250,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 112,
-    totalEarnings: 18400000,
-    rating: 5.0,
     joinedAt: '2025-01-10T08:00:00Z',
     socials: [
       { platform: 'Instagram', handle: '@kushakapila', followers: 3400000, engagementRate: 8.2, url: 'https://instagram.com' },
@@ -267,7 +258,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-004',
-    creatorCode: 'CR-10485',
     name: 'Tanmay Bhat',
     handle: '@tanmaybhat',
     email: 'tanmay@honestreviews.in',
@@ -285,8 +275,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 85,
-    totalEarnings: 24000000,
-    rating: 4.9,
     joinedAt: '2025-01-05T09:15:00Z',
     socials: [
       { platform: 'YouTube', handle: 'TanmayBhat', followers: 4900000, engagementRate: 7.5, url: 'https://youtube.com' },
@@ -296,7 +284,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-005',
-    creatorCode: 'CR-10486',
     name: 'Shreya Ghoshal Lifestyle',
     handle: '@shreyalifestyle',
     email: 'shreya.ghoshal@beautyvibes.com',
@@ -314,8 +301,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Pending',
     accountStatus: 'Active',
     completedCampaigns: 19,
-    totalEarnings: 1250000,
-    rating: 4.6,
     joinedAt: '2026-02-10T14:20:00Z',
     socials: [
       { platform: 'Instagram', handle: '@shreyalifestyle', followers: 310000, engagementRate: 4.9, url: 'https://instagram.com' },
@@ -324,7 +309,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-006',
-    creatorCode: 'CR-10487',
     name: 'Kabir Mehra',
     handle: '@fitwithkabir',
     email: 'kabir@ironathletics.co',
@@ -342,8 +326,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 34,
-    totalEarnings: 3100000,
-    rating: 4.8,
     joinedAt: '2025-03-01T11:00:00Z',
     socials: [
       { platform: 'Instagram', handle: '@fitwithkabir', followers: 580000, engagementRate: 6.1, url: 'https://instagram.com' },
@@ -352,7 +334,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-007',
-    creatorCode: 'CR-10488',
     name: 'Priya Patel',
     handle: '@priyacooksindia',
     email: 'priya@spiceandstory.com',
@@ -370,8 +351,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 51,
-    totalEarnings: 4400000,
-    rating: 4.9,
     joinedAt: '2025-02-20T16:45:00Z',
     socials: [
       { platform: 'Instagram', handle: '@priyacooksindia', followers: 720000, engagementRate: 7.1, url: 'https://instagram.com' },
@@ -380,7 +359,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-008',
-    creatorCode: 'CR-10489',
     name: 'Rohan Joshi',
     handle: '@mojorojo',
     email: 'rohan.joshi@punchline.in',
@@ -398,8 +376,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 39,
-    totalEarnings: 3950000,
-    rating: 4.7,
     joinedAt: '2025-01-25T13:10:00Z',
     socials: [
       { platform: 'Instagram', handle: '@mojorojo', followers: 620000, engagementRate: 5.2, url: 'https://instagram.com' },
@@ -408,7 +384,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-009',
-    creatorCode: 'CR-10490',
     name: 'Neha Roy',
     handle: '@wanderwithneha',
     email: 'neha@globetrotting.travel',
@@ -426,8 +401,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 29,
-    totalEarnings: 2750000,
-    rating: 4.8,
     joinedAt: '2025-03-12T15:00:00Z',
     socials: [
       { platform: 'Instagram', handle: '@wanderwithneha', followers: 410000, engagementRate: 6.8, url: 'https://instagram.com' },
@@ -436,7 +409,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-010',
-    creatorCode: 'CR-10491',
     name: 'Aman Dhattarwal',
     handle: '@amandhattarwal',
     email: 'aman@apnaclass.in',
@@ -454,8 +426,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 57,
-    totalEarnings: 15200000,
-    rating: 4.9,
     joinedAt: '2025-01-20T09:00:00Z',
     socials: [
       { platform: 'YouTube', handle: 'AmanDhattarwalOfficial', followers: 4500000, engagementRate: 8.9, url: 'https://youtube.com' },
@@ -464,7 +434,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-011',
-    creatorCode: 'CR-10492',
     name: 'Dolly Singh',
     handle: '@dollysingh',
     email: 'dolly@fashionsketch.in',
@@ -482,8 +451,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 73,
-    totalEarnings: 11200000,
-    rating: 4.8,
     joinedAt: '2025-02-01T10:30:00Z',
     socials: [
       { platform: 'Instagram', handle: '@dollysingh', followers: 1600000, engagementRate: 6.9, url: 'https://instagram.com' },
@@ -491,7 +458,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-012',
-    creatorCode: 'CR-10493',
     name: 'Scout Gaming (Tanmay Singh)',
     handle: '@scoutop',
     email: 'scout@s8ul.gg',
@@ -509,8 +475,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 91,
-    totalEarnings: 21500000,
-    rating: 4.9,
     joinedAt: '2025-01-08T11:45:00Z',
     socials: [
       { platform: 'YouTube', handle: 'scOutOP', followers: 4800000, engagementRate: 9.4, url: 'https://youtube.com' },
@@ -519,7 +483,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-013',
-    creatorCode: 'CR-10494',
     name: 'Komal Pandey',
     handle: '@komalpandeyofficial',
     email: 'komal@thefashioncloset.in',
@@ -537,8 +500,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 88,
-    totalEarnings: 16800000,
-    rating: 4.9,
     joinedAt: '2025-01-12T14:00:00Z',
     socials: [
       { platform: 'Instagram', handle: '@komalpandeyofficial', followers: 1900000, engagementRate: 7.3, url: 'https://instagram.com' },
@@ -547,7 +508,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-014',
-    creatorCode: 'CR-10495',
     name: 'Ankush Bahuguna',
     handle: '@ankushbahuguna',
     email: 'ankush@wingitwithankush.com',
@@ -565,8 +525,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 64,
-    totalEarnings: 8900000,
-    rating: 4.8,
     joinedAt: '2025-02-14T09:20:00Z',
     socials: [
       { platform: 'Instagram', handle: '@ankushbahuguna', followers: 1100000, engagementRate: 6.5, url: 'https://instagram.com' },
@@ -574,7 +532,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-015',
-    creatorCode: 'CR-10496',
     name: 'Niharika NM',
     handle: '@niharika_nm',
     email: 'niharika@globaltalents.io',
@@ -592,8 +549,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 96,
-    totalEarnings: 22000000,
-    rating: 5.0,
     joinedAt: '2025-01-04T12:00:00Z',
     socials: [
       { platform: 'Instagram', handle: '@niharika_nm', followers: 3200000, engagementRate: 8.8, url: 'https://instagram.com' },
@@ -602,7 +557,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-016',
-    creatorCode: 'CR-10497',
     name: 'Yashraj Mukhate',
     handle: '@yashrajmukhate',
     email: 'yashraj@musicdialogues.com',
@@ -620,8 +574,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 52,
-    totalEarnings: 14500000,
-    rating: 4.9,
     joinedAt: '2025-01-28T16:00:00Z',
     socials: [
       { platform: 'Instagram', handle: '@yashrajmukhate', followers: 2500000, engagementRate: 9.1, url: 'https://instagram.com' },
@@ -630,7 +582,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-017',
-    creatorCode: 'CR-10498',
     name: 'Riddhi Sen',
     handle: '@riddhi_travelogue',
     email: 'riddhi@indiatrailways.com',
@@ -648,8 +599,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Pending',
     accountStatus: 'Active',
     completedCampaigns: 14,
-    totalEarnings: 950000,
-    rating: 4.7,
     joinedAt: '2026-03-01T11:20:00Z',
     socials: [
       { platform: 'Instagram', handle: '@riddhi_travelogue', followers: 185000, engagementRate: 6.2, url: 'https://instagram.com' },
@@ -657,7 +606,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-018',
-    creatorCode: 'CR-10499',
     name: 'Sameer Sinha',
     handle: '@sinha_invests',
     email: 'sameer@wealthblueprint.in',
@@ -675,8 +623,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 46,
-    totalEarnings: 5800000,
-    rating: 4.8,
     joinedAt: '2025-02-18T10:00:00Z',
     socials: [
       { platform: 'YouTube', handle: 'SameerSinhaFinance', followers: 740000, engagementRate: 5.4, url: 'https://youtube.com' },
@@ -685,7 +631,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-019',
-    creatorCode: 'CR-10500',
     name: 'Alia Merchant',
     handle: '@aliamerchant_chic',
     email: 'alia@voguish.co',
@@ -703,8 +648,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Rejected',
     accountStatus: 'Inactive',
     completedCampaigns: 4,
-    totalEarnings: 180000,
-    rating: 3.8,
     joinedAt: '2026-02-25T13:40:00Z',
     socials: [
       { platform: 'Instagram', handle: '@aliamerchant_chic', followers: 95000, engagementRate: 3.2, url: 'https://instagram.com' },
@@ -712,7 +655,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-020',
-    creatorCode: 'CR-10501',
     name: 'Mortal (Naman Mathur)',
     handle: '@ig_mortal',
     email: 'mortal@s8ul.gg',
@@ -730,8 +672,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 130,
-    totalEarnings: 32000000,
-    rating: 5.0,
     joinedAt: '2025-01-02T10:00:00Z',
     socials: [
       { platform: 'YouTube', handle: 'MortaL', followers: 7100000, engagementRate: 10.5, url: 'https://youtube.com' },
@@ -740,7 +680,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-021',
-    creatorCode: 'CR-10502',
     name: 'Pooja Dhingra',
     handle: '@poojadhingra',
     email: 'pooja@le15.com',
@@ -758,8 +697,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 62,
-    totalEarnings: 10500000,
-    rating: 4.9,
     joinedAt: '2025-01-14T11:00:00Z',
     socials: [
       { platform: 'Instagram', handle: '@poojadhingra', followers: 1400000, engagementRate: 6.3, url: 'https://instagram.com' },
@@ -767,7 +704,6 @@ export const mockCreators: Creator[] = [
   },
   {
     id: 'CR-022',
-    creatorCode: 'CR-10503',
     name: 'Gaurav Taneja (Flying Beast)',
     handle: '@flyingbeast320',
     email: 'gaurav@flyingbeast.in',
@@ -785,8 +721,6 @@ export const mockCreators: Creator[] = [
     verificationStatus: 'Verified',
     accountStatus: 'Active',
     completedCampaigns: 145,
-    totalEarnings: 38000000,
-    rating: 4.8,
     joinedAt: '2025-01-01T08:00:00Z',
     socials: [
       { platform: 'YouTube', handle: 'FlyingBeast', followers: 8600000, engagementRate: 8.7, url: 'https://youtube.com' },
@@ -798,13 +732,10 @@ export const mockCreators: Creator[] = [
 export const mockBrands: Brand[] = [
   {
     id: 'BR-001',
-    brandCode: 'BR-8042',
     name: 'Nike India',
     logoUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=150&auto=format&fit=crop&q=80',
     industry: 'Fashion & Apparel',
     website: 'https://nike.com/in',
-    contactPerson: 'Sanjay Aggarwal',
-    contactRole: 'Brand Marketing Lead',
     email: 'sanjay.aggarwal@nike.com',
     phone: '+91 11 4111 8888',
     address: 'DLF Cyber City, Tower B, Gurugram, Haryana 122002',
@@ -823,13 +754,10 @@ export const mockBrands: Brand[] = [
   },
   {
     id: 'BR-002',
-    brandCode: 'BR-8043',
     name: 'BoAt Lifestyle',
     logoUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=150&auto=format&fit=crop&q=80',
     industry: 'Consumer Electronics',
     website: 'https://boat-lifestyle.com',
-    contactPerson: 'Aman Gupta Desk',
-    contactRole: 'VP Brand Growth',
     email: 'growth@boat-lifestyle.com',
     phone: '+91 22 6123 4567',
     address: 'Imagine Marketing Ltd, Andheri East, Mumbai 400069',
@@ -848,13 +776,10 @@ export const mockBrands: Brand[] = [
   },
   {
     id: 'BR-003',
-    brandCode: 'BR-8044',
     name: 'Mamaearth',
     logoUrl: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=150&auto=format&fit=crop&q=80',
     industry: 'Beauty & Personal Care',
     website: 'https://mamaearth.in',
-    contactPerson: 'Ghazal Alagh Office',
-    contactRole: 'CMO',
     email: 'brand@mamaearth.in',
     phone: '+91 124 456 7890',
     address: 'Honasa Consumer Ltd, Golf Course Road, Gurugram 122002',
@@ -869,13 +794,10 @@ export const mockBrands: Brand[] = [
   },
   {
     id: 'BR-004',
-    brandCode: 'BR-8045',
     name: 'Nykaa',
     logoUrl: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=150&auto=format&fit=crop&q=80',
     industry: 'Beauty & Personal Care',
     website: 'https://nykaa.com',
-    contactPerson: 'Falguni Nayar Team',
-    contactRole: 'Senior Marketing Director',
     email: 'partnerships@nykaa.com',
     phone: '+91 22 6614 1000',
     address: '104, Vithaldas Chambers, Mumbai 400001',
@@ -890,13 +812,10 @@ export const mockBrands: Brand[] = [
   },
   {
     id: 'BR-005',
-    brandCode: 'BR-8046',
     name: 'Spotify India',
     logoUrl: 'https://images.unsplash.com/photo-1614680376593-902f749f7ffc?w=150&auto=format&fit=crop&q=80',
     industry: 'Gaming & Entertainment',
     website: 'https://spotify.com',
-    contactPerson: 'Amarjit Singh Batra',
-    contactRole: 'Head of Marketing (India)',
     email: 'amarjit@spotify.com',
     phone: '+91 22 4900 1200',
     address: 'Bandra Kurla Complex, Mumbai 400051',
@@ -911,13 +830,10 @@ export const mockBrands: Brand[] = [
   },
   {
     id: 'BR-006',
-    brandCode: 'BR-8047',
     name: 'Swiggy',
     logoUrl: 'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=150&auto=format&fit=crop&q=80',
     industry: 'Food & Beverages',
     website: 'https://swiggy.com',
-    contactPerson: 'Karthik Gurumurthy',
-    contactRole: 'VP Growth & Brand',
     email: 'brandteam@swiggy.in',
     phone: '+91 80 6746 6746',
     address: 'IBC Knowledge Park, Bannerghatta Main Rd, Bengaluru 560029',
@@ -932,13 +848,10 @@ export const mockBrands: Brand[] = [
   },
   {
     id: 'BR-007',
-    brandCode: 'BR-8048',
     name: 'OnePlus India',
     logoUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=150&auto=format&fit=crop&q=80',
     industry: 'Consumer Electronics',
     website: 'https://oneplus.in',
-    contactPerson: 'Navnit Nakra',
-    contactRole: 'Chief Strategy Officer',
     email: 'marketing.in@oneplus.com',
     phone: '+91 80 4680 0000',
     address: 'UB City, Vittal Mallya Rd, Bengaluru 560001',
@@ -953,13 +866,10 @@ export const mockBrands: Brand[] = [
   },
   {
     id: 'BR-008',
-    brandCode: 'BR-8049',
     name: 'Cult.fit',
     logoUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=150&auto=format&fit=crop&q=80',
     industry: 'Health & Wellness',
     website: 'https://cult.fit',
-    contactPerson: 'Naresh Krishnaswamy',
-    contactRole: 'Head of Fitness Partnerships',
     email: 'collabs@cult.fit',
     phone: '+91 80 4567 8901',
     address: 'HSR Layout Sector 2, Bengaluru 560102',
@@ -974,13 +884,10 @@ export const mockBrands: Brand[] = [
   },
   {
     id: 'BR-009',
-    brandCode: 'BR-8050',
     name: 'Cred',
     logoUrl: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=150&auto=format&fit=crop&q=80',
     industry: 'Fintech',
     website: 'https://cred.club',
-    contactPerson: 'Kunal Shah Office',
-    contactRole: 'Brand Experience Lead',
     email: 'brand@cred.club',
     phone: '+91 80 3951 1234',
     address: 'Indiranagar 100ft Road, Bengaluru 560038',
@@ -995,13 +902,10 @@ export const mockBrands: Brand[] = [
   },
   {
     id: 'BR-010',
-    brandCode: 'BR-8051',
     name: 'Urban Company',
     logoUrl: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=150&auto=format&fit=crop&q=80',
     industry: 'E-Commerce',
     website: 'https://urbancompany.com',
-    contactPerson: 'Abhiraj Singh Bhal',
-    contactRole: 'VP Marketing',
     email: 'marketing@urbancompany.com',
     phone: '+91 124 456 0000',
     address: 'Sector 44, Gurugram 122003',
@@ -1016,13 +920,10 @@ export const mockBrands: Brand[] = [
   },
   {
     id: 'BR-011',
-    brandCode: 'BR-8052',
     name: 'Zomato',
     logoUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=150&auto=format&fit=crop&q=80',
     industry: 'Food & Beverages',
     website: 'https://zomato.com',
-    contactPerson: 'Deepinder Goyal Team',
-    contactRole: 'Brand Marketing Lead',
     email: 'partners@zomato.com',
     phone: '+91 124 400 1234',
     address: 'Udyog Vihar Phase 5, Gurugram 122016',
@@ -1037,13 +938,10 @@ export const mockBrands: Brand[] = [
   },
   {
     id: 'BR-012',
-    brandCode: 'BR-8053',
     name: 'FreshGlow Naturals',
     logoUrl: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=150&auto=format&fit=crop&q=80',
     industry: 'Beauty & Personal Care',
     website: 'https://freshglownaturals.com',
-    contactPerson: 'Neha Chawla',
-    contactRole: 'Founder',
     email: 'neha@freshglow.in',
     phone: '+91 11 2345 6789',
     address: 'Saket District Centre, New Delhi 110017',

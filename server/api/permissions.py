@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 
-from .models import UserRole, VerificationStatus,UserAdminRole
+from .models import UserRole, VerificationStatus, AdminRoleType
 
 
 class HasRole(BasePermission):
@@ -29,7 +29,7 @@ class IsVerifiedColluneMember(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.role in UserAdminRole.internal_roles():
+        if request.user.role in AdminRoleType.internal_roles():
             return True
         if request.user.role == UserRole.BRAND:
             profile = getattr(request.user, "brand_profile", None)

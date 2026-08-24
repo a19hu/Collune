@@ -49,9 +49,9 @@ export const exportService = {
 
     if (type === 'Creator Data') {
       filename += format === 'CSV' ? '.csv' : '.txt';
-      const headers = ['Creator ID', 'Name', 'Handle', 'Category', 'Location', 'Followers', 'Engagement', 'Status', 'Verification', 'Earnings'];
+      const headers = ['Creator ID', 'Name', 'Handle', 'Category', 'Location', 'Followers', 'Engagement', 'Status', 'Verification'];
       const rows = mockCreators.map((c) => [
-        c.creatorCode,
+        c.id,
         `"${c.name}"`,
         c.handle,
         c.category,
@@ -60,17 +60,15 @@ export const exportService = {
         `${c.primaryEngagementRate}%`,
         c.accountStatus,
         c.verificationStatus,
-        c.totalEarnings,
       ]);
       content = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
     } else if (type === 'Brand Data') {
       filename += format === 'CSV' ? '.csv' : '.txt';
-      const headers = ['Brand ID', 'Name', 'Industry', 'Contact Person', 'Email', 'Total Campaigns', 'Total Spend', 'Status'];
+      const headers = ['Brand ID', 'Name', 'Industry', 'Email', 'Total Campaigns', 'Total Spend', 'Status'];
       const rows = mockBrands.map((b) => [
-        b.brandCode,
+        b.id,
         `"${b.name}"`,
         `"${b.industry}"`,
-        `"${b.contactPerson}"`,
         b.email,
         b.totalCampaigns,
         b.totalSpend,

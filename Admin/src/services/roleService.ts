@@ -1,13 +1,32 @@
 import { Role, Permission } from '../types';
 import { DEFAULT_ROLES } from '../constants/permissions';
+import * as api from '../lib/api';
 
 let rolesState: Role[] = [...DEFAULT_ROLES];
 
+function mapApiRole(apiRole: api.AdminRoleApi): Role {
+  return {
+    id: apiRole.role_id,
+    name: apiRole.name,
+    description: apiRole.description,
+    permissions: apiRole.is_wildcard ? ['*'] : (apiRole.permissions as Permission[]),
+    userCount: apiRole.user_count,
+    isSystem: apiRole.is_system,
+    createdAt: apiRole.created_at,
+    updatedAt: apiRole.updated_at,
+  };
+}
+
 export const roleService = {
   getRoles: async (): Promise<Role[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve([...rolesState]), 150);
-    });
+    try {
+      const apiRoles = await api.getAdminRoles();
+      rolesState = apiRoles.map(mapApiRole);
+      return [...rolesState];
+    } catch (err) {
+      // Not authenticated yet, or backend unreachable — keep working off the mock catalog.
+      return [...rolesState];
+    }
   },
 
   getRoleById: async (id: string): Promise<Role | null> => {
@@ -18,73 +37,49 @@ export const roleService = {
   },
 
   createRole: async (roleData: { name: string; description: string; permissions: Permission[] }): Promise<Role> => {
-    return new Promise((resolve) => {
-      const newRole: Role = {
-        id: `ROLE-${roleData.name.toUpperCase().replace(/[^A-Z0-9]/g, '-').slice(0, 20)}-${Date.now().toString().slice(-4)}`,
-        name: roleData.name,
-        description: roleData.description,
-        permissions: roleData.permissions,
-        userCount: 0,
-        isSystem: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      rolesState = [...rolesState, newRole];
-      setTimeout(() => resolve(newRole), 200);
+    const created = await api.createAdminRole({
+      name: roleData.name,
+      description: roleData.description,
+      permissions: roleData.permissions,
     });
+    const newRole = mapApiRole(created);
+    rolesState = [...rolesState, newRole];
+    return newRole;
   },
 
   updateRole: async (id: string, updates: Partial<Role>): Promise<Role> => {
-    return new Promise((resolve, reject) => {
-      const index = rolesState.findIndex((r) => r.id === id);
-      if (index === -1) {
-        reject(new Error('Role not found'));
-        return;
-      }
-      rolesState[index] = {
-        ...rolesState[index],
-        ...updates,
-        updatedAt: new Date().toISOString(),
-      };
-      setTimeout(() => resolve({ ...rolesState[index] }), 200);
+    const updated = await api.updateAdminRole(id, {
+      name: updates.name,
+      description: updates.description,
+      permissions: updates.permissions,
     });
+    const updatedRole = mapApiRole(updated);
+    rolesState = rolesState.map((r) => (r.id === id ? updatedRole : r));
+    return updatedRole;
   },
 
   duplicateRole: async (id: string): Promise<Role> => {
-    return new Promise((resolve, reject) => {
-      const original = rolesState.find((r) => r.id === id);
-      if (!original) {
-        reject(new Error('Original role not found'));
-        return;
-      }
-      const duplicateRole: Role = {
-        id: `ROLE-${original.name.toUpperCase().replace(/[^A-Z0-9]/g, '-')}-COPY-${Date.now().toString().slice(-4)}`,
-        name: `${original.name} (Copy)`,
-        description: `Cloned from ${original.name}. ${original.description}`,
-        permissions: [...original.permissions],
-        userCount: 0,
-        isSystem: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      rolesState = [...rolesState, duplicateRole];
-      setTimeout(() => resolve(duplicateRole), 200);
+    const original = rolesState.find((r) => r.id === id);
+    if (!original) {
+      throw new Error('Original role not found');
+    }
+    const created = await api.createAdminRole({
+      name: `${original.name} (Copy)`,
+      description: `Cloned from ${original.name}. ${original.description}`,
+      permissions: [...original.permissions],
     });
+    const duplicateRole = mapApiRole(created);
+    rolesState = [...rolesState, duplicateRole];
+    return duplicateRole;
   },
 
-  deleteRole: async (id: string): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-      const role = rolesState.find((r) => r.id === id);
-      if (!role) {
-        reject(new Error('Role not found'));
-        return;
-      }
-      if (role.isSystem || role.id === 'ROLE-SUPER-ADMIN') {
-        reject(new Error('Super Admin / System roles cannot be deleted.'));
-        return;
-      }
-      rolesState = rolesState.filter((r) => r.id !== id);
-      setTimeout(() => resolve(true), 200);
-    });
+  deleteRole: async (id: string, force = false): Promise<boolean> => {
+    const role = rolesState.find((r) => r.id === id);
+    if (role?.isSystem) {
+      throw new Error('System roles cannot be deleted.');
+    }
+    await api.deleteAdminRole(id, force);
+    rolesState = rolesState.filter((r) => r.id !== id);
+    return true;
   },
 };

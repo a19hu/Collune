@@ -16,6 +16,8 @@ from django.utils.html import format_html
 
 from .models import (
     ApplicationStatus,
+    AdminPermission,
+    AdminRole,
     BrandProfile,
     BrandShortlist,
     Campaign,
@@ -812,11 +814,31 @@ class BrandShortlistAdmin(ColluneAdminMixin, admin.ModelAdmin):
 
 @admin.register(UserAdminRole)
 class UserAdminRoleAdmin(ColluneAdminMixin, admin.ModelAdmin):
-    list_display = ("role_id", "user", "role_name", "Purpose")
+    list_display = ("role_id", "user", "role_name", "assigned_role", "Purpose")
     search_fields = ("user__email", "user__name", "role_name", "Purpose")
-    list_filter = ("role_name",)
-    autocomplete_fields = ("user",)
+    list_filter = ("role_name", "assigned_role")
+    autocomplete_fields = ("user", "assigned_role")
     actions = ["export_selected_as_csv"]
     export_fields = ("role_id", "user", "role_name", "permissions", "Purpose")
     import_fields = export_fields
     import_id_field = "role_id"
+
+
+@admin.register(AdminPermission)
+class AdminPermissionAdmin(ColluneAdminMixin, admin.ModelAdmin):
+    list_display = ("key", "label", "module")
+    list_filter = ("module",)
+    search_fields = ("key", "label", "description")
+    ordering = ("module", "key")
+
+
+@admin.register(AdminRole)
+class AdminRoleAdmin(ColluneAdminMixin, admin.ModelAdmin):
+    list_display = ("name", "is_wildcard", "is_system", "user_count", "updated_at")
+    list_filter = ("is_wildcard", "is_system")
+    search_fields = ("name", "description")
+    filter_horizontal = ("permissions",)
+
+    @admin.display(description="Staff Users")
+    def user_count(self, obj):
+        return obj.user_count

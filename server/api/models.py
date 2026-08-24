@@ -10,7 +10,7 @@ class UserRole(models.TextChoices):
     BRAND = "BRAND", "Brand"
     CREATOR = "CREATOR", "Creator"
 
-class UserAdminRole(models.TextChoices):
+class AdminRoleType(models.TextChoices):
     SUPER_ADMIN = "SUPER_ADMIN", "Super Admin"
     ADMIN = "ADMIN", "Admin"
     OPERATIONS_MANAGER = "OPERATIONS_MANAGER", "Operations Manager"
@@ -32,9 +32,21 @@ class UserAdminRole(models.TextChoices):
         )
 
 
+class PermissionModule(models.TextChoices):
+    DASHBOARD = "Dashboard", "Dashboard"
+    USERS = "Users", "Users"
+    ROLES = "Roles", "Roles"
+    CREATORS = "Creators", "Creators"
+    BRANDS = "Brands", "Brands"
+    CAMPAIGNS = "Campaigns", "Campaigns"
+    SHORTLISTS = "Shortlists", "Shortlists"
+    EXPORTS = "Exports", "Exports"
+
 class VerificationStatus(models.TextChoices):
     PENDING = "PENDING", "Pending review"
     VERIFIED = "VERIFIED", "Verified"
+    REJECTED = "REJECTED", "Rejected"
+    UNVERIFIED = "UNVERIFIED", "Unverified"
 
 class ApplicationStatus(models.TextChoices):
     APPLIED = "APPLIED", "Applied"
@@ -44,6 +56,12 @@ class ApplicationStatus(models.TextChoices):
 class ShortlistStatus(models.TextChoices):
     DRAFT = "DRAFT", "Draft"
     SUBMITTED = "SUBMITTED", "Submitted"
+
+class CampaignStatus(models.TextChoices):
+    DRAFT = "DRAFT", "Draft"
+    ACTIVE = "ACTIVE", "Active"
+    PAUSED = "PAUSED", "Paused"
+    COMPLETED = "COMPLETED", "Completed"
 
 class SocialPlatform(models.TextChoices):
     INSTAGRAM = "INSTAGRAM", "Instagram"
@@ -81,12 +99,57 @@ class User(AbstractUser):
         return self.profile_name
 
 
+class AdminPermission(models.Model):
+    """Catalog of fine-grained admin permission keys, e.g. 'creators.approve'."""
+
+    key = models.SlugField(max_length=64, primary_key=True)
+    label = models.CharField(max_length=120)
+    module = models.CharField(max_length=32, choices=PermissionModule.choices)
+    description = models.TextField(blank=True, default="")
+
+    class Meta:
+        ordering = ("module", "key")
+
+    def __str__(self):
+        return self.key
+
+
+class AdminRole(models.Model):
+    """A named, editable set of admin permissions assignable to staff users."""
+
+    role_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=120, unique=True)
+    description = models.TextField(blank=True, default="")
+    permissions = models.ManyToManyField(AdminPermission, blank=True, related_name="roles")
+    is_wildcard = models.BooleanField(default=False, help_text="Grants every permission, e.g. Super Admin.")
+    is_system = models.BooleanField(default=False, help_text="System roles cannot be deleted.")
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("name",)
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def user_count(self):
+        return self.staff_members.count()
+
+
 class UserAdminRole(models.Model):
     role_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False )
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="role_details")
-    role_name = models.CharField(max_length=32, choices=UserAdminRole.choices, default=UserAdminRole.TEAM_MEMBER)
+    role_name = models.CharField(max_length=32, choices=AdminRoleType.choices, default=AdminRoleType.TEAM_MEMBER)
     permissions = models.TextField()
     Purpose = models.CharField(max_length=255, blank=True,null=True)
+    assigned_role = models.ForeignKey(
+        AdminRole, on_delete=models.SET_NULL, null=True, blank=True, related_name="staff_members"
+    )
+
+    def __str__(self):
+        return f"{self.user} ({self.role_name})"
+
 
 
 class OtpVerification(models.Model):
@@ -200,6 +263,7 @@ class Campaign(models.Model):
     brand = models.ForeignKey(BrandProfile, on_delete=models.CASCADE, related_name="campaigns")
     title = models.CharField(max_length=255)
     internal_reference_name = models.CharField(max_length=255, blank=True, default="")
+    status = models.CharField(max_length=24, choices=CampaignStatus.choices, default=CampaignStatus.DRAFT)
     brief = models.TextField()
     objective = models.TextField(blank=True, default="")
     deliverables = models.TextField(blank=True, default="")

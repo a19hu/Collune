@@ -28,7 +28,6 @@ export const Header: React.FC<HeaderProps> = ({
   const {
     currentUser,
     currentRole,
-    switchDemoRole,
     logout,
   } = useAuth();
 

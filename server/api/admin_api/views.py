@@ -1,5 +1,4 @@
 from django.contrib.auth.models import Permission
-from django.db.models import Count, Q
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -7,33 +6,76 @@ from rest_framework.views import APIView
 
 from ..models import BrandProfile
 from ..permissions import IsAdminUserRole
-from .serializers import AdminManagedUserSerializer, AdminUserCreateSerializer
-from .services import build_role_templates, filter_admin_permissions
+from .serializers import (
+    AdminCampaignWriteSerializer,
+    AdminManagedUserSerializer,
+    AdminRoleSerializer,
+    AdminRoleWriteSerializer,
+    AdminUserCreateSerializer,
+)
+from .services import (
+    build_admin_dashboard_payload,
+    build_role_templates,
+    filter_admin_permissions,
+    serialize_admin_brand,
+    serialize_admin_campaign,
+    serialize_admin_creator,
+    serialize_admin_shortlist,
+)
 from ..brand.serializers import BrandProfileSerializer
 from ..creator.serializers import CreatorProfileSerializer
 from ..models import (
-    ApplicationStatus, BrandShortlist, Campaign, CreatorProfile, User, UserRole, VerificationStatus,
+    AccountStatus, AdminRole, ApplicationStatus, BrandShortlist, Campaign, CreatorProfile, User, UserRole, VerificationStatus,
 )
 
 class VerificationView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUserRole]
 
     def patch(self, request, profile_type, profile_id):
-        status_value = request.data.get("verification_status")
-        if status_value not in VerificationStatus.values:
-            return Response({"verification_status": ["Invalid verification status."]}, status=status.HTTP_400_BAD_REQUEST)
         model = BrandProfile if profile_type == "brands" else CreatorProfile if profile_type == "creators" else None
         if not model:
             return Response({"error": "Invalid profile type."}, status=status.HTTP_400_BAD_REQUEST)
         profile = model.objects.filter(pk=profile_id).first()
         if not profile:
             return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
-        profile.user.verification_status = status_value
-        profile.user.save(update_fields=["verification_status"])
-        profile.save(update_fields=["updated_at"])
-        serializer_class = BrandProfileSerializer if profile_type == "brands" else CreatorProfileSerializer
-        return Response({"profile": serializer_class(profile, context={"request": request}).data})
 
+        verification_value = request.data.get("verification_status")
+        account_value = request.data.get("account_status")
+        if verification_value is None and account_value is None:
+            return Response(
+                {"error": "'verification_status' or 'account_status' is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        update_fields = []
+        if verification_value is not None:
+            if verification_value not in VerificationStatus.values:
+                return Response({"verification_status": ["Invalid verification status."]}, status=status.HTTP_400_BAD_REQUEST)
+            profile.user.verification_status = verification_value
+            update_fields.append("verification_status")
+        if account_value is not None:
+            if account_value not in AccountStatus.values:
+                return Response({"account_status": ["Invalid account status."]}, status=status.HTTP_400_BAD_REQUEST)
+            profile.user.account_status = account_value
+            profile.user.is_active = account_value == AccountStatus.ACTIVE
+            update_fields.extend(["account_status", "is_active"])
+
+        profile.user.save(update_fields=update_fields)
+        profile.save(update_fields=["updated_at"])
+
+        if profile_type == "creators":
+            return Response({"profile": serialize_admin_creator(profile, request=request)})
+        return Response({"profile": BrandProfileSerializer(profile, context={"request": request}).data})
+
+
+class AdminDashboardView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUserRole]
+
+    def get(self, request):
+        time_range = request.query_params.get("range", "30d")
+        if time_range not in ("7d", "30d", "90d", "1y"):
+            return Response({"range": ["Must be one of 7d, 30d, 90d, 1y."]}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(build_admin_dashboard_payload(time_range))
 
 
 class AdminUserManagementView(APIView):
@@ -57,59 +99,149 @@ class AdminUserManagementView(APIView):
         )
 
 
+class AdminRoleListView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUserRole]
+
+    def get(self, request):
+        roles = AdminRole.objects.prefetch_related("permissions").order_by("name")
+        return Response({"data": AdminRoleSerializer(roles, many=True).data})
+
+    def post(self, request):
+        serializer = AdminRoleWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        role = serializer.save()
+        return Response({"role": AdminRoleSerializer(role).data}, status=status.HTTP_201_CREATED)
+
+
+class AdminRoleDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUserRole]
+
+    def get_object(self, role_id):
+        return AdminRole.objects.filter(role_id=role_id).first()
+
+    def patch(self, request, role_id):
+        role = self.get_object(role_id)
+        if not role:
+            return Response({"error": "Role not found."}, status=status.HTTP_404_NOT_FOUND)
+        if role.is_system:
+            return Response({"error": "System roles cannot be edited."}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = AdminRoleWriteSerializer(role, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        role = serializer.save()
+        return Response({"role": AdminRoleSerializer(role).data})
+
+    def delete(self, request, role_id):
+        role = self.get_object(role_id)
+        if not role:
+            return Response({"error": "Role not found."}, status=status.HTTP_404_NOT_FOUND)
+        if role.is_system:
+            return Response({"error": "System roles cannot be deleted."}, status=status.HTTP_400_BAD_REQUEST)
+
+        staff = role.staff_members.select_related("user")
+        count = staff.count()
+        if count:
+            unassign = str(request.query_params.get("unassign_staff", "")).lower() in ("1", "true", "yes")
+            if not unassign:
+                names = ", ".join(s.user.name or s.user.email for s in staff[:3])
+                suffix = f" ({names}{', ...' if count > 3 else ''})"
+                return Response(
+                    {
+                        "error": (
+                            f"'{role.name}' is still assigned to {count} staff user(s){suffix}. "
+                            "Reassign them to a different role first, or retry with unassign_staff=true."
+                        ),
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            staff.update(assigned_role=None)
+
+        role.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class CampaignTableView(APIView):
     permission_classes = [IsAuthenticated,IsAdminUserRole]
 
     def get(self,request):
         campaigns = (
             Campaign.objects.select_related("brand")
-            .annotate(
-                applications_received_count=Count("applications", distinct=True),
-                recommended_creators_count=Count(
-                    "applications",
-                    filter=Q(applications__status=ApplicationStatus.ACCEPTED),
-                    distinct=True,
-                ),
-            )
+            .prefetch_related("applications")
             .order_by("-created_at")
         )
+        data = [serialize_admin_campaign(campaign, request=request) for campaign in campaigns]
+        return Response({"data": data})
 
-        data = [
-            {
-                "id": str(campaign.campaign_id),
-                "brand_id": str(campaign.brand.brand_id),
-                "title": campaign.title,
-                'brand':campaign.brand.company_name,
-                "applications_received_count":campaign.applications_received_count,
-                "recommended_creators_count":campaign.recommended_creators_count
-            }
-            for campaign in campaigns
-        ]
-        return Response({"data":data})
-    
+    def post(self, request):
+        serializer = AdminCampaignWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        campaign = serializer.save()
+        return Response(
+            {"campaign": serialize_admin_campaign(campaign, request=request)},
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class AdminCampaignDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUserRole]
+
+    def get_object(self, campaign_id):
+        return (
+            Campaign.objects.select_related("brand")
+            .prefetch_related("applications")
+            .filter(campaign_id=campaign_id)
+            .first()
+        )
+
+    def get(self, request, campaign_id):
+        campaign = self.get_object(campaign_id)
+        if not campaign:
+            return Response({"error": "Campaign not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"campaign": serialize_admin_campaign(campaign, request=request)})
+
+    def patch(self, request, campaign_id):
+        campaign = self.get_object(campaign_id)
+        if not campaign:
+            return Response({"error": "Campaign not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = AdminCampaignWriteSerializer(campaign, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        campaign = serializer.save()
+        return Response({"campaign": serialize_admin_campaign(campaign, request=request)})
+
+    def delete(self, request, campaign_id):
+        campaign = self.get_object(campaign_id)
+        if not campaign:
+            return Response({"error": "Campaign not found."}, status=status.HTTP_404_NOT_FOUND)
+        campaign.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class ShortlistTableView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUserRole]
 
     def get(self, request):
         shortlists = (
             BrandShortlist.objects.select_related("brand")
-            .annotate(creators_count=Count("creators", distinct=True))
+            .prefetch_related("creators__social_accounts")
             .order_by("-created_at")
         )
-
-        data = [
-            {
-                "id": str(shortlist.shortlist_id),
-                "brand_id": str(shortlist.brand.brand_id),
-                "title": shortlist.title,
-                "brand": shortlist.brand.company_name,
-                "creators_count": shortlist.creators_count,
-                "start_date": shortlist.start_date.isoformat() if shortlist.start_date else None,
-                "end_date": shortlist.end_date.isoformat() if shortlist.end_date else None,
-            }
-            for shortlist in shortlists
-        ]
+        data = [serialize_admin_shortlist(shortlist, request=request) for shortlist in shortlists]
         return Response({"data": data})
+
+
+class AdminShortlistDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUserRole]
+
+    def get(self, request, shortlist_id):
+        shortlist = (
+            BrandShortlist.objects.select_related("brand")
+            .prefetch_related("creators__social_accounts")
+            .filter(shortlist_id=shortlist_id)
+            .first()
+        )
+        if not shortlist:
+            return Response({"error": "Shortlist not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"shortlist": serialize_admin_shortlist(shortlist, request=request)})
+
     
 class UserTableView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUserRole]
@@ -134,21 +266,28 @@ class CreatorTableView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUserRole]
 
     def get(self, request):
-        creators = CreatorProfile.objects.select_related("user").order_by("-created_at")
-
-        data = [
-            {
-                "id": str(creator.creator_id),
-                "name": creator.display_name or creator.user.name or creator.user.username,
-                "email": creator.user.email,
-                "phone": creator.user.phone_no or "",
-                "category": creator.category,
-                "visibility": creator.user.is_profile_visible,
-                "verification": creator.user.verification_status,
-            }
-            for creator in creators
-        ]
+        creators = (
+            CreatorProfile.objects.select_related("user")
+            .prefetch_related("social_accounts", "applications")
+            .order_by("-created_at")
+        )
+        data = [serialize_admin_creator(creator, request=request) for creator in creators]
         return Response({"data": data})
+
+
+class AdminCreatorDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUserRole]
+
+    def get(self, request, creator_id):
+        creator = (
+            CreatorProfile.objects.select_related("user")
+            .prefetch_related("social_accounts", "applications")
+            .filter(creator_id=creator_id)
+            .first()
+        )
+        if not creator:
+            return Response({"error": "Creator not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"creator": serialize_admin_creator(creator, request=request)})
 
 
 class BrandTableView(APIView):
@@ -157,112 +296,23 @@ class BrandTableView(APIView):
     def get(self, request):
         brands = (
             BrandProfile.objects.select_related("user")
-            .annotate(campaigns_count=Count("campaigns", distinct=True))
+            .prefetch_related("campaigns")
             .order_by("-created_at")
         )
-
-        data = [
-            {
-                "id": str(brand.brand_id),
-                "name": brand.company_name,
-                "email": brand.user.email,
-                "phone": brand.user.phone_no or "",
-                "industry": brand.industry,
-                "visibility": brand.user.is_profile_visible,
-                "verification": brand.user.verification_status,
-                "campaigns_count": brand.campaigns_count,
-            }
-            for brand in brands
-        ]
+        data = [serialize_admin_brand(brand, request=request) for brand in brands]
         return Response({"data": data})
 
 
-class AdminCampaignsView(APIView):
+class AdminBrandDetailView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUserRole]
 
-    def get(self, request, campaign_id=None):
-
-        campaign = Campaign.objects.select_related("brand").filter(
-            campaign_id=campaign_id,
-        ).first()
-        if not campaign:
-            return Response({"error": "Campaign not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-        data = {
-            "id": str(campaign.campaign_id),
-            "title": campaign.title,
-            "brief": campaign.brief,
-            "objective": campaign.objective,
-            "deliverables": campaign.deliverables,
-            "creative_direction": campaign.creative_direction,
-            "platforms": campaign.platforms,
-            "category": campaign.category,
-            "audience_type": campaign.audience_type,
-            "location": campaign.location,
-            "minimum_followers": campaign.minimum_followers,
-            "language_preference": campaign.language_preference,
-            "content_style": campaign.content_style,
-            "brand_requirements": campaign.brand_requirements,
-            "start_date": campaign.start_date.isoformat() if campaign.start_date else None,
-            "end_date": campaign.end_date.isoformat() if campaign.end_date else None,
-            "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
-            "posted_at": campaign.created_at.isoformat(),
-            "brand_name": campaign.brand.company_name,
-            "brand_type": campaign.brand.industry,
-            "brand_logo": request.build_absolute_uri(campaign.brand.logo.url) if campaign.brand.logo else None,
-            "creator_requirements": {
-                "looking_for": campaign.category or campaign.brand_requirements,
-                "audience": campaign.audience_type,
-                "minimum_followers": campaign.minimum_followers,
-                "languages": campaign.language_preference,
-                "location": campaign.location,
-                "content_style": campaign.content_style,
-            },
-
-        }
-        return Response({"campaign": data})
-    
-class AdminShortlistsView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUserRole]
-
-    def get(self, request, campaign_id=None):
-
-        campaign = Campaign.objects.select_related("brand").filter(
-            campaign_id=campaign_id,
-        ).first()
-        if not campaign:
-            return Response({"error": "Campaign not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-        data = {
-            "id": str(campaign.campaign_id),
-            "title": campaign.title,
-            "brief": campaign.brief,
-            "objective": campaign.objective,
-            "deliverables": campaign.deliverables,
-            "creative_direction": campaign.creative_direction,
-            "platforms": campaign.platforms,
-            "category": campaign.category,
-            "audience_type": campaign.audience_type,
-            "location": campaign.location,
-            "minimum_followers": campaign.minimum_followers,
-            "language_preference": campaign.language_preference,
-            "content_style": campaign.content_style,
-            "brand_requirements": campaign.brand_requirements,
-            "start_date": campaign.start_date.isoformat() if campaign.start_date else None,
-            "end_date": campaign.end_date.isoformat() if campaign.end_date else None,
-            "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
-            "posted_at": campaign.created_at.isoformat(),
-            "brand_name": campaign.brand.company_name,
-            "brand_type": campaign.brand.industry,
-            "brand_logo": request.build_absolute_uri(campaign.brand.logo.url) if campaign.brand.logo else None,
-            "creator_requirements": {
-                "looking_for": campaign.category or campaign.brand_requirements,
-                "audience": campaign.audience_type,
-                "minimum_followers": campaign.minimum_followers,
-                "languages": campaign.language_preference,
-                "location": campaign.location,
-                "content_style": campaign.content_style,
-            },
-
-        }
-        return Response({"campaign": data})
+    def get(self, request, brand_id):
+        brand = (
+            BrandProfile.objects.select_related("user")
+            .prefetch_related("campaigns")
+            .filter(brand_id=brand_id)
+            .first()
+        )
+        if not brand:
+            return Response({"error": "Brand not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"brand": serialize_admin_brand(brand, request=request)})

@@ -210,7 +210,7 @@ export const CampaignFormModal: React.FC<CampaignFormModalProps> = ({
             >
               {brands.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.name} ({b.brandCode})
+                  {b.name} ({b.id})
                 </option>
               ))}
             </select>

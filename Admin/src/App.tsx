@@ -209,26 +209,6 @@ const AppShell: React.FC = () => {
           }
         /> */}
 
-        {/* Audit Logs */}
-        {/* <Route
-          path="/admin/audit"
-          element={
-            <ProtectedRoute permission="audit.view">
-              <AuditLogsPage />
-            </ProtectedRoute>
-          }
-        /> */}
-
-        {/* Settings */}
-        {/* <Route
-          path="/admin/settings"
-          element={
-            <ProtectedRoute permission="settings.view">
-              <SettingsPage />
-            </ProtectedRoute>
-          }
-        /> */}
-
         {/* 404 Fallback */}
         <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
       </Routes>

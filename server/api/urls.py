@@ -3,6 +3,13 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .admin_api.views import (
+    AdminBrandDetailView,
+    AdminCampaignDetailView,
+    AdminCreatorDetailView,
+    AdminDashboardView,
+    AdminRoleDetailView,
+    AdminRoleListView,
+    AdminShortlistDetailView,
     AdminUserManagementView,
     BrandTableView,
     CampaignTableView,
@@ -111,10 +118,17 @@ urlpatterns = [
 
     path("verification/<str:profile_type>/<uuid:profile_id>/", VerificationView.as_view(), name="verification"),
     path("admin/brands/", BrandTableView.as_view(), name="admin_brands_table"),
+    path("admin/brands/<uuid:brand_id>/", AdminBrandDetailView.as_view(), name="admin_brand_detail"),
     path("admin/campaigns/", CampaignTableView.as_view(), name="admin_campaigns_table"),
+    path("admin/campaigns/<uuid:campaign_id>/", AdminCampaignDetailView.as_view(), name="admin_campaign_detail"),
     path("admin/creators/", CreatorTableView.as_view(), name="admin_creators_table"),
+    path("admin/creators/<uuid:creator_id>/", AdminCreatorDetailView.as_view(), name="admin_creator_detail"),
     path("admin/shortlists/", ShortlistTableView.as_view(), name="admin_shortlists_table"),
+    path("admin/shortlists/<uuid:shortlist_id>/", AdminShortlistDetailView.as_view(), name="admin_shortlist_detail"),
     path("admin/users/", AdminUserManagementView.as_view(), name="admin_users_table"),
+    path("admin/roles/", AdminRoleListView.as_view(), name="admin_roles_table"),
+    path("admin/roles/<uuid:role_id>/", AdminRoleDetailView.as_view(), name="admin_role_detail"),
+    path("admin/dashboard/", AdminDashboardView.as_view(), name="admin_dashboard"),
 
    
    

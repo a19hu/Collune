@@ -48,12 +48,29 @@ def auth_user_payload(user):
         UserRole.BRAND: "Brand",
         UserRole.CREATOR: "Creator",
     }
-    return {
+    payload = {
         "id": str(user.user_id),
         "name": user.name or user.profile_name,
         "email": user.email,
         "role": role_map.get(user.role, user.role),
-        "verification_status":user.verification_status
+        "verification_status": user.verification_status,
+    }
+    if user.role == UserRole.ADMIN:
+        payload["adminRole"] = get_admin_role_payload(user)
+    return payload
+
+
+def get_admin_role_payload(user):
+    """Editable RBAC role + permission keys for the staff Admin portal, if assigned."""
+    role_details = getattr(user, "role_details", None)
+    assigned_role = getattr(role_details, "assigned_role", None) if role_details else None
+    if not assigned_role:
+        return None
+    return {
+        "roleId": str(assigned_role.role_id),
+        "roleName": assigned_role.name,
+        "isWildcard": assigned_role.is_wildcard,
+        "permissions": list(assigned_role.permissions.values_list("key", flat=True)),
     }
 
 

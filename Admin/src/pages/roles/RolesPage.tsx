@@ -29,6 +29,7 @@ export const RolesPage: React.FC<RolesPageProps> = ({ onRouteChange }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [roleToEdit, setRoleToEdit] = useState<Role | null>(null);
   const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
+  const [forceDeleteRole, setForceDeleteRole] = useState<Role | null>(null);
 
   const handleCloneRole = async (sourceRole: Role) => {
     try {
@@ -45,18 +46,27 @@ export const RolesPage: React.FC<RolesPageProps> = ({ onRouteChange }) => {
     }
   };
 
-  const handleDeleteRole = async () => {
-    if (!roleToDelete) return;
+  const performDeleteRole = async (role: Role, force: boolean) => {
     try {
-      await roleService.deleteRole(roleToDelete.id);
-      await logAdminAction('DELETE', 'Roles', `Deleted role "${roleToDelete.name}"`, roleToDelete.id);
+      await roleService.deleteRole(role.id, force);
+      await logAdminAction('DELETE', 'Roles', `Deleted role "${role.name}"`, role.id);
       await refreshRoles();
-      success('Role Deleted', `Deleted "${roleToDelete.name}".`);
+      success('Role Deleted', `Deleted "${role.name}".`);
       setRoleToDelete(null);
+      setForceDeleteRole(null);
     } catch (err: any) {
+      if (!force && /staff user/i.test(err.message || '')) {
+        // Backend refused because staff are still assigned — offer to unassign & retry.
+        setForceDeleteRole(role);
+        setRoleToDelete(null);
+        return;
+      }
       error('Failed to delete role', err.message);
     }
   };
+
+  const handleDeleteRole = () => roleToDelete && performDeleteRole(roleToDelete, false);
+  const handleForceDeleteRole = () => forceDeleteRole && performDeleteRole(forceDeleteRole, true);
 
   return (
     <div className="space-y-6">
@@ -289,6 +299,17 @@ export const RolesPage: React.FC<RolesPageProps> = ({ onRouteChange }) => {
         description="This will revoke this role configuration. Any staff assigned to this role must be reassigned."
         confirmText="Delete Role"
         variant="danger"
+      />
+
+      {/* Force Delete Confirmation (role still assigned to staff) */}
+      <ConfirmDialog
+        isOpen={!!forceDeleteRole}
+        onClose={() => setForceDeleteRole(null)}
+        onConfirm={handleForceDeleteRole}
+        title={`"${forceDeleteRole?.name}" is assigned to staff`}
+        description={`${forceDeleteRole?.userCount || 0} staff user(s) currently have this role. Deleting it will unassign them — they'll need a new role before regaining access. Continue?`}
+        confirmText="Unassign & Delete"
+        variant="warning"
       />
     </div>
   );

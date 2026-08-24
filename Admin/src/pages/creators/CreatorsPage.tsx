@@ -21,7 +21,7 @@ import { creatorService } from '../../services/creatorService';
 import { exportService } from '../../services/exportService';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { formatCompactNumber, formatCurrency } from '../../utils/formatters';
+import { formatCompactNumber } from '../../utils/formatters';
 
 interface CreatorsPageProps {
   onRouteChange: (route: string) => void;
@@ -57,7 +57,7 @@ export const CreatorsPage: React.FC<CreatorsPageProps> = ({ onRouteChange }) => 
     try {
       await creatorService.verifyCreator(verifyAction.creator.id, verifyAction.newStatus);
       const act = verifyAction.newStatus === 'Verified' ? 'VERIFY' : 'REJECT';
-      await logAdminAction(act, 'Creators', `${act === 'VERIFY' ? 'Approved' : 'Rejected'} verification for ${verifyAction.creator.name} (${verifyAction.creator.creatorCode})`, verifyAction.creator.id);
+      await logAdminAction(act, 'Creators', `${act === 'VERIFY' ? 'Approved' : 'Rejected'} verification for ${verifyAction.creator.name} (${verifyAction.creator.id})`, verifyAction.creator.id);
       success('Verification Updated', `${verifyAction.creator.name} status is now ${verifyAction.newStatus}.`);
       setVerifyAction(null);
       loadCreators();
@@ -104,7 +104,7 @@ export const CreatorsPage: React.FC<CreatorsPageProps> = ({ onRouteChange }) => 
             <div className="text-xs text-slate-500 flex items-center gap-1 font-mono">
               <span>{row.handle}</span>
               <span>•</span>
-              <span className="text-[10px] text-slate-400">{row.creatorCode}</span>
+              <span className="text-[10px] text-slate-400">{row.id}</span>
             </div>
           </div>
         </div>
@@ -154,16 +154,6 @@ export const CreatorsPage: React.FC<CreatorsPageProps> = ({ onRouteChange }) => 
       key: 'accountStatus',
       header: 'Account',
       render: (row) => <StatusBadge status={row.accountStatus} />,
-    },
-    {
-      key: 'totalEarnings',
-      header: 'Total Paid',
-      accessor: (row) => row.totalEarnings,
-      render: (row) => (
-        <span className="text-xs font-bold text-slate-900 dark:text-slate-100 font-mono">
-          {formatCurrency(row.totalEarnings)}
-        </span>
-      ),
     },
     {
       key: 'actions',

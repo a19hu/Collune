@@ -6,7 +6,6 @@ import {
   XCircle,
   Ban,
   Mail,
-  User,
   DollarSign,
   TrendingUp,
 } from 'lucide-react';
@@ -87,7 +86,7 @@ export const BrandsPage: React.FC<BrandsPageProps> = ({ onRouteChange }) => {
           />
           <div>
             <div className="font-bold text-slate-900 dark:text-slate-100">{row.name}</div>
-            <div className="text-xs text-slate-400 font-mono">{row.brandCode}</div>
+            <div className="text-xs text-slate-400 font-mono">{row.id}</div>
           </div>
         </div>
       ),
@@ -102,18 +101,12 @@ export const BrandsPage: React.FC<BrandsPageProps> = ({ onRouteChange }) => {
       ),
     },
     {
-      key: 'contactPerson',
-      header: 'Primary Contact',
+      key: 'email',
+      header: 'Contact',
       render: (row) => (
-        <div className="space-y-0.5 text-xs">
-          <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
-            <User className="w-3 h-3 text-slate-400" />
-            <span>{row.contactPerson}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-slate-500">
-            <Mail className="w-3 h-3 text-slate-400" />
-            <span className="truncate max-w-[170px]">{row.email}</span>
-          </div>
+        <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+          <Mail className="w-3 h-3 text-slate-400" />
+          <span className="truncate max-w-[170px]">{row.email}</span>
         </div>
       ),
     },

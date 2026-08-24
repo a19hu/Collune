@@ -304,28 +304,6 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     module: 'Exports',
     description: 'Generate and download internal staff rosters',
   },
-
-  // Audit Logs
-  {
-    key: 'audit_logs.view',
-    label: 'View Audit Logs',
-    module: 'Audit Logs',
-    description: 'Browse detailed audit trail of all staff activities and security events',
-  },
-
-  // Settings
-  {
-    key: 'settings.view',
-    label: 'View System Settings',
-    module: 'Settings',
-    description: 'View platform configuration, currency, timezone, and security params',
-  },
-  {
-    key: 'settings.edit',
-    label: 'Edit System Settings',
-    module: 'Settings',
-    description: 'Update platform-wide settings and integrations',
-  },
 ];
 
 export const MODULES: ModuleName[] = [
@@ -337,8 +315,6 @@ export const MODULES: ModuleName[] = [
   'Campaigns',
   'Shortlists',
   'Exports',
-  'Audit Logs',
-  'Settings',
 ];
 
 export interface ModulePermissionGroup {
@@ -387,8 +363,6 @@ export const DEFAULT_ROLES: Role[] = [
       'campaigns.view', 'campaigns.create', 'campaigns.edit', 'campaigns.approve', 'campaigns.pause', 'campaigns.close', 'campaigns.export',
       'shortlists.view', 'shortlists.export',
       'exports.view', 'exports.creator', 'exports.brand', 'exports.campaign', 'exports.user',
-      'audit_logs.view',
-      'settings.view',
     ],
     userCount: 5,
     isSystem: false,
@@ -406,7 +380,6 @@ export const DEFAULT_ROLES: Role[] = [
       'campaigns.view', 'campaigns.create', 'campaigns.edit', 'campaigns.approve', 'campaigns.pause', 'campaigns.close', 'campaigns.export',
       'shortlists.view', 'shortlists.export',
       'exports.view', 'exports.creator', 'exports.brand', 'exports.campaign',
-      'audit_logs.view',
     ],
     userCount: 8,
     isSystem: false,
@@ -488,7 +461,6 @@ export const DEFAULT_ROLES: Role[] = [
       'campaigns.view',
       'creators.view',
       'exports.view', 'exports.campaign', 'exports.brand',
-      'audit_logs.view',
     ],
     userCount: 3,
     isSystem: false,

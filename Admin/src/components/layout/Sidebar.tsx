@@ -8,8 +8,6 @@ import {
   Megaphone,
   Bookmark,
   DownloadCloud,
-  FileSpreadsheet,
-  Settings,
   ChevronRight,
   ChevronDown,
   LogOut,
@@ -46,7 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isMobileOpen = false,
   onMobileClose,
 }) => {
-  const { currentUser, currentRole, roles, switchDemoRole, hasPermission, logout } = useAuth();
+  const { currentUser, currentRole, hasPermission, logout } = useAuth();
   const [showRoleMenu, setShowRoleMenu] = React.useState(false);
   const navigate = useNavigate();
 
@@ -217,35 +215,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-white shrink-0" />
           </button>
 
-          {/* Quick Demo Role Dropdown */}
+          {/* Account Menu */}
           {showRoleMenu && (
             <div className="absolute bottom-full left-0 right-0 mb-2 bg-[#0F172A] border border-slate-700 rounded-xl shadow-2xl p-2 z-40 space-y-1">
-              <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                <span>Switch Demo Role</span>
-                <span className="text-[9px] px-1 bg-indigo-500/20 text-indigo-300 rounded font-semibold">RBAC</span>
-              </div>
-              <div className="max-h-48 overflow-y-auto space-y-0.5 pr-0.5">
-                {roles.map((role) => {
-                  const isSelected = role.id === currentRole.id;
-                  return (
-                    <button
-                      key={role.id}
-                      onClick={() => {
-                        switchDemoRole(role.id);
-                        setShowRoleMenu(false);
-                      }}
-                      className={cn(
-                        'w-full text-left px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-between cursor-pointer',
-                        isSelected
-                          ? 'bg-indigo-600 text-white'
-                          : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                      )}
-                    >
-                      <span className="truncate">{role.name}</span>
-                      {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white ml-2 shrink-0" />}
-                    </button>
-                  );
-                })}
+              <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span>{currentUser.email}</span>
               </div>
               <div className="pt-1 mt-1 border-t border-slate-800">
                 <button

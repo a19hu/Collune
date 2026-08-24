@@ -35,6 +35,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [department, setDepartment] = useState<Department>('Operations');
   const [roleId, setRoleId] = useState<string>(roles[0]?.id || 'ROLE-OPS-MANAGER');
   const [status, setStatus] = useState<UserStatus>('Active');
@@ -54,6 +55,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
       setName('');
       setEmail('');
       setPhone('+91 ');
+      setPassword('');
       setDepartment('Operations');
       setRoleId(roles[1]?.id || roles[0]?.id || 'ROLE-OPS-MANAGER');
       setStatus('Active');
@@ -65,6 +67,10 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
     e.preventDefault();
     if (!name.trim() || !email.trim()) {
       error('Missing fields', 'Name and Email are required.');
+      return;
+    }
+    if (!userToEdit && password.trim().length < 8) {
+      error('Weak password', 'Password must be at least 8 characters.');
       return;
     }
 
@@ -91,6 +97,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
           name,
           email,
           phone,
+          password,
           department,
           roleId,
           roleName,
@@ -160,6 +167,23 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
             />
           </div>
         </div>
+
+        {!userToEdit && (
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Password *
+            </label>
+            <input
+              type="password"
+              required
+              minLength={8}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Minimum 8 characters"
+              className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100"
+            />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>

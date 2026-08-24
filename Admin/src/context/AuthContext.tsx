@@ -1,9 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Permission, Role, StaffUser, AuditAction, ModuleName } from '../types';
-import { DEFAULT_ROLES } from '../constants/permissions';
 import { roleService } from '../services/roleService';
 import { auditLogService } from '../services/auditLogService';
-import { useToast } from './ToastContext';
+import * as api from '../lib/api';
 
 interface AuthContextType {
   currentUser: StaffUser;
@@ -13,7 +12,6 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<StaffUser>;
   logout: () => void;
   hasPermission: (permission: Permission | string) => boolean;
-  switchDemoRole: (roleId: string) => void;
   refreshRoles: () => Promise<void>;
   logAdminAction: (action: AuditAction, module: ModuleName, description: string, targetId?: string) => Promise<void>;
   theme: 'light' | 'dark';
@@ -22,92 +20,66 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Demo-only session gate: no real backend, so any listed staff email + this password unlocks the portal.
-const DEMO_LOGIN_PASSWORD = 'Collune@123';
-const AUTH_SESSION_KEY = 'collune_admin_session';
+// Cached { user, role } profile from the last real login, kept alongside the
+// JWT session so a page refresh doesn't need a round trip to restore the UI.
+const SESSION_PROFILE_KEY = 'collune_admin_session_profile';
 
-function readStoredSession(): { roleId: string } | null {
+const EMPTY_USER: StaffUser = {
+  id: '',
+  name: '',
+  email: '',
+  phone: '',
+  department: 'Administration',
+  roleId: '',
+  roleName: '',
+  status: 'Active',
+  lastLogin: '',
+  createdAt: '',
+};
+
+const UNASSIGNED_ROLE: Role = {
+  id: 'UNASSIGNED',
+  name: 'Unassigned',
+  description: 'No permission set has been assigned to this staff account yet. Contact a Super Admin.',
+  permissions: [],
+  userCount: 0,
+  isSystem: false,
+  createdAt: '',
+  updatedAt: '',
+};
+
+function readStoredProfile(): { user: StaffUser; role: Role } | null {
   try {
-    const raw = localStorage.getItem(AUTH_SESSION_KEY);
+    const raw = localStorage.getItem(SESSION_PROFILE_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
 }
 
-const DEMO_USERS_BY_ROLE: Record<string, Partial<StaffUser>> = {
-  'ROLE-SUPER-ADMIN': {
-    id: 'ADM-001',
-    name: 'Ashutosh Kumar',
-    email: 'admin@collune.com',
-    department: 'Administration',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-  },
-  'ROLE-ADMIN': {
-    id: 'ADM-011',
-    name: 'Siddharth Roy',
-    email: 'siddharth.admin@collune.com',
-    department: 'Administration',
-    avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
-  },
-  'ROLE-OPS-MANAGER': {
-    id: 'ADM-002',
-    name: 'Pooja Hegde',
-    email: 'pooja.ops@collune.com',
-    department: 'Operations',
-    avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
-  },
-  'ROLE-CREATOR-MANAGER': {
-    id: 'ADM-003',
-    name: 'Rohan Deshmukh',
-    email: 'rohan.creators@collune.com',
-    department: 'Creator Management',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-  },
-  'ROLE-CAMPAIGN-MANAGER': {
-    id: 'ADM-004',
-    name: 'Meera Sengupta',
-    email: 'meera.campaigns@collune.com',
-    department: 'Campaign Management',
-    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-  },
-  'ROLE-BRAND-MANAGER': {
-    id: 'ADM-005',
-    name: 'Vikram Malhotra',
-    email: 'vikram.brands@collune.com',
-    department: 'Brand Management',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-  },
-  'ROLE-EXPORT-TEAM': {
-    id: 'ADM-006',
-    name: 'Priya Singh',
-    email: 'priya.data@collune.com',
-    department: 'Export/Data',
-    avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-  },
-  'ROLE-FINANCE-MANAGER': {
-    id: 'ADM-007',
-    name: 'Arjun Nair',
-    email: 'arjun.finance@collune.com',
-    department: 'Finance',
-    avatarUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
-  },
-  'ROLE-SUPPORT-EXEC': {
-    id: 'ADM-008',
-    name: 'Sunita Rao',
-    email: 'sunita.support@collune.com',
-    department: 'Support',
-    avatarUrl: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=150&auto=format&fit=crop&q=80',
-  },
-};
+function mapAdminRoleToRole(adminRole: api.AdminRolePermissionsPayload | null | undefined): Role {
+  if (!adminRole) return UNASSIGNED_ROLE;
+  return {
+    id: adminRole.roleId,
+    name: adminRole.roleName,
+    description: '',
+    permissions: adminRole.isWildcard ? ['*'] : (adminRole.permissions as Permission[]),
+    userCount: 0,
+    isSystem: false,
+    createdAt: '',
+    updatedAt: '',
+  };
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const storedSession = readStoredSession();
-  const [roles, setRoles] = useState<Role[]>(DEFAULT_ROLES);
-  const [activeRoleId, setActiveRoleId] = useState<string>(storedSession?.roleId || 'ROLE-SUPER-ADMIN');
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!storedSession);
+  const storedSession = api.getSession();
+  const storedProfile = storedSession ? readStoredProfile() : null;
+
+  const [roles, setRoles] = useState<Role[]>(storedProfile ? [storedProfile.role] : []);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!storedSession && !!storedProfile);
+  const [currentUser, setCurrentUser] = useState<StaffUser>(storedProfile?.user || EMPTY_USER);
+  const [currentRole, setCurrentRole] = useState<Role>(storedProfile?.role || UNASSIGNED_ROLE);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const { info } = useToast();
 
   const refreshRoles = useCallback(async () => {
     try {
@@ -119,40 +91,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
-    refreshRoles();
-  }, [refreshRoles]);
-
-  const currentRole: Role =
-    roles.find((r) => r.id === activeRoleId) ||
-    roles[0] ||
-    DEFAULT_ROLES[0];
-
-  const demoProfile = DEMO_USERS_BY_ROLE[activeRoleId] || {
-    id: 'ADM-DEMO',
-    name: `${currentRole.name} User`,
-    email: `${currentRole.name.toLowerCase().replace(/[^a-z0-9]/g, '')}@collune.com`,
-    department: 'Operations',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-  };
-
-  const currentUser: StaffUser = {
-    id: demoProfile.id || 'ADM-001',
-    name: demoProfile.name || 'Ashutosh Kumar',
-    email: demoProfile.email || 'admin@collune.com',
-    phone: '+91 98765 43210',
-    avatarUrl: demoProfile.avatarUrl,
-    department: (demoProfile.department as any) || 'Administration',
-    roleId: currentRole.id,
-    roleName: currentRole.name,
-    status: 'Active',
-    lastLogin: 'Just now',
-    createdAt: '2025-01-01T00:00:00Z',
-  };
+    if (isAuthenticated) {
+      refreshRoles();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const hasPermission = useCallback(
     (permission: Permission | string): boolean => {
       if (!currentRole) return false;
-      // Super Admin wildcard '*' grants everything
+      // Super Admin / wildcard role grants everything
       if (currentRole.permissions.includes('*')) {
         return true;
       }
@@ -161,56 +109,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [currentRole]
   );
 
-  const switchDemoRole = useCallback(
-    (roleId: string) => {
-      const targetRole = roles.find((r) => r.id === roleId);
-      if (targetRole) {
-        setActiveRoleId(roleId);
-        info(`Switched to ${targetRole.name}`, `Now viewing the dashboard with ${targetRole.permissions.includes('*') ? 'All' : targetRole.permissions.length} permissions.`);
+  const login = useCallback(
+    async (email: string, password: string): Promise<StaffUser> => {
+      const response = await api.login(email, password);
+      if (response.user.role !== 'Admin') {
+        throw new Error('This portal is for Collune staff accounts only.');
       }
+
+      const role = mapAdminRoleToRole(response.user.adminRole);
+      const user: StaffUser = {
+        id: response.user.id,
+        name: response.user.name,
+        email: response.user.email,
+        phone: '',
+        department: 'Administration',
+        roleId: role.id,
+        roleName: role.name,
+        status: 'Active',
+        lastLogin: 'Just now',
+        createdAt: new Date().toISOString(),
+      };
+
+      api.saveSession({ access: response.access, refresh: response.refresh });
+      localStorage.setItem(SESSION_PROFILE_KEY, JSON.stringify({ user, role }));
+
+      setCurrentUser(user);
+      setCurrentRole(role);
+      setRoles((prev) => (prev.some((r) => r.id === role.id) ? prev : [role, ...prev]));
+      setIsAuthenticated(true);
+      refreshRoles();
+
+      return user;
     },
-    [roles, info]
+    [refreshRoles]
   );
-
-  const login = useCallback((email: string, password: string): Promise<StaffUser> => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const normalizedEmail = email.trim().toLowerCase();
-        const matchedRoleId = Object.entries(DEMO_USERS_BY_ROLE).find(
-          ([, profile]) => profile.email?.toLowerCase() === normalizedEmail
-        )?.[0];
-
-        if (!matchedRoleId || password !== DEMO_LOGIN_PASSWORD) {
-          reject(new Error('Invalid email or password.'));
-          return;
-        }
-
-        setActiveRoleId(matchedRoleId);
-        setIsAuthenticated(true);
-        localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ roleId: matchedRoleId }));
-
-        const profile = DEMO_USERS_BY_ROLE[matchedRoleId];
-        const role = roles.find((r) => r.id === matchedRoleId) || DEFAULT_ROLES[0];
-        resolve({
-          id: profile.id || 'ADM-DEMO',
-          name: profile.name || role.name,
-          email: profile.email || normalizedEmail,
-          phone: '+91 98765 43210',
-          avatarUrl: profile.avatarUrl,
-          department: (profile.department as any) || 'Administration',
-          roleId: role.id,
-          roleName: role.name,
-          status: 'Active',
-          lastLogin: 'Just now',
-          createdAt: '2025-01-01T00:00:00Z',
-        });
-      }, 400);
-    });
-  }, [roles]);
 
   const logout = useCallback(() => {
     setIsAuthenticated(false);
-    localStorage.removeItem(AUTH_SESSION_KEY);
+    setCurrentUser(EMPTY_USER);
+    setCurrentRole(UNASSIGNED_ROLE);
+    api.clearSession();
+    localStorage.removeItem(SESSION_PROFILE_KEY);
+    api.signout().catch(() => {});
   }, []);
 
   const logAdminAction = useCallback(
@@ -250,7 +190,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         logout,
         hasPermission,
-        switchDemoRole,
         refreshRoles,
         logAdminAction,
         theme,

@@ -36,16 +36,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onRouteChange }) =
     async function loadData() {
       setIsLoading(true);
       try {
-        const [s, g, c, cat] = await Promise.all([
-          statsService.getDashboardStats(),
-          statsService.getUserGrowth(growthRange),
-          statsService.getCampaignOverview(),
-          statsService.getCategoryDistribution(),
-        ]);
+        const { stats: s, growth, campaignOverview, categoryDistribution } = await statsService.getDashboardData(
+          growthRange
+        );
         setStats(s);
-        setGrowthData(g);
-        setCampaignData(c);
-        setCategoryData(cat);
+        setGrowthData(growth);
+        setCampaignData(campaignOverview);
+        setCategoryData(categoryDistribution);
       } finally {
         setIsLoading(false);
       }

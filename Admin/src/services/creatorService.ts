@@ -1,29 +1,64 @@
 import { Creator, VerificationStatus, AccountStatus } from '../types';
 import { mockCreators } from '../mocks/mockData';
+import * as api from '../lib/api';
 
 let creatorsState: Creator[] = [...mockCreators];
 
+const VERIFICATION_TO_BACKEND: Record<VerificationStatus, string> = {
+  Verified: 'VERIFIED',
+  Pending: 'PENDING',
+  Rejected: 'REJECTED',
+  Unverified: 'UNVERIFIED',
+};
+
+const ACCOUNT_TO_BACKEND: Record<AccountStatus, string> = {
+  Active: 'ACTIVE',
+  Inactive: 'INACTIVE',
+  Suspended: 'SUSPENDED',
+};
+
+function mapApiCreator(apiCreator: api.AdminCreatorApi): Creator {
+  return {
+    ...apiCreator,
+    category: apiCreator.category as Creator['category'],
+    verificationStatus: apiCreator.verificationStatus as VerificationStatus,
+    accountStatus: apiCreator.accountStatus as AccountStatus,
+    socials: apiCreator.socials.map((s) => ({ ...s, platform: s.platform as any })),
+    documents: [],
+  };
+}
+
 export const creatorService = {
   getCreators: async (): Promise<Creator[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve([...creatorsState]), 150);
-    });
+    try {
+      const apiCreators = await api.getAdminCreators();
+      creatorsState = apiCreators.map(mapApiCreator);
+      return [...creatorsState];
+    } catch (err) {
+      // Not authenticated yet, or backend unreachable — keep working off the mock catalog.
+      return [...creatorsState];
+    }
   },
 
   getCreatorById: async (id: string): Promise<Creator | null> => {
-    return new Promise((resolve) => {
-      const creator = creatorsState.find((c) => c.id === id || c.creatorCode === id) || null;
-      setTimeout(() => resolve(creator ? { ...creator } : null), 100);
-    });
+    try {
+      const apiCreator = await api.getAdminCreator(id);
+      const creator = mapApiCreator(apiCreator);
+      creatorsState = creatorsState.some((c) => c.id === creator.id)
+        ? creatorsState.map((c) => (c.id === creator.id ? creator : c))
+        : [creator, ...creatorsState];
+      return creator;
+    } catch (err) {
+      const creator = creatorsState.find((c) => c.id === id) || null;
+      return creator ? { ...creator } : null;
+    }
   },
 
-  createCreator: async (creatorData: Omit<Creator, 'id' | 'creatorCode' | 'joinedAt'>): Promise<Creator> => {
+  createCreator: async (creatorData: Omit<Creator, 'id' | 'joinedAt'>): Promise<Creator> => {
     return new Promise((resolve) => {
-      const nextNum = 10500 + creatorsState.length + 1;
       const newCreator: Creator = {
         ...creatorData,
         id: `CR-${String(creatorsState.length + 1).padStart(3, '0')}`,
-        creatorCode: `CR-${nextNum}`,
         joinedAt: new Date().toISOString(),
       };
       creatorsState = [newCreator, ...creatorsState];
@@ -33,7 +68,7 @@ export const creatorService = {
 
   updateCreator: async (id: string, updates: Partial<Creator>): Promise<Creator> => {
     return new Promise((resolve, reject) => {
-      const index = creatorsState.findIndex((c) => c.id === id || c.creatorCode === id);
+      const index = creatorsState.findIndex((c) => c.id === id);
       if (index === -1) {
         reject(new Error('Creator not found'));
         return;
@@ -44,7 +79,10 @@ export const creatorService = {
   },
 
   updateVerification: async (id: string, status: VerificationStatus): Promise<Creator> => {
-    return creatorService.updateCreator(id, { verificationStatus: status });
+    const updated = await api.updateCreatorStatus(id, { verification_status: VERIFICATION_TO_BACKEND[status] });
+    const creator = mapApiCreator(updated);
+    creatorsState = creatorsState.map((c) => (c.id === id ? creator : c));
+    return creator;
   },
 
   verifyCreator: async (id: string, status: VerificationStatus): Promise<Creator> => {
@@ -52,7 +90,10 @@ export const creatorService = {
   },
 
   updateAccountStatus: async (id: string, status: AccountStatus): Promise<Creator> => {
-    return creatorService.updateCreator(id, { accountStatus: status });
+    const updated = await api.updateCreatorStatus(id, { account_status: ACCOUNT_TO_BACKEND[status] });
+    const creator = mapApiCreator(updated);
+    creatorsState = creatorsState.map((c) => (c.id === id ? creator : c));
+    return creator;
   },
 
   updateStatus: async (id: string, status: AccountStatus): Promise<Creator> => {
@@ -62,7 +103,7 @@ export const creatorService = {
   deleteCreator: async (id: string): Promise<boolean> => {
     return new Promise((resolve, reject) => {
       const init = creatorsState.length;
-      creatorsState = creatorsState.filter((c) => c.id !== id && c.creatorCode !== id);
+      creatorsState = creatorsState.filter((c) => c.id !== id);
       if (creatorsState.length === init) {
         reject(new Error('Creator not found'));
         return;
