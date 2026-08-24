@@ -11,7 +11,7 @@ export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const { success, error: showError } = useToast();
 
-  const [email, setEmail] = useState('admin@collune.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState('');
@@ -140,12 +140,6 @@ export const LoginPage: React.FC = () => {
             >
               {isSubmitting ? 'Signing in...' : 'Sign In'}
             </button>
-
-            <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs text-slate-500">
-              <p className="font-bold text-slate-600">Demo credentials</p>
-              <p className="mt-1">Any staff email below works, password is <span className="font-mono font-semibold text-slate-700">Collune@123</span></p>
-              <p className="mt-1 font-mono text-[11px] text-slate-500">admin@collune.com · siddharth.admin@collune.com · pooja.ops@collune.com</p>
-            </div>
           </form>
         </section>
       </section>
