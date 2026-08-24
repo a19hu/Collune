@@ -1,8 +1,7 @@
 import { Creator, VerificationStatus, AccountStatus } from '../types';
-import { mockCreators } from '../mocks/mockData';
 import * as api from '../lib/api';
 
-let creatorsState: Creator[] = [...mockCreators];
+let creatorsState: Creator[] = [];
 
 const VERIFICATION_TO_BACKEND: Record<VerificationStatus, string> = {
   Verified: 'VERIFIED',
@@ -14,7 +13,6 @@ const VERIFICATION_TO_BACKEND: Record<VerificationStatus, string> = {
 const ACCOUNT_TO_BACKEND: Record<AccountStatus, string> = {
   Active: 'ACTIVE',
   Inactive: 'INACTIVE',
-  Suspended: 'INACTIVE',
 };
 
 function mapApiCreator(apiCreator: api.AdminCreatorApi): Creator {
@@ -30,52 +28,26 @@ function mapApiCreator(apiCreator: api.AdminCreatorApi): Creator {
 
 export const creatorService = {
   getCreators: async (): Promise<Creator[]> => {
-    try {
-      const apiCreators = await api.getAdminCreators();
-      creatorsState = apiCreators.map(mapApiCreator);
-      return [...creatorsState];
-    } catch (err) {
-      // Not authenticated yet, or backend unreachable — keep working off the mock catalog.
-      return [...creatorsState];
-    }
+    const apiCreators = await api.getAdminCreators();
+    creatorsState = apiCreators.map(mapApiCreator);
+    return [...creatorsState];
   },
 
   getCreatorById: async (id: string): Promise<Creator | null> => {
-    try {
-      const apiCreator = await api.getAdminCreator(id);
-      const creator = mapApiCreator(apiCreator);
-      creatorsState = creatorsState.some((c) => c.id === creator.id)
-        ? creatorsState.map((c) => (c.id === creator.id ? creator : c))
-        : [creator, ...creatorsState];
-      return creator;
-    } catch (err) {
-      const creator = creatorsState.find((c) => c.id === id) || null;
-      return creator ? { ...creator } : null;
-    }
+    const apiCreator = await api.getAdminCreator(id);
+    const creator = mapApiCreator(apiCreator);
+    creatorsState = creatorsState.some((c) => c.id === creator.id)
+      ? creatorsState.map((c) => (c.id === creator.id ? creator : c))
+      : [creator, ...creatorsState];
+    return creator;
   },
 
-  createCreator: async (creatorData: Omit<Creator, 'id' | 'joinedAt'>): Promise<Creator> => {
-    return new Promise((resolve) => {
-      const newCreator: Creator = {
-        ...creatorData,
-        id: `CR-${String(creatorsState.length + 1).padStart(3, '0')}`,
-        joinedAt: new Date().toISOString(),
-      };
-      creatorsState = [newCreator, ...creatorsState];
-      setTimeout(() => resolve(newCreator), 200);
-    });
+  createCreator: async (): Promise<Creator> => {
+    throw new Error('Creator creation is not available in the admin frontend.');
   },
 
-  updateCreator: async (id: string, updates: Partial<Creator>): Promise<Creator> => {
-    return new Promise((resolve, reject) => {
-      const index = creatorsState.findIndex((c) => c.id === id);
-      if (index === -1) {
-        reject(new Error('Creator not found'));
-        return;
-      }
-      creatorsState[index] = { ...creatorsState[index], ...updates };
-      setTimeout(() => resolve({ ...creatorsState[index] }), 200);
-    });
+  updateCreator: async (): Promise<Creator> => {
+    throw new Error('Creator editing is not available in the admin frontend.');
   },
 
   updateVerification: async (id: string, status: VerificationStatus): Promise<Creator> => {

@@ -85,7 +85,7 @@ export type Department =
   | 'Export/Data'
   | 'Administration';
 
-export type UserStatus = 'Active' | 'Inactive' | 'Suspended';
+export type UserStatus = 'Active' | 'Inactive';
 
 export interface Role {
   id: string;
@@ -125,7 +125,7 @@ export type CreatorCategory =
   | 'Entertainment';
 
 export type VerificationStatus = 'Verified' | 'Pending' | 'Rejected' | 'Unverified';
-export type AccountStatus = 'Active' | 'Inactive' | 'Suspended';
+export type AccountStatus = 'Active' | 'Inactive';
 
 export interface SocialProfile {
   platform: 'Instagram' | 'YouTube' | 'LinkedIn' | 'X' | 'TikTok';

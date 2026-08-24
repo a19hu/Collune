@@ -1,8 +1,7 @@
 import { StaffUser } from '../types';
-import { mockStaffUsers } from '../mocks/mockData';
 import * as api from '../lib/api';
 
-let usersState: StaffUser[] = [...mockStaffUsers];
+let usersState: StaffUser[] = [];
 
 function mapApiUser(apiUser: api.AdminManagedUserApi): StaffUser {
   const assignedRole = apiUser.userrole?.assigned_role;
@@ -22,21 +21,17 @@ function mapApiUser(apiUser: api.AdminManagedUserApi): StaffUser {
 
 export const userService = {
   getUsers: async (): Promise<StaffUser[]> => {
-    try {
-      const apiUsers = await api.getStaffUsers();
-      usersState = apiUsers.map(mapApiUser);
-      return [...usersState];
-    } catch (err) {
-      // Not authenticated yet, or backend unreachable — keep working off the mock catalog.
-      return [...usersState];
-    }
+    const apiUsers = await api.getStaffUsers();
+    usersState = apiUsers.map(mapApiUser);
+    return [...usersState];
   },
 
   getUserById: async (id: string): Promise<StaffUser | null> => {
-    return new Promise((resolve) => {
-      const user = usersState.find((u) => u.id === id) || null;
-      setTimeout(() => resolve(user ? { ...user } : null), 100);
-    });
+    if (!usersState.length) {
+      await userService.getUsers();
+    }
+    const user = usersState.find((u) => u.id === id) || null;
+    return user ? { ...user } : null;
   },
 
   createUser: async (
@@ -79,7 +74,7 @@ export const userService = {
     });
   },
 
-  toggleUserStatus: async (id: string, status: 'Active' | 'Inactive' | 'Suspended'): Promise<StaffUser> => {
+  toggleUserStatus: async (id: string, status: 'Active' | 'Inactive'): Promise<StaffUser> => {
     return userService.updateUser(id, { status });
   },
 };

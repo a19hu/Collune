@@ -1,8 +1,7 @@
 import { Campaign, CampaignStatus, CampaignDeliverable } from '../types';
-import { mockCampaigns } from '../mocks/mockData';
 import * as api from '../lib/api';
 
-let campaignsState: Campaign[] = [...mockCampaigns];
+let campaignsState: Campaign[] = [];
 
 const STATUS_TO_BACKEND: Record<CampaignStatus, string> = {
   Draft: 'DRAFT',
@@ -29,28 +28,18 @@ function mapApiCampaign(apiCampaign: api.AdminCampaignApi): Campaign {
 
 export const campaignService = {
   getCampaigns: async (): Promise<Campaign[]> => {
-    try {
-      const apiCampaigns = await api.getAdminCampaigns();
-      campaignsState = apiCampaigns.map(mapApiCampaign);
-      return [...campaignsState];
-    } catch (err) {
-      // Not authenticated yet, or backend unreachable — keep working off the mock catalog.
-      return [...campaignsState];
-    }
+    const apiCampaigns = await api.getAdminCampaigns();
+    campaignsState = apiCampaigns.map(mapApiCampaign);
+    return [...campaignsState];
   },
 
   getCampaignById: async (id: string): Promise<Campaign | null> => {
-    try {
-      const apiCampaign = await api.getAdminCampaign(id);
-      const campaign = mapApiCampaign(apiCampaign);
-      campaignsState = campaignsState.some((c) => c.id === campaign.id)
-        ? campaignsState.map((c) => (c.id === campaign.id ? campaign : c))
-        : [campaign, ...campaignsState];
-      return campaign;
-    } catch (err) {
-      const campaign = campaignsState.find((c) => c.id === id || c.campaignCode === id) || null;
-      return campaign ? { ...campaign } : null;
-    }
+    const apiCampaign = await api.getAdminCampaign(id);
+    const campaign = mapApiCampaign(apiCampaign);
+    campaignsState = campaignsState.some((c) => c.id === campaign.id)
+      ? campaignsState.map((c) => (c.id === campaign.id ? campaign : c))
+      : [campaign, ...campaignsState];
+    return campaign;
   },
 
   createCampaign: async (campaignData: Omit<Campaign, 'id' | 'campaignCode' | 'createdAt' | 'deliverablesTotal' | 'deliverablesCompleted' | 'creatorsSelected' | 'applicationsCount'>): Promise<Campaign> => {

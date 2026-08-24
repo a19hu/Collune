@@ -14,7 +14,6 @@ import {
   MoreVertical,
 } from 'lucide-react';
 import { DataTable, Column, BulkAction } from '../../components/common/DataTable';
-import { StatusBadge } from '../../components/common/StatusBadge';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { UserFormModal } from './UserFormModal';
 import { PermissionGuard } from '../../components/permissions/PermissionGuard';
@@ -39,7 +38,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onRouteChange }) => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<StaffUser | null>(null);
   const [userToDelete, setUserToDelete] = useState<StaffUser | null>(null);
-  const [statusAction, setStatusAction] = useState<{ user: StaffUser; newStatus: 'Active' | 'Inactive' | 'Suspended' } | null>(null);
+  const [statusAction, setStatusAction] = useState<{ user: StaffUser; newStatus: 'Active' | 'Inactive' } | null>(null);
 
   const loadUsers = async () => {
     setIsLoading(true);
@@ -168,9 +167,9 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onRouteChange }) => {
           {row.status === 'Active' ? (
             <PermissionGuard permission="users.deactivate">
               <button
-                onClick={() => setStatusAction({ user: row, newStatus: 'Suspended' })}
+                onClick={() => setStatusAction({ user: row, newStatus: 'Inactive' })}
                 className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/50 rounded-lg transition-colors cursor-pointer"
-                title="Suspend User"
+                title="Deactivate User"
               >
                 <UserX className="w-4 h-4" />
               </button>
@@ -223,7 +222,6 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onRouteChange }) => {
       options: [
         { label: 'Active', value: 'Active' },
         { label: 'Inactive', value: 'Inactive' },
-        { label: 'Suspended', value: 'Suspended' },
       ],
     },
   ];
@@ -243,15 +241,15 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onRouteChange }) => {
       },
     },
     {
-      label: 'Suspend Selected',
+      label: 'Deactivate Selected',
       variant: 'danger',
       permission: 'users.deactivate',
       onClick: async (selected) => {
         for (const u of selected) {
-          await userService.toggleUserStatus(u.id, 'Suspended');
+          await userService.toggleUserStatus(u.id, 'Inactive');
         }
-        await logAdminAction('DEACTIVATE', 'Users', `Bulk suspended ${selected.length} staff accounts`);
-        success(`Suspended ${selected.length} users`);
+        await logAdminAction('DEACTIVATE', 'Users', `Bulk deactivated ${selected.length} staff accounts`);
+        success(`Deactivated ${selected.length} users`);
         loadUsers();
       },
     },
@@ -322,13 +320,13 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onRouteChange }) => {
         isOpen={!!statusAction}
         onClose={() => setStatusAction(null)}
         onConfirm={handleStatusChange}
-        title={`${statusAction?.newStatus === 'Active' ? 'Activate' : 'Suspend'} "${statusAction?.user.name}"?`}
+        title={`${statusAction?.newStatus === 'Active' ? 'Activate' : 'Deactivate'} "${statusAction?.user.name}"?`}
         description={
           statusAction?.newStatus === 'Active'
             ? 'The user will regain login access to their assigned platform permissions.'
-            : 'The user will be blocked from logging into the Collune admin portal.'
+            : 'The user will be deactivated and blocked from logging into the Collune admin portal.'
         }
-        confirmText={statusAction?.newStatus === 'Active' ? 'Activate User' : 'Suspend User'}
+        confirmText={statusAction?.newStatus === 'Active' ? 'Activate User' : 'Deactivate User'}
         variant={statusAction?.newStatus === 'Active' ? 'primary' : 'warning'}
       />
     </div>

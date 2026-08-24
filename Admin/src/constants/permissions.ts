@@ -38,13 +38,13 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     key: 'users.activate',
     label: 'Activate User',
     module: 'Users',
-    description: 'Restore access to suspended or inactive staff',
+    description: 'Restore access to inactive staff',
   },
   {
     key: 'users.deactivate',
     label: 'Deactivate User',
     module: 'Users',
-    description: 'Suspend or disable internal staff accounts',
+    description: 'Deactivate or disable internal staff accounts',
   },
   {
     key: 'users.export',
@@ -132,7 +132,7 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     key: 'creators.deactivate',
     label: 'Deactivate Creator',
     module: 'Creators',
-    description: 'Suspend or blacklist creator accounts',
+    description: 'Deactivate creator accounts',
   },
   {
     key: 'creators.delete',

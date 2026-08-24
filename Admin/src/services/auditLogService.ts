@@ -1,7 +1,6 @@
 import { AuditLog, AuditAction, ModuleName } from '../types';
-import { mockAuditLogs } from '../mocks/mockData';
 
-let auditLogsState: AuditLog[] = [...mockAuditLogs];
+let auditLogsState: AuditLog[] = [];
 
 export const auditLogService = {
   getLogs: async (): Promise<AuditLog[]> => {

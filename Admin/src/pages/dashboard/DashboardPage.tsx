@@ -58,9 +58,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onRouteChange }) =
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Platform Overview
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Real-time analytics and management controls for Collune Influencer Ecosystem.
-          </p>
         </div>
       </div>
 

@@ -34,7 +34,7 @@ export const CreatorsPage: React.FC<CreatorsPageProps> = ({ onRouteChange }) => 
   const [creators, setCreators] = useState<Creator[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [verifyAction, setVerifyAction] = useState<{ creator: Creator; newStatus: VerificationStatus } | null>(null);
-  const [statusAction, setStatusAction] = useState<{ creator: Creator; newStatus: 'Active' | 'Inactive' | 'Suspended' } | null>(null);
+  const [statusAction, setStatusAction] = useState<{ creator: Creator; newStatus: 'Active' | 'Inactive' } | null>(null);
 
   const loadCreators = async () => {
     setIsLoading(true);
@@ -151,11 +151,6 @@ export const CreatorsPage: React.FC<CreatorsPageProps> = ({ onRouteChange }) => 
       render: (row) => <StatusBadge status={row.verificationStatus} />,
     },
     {
-      key: 'accountStatus',
-      header: 'Account',
-      render: (row) => <StatusBadge status={row.accountStatus} />,
-    },
-    {
       key: 'actions',
       header: 'Actions',
       sortable: false,
@@ -189,13 +184,13 @@ export const CreatorsPage: React.FC<CreatorsPageProps> = ({ onRouteChange }) => 
             </PermissionGuard>
           )}
 
-          {/* Suspend / Activate toggle */}
+          {/* Deactivate / Activate toggle */}
           {row.accountStatus === 'Active' ? (
-            <PermissionGuard permission="creators.suspend">
+            <PermissionGuard permission="creators.edit">
               <button
-                onClick={() => setStatusAction({ creator: row, newStatus: 'Suspended' })}
+                onClick={() => setStatusAction({ creator: row, newStatus: 'Inactive' })}
                 className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/50 rounded-lg transition-colors cursor-pointer"
-                title="Suspend Creator"
+                title="Deactivate Creator"
               >
                 <Ban className="w-4 h-4" />
               </button>
@@ -248,7 +243,6 @@ export const CreatorsPage: React.FC<CreatorsPageProps> = ({ onRouteChange }) => 
       options: [
         { label: 'Active', value: 'Active' },
         { label: 'Inactive', value: 'Inactive' },
-        { label: 'Suspended', value: 'Suspended' },
       ],
     },
   ];
@@ -268,15 +262,15 @@ export const CreatorsPage: React.FC<CreatorsPageProps> = ({ onRouteChange }) => 
       },
     },
     {
-      label: 'Suspend Selected',
+      label: 'Deactivate Selected',
       variant: 'danger',
-      permission: 'creators.suspend',
+      permission: 'creators.edit',
       onClick: async (selected) => {
         for (const c of selected) {
-          await creatorService.updateStatus(c.id, 'Suspended');
+          await creatorService.updateStatus(c.id, 'Inactive');
         }
-        await logAdminAction('DEACTIVATE', 'Creators', `Bulk suspended ${selected.length} creators`);
-        success(`Suspended ${selected.length} creator accounts`);
+        await logAdminAction('DEACTIVATE', 'Creators', `Bulk deactivated ${selected.length} creators`);
+        success(`Deactivated ${selected.length} creator accounts`);
         loadCreators();
       },
     },
@@ -326,18 +320,18 @@ export const CreatorsPage: React.FC<CreatorsPageProps> = ({ onRouteChange }) => 
         variant={verifyAction?.newStatus === 'Verified' ? 'primary' : 'danger'}
       />
 
-      {/* Suspend Confirmation */}
+      {/* Status Confirmation */}
       <ConfirmDialog
         isOpen={!!statusAction}
         onClose={() => setStatusAction(null)}
         onConfirm={handleStatusToggle}
-        title={`${statusAction?.newStatus === 'Active' ? 'Reactivate' : 'Suspend'} "${statusAction?.creator.name}"?`}
+        title={`${statusAction?.newStatus === 'Active' ? 'Reactivate' : 'Deactivate'} "${statusAction?.creator.name}"?`}
         description={
           statusAction?.newStatus === 'Active'
             ? 'The creator will regain full platform access and can accept campaign offers.'
-            : 'The creator will be suspended from bidding or submitting campaign content.'
+            : 'The creator will be deactivated and unable to bid or submit campaign content.'
         }
-        confirmText={statusAction?.newStatus === 'Active' ? 'Reactivate Account' : 'Suspend Account'}
+        confirmText={statusAction?.newStatus === 'Active' ? 'Reactivate Account' : 'Deactivate Account'}
         variant={statusAction?.newStatus === 'Active' ? 'primary' : 'warning'}
       />
     </div>

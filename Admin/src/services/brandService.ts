@@ -1,8 +1,7 @@
 import { Brand, VerificationStatus, AccountStatus } from '../types';
-import { mockBrands } from '../mocks/mockData';
 import * as api from '../lib/api';
 
-let brandsState: Brand[] = [...mockBrands];
+let brandsState: Brand[] = [];
 
 const VERIFICATION_TO_BACKEND: Record<VerificationStatus, string> = {
   Verified: 'VERIFIED',
@@ -14,7 +13,6 @@ const VERIFICATION_TO_BACKEND: Record<VerificationStatus, string> = {
 const ACCOUNT_TO_BACKEND: Record<AccountStatus, string> = {
   Active: 'ACTIVE',
   Inactive: 'INACTIVE',
-  Suspended: 'INACTIVE',
 };
 
 function mapApiBrand(apiBrand: api.AdminBrandApi): Brand {
@@ -29,56 +27,26 @@ function mapApiBrand(apiBrand: api.AdminBrandApi): Brand {
 
 export const brandService = {
   getBrands: async (): Promise<Brand[]> => {
-    try {
-      const apiBrands = await api.getAdminBrands();
-      brandsState = apiBrands.map(mapApiBrand);
-      return [...brandsState];
-    } catch (err) {
-      // Not authenticated yet, or backend unreachable — keep working off the mock catalog.
-      return [...brandsState];
-    }
+    const apiBrands = await api.getAdminBrands();
+    brandsState = apiBrands.map(mapApiBrand);
+    return [...brandsState];
   },
 
   getBrandById: async (id: string): Promise<Brand | null> => {
-    try {
-      const apiBrand = await api.getAdminBrand(id);
-      const brand = mapApiBrand(apiBrand);
-      brandsState = brandsState.some((b) => b.id === brand.id)
-        ? brandsState.map((b) => (b.id === brand.id ? brand : b))
-        : [brand, ...brandsState];
-      return brand;
-    } catch (err) {
-      const brand = brandsState.find((b) => b.id === id) || null;
-      return brand ? { ...brand } : null;
-    }
+    const apiBrand = await api.getAdminBrand(id);
+    const brand = mapApiBrand(apiBrand);
+    brandsState = brandsState.some((b) => b.id === brand.id)
+      ? brandsState.map((b) => (b.id === brand.id ? brand : b))
+      : [brand, ...brandsState];
+    return brand;
   },
 
-  createBrand: async (brandData: Omit<Brand, 'id' | 'joinedAt' | 'totalCampaigns' | 'activeCampaigns' | 'creatorsHired' | 'totalSpend'>): Promise<Brand> => {
-    return new Promise((resolve) => {
-      const newBrand: Brand = {
-        ...brandData,
-        id: `BR-${String(brandsState.length + 1).padStart(3, '0')}`,
-        totalCampaigns: 0,
-        activeCampaigns: 0,
-        creatorsHired: 0,
-        totalSpend: 0,
-        joinedAt: new Date().toISOString(),
-      };
-      brandsState = [newBrand, ...brandsState];
-      setTimeout(() => resolve(newBrand), 200);
-    });
+  createBrand: async (): Promise<Brand> => {
+    throw new Error('Brand creation is not available in the admin frontend.');
   },
 
-  updateBrand: async (id: string, updates: Partial<Brand>): Promise<Brand> => {
-    return new Promise((resolve, reject) => {
-      const index = brandsState.findIndex((b) => b.id === id);
-      if (index === -1) {
-        reject(new Error('Brand not found'));
-        return;
-      }
-      brandsState[index] = { ...brandsState[index], ...updates };
-      setTimeout(() => resolve({ ...brandsState[index] }), 200);
-    });
+  updateBrand: async (): Promise<Brand> => {
+    throw new Error('Brand editing is not available in the admin frontend.');
   },
 
   updateVerification: async (id: string, status: VerificationStatus): Promise<Brand> => {

@@ -88,9 +88,9 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
     }
   };
 
-  const handleToggleSuspend = async () => {
+  const handleToggleStatus = async () => {
     if (!creator) return;
-    const newStatus = creator.accountStatus === 'Active' ? 'Suspended' : 'Active';
+    const newStatus = creator.accountStatus === 'Active' ? 'Inactive' : 'Active';
     try {
       await creatorService.updateStatus(creator.id, newStatus);
       await logAdminAction(
@@ -200,7 +200,7 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
               )}
             </PermissionGuard>
 
-            <PermissionGuard permission="creators.suspend">
+            <PermissionGuard permission="creators.edit">
               <button
                 onClick={() => setSuspendModal(true)}
                 className={`px-3.5 py-2 text-xs font-semibold rounded-xl border transition-colors flex items-center gap-1.5 cursor-pointer ${
@@ -210,7 +210,7 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
                 }`}
               >
                 <Ban className="w-3.5 h-3.5" />
-                <span>{creator.accountStatus === 'Active' ? 'Suspend Creator' : 'Reactivate Creator'}</span>
+                <span>{creator.accountStatus === 'Active' ? 'Deactivate Creator' : 'Reactivate Creator'}</span>
               </button>
             </PermissionGuard>
           </div>
@@ -534,18 +534,18 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
         variant={verifyModal === 'Verified' ? 'primary' : 'danger'}
       />
 
-      {/* Suspend Dialog */}
+      {/* Status Dialog */}
       <ConfirmDialog
         isOpen={suspendModal}
         onClose={() => setSuspendModal(false)}
-        onConfirm={handleToggleSuspend}
-        title={`${creator.accountStatus === 'Active' ? 'Suspend' : 'Reactivate'} ${creator.name}?`}
+        onConfirm={handleToggleStatus}
+        title={`${creator.accountStatus === 'Active' ? 'Deactivate' : 'Reactivate'} ${creator.name}?`}
         description={
           creator.accountStatus === 'Active'
-            ? 'The creator will be suspended from bidding or submitting campaign content.'
+            ? 'The creator will be deactivated and unable to bid or submit campaign content.'
             : 'The creator will regain full platform access.'
         }
-        confirmText={creator.accountStatus === 'Active' ? 'Suspend Account' : 'Reactivate Account'}
+        confirmText={creator.accountStatus === 'Active' ? 'Deactivate Account' : 'Reactivate Account'}
         variant={creator.accountStatus === 'Active' ? 'warning' : 'primary'}
       />
     </div>

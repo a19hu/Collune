@@ -121,16 +121,6 @@ export const CampaignsPage: React.FC<CampaignsPageProps> = ({ onRouteChange }) =
       ),
     },
     {
-      key: 'budget',
-      header: 'Total Budget',
-      accessor: (row) => row.budget,
-      render: (row) => (
-        <span className="text-xs font-bold text-slate-900 dark:text-slate-100 font-mono">
-          {formatCurrency(row.budget)}
-        </span>
-      ),
-    },
-    {
       key: 'creatorsRequired',
       header: 'Creators',
       accessor: (row) => row.creatorsRequired,

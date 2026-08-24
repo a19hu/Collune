@@ -198,17 +198,6 @@ const AppShell: React.FC = () => {
             </ProtectedRoute>
           }
         />
-
-        {/* Exports */}
-        {/* <Route
-          path="/admin/exports"
-          element={
-            <ProtectedRoute permission="exports.view">
-              <ExportsPage />
-            </ProtectedRoute>
-          }
-        /> */}
-
         {/* 404 Fallback */}
         <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
       </Routes>

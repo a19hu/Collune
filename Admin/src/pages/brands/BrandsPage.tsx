@@ -121,16 +121,6 @@ export const BrandsPage: React.FC<BrandsPageProps> = ({ onRouteChange }) => {
       ),
     },
     {
-      key: 'totalSpend',
-      header: 'Total Spend',
-      accessor: (row) => row.totalSpend,
-      render: (row) => (
-        <span className="text-xs font-bold text-slate-900 dark:text-slate-100 font-mono">
-          {formatCurrency(row.totalSpend)}
-        </span>
-      ),
-    },
-    {
       key: 'verificationStatus',
       header: 'Status',
       render: (row) => <StatusBadge status={row.verificationStatus} />,

@@ -233,7 +233,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
             >
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
-              <option value="Suspended">Suspended</option>
             </select>
           </div>
 

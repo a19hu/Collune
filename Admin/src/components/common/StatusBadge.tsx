@@ -5,7 +5,6 @@ import { CheckCircle, Clock, AlertCircle, XCircle, ShieldAlert, FileText, Ban } 
 export type StatusType =
   | 'Active'
   | 'Inactive'
-  | 'Suspended'
   | 'Verified'
   | 'Pending'
   | 'Pending Approval'
@@ -42,7 +41,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className, sho
   } else if (norm === 'paused' || norm === 'in review' || norm === 'overdue') {
     colorClasses = 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-800';
     Icon = AlertCircle;
-  } else if (norm === 'rejected' || norm === 'suspended' || norm === 'failed' || norm === 'cancelled' || norm === 'delete') {
+  } else if (norm === 'rejected' || norm === 'failed' || norm === 'cancelled' || norm === 'delete') {
     colorClasses = 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-800';
     Icon = XCircle;
   } else if (norm === 'inactive' || norm === 'unverified') {
