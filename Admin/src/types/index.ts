@@ -257,7 +257,7 @@ export interface Campaign {
   roi?: number;
 }
 
-export type ExportType = 'Creator Data' | 'Brand Data' | 'Campaign Data' | 'Internal User Data';
+export type ExportType = 'Creator Data' | 'Brand Data' | 'Campaign Data' | 'Shortlist Data' | 'Internal User Data';
 
 export type ShortlistStatus = 'Draft' | 'Submitted';
 

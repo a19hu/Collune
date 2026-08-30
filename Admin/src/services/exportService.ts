@@ -31,6 +31,7 @@ export const exportService = {
     if (params.type === 'Creator Data') count = (await api.getAdminCreators()).length;
     else if (params.type === 'Brand Data') count = (await api.getAdminBrands()).length;
     else if (params.type === 'Campaign Data') count = (await api.getAdminCampaigns()).length;
+    else if (params.type === 'Shortlist Data') count = (await api.getAdminShortlists()).length;
     else count = (await api.getStaffUsers()).length;
 
     const nextId = `EXP-${9040 + exportsState.length + 1}`;
@@ -99,6 +100,21 @@ export const exportService = {
         cmp.status,
         cmp.startDate,
         cmp.endDate,
+      ]);
+      content = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    } else if (type === 'Shortlist Data') {
+      const shortlists = await api.getAdminShortlists();
+      filename += format === 'CSV' ? '.csv' : '.txt';
+      const headers = ['Shortlist ID', 'Title', 'Brand', 'Status', 'Creators', 'Platforms', 'Start Date', 'End Date'];
+      const rows = shortlists.map((shortlist) => [
+        shortlist.shortlistCode,
+        `"${shortlist.title}"`,
+        `"${shortlist.brandName}"`,
+        shortlist.status,
+        shortlist.creators.length,
+        `"${shortlist.platforms.join(', ')}"`,
+        shortlist.startDate,
+        shortlist.endDate,
       ]);
       content = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
     } else {

@@ -4,6 +4,8 @@ import { DataTable, Column } from '../../components/common/DataTable';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { Shortlist } from '../../types';
 import { shortlistService } from '../../services/shortlistService';
+import { exportService } from '../../services/exportService';
+import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { formatDate } from '../../utils/formatters';
 
@@ -12,7 +14,8 @@ interface ShortlistsPageProps {
 }
 
 export const ShortlistsPage: React.FC<ShortlistsPageProps> = ({ onRouteChange }) => {
-  const { error } = useToast();
+  const { logAdminAction } = useAuth();
+  const { success, error } = useToast();
 
   const [shortlists, setShortlists] = useState<Shortlist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -99,6 +102,13 @@ export const ShortlistsPage: React.FC<ShortlistsPageProps> = ({ onRouteChange })
     },
   ];
 
+
+  const handleExport = (data: Shortlist[]) => {
+    exportService.downloadDataset('Shortlist Data', 'CSV');
+    logAdminAction('EXPORT', 'Exports', `Exported ${data.length} shortlist records to CSV`);
+    success('Export Started', `Downloaded shortlist dataset (${data.length} records).`);
+  };
+
   const filterOptions = [
     {
       key: 'status',
@@ -132,6 +142,8 @@ export const ShortlistsPage: React.FC<ShortlistsPageProps> = ({ onRouteChange })
         isLoading={isLoading}
         searchPlaceholder="Search shortlists by title, brand, code..."
         filterOptions={filterOptions}
+        exportPermission="shortlists.export"
+        onExport={handleExport}
         onRowClick={(row) => onRouteChange(`/admin/shortlists/${row.id}`)}
         emptyTitle="No shortlists found"
         emptyDescription="Try adjusting search or status filters."
