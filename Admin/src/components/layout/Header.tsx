@@ -17,12 +17,30 @@ import { BreadcrumbItem } from '../common/Breadcrumbs';
 interface HeaderProps {
   onMobileMenuToggle: () => void;
   breadcrumbs?: BreadcrumbItem[];
+  currentRoute?: string;
   onRouteChange: (route: string) => void;
+}
+
+const ROUTE_TITLES: Array<{ pattern: RegExp; label: string }> = [
+  { pattern: /^\/admin\/dashboard$/, label: 'Dashboard' },
+  { pattern: /^\/admin\/users(?:\/[^/]+)?$/, label: 'Users' },
+  { pattern: /^\/admin\/roles$/, label: 'Roles & Permissions' },
+  { pattern: /^\/admin\/creators(?:\/[^/]+)?$/, label: 'Creators' },
+  { pattern: /^\/admin\/brands(?:\/[^/]+)?$/, label: 'Brands' },
+  { pattern: /^\/admin\/campaigns(?:\/[^/]+)?$/, label: 'Campaigns' },
+  { pattern: /^\/admin\/shortlists(?:\/[^/]+)?$/, label: 'Shortlists' },
+];
+
+function resolveCurrentLabel(currentRoute?: string, breadcrumbs: BreadcrumbItem[] = []): string {
+  if (breadcrumbs.length > 0) return breadcrumbs[breadcrumbs.length - 1].label;
+  const matched = ROUTE_TITLES.find((item) => item.pattern.test(currentRoute || ''));
+  return matched?.label || 'Dashboard';
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onMobileMenuToggle,
   breadcrumbs = [],
+  currentRoute,
   onRouteChange,
 }) => {
   const {
@@ -58,7 +76,7 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
           <span className="text-slate-300 dark:text-slate-600">/</span>
           <span className="text-slate-900 dark:text-white font-semibold truncate max-w-[240px]">
-            {breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].label : 'Dashboard'}
+            {resolveCurrentLabel(currentRoute, breadcrumbs)}
           </span>
         </div>
       </div>

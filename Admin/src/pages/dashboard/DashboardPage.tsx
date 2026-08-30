@@ -15,9 +15,39 @@ import {
   Legend,
 } from 'recharts';
 import { statsService } from '../../services/statsService';
+import { AdminCampaignOverviewPointApi, AdminCategoryDistributionPointApi, AdminDashboardGrowthPointApi } from '../../lib/api';
 import { DashboardStats } from '../../types';
 import { formatCompactNumber } from '../../utils/formatters';
 import { useAuth } from '../../context/AuthContext';
+
+function CampaignOverviewTooltip({ active, label, payload }: { active?: boolean; label?: string; payload?: Array<{ payload?: AdminCampaignOverviewPointApi }> }) {
+  if (!active || !payload?.length || !payload[0]?.payload) return null;
+
+  const point = payload[0].payload;
+  const rows = [
+    { key: 'Active', value: Number(point.active) || 0, color: '#6366f1' },
+    { key: 'Completed', value: Number(point.completed) || 0, color: '#10b981' },
+    { key: 'Draft', value: Number(point.draft) || 0, color: '#f59e0b' },
+    { key: 'Paused', value: Number(point.paused) || 0, color: '#94a3b8' },
+  ];
+
+  return (
+    <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-[11px] text-white shadow-lg">
+      <div className="mb-2 font-semibold text-slate-100">{label}</div>
+      <div className="space-y-1">
+        {rows.map((row) => (
+          <div key={row.key} className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-2 text-slate-200">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: row.color }} />
+              {row.key}
+            </span>
+            <span className="font-semibold text-white">{row.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 interface DashboardPageProps {
   onRouteChange: (route: string) => void;
@@ -26,10 +56,10 @@ interface DashboardPageProps {
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onRouteChange }) => {
   const { hasPermission } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [growthData, setGrowthData] = useState<any[]>([]);
+  const [growthData, setGrowthData] = useState<AdminDashboardGrowthPointApi[]>([]);
   const [growthRange, setGrowthRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
-  const [campaignData, setCampaignData] = useState<any[]>([]);
-  const [categoryData, setCategoryData] = useState<any[]>([]);
+  const [campaignData, setCampaignData] = useState<AdminCampaignOverviewPointApi[]>([]);
+  const [categoryData, setCategoryData] = useState<AdminCategoryDistributionPointApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -41,7 +71,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onRouteChange }) =
         );
         setStats(s);
         setGrowthData(growth);
-        setCampaignData(campaignOverview);
+        setCampaignData(
+          campaignOverview.map((item) => ({
+            month: item.month,
+            active: Number(item.active) || 0,
+            completed: Number(item.completed) || 0,
+            draft: Number(item.draft) || 0,
+            paused: Number(item.paused) || 0,
+          }))
+        );
         setCategoryData(categoryDistribution);
       } finally {
         setIsLoading(false);
@@ -174,15 +212,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onRouteChange }) =
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} opacity={0.5} />
                 <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
                 <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} tickFormatter={(v) => formatCompactNumber(v)} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#0f172a',
-                    borderColor: '#1e293b',
-                    borderRadius: '8px',
-                    color: '#fff',
-                    fontSize: '11px',
-                  }}
-                />
+                <Tooltip content={<CampaignOverviewTooltip />} />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
                 <Line
                   type="monotone"
@@ -233,15 +263,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onRouteChange }) =
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} opacity={0.5} />
                 <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
                 <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#0f172a',
-                    borderColor: '#1e293b',
-                    borderRadius: '8px',
-                    color: '#fff',
-                    fontSize: '11px',
-                  }}
-                />
+                <Tooltip content={<CampaignOverviewTooltip />} />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
                 <Bar dataKey="active" name="Active" stackId="a" fill="#6366f1" radius={[0, 0, 0, 0]} />
                 <Bar dataKey="completed" name="Completed" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />

@@ -33,6 +33,7 @@ class Command(BaseCommand):
                 "verification_status": VerificationStatus.VERIFIED,
                 "is_staff": True,
                 "is_superuser": True,
+                "is_active": True,
             },
         )
 
@@ -50,6 +51,9 @@ class Command(BaseCommand):
         if not user.is_superuser:
             user.is_superuser = True
             changed_fields.append("is_superuser")
+        if not user.is_active:
+            user.is_active = True
+            changed_fields.append("is_active")
         if user.role != UserRole.ADMIN:
             user.role = UserRole.ADMIN
             changed_fields.append("role")

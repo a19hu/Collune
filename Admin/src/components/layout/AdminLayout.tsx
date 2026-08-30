@@ -36,6 +36,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         <Header
           onMobileMenuToggle={() => setIsMobileMenuOpen((p) => !p)}
           breadcrumbs={breadcrumbs}
+          currentRoute={route}
           onRouteChange={onRouteChange}
         />
 

@@ -1,4 +1,5 @@
 from django.db import transaction
+import re
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
@@ -161,9 +162,12 @@ class AdminUserCreateSerializer(serializers.Serializer):
         return value
 
     def validate_phone_no(self, value):
-        if value and User.objects.filter(phone_no=value).exists():
+        normalized = value.strip() if value else ""
+        if normalized and len(re.sub(r"\D", "", normalized)) < 8:
+            raise serializers.ValidationError("Enter a valid phone number or leave this field blank.")
+        if normalized and User.objects.filter(phone_no=normalized).exists():
             raise serializers.ValidationError("This phone number is already registered.")
-        return value
+        return normalized
 
     def validate_role(self, value):
         if value not in get_internal_admin_roles():
@@ -231,6 +235,8 @@ class AdminUserUpdateSerializer(serializers.Serializer):
 
     def validate_phone_no(self, value):
         normalized = value.strip() if value else ""
+        if normalized and len(re.sub(r"\D", "", normalized)) < 8:
+            raise serializers.ValidationError("Enter a valid phone number or leave this field blank.")
         queryset = User.objects.filter(phone_no=normalized or None)
         user = self.instance
         if user:

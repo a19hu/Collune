@@ -54,7 +54,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
     } else {
       setName('');
       setEmail('');
-      setPhone('+91 ');
+      setPhone('');
       setPassword('');
       setDepartment('Operations');
       setRoleId(roles[1]?.id || roles[0]?.id || 'ROLE-OPS-MANAGER');
@@ -74,6 +74,13 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
       return;
     }
 
+    const normalizedPhone = phone.trim();
+    const phoneDigits = normalizedPhone.replace(/\D/g, '');
+    if (normalizedPhone && phoneDigits.length < 8) {
+      error('Invalid phone number', 'Enter a real phone number with digits, or leave the field blank.');
+      return;
+    }
+
     setIsSubmitting(true);
     const selectedRole = roles.find((r) => r.id === roleId);
     const roleName = selectedRole ? selectedRole.name : 'Custom Role';
@@ -83,7 +90,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
         await userService.updateUser(userToEdit.id, {
           name,
           email,
-          phone,
+          phone: normalizedPhone,
           department,
           roleId,
           roleName,
@@ -96,7 +103,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
         const created = await userService.createUser({
           name,
           email,
-          phone,
+          phone: normalizedPhone,
           password,
           department,
           roleId,

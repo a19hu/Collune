@@ -38,30 +38,79 @@ export function clearSession() {
 
 type ApiError = { error?: string; detail?: string; message?: string };
 
-function formatApiError(data: unknown): string {
-  if (typeof data === 'string') return data;
-  if (!data || typeof data !== 'object') return 'Request failed';
+function isHtmlResponse(value: string): boolean {
+  const trimmed = value.trim().toLowerCase();
+  return trimmed.startsWith('<!doctype') || trimmed.startsWith('<html') || trimmed.startsWith('<body');
+}
+
+function normalizeErrorLabel(key: string): string {
+  if (key === 'non_field_errors') return '';
+  return key.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function extractErrorMessage(value: unknown): string | null {
+  if (typeof value === 'string') {
+    return isHtmlResponse(value) ? null : value.trim();
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const nested = extractErrorMessage(item);
+      if (nested) return nested;
+    }
+    return null;
+  }
+  if (value && typeof value === 'object') {
+    for (const nestedValue of Object.values(value as Record<string, unknown>)) {
+      const nested = extractErrorMessage(nestedValue);
+      if (nested) return nested;
+    }
+  }
+  return null;
+}
+
+function fallbackErrorMessage(status: number, path: string): string {
+  if (status === 400 && path === '/auth/login/') return 'Invalid email or password.';
+  if (status === 401) return 'Your session has expired. Please sign in again.';
+  if (status === 403) return 'You do not have permission to perform this action.';
+  if (status === 404) return "We couldn't find what you were looking for.";
+  if (status >= 500) return 'Something went wrong on our side. Please try again.';
+  return 'Something went wrong. Please try again.';
+}
+
+function formatApiError(data: unknown, status: number, path: string): string {
+  if (typeof data === 'string') {
+    return isHtmlResponse(data) ? fallbackErrorMessage(status, path) : data;
+  }
+  if (!data || typeof data !== 'object') return fallbackErrorMessage(status, path);
   const apiError = data as ApiError & Record<string, unknown>;
-  if (apiError.error || apiError.detail || apiError.message) {
-    return String(apiError.error || apiError.detail || apiError.message);
+  const directMessage = apiError.error || apiError.detail || apiError.message;
+  if (typeof directMessage === 'string' && directMessage.trim()) {
+    return isHtmlResponse(directMessage) ? fallbackErrorMessage(status, path) : directMessage;
   }
   for (const [key, value] of Object.entries(apiError)) {
-    if (typeof value === 'string') return `${key}: ${value}`;
-    if (Array.isArray(value) && value.length > 0) return `${key}: ${String(value[0])}`;
+    const message = extractErrorMessage(value);
+    if (!message) continue;
+    const label = normalizeErrorLabel(key);
+    return label ? `${label}: ${message}` : message;
   }
-  return 'Request failed';
+  return fallbackErrorMessage(status, path);
 }
 
 async function apiRequest<T>(path: string, init: RequestInit = {}, authed = false): Promise<T> {
   const session = authed ? getSession() : null;
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init.headers || {}),
-      ...(session ? { Authorization: `Bearer ${session.access}` } : {}),
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(init.headers || {}),
+        ...(session ? { Authorization: `Bearer ${session.access}` } : {}),
+      },
+    });
+  } catch {
+    throw new Error('Unable to reach the server. Please try again.');
+  }
 
   const text = res.status === 204 ? '' : await res.text();
   let data: any = {};
@@ -69,12 +118,12 @@ async function apiRequest<T>(path: string, init: RequestInit = {}, authed = fals
     try {
       data = JSON.parse(text);
     } catch {
-      throw new Error(`Invalid API response (${res.status} ${res.statusText || 'Unknown'}): ${text.slice(0, 160)}`);
+      throw new Error(fallbackErrorMessage(res.status, path));
     }
   }
 
   if (!res.ok) {
-    throw new Error(text ? formatApiError(data) : `Request failed (${res.status} ${res.statusText || 'Unknown'})`);
+    throw new Error(text ? formatApiError(data, res.status, path) : fallbackErrorMessage(res.status, path));
   }
   return data as T;
 }
