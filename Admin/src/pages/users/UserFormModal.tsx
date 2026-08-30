@@ -131,7 +131,13 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
       subtitle={userToEdit ? `Updating profile for ID: ${userToEdit.id}` : 'Assign department, role, and permission scope.'}
       maxWidth="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+        {!userToEdit && (
+          <div className="hidden" aria-hidden="true">
+            <input type="text" name="username" autoComplete="username" tabIndex={-1} />
+            <input type="password" name="password" autoComplete="current-password" tabIndex={-1} />
+          </div>
+        )}
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
             Full Name *
@@ -153,6 +159,9 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
             </label>
             <input
               type="email"
+              name="staff_email_create"
+              autoComplete="off"
+              data-lpignore="true"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -167,6 +176,8 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
             </label>
             <input
               type="tel"
+              name="staff_phone"
+              autoComplete="off"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+91 98765 43210"
@@ -182,6 +193,9 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
             </label>
             <input
               type="password"
+              name="staff_password_create"
+              autoComplete="new-password"
+              data-lpignore="true"
               required
               minLength={8}
               value={password}

@@ -172,6 +172,20 @@ export function signout() {
   return apiPost<{ message: string }>('/auth/signout/', {}, true);
 }
 
+export function requestPasswordReset(email: string) {
+  return apiPost<{ message: string; email: string; expires_in: number }>('/auth/password-reset/request/', {
+    email: email.trim(),
+  });
+}
+
+export function confirmPasswordReset(email: string, code: string, newPassword: string) {
+  return apiPost<{ message: string }>('/auth/password-reset/confirm/', {
+    email: email.trim(),
+    code: code.trim(),
+    new_password: newPassword,
+  });
+}
+
 export interface AdminRoleApi {
   role_id: string;
   name: string;

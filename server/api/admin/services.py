@@ -58,6 +58,31 @@ SOCIAL_PLATFORM_LABELS = {
 }
 
 
+
+
+def _format_creator_location(creator):
+    parts = []
+    for part in [creator.city, creator.state, creator.country]:
+        normalized = str(part or "").strip()
+        if normalized and normalized not in parts:
+            parts.append(normalized)
+    if parts:
+        return ", ".join(parts)
+
+    raw_location = str(creator.location or "").strip()
+    if not raw_location:
+        return ""
+
+    structured_parts = []
+    for segment in raw_location.split("|"):
+        cleaned = segment.strip()
+        if ":" in cleaned:
+            _, cleaned = cleaned.split(":", 1)
+        cleaned = cleaned.strip()
+        if cleaned and cleaned not in structured_parts:
+            structured_parts.append(cleaned)
+    return ", ".join(structured_parts) if structured_parts else raw_location
+
 def serialize_admin_creator(creator, request=None):
     """Map a CreatorProfile into the shape the Admin portal's Creator type expects."""
     accounts = list(creator.social_accounts.all())
@@ -90,7 +115,7 @@ def serialize_admin_creator(creator, request=None):
         "languages": creator.languages or [],
         "collaborationPreferences": creator.collaboration_preferences or [],
         "workWith": creator.work_with or [],
-        "location": creator.location,
+        "location": _format_creator_location(creator),
         "city": creator.city,
         "country": creator.country,
         "state": creator.state,

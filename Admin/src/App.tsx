@@ -29,6 +29,7 @@ import { ShortlistsPage } from './pages/shortlists/ShortlistsPage';
 import { ShortlistDetailPage } from './pages/shortlists/ShortlistDetailPage';
 // import { ExportsPage } from './pages/exports/ExportsPage';
 import { LoginPage } from './pages/auth/LoginPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 
 // Wrapper for User Detail route to extract params
 const UserDetailWrapper: React.FC = () => {
@@ -73,6 +74,10 @@ const AppShell: React.FC = () => {
   // Public login screen — rendered without the admin chrome (sidebar/topbar).
   if (location.pathname === '/login') {
     return isAuthenticated ? <Navigate to="/admin/dashboard" replace /> : <LoginPage />;
+  }
+
+  if (location.pathname === '/forgot-password') {
+    return isAuthenticated ? <Navigate to="/admin/dashboard" replace /> : <ForgotPasswordPage />;
   }
 
   if (!isAuthenticated) {

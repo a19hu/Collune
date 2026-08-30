@@ -191,8 +191,6 @@ export const RolesPage: React.FC<RolesPageProps> = ({ onRouteChange }) => {
             );
           })}
         </div>
-      ) 
-
       {/* Create / Edit Modal */}
       <RoleFormModal
         isOpen={isModalOpen}

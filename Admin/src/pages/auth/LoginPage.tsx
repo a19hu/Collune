@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, ShieldCheck, Sparkles } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -132,6 +132,15 @@ export const LoginPage: React.FC = () => {
                 {authError}
               </p>
             ) : null}
+
+            <div className="mt-4 flex justify-end">
+              <Link
+                to="/forgot-password"
+                className="text-xs font-semibold text-indigo-600 transition hover:text-indigo-700"
+              >
+                Forgot password?
+              </Link>
+            </div>
 
             <button
               type="submit"

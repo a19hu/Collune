@@ -164,7 +164,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onRouteChange }) => {
           </PermissionGuard>
 
           {/* Status Toggle (Guarded) */}
-          {/* {row.status === 'Active' ? (
+          {row.status === 'Active' ? (
             <PermissionGuard permission="users.deactivate">
               <button
                 onClick={() => setStatusAction({ user: row, newStatus: 'Inactive' })}
@@ -184,7 +184,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onRouteChange }) => {
                 <UserCheck className="w-4 h-4" />
               </button>
             </PermissionGuard>
-          )} */}
+          )}
 
           {/* Delete (Guarded) */}
           <PermissionGuard permission="users.delete">
