@@ -32,7 +32,7 @@ export const CampaignFormModal: React.FC<CampaignFormModalProps> = ({
   campaignToEdit,
   onSuccess,
 }) => {
-  const { logAdminAction, currentUser } = useAuth();
+  const { logAdminAction } = useAuth();
   const { success, error } = useToast();
 
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -75,16 +75,6 @@ export const CampaignFormModal: React.FC<CampaignFormModalProps> = ({
       setEndDate(campaignToEdit.endDate);
       setStatus(campaignToEdit.status);
       setDescription(campaignToEdit.description || '');
-    } else {
-      setTitle('');
-      setCategory(CATEGORIES[0]);
-      setBudget(500000);
-      setCreatorsRequired(10);
-      setDeliverablesStr('1x Dedicated Reel, 2x Stories');
-      setStartDate('2026-09-01');
-      setEndDate('2026-09-30');
-      setStatus('Active');
-      setDescription('Brand amplification campaign targeting engaged audiences across visual platforms.');
     }
   }, [campaignToEdit, isOpen]);
 
@@ -116,56 +106,29 @@ export const CampaignFormModal: React.FC<CampaignFormModalProps> = ({
       })
       .filter((d) => d.title.length > 0);
 
+    if (!campaignToEdit) {
+      error('Campaign creation disabled', 'Creating campaigns from the admin panel is no longer available.');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      if (campaignToEdit) {
-        await campaignService.updateCampaign(campaignToEdit.id, {
-          title,
-          brandId,
-          brandName,
-          brandLogo,
-          category,
-          budget: Number(budget),
-          creatorsRequired: Number(creatorsRequired),
-          deliverables: parsedDeliverables.length > 0 ? parsedDeliverables : campaignToEdit.deliverables,
-          startDate,
-          endDate,
-          status,
-          description,
-        });
-        await logAdminAction('UPDATE', 'Campaigns', `Updated campaign "${title}" for ${brandName}`, campaignToEdit.id);
-        success('Campaign Updated', `Saved changes for ${title}.`);
-      } else {
-        const created = await campaignService.createCampaign({
-          title,
-          brandId,
-          brandName,
-          brandLogo,
-          category,
-          description,
-          objective: 'Brand Awareness & Product Discovery',
-          targetAudience: '18-35 Age group, Tier 1 & 2 cities',
-          platforms: ['Instagram', 'YouTube'],
-          budget: Number(budget),
-          creatorsRequired: Number(creatorsRequired),
-          startDate,
-          endDate,
-          status,
-          campaignManager: currentUser?.name || 'Staff Admin',
-          deliverables: parsedDeliverables.length > 0 ? parsedDeliverables : [
-            {
-              id: 'deliv-1',
-              title: 'Dedicated Instagram Reel',
-              platform: 'Instagram',
-              type: 'Reel',
-              quantity: 1,
-              completedQuantity: 0,
-              dueDate: endDate,
-            },
-          ],
-        });
-        await logAdminAction('CREATE', 'Campaigns', `Created new campaign "${title}" with budget ₹${budget}`, created.id);
-        success('Campaign Created', `Campaign "${title}" is now registered.`);
-      }
+      await campaignService.updateCampaign(campaignToEdit.id, {
+        title,
+        brandId,
+        brandName,
+        brandLogo,
+        category,
+        budget: Number(budget),
+        creatorsRequired: Number(creatorsRequired),
+        deliverables: parsedDeliverables.length > 0 ? parsedDeliverables : campaignToEdit.deliverables,
+        startDate,
+        endDate,
+        status,
+        description,
+      });
+      await logAdminAction('UPDATE', 'Campaigns', `Updated campaign "${title}" for ${brandName}`, campaignToEdit.id);
+      success('Campaign Updated', `Saved changes for ${title}.`);
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -179,8 +142,8 @@ export const CampaignFormModal: React.FC<CampaignFormModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={campaignToEdit ? 'Edit Campaign' : 'Create New Campaign'}
-      subtitle={campaignToEdit ? `Updating ID: ${campaignToEdit.campaignCode}` : 'Configure marketing goals, budget, and influencer slots.'}
+      title="Edit Campaign"
+      subtitle={campaignToEdit ? `Updating ID: ${campaignToEdit.campaignCode}` : 'Update campaign details.'}
       maxWidth="2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">

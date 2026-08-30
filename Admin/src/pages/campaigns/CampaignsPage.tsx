@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Megaphone,
-  Plus,
   Eye,
   Edit2,
   Trash2,
@@ -35,7 +34,6 @@ export const CampaignsPage: React.FC<CampaignsPageProps> = ({ onRouteChange }) =
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [campaignToEdit, setCampaignToEdit] = useState<Campaign | null>(null);
   const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
   const [statusChange, setStatusChange] = useState<{ campaign: Campaign; newStatus: CampaignStatus } | null>(null);
@@ -165,7 +163,6 @@ export const CampaignsPage: React.FC<CampaignsPageProps> = ({ onRouteChange }) =
             <button
               onClick={() => {
                 setCampaignToEdit(row);
-                setIsCreateOpen(true);
               }}
               className="p-1.5 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
               title="Edit Campaign"
@@ -265,18 +262,6 @@ export const CampaignsPage: React.FC<CampaignsPageProps> = ({ onRouteChange }) =
           </p>
         </div>
 
-        <PermissionGuard permission="campaigns.create">
-          <button
-            onClick={() => {
-              setCampaignToEdit(null);
-              setIsCreateOpen(true);
-            }}
-            className="px-4 py-2.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-colors flex items-center gap-2 cursor-pointer shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Campaign</span>
-          </button>
-        </PermissionGuard>
       </div>
 
       {/* Main Table */}
@@ -294,10 +279,10 @@ export const CampaignsPage: React.FC<CampaignsPageProps> = ({ onRouteChange }) =
         emptyDescription="Try adjusting search or status filters."
       />
 
-      {/* Create / Edit Modal */}
+      {/* Edit Modal */}
       <CampaignFormModal
-        isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
+        isOpen={!!campaignToEdit}
+        onClose={() => setCampaignToEdit(null)}
         campaignToEdit={campaignToEdit}
         onSuccess={loadCampaigns}
       />

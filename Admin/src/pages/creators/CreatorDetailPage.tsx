@@ -232,7 +232,7 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
         {/* Highlight Stats Strip */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
           <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-850/60 border border-slate-100 dark:border-slate-800">
-            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
               Total Reach
             </div>
             <div className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1">
@@ -244,25 +244,25 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
           </div>
 
           <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-850/60 border border-slate-100 dark:border-slate-800">
-            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
               Niche Category
             </div>
             <div className="text-base font-bold text-indigo-600 dark:text-indigo-400 mt-1 truncate">
               {creator.category}
             </div>
-            <div className="text-[10px] text-slate-400 mt-0.5">
+            <div className="text-[10px] text-slate-600 dark:text-slate-300 mt-0.5">
               {creator.languages?.slice(0, 2).join(', ')}
             </div>
           </div>
 
           <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-850/60 border border-slate-100 dark:border-slate-800">
-            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
               Joined Platform
             </div>
             <div className="text-base font-bold text-slate-900 dark:text-slate-100 mt-1">
               {formatDate(memberSince)}
             </div>
-            <div className="text-[10px] text-slate-400 mt-0.5">Collune ID #{creator.id}</div>
+            <div className="text-[10px] text-slate-600 dark:text-slate-300 mt-0.5">Collune ID #{creator.id}</div>
           </div>
         </div>
 
@@ -355,7 +355,7 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
               Commercial Deliverables Summary
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               Standard content deliverables supported by this creator on the Collune campaign marketplace.
             </p>
             <div className="grid grid-cols-2 gap-3 pt-2">
@@ -455,25 +455,25 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-850/60 border border-slate-100 dark:border-slate-800 space-y-3 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Document Type</span>
+                <span className="text-slate-600 dark:text-slate-300">Document Type</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">
                   {(creator as any).kycDetails?.documentType || 'Aadhaar Card / PAN'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Document ID Number</span>
+                <span className="text-slate-600 dark:text-slate-300">Document ID Number</span>
                 <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
                   {(creator as any).kycDetails?.documentNumber || 'XXXX-XXXX-8921'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Submission Date</span>
+                <span className="text-slate-600 dark:text-slate-300">Submission Date</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">
                   {formatDate((creator as any).kycDetails?.submittedAt || memberSince)}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Reviewing Officer</span>
+                <span className="text-slate-600 dark:text-slate-300">Reviewing Officer</span>
                 <span className="font-semibold text-indigo-600 dark:text-indigo-400">
                   {(creator as any).kycDetails?.verifiedBy || 'Rohan Deshmukh (Creator Ops)'}
                 </span>
@@ -485,7 +485,7 @@ export const CreatorDetailPage: React.FC<CreatorDetailPageProps> = ({
               <div className="text-xs font-semibold text-slate-900 dark:text-slate-100">
                 Verified Document Attachment
               </div>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-600 dark:text-slate-300">
                 Aadhaar_Front_Back_{creator.id}.pdf (2.4 MB)
               </p>
               <button

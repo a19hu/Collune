@@ -321,9 +321,9 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({ userId, onRouteC
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={handleDelete}
-        title={`Delete User ${user.name}?`}
-        description="Are you sure? This will remove the staff user permanently."
-        confirmText="Delete Staff Member"
+        title={`Delete User "${user.name}"?`}
+        description="This action cannot be undone. This staff member will immediately lose access to the platform."
+        confirmText="Delete User"
         variant="danger"
       />
     </div>

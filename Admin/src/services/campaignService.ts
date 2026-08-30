@@ -42,25 +42,7 @@ export const campaignService = {
     return campaign;
   },
 
-  createCampaign: async (campaignData: Omit<Campaign, 'id' | 'campaignCode' | 'createdAt' | 'deliverablesTotal' | 'deliverablesCompleted' | 'creatorsSelected' | 'applicationsCount'>): Promise<Campaign> => {
-    const created = await api.createAdminCampaign({
-      title: campaignData.title,
-      brand_id: campaignData.brandId,
-      category: campaignData.category,
-      description: campaignData.description,
-      objective: campaignData.objective,
-      target_audience: campaignData.targetAudience,
-      platforms: campaignData.platforms,
-      budget: campaignData.budget,
-      deliverables_text: deliverablesToText(campaignData.deliverables),
-      start_date: campaignData.startDate,
-      end_date: campaignData.endDate,
-      status: STATUS_TO_BACKEND[campaignData.status],
-    });
-    const campaign = mapApiCampaign(created);
-    campaignsState = [campaign, ...campaignsState];
-    return campaign;
-  },
+
 
   updateCampaign: async (id: string, updates: Partial<Campaign>): Promise<Campaign> => {
     const updated = await api.updateAdminCampaign(id, {

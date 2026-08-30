@@ -499,9 +499,6 @@ export function getAdminCampaign(campaignId: string) {
   );
 }
 
-export function createAdminCampaign(payload: CampaignWritePayload) {
-  return apiPost<{ campaign: AdminCampaignApi }>('/admin/campaigns/', payload, true).then((res) => res.campaign);
-}
 
 export function updateAdminCampaign(campaignId: string, payload: Partial<CampaignWritePayload>) {
   return apiPatch<{ campaign: AdminCampaignApi }>(`/admin/campaigns/${campaignId}/`, payload, true).then(
