@@ -126,6 +126,7 @@ urlpatterns = [
     path("admin/shortlists/", ShortlistTableView.as_view(), name="admin_shortlists_table"),
     path("admin/shortlists/<uuid:shortlist_id>/", AdminShortlistDetailView.as_view(), name="admin_shortlist_detail"),
     path("admin/users/", AdminUserManagementView.as_view(), name="admin_users_table"),
+    path("admin/users/<uuid:user_id>/", AdminUserManagementView.as_view(), name="admin_user_detail"),
     path("admin/roles/", AdminRoleListView.as_view(), name="admin_roles_table"),
     path("admin/roles/<uuid:role_id>/", AdminRoleDetailView.as_view(), name="admin_role_detail"),
     path("admin/dashboard/", AdminDashboardView.as_view(), name="admin_dashboard"),

@@ -179,6 +179,27 @@ export function getStaffUsers() {
   return apiRequest<{ data: AdminManagedUserApi[] }>('/admin/users/', {}, true).then((res) => res.data);
 }
 
+export function getStaffUser(userId: string) {
+  return apiRequest<{ user: AdminManagedUserApi }>(`/admin/users/${userId}/`, {}, true).then((res) => res.user);
+}
+
+export interface UpdateStaffUserPayload {
+  name?: string;
+  email?: string;
+  phone_no?: string;
+  assigned_role_id?: string;
+  assigned_role_name?: string;
+  is_active?: boolean;
+}
+
+export function updateStaffUser(userId: string, payload: UpdateStaffUserPayload) {
+  return apiPatch<{ user: AdminManagedUserApi }>(`/admin/users/${userId}/`, payload, true).then((res) => res.user);
+}
+
+export function deleteStaffUser(userId: string) {
+  return apiDelete<void>(`/admin/users/${userId}/`, true);
+}
+
 export interface CreateStaffUserPayload {
   name: string;
   email: string;

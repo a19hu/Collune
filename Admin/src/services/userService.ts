@@ -1,6 +1,8 @@
 import { StaffUser } from '../types';
 import * as api from '../lib/api';
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 let usersState: StaffUser[] = [];
 
 function mapApiUser(apiUser: api.AdminManagedUserApi): StaffUser {
@@ -27,11 +29,16 @@ export const userService = {
   },
 
   getUserById: async (id: string): Promise<StaffUser | null> => {
-    if (!usersState.length) {
-      await userService.getUsers();
+    try {
+      const apiUser = await api.getStaffUser(id);
+      const user = mapApiUser(apiUser);
+      const index = usersState.findIndex((existing) => existing.id === id);
+      if (index >= 0) usersState[index] = user;
+      else usersState = [user, ...usersState];
+      return { ...user };
+    } catch {
+      return null;
     }
-    const user = usersState.find((u) => u.id === id) || null;
-    return user ? { ...user } : null;
   },
 
   createUser: async (
@@ -51,27 +58,26 @@ export const userService = {
   },
 
   updateUser: async (id: string, updates: Partial<StaffUser>): Promise<StaffUser> => {
-    return new Promise((resolve, reject) => {
-      const index = usersState.findIndex((u) => u.id === id);
-      if (index === -1) {
-        reject(new Error('User not found'));
-        return;
-      }
-      usersState[index] = { ...usersState[index], ...updates };
-      setTimeout(() => resolve({ ...usersState[index] }), 200);
+    const assignedRoleId = updates.roleId && UUID_PATTERN.test(updates.roleId) ? updates.roleId : undefined;
+    const updated = await api.updateStaffUser(id, {
+      name: updates.name,
+      email: updates.email,
+      phone_no: updates.phone,
+      assigned_role_id: assignedRoleId,
+      assigned_role_name: assignedRoleId ? undefined : updates.roleName,
+      is_active: updates.status ? updates.status === 'Active' : undefined,
     });
+    const mapped = mapApiUser(updated);
+    const index = usersState.findIndex((user) => user.id === id);
+    if (index >= 0) usersState[index] = mapped;
+    else usersState = [mapped, ...usersState];
+    return { ...mapped };
   },
 
   deleteUser: async (id: string): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-      const initialLen = usersState.length;
-      usersState = usersState.filter((u) => u.id !== id);
-      if (usersState.length === initialLen) {
-        reject(new Error('User not found'));
-        return;
-      }
-      setTimeout(() => resolve(true), 200);
-    });
+    await api.deleteStaffUser(id);
+    usersState = usersState.filter((user) => user.id !== id);
+    return true;
   },
 
   toggleUserStatus: async (id: string, status: 'Active' | 'Inactive'): Promise<StaffUser> => {

@@ -210,6 +210,99 @@ class AdminUserCreateSerializer(serializers.Serializer):
         return user
 
 
+class AdminUserUpdateSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=255, required=False)
+    email = serializers.EmailField(required=False)
+    phone_no = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    role = serializers.ChoiceField(choices=UserAdminRole._meta.get_field("role_name").choices, required=False)
+    assigned_role_id = serializers.UUIDField(required=False)
+    assigned_role_name = serializers.CharField(max_length=120, required=False)
+    is_active = serializers.BooleanField(required=False)
+
+    def validate_email(self, value):
+        value = value.lower()
+        queryset = User.objects.filter(email__iexact=value)
+        user = self.instance
+        if user:
+            queryset = queryset.exclude(pk=user.pk)
+        if queryset.exists():
+            raise serializers.ValidationError("This email is already registered.")
+        return value
+
+    def validate_phone_no(self, value):
+        normalized = value.strip() if value else ""
+        queryset = User.objects.filter(phone_no=normalized or None)
+        user = self.instance
+        if user:
+            queryset = queryset.exclude(pk=user.pk)
+        if normalized and queryset.exists():
+            raise serializers.ValidationError("This phone number is already registered.")
+        return normalized
+
+    def validate_role(self, value):
+        if value not in get_internal_admin_roles():
+            raise serializers.ValidationError("Only internal workspace users can be managed from this section.")
+        return value
+
+    def validate_assigned_role_id(self, value):
+        if not AdminRole.objects.filter(role_id=value).exists():
+            raise serializers.ValidationError("Unknown role.")
+        return value
+
+    def validate_assigned_role_name(self, value):
+        if not AdminRole.objects.filter(name=value).exists():
+            raise serializers.ValidationError("Unknown role.")
+        return value
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        assigned_role = None
+        if "assigned_role_id" in validated_data:
+            assigned_role = AdminRole.objects.filter(role_id=validated_data.pop("assigned_role_id")).first()
+        elif "assigned_role_name" in validated_data:
+            assigned_role = AdminRole.objects.filter(name=validated_data.pop("assigned_role_name")).first()
+
+        explicit_role = validated_data.pop("role", None)
+
+        for field in ("name", "email", "is_active"):
+            if field in validated_data:
+                setattr(instance, field, validated_data[field])
+
+        if "phone_no" in validated_data:
+            instance.phone_no = validated_data["phone_no"] or None
+
+        instance.save()
+
+        role_details, _ = UserAdminRole.objects.get_or_create(
+            user=instance,
+            defaults={
+                "role_name": AdminRoleType.TEAM_MEMBER,
+                "permissions": "",
+                "Purpose": "",
+            },
+        )
+
+        should_update_role = (
+            assigned_role is not None
+            or explicit_role is not None
+            or "assigned_role_id" in self.initial_data
+            or "assigned_role_name" in self.initial_data
+        )
+        if should_update_role:
+            resolved_role = explicit_role or ADMIN_ROLE_NAME_TO_LEGACY_CODE.get(
+                assigned_role.name if assigned_role else None,
+                role_details.role_name or AdminRoleType.TEAM_MEMBER,
+            )
+            role_meta = get_role_details(resolved_role)
+            role_details.role_name = resolved_role
+            role_details.permissions = assigned_role.description if assigned_role else role_meta["description"]
+            role_details.Purpose = assigned_role.description if assigned_role else role_meta["purpose"]
+            role_details.assigned_role = assigned_role
+            role_details.save()
+
+        return instance
+
+
 SOCIAL_PLATFORM_FROM_LABEL = {
     "instagram": SocialPlatform.INSTAGRAM,
     "youtube": SocialPlatform.YOUTUBE,

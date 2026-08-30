@@ -13,6 +13,7 @@ from .serializers import (
     AdminRoleSerializer,
     AdminRoleWriteSerializer,
     AdminUserCreateSerializer,
+    AdminUserUpdateSerializer,
 )
 from .services import (
     build_admin_dashboard_payload,
@@ -80,13 +81,20 @@ class AdminDashboardView(APIView):
 class AdminUserManagementView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUserRole]
 
-    def get(self, request):
-        users = (
-            User.objects.filter(role=UserRole.ADMIN)
-            .select_related("role_details")
-            .order_by("-created_at")
-        )
-        return Response({"data": AdminManagedUserSerializer(users, many=True).data})
+    def get_queryset(self):
+        return User.objects.filter(role=UserRole.ADMIN).select_related("role_details", "role_details__assigned_role").order_by("-created_at")
+
+    def get_object(self, user_id):
+        return self.get_queryset().filter(user_id=user_id).first()
+
+    def get(self, request, user_id=None):
+        if user_id:
+            user = self.get_object(user_id)
+            if not user:
+                return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"user": AdminManagedUserSerializer(user).data})
+
+        return Response({"data": AdminManagedUserSerializer(self.get_queryset(), many=True).data})
 
     def post(self, request):
         serializer = AdminUserCreateSerializer(data=request.data)
@@ -96,6 +104,22 @@ class AdminUserManagementView(APIView):
             {"user": AdminManagedUserSerializer(user).data},
             status=status.HTTP_201_CREATED,
         )
+
+    def patch(self, request, user_id):
+        user = self.get_object(user_id)
+        if not user:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = AdminUserUpdateSerializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response({"user": AdminManagedUserSerializer(user).data})
+
+    def delete(self, request, user_id):
+        user = self.get_object(user_id)
+        if not user:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class AdminRoleListView(APIView):
