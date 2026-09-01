@@ -1,5 +1,6 @@
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Panel } from "../../HtmlComponents/BrandCard";
 import { CreatorCard } from "../../HtmlComponents/CreatorCard";
@@ -18,6 +19,7 @@ function mapSavedCreatorToCard(savedCreator: BrandSavedCreatorApi) {
 }
 
 export default function SavedCreators() {
+  const navigate = useNavigate();
   const [savedCreators, setSavedCreators] = useState<BrandSavedCreatorApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [removingId, setRemovingId] = useState("");
@@ -108,15 +110,24 @@ export default function SavedCreators() {
       {savedCreators.map((savedCreator, index) => {
         const creator = mapSavedCreatorToCard(savedCreator);
         return (
-          <CreatorCard
-            key={index}
-            creator={creator}
-            index={index}
-            isBrand
-            isSaved
-            isSaving={removingId === savedCreator.saved_id}
-            onToggleSaved={() => removeCreator(savedCreator)}
-          />
+          <div key={index} className="space-y-3">
+            <CreatorCard
+              creator={creator}
+              index={index}
+              isBrand
+              isSaved
+              isSaving={removingId === savedCreator.saved_id}
+              onToggleSaved={() => removeCreator(savedCreator)}
+            />
+            <button
+              type="button"
+              onClick={() => navigate(`/brand/chat?creatorId=${savedCreator.creator.id}`)}
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#d8e3ff] bg-white text-sm font-black text-[#3556b8]"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Chat with creator
+            </button>
+          </div>
         );
       })}
     </div>

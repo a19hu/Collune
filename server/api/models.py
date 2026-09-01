@@ -391,3 +391,34 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.recipient.email}: {self.title}"
+
+
+class ChatConversation(models.Model):
+    conversation_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    brand = models.ForeignKey(BrandProfile, on_delete=models.CASCADE, related_name="chat_conversations")
+    creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="chat_conversations")
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("brand", "creator")
+        ordering = ("-updated_at", "-created_at")
+
+    def __str__(self):
+        return f"{self.brand.company_name} ↔ {self.creator.display_name}"
+
+
+class ChatMessage(models.Model):
+    message_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    conversation = models.ForeignKey(ChatConversation, on_delete=models.CASCADE, related_name="messages")
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="chat_messages")
+    content = models.TextField()
+    is_read = models.BooleanField(default=False, db_index=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        ordering = ("created_at",)
+
+    def __str__(self):
+        return f"{self.sender.email}: {self.content[:40]}"

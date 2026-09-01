@@ -1,3 +1,5 @@
+import logging
+
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.contrib.auth import get_user_model
@@ -6,6 +8,7 @@ from ..models import Notification, UserRole
 from .serializers import NotificationSerializer
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 def notification_group_name(user_id):
@@ -24,11 +27,18 @@ def push_notification(notification):
         "event": "notification.created",
         "notification": serialize_notification(notification),
     }
-    async_to_sync(channel_layer.group_send)(
-        notification_group_name(notification.recipient_id),
-        {"type": "notification.message", "payload": payload},
-    )
-    push_unread_count(notification.recipient)
+    try:
+        async_to_sync(channel_layer.group_send)(
+            notification_group_name(notification.recipient_id),
+            {"type": "notification.message", "payload": payload},
+        )
+        push_unread_count(notification.recipient)
+    except Exception:
+        logger.exception(
+            "Realtime notification delivery failed for recipient=%s notification=%s",
+            notification.recipient_id,
+            notification.notification_id,
+        )
 
 
 def push_unread_count(user):
@@ -36,16 +46,19 @@ def push_unread_count(user):
     if not channel_layer:
         return
     unread_count = user.notifications.filter(is_read=False).count()
-    async_to_sync(channel_layer.group_send)(
-        notification_group_name(user.user_id),
-        {
-            "type": "notification.message",
-            "payload": {
-                "event": "notification.unread_count",
-                "unread_count": unread_count,
+    try:
+        async_to_sync(channel_layer.group_send)(
+            notification_group_name(user.user_id),
+            {
+                "type": "notification.message",
+                "payload": {
+                    "event": "notification.unread_count",
+                    "unread_count": unread_count,
+                },
             },
-        },
-    )
+        )
+    except Exception:
+        logger.exception("Realtime unread count delivery failed for user=%s", user.user_id)
 
 
 def create_notification(recipient, event_type, title, message, actor=None, data=None):

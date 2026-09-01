@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BadgeCheck, ChevronDown, CircleHelp, FileText, Home, LogOut, ShoppingBag, Sparkles, Star, UserRound, Users, X } from "lucide-react";
+import { BadgeCheck, ChevronDown, CircleHelp, FileText, Home, LogOut, MessageCircle, ShoppingBag, Sparkles, Star, UserRound, Users, X } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import logo from "../../assets/Logo.svg";
 import { useAuth } from "../../contexts/AuthContext";
@@ -15,6 +15,7 @@ const navByMode = {
     { label: "Campaign Marketplace", to: "/creator/marketplace", icon: ShoppingBag, lockedWhenUnverified: true },
     { label: "Applied Campaigns", to: "/creator/applied-campaigns", icon: BadgeCheck, lockedWhenUnverified: true },
     { label: "Saved Campaigns", to: "/creator/saved-campaigns", icon: Star, lockedWhenUnverified: true },
+    { label: "Messages", to: "/creator/chat", icon: MessageCircle },
     { label: "Subscription", to: "/creator/creator-subscription", icon: Sparkles },
   ],
   brand: [
@@ -23,6 +24,7 @@ const navByMode = {
     { label: "Campaigns", to: "/brand/campaigns", icon: FileText },
     { label: "Discover Creators", to: "/discover-creators", icon: Users },
     { label: "Saved Creators", to: "/brand/saved-creators", icon: Star, lockedWhenUnverified: true },
+    { label: "Messages", to: "/brand/chat", icon: MessageCircle, lockedWhenUnverified: true },
     { label: "Shortlists", to: "/brand/shortlists", icon: Star },
     { label: "Subscription", to: "/brand/brand-subscription", icon: Sparkles },
   ],

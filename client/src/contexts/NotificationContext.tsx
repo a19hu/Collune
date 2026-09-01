@@ -4,6 +4,15 @@ import { Bell } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { authStorage } from './authStorage';
 import { getNotifications, getNotificationsSocketUrl, markNotificationsRead } from '../lib/authApi';
+import {
+  getNotificationPreferences,
+  playIncomingMessageSound,
+  playNotificationSound,
+  requestDesktopNotificationPermission,
+  setDesktopNotificationsEnabled,
+  setMutedNotifications,
+  showDesktopNotification,
+} from '../lib/sound';
 import type { NotificationItem, NotificationPayload } from '../types';
 import { showProjectToast } from '../HtmlComponents/HtmlRoster';
 
@@ -15,6 +24,12 @@ interface NotificationContextValue {
   refreshNotifications: () => Promise<void>;
   markAsRead: (notificationIds: string[]) => Promise<void>;
   markAllAsRead: () => Promise<void>;
+  muted: boolean;
+  desktopEnabled: boolean;
+  desktopPermission: string;
+  toggleMuted: () => void;
+  toggleDesktopEnabled: () => void;
+  requestDesktopPermission: () => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextValue | undefined>(undefined);
@@ -37,12 +52,22 @@ function formatTimeLabel(value: string) {
   }
 }
 
+function isChatPageOpen() {
+  if (typeof window === 'undefined') return false;
+  return window.location.pathname.startsWith('/creator/chat') || window.location.pathname.startsWith('/brand/chat');
+}
+
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser } = useAuth();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [muted, setMuted] = useState(getNotificationPreferences().muted);
+  const [desktopEnabled, setDesktopEnabled] = useState(getNotificationPreferences().desktopEnabled);
+  const [desktopPermission, setDesktopPermission] = useState(
+    typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported'
+  );
   const socketRef = useRef<WebSocket | null>(null);
 
   const refreshNotifications = useCallback(async () => {
@@ -84,6 +109,29 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setUnreadCount(0);
   }, []);
 
+  const toggleMuted = useCallback(() => {
+    const next = setMutedNotifications(!muted);
+    setMuted(next.muted);
+  }, [muted]);
+
+  const toggleDesktopEnabled = useCallback(() => {
+    const next = setDesktopNotificationsEnabled(!desktopEnabled);
+    setDesktopEnabled(next.desktopEnabled);
+  }, [desktopEnabled]);
+
+  const requestDesktopPermission = useCallback(async () => {
+    const permission = await requestDesktopNotificationPermission();
+    setDesktopPermission(permission);
+    if (permission === 'granted') {
+      setDesktopEnabled(true);
+      showProjectToast('success', 'Desktop alerts enabled', 'Browser popup notifications are now active.');
+      return;
+    }
+    if (permission === 'denied') {
+      showProjectToast('error', 'Desktop alerts blocked', 'Allow notifications in your browser settings to enable them.');
+    }
+  }, []);
+
   useEffect(() => {
     void refreshNotifications();
   }, [refreshNotifications]);
@@ -111,6 +159,15 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         if (payload.event === 'notification.created' && payload.notification) {
           setNotifications((prev) => upsertNotification(prev, payload.notification!));
           setUnreadCount((prev) => prev + (payload.notification?.is_read ? 0 : 1));
+          if (payload.notification.event_type === 'chat.message.received') {
+            if (!isChatPageOpen()) {
+              void playIncomingMessageSound();
+              showDesktopNotification(payload.notification.title, { body: payload.notification.message });
+            }
+          } else {
+            void playNotificationSound();
+            showDesktopNotification(payload.notification.title, { body: payload.notification.message });
+          }
           showProjectToast('info', payload.notification.title, payload.notification.message);
           return;
         }
@@ -131,8 +188,36 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [currentUser]);
 
   const value = useMemo(
-    () => ({ notifications, unreadCount, isLoading, isConnected, refreshNotifications, markAsRead, markAllAsRead }),
-    [notifications, unreadCount, isLoading, isConnected, refreshNotifications, markAsRead, markAllAsRead]
+    () => ({
+      notifications,
+      unreadCount,
+      isLoading,
+      isConnected,
+      refreshNotifications,
+      markAsRead,
+      markAllAsRead,
+      muted,
+      desktopEnabled,
+      desktopPermission,
+      toggleMuted,
+      toggleDesktopEnabled,
+      requestDesktopPermission,
+    }),
+    [
+      notifications,
+      unreadCount,
+      isLoading,
+      isConnected,
+      refreshNotifications,
+      markAsRead,
+      markAllAsRead,
+      muted,
+      desktopEnabled,
+      desktopPermission,
+      toggleMuted,
+      toggleDesktopEnabled,
+      requestDesktopPermission,
+    ]
   );
 
   return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
@@ -147,7 +232,19 @@ export function useNotifications() {
 }
 
 export function NotificationBell() {
-  const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } = useNotifications();
+  const {
+    notifications,
+    unreadCount,
+    isLoading,
+    markAsRead,
+    markAllAsRead,
+    muted,
+    desktopEnabled,
+    desktopPermission,
+    toggleMuted,
+    toggleDesktopEnabled,
+    requestDesktopPermission,
+  } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
 
@@ -192,6 +289,45 @@ export function NotificationBell() {
           >
             Mark all read
           </button>
+        </div>
+
+        <div className="mb-3 space-y-2 rounded-2xl border border-[#e5eaf6] bg-[#f8faff] p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-black text-[#173ca8]">Sound alerts</p>
+              <p className="text-[11px] text-[#667085]">Play different sounds for chat and other notifications.</p>
+            </div>
+            <button
+              type="button"
+              onClick={toggleMuted}
+              className={`rounded-full px-3 py-1 text-[11px] font-black ${muted ? 'bg-[#fee4e2] text-[#b42318]' : 'bg-[#dcfae6] text-[#067647]'}`}
+            >
+              {muted ? 'Muted' : 'On'}
+            </button>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-black text-[#173ca8]">Desktop popups</p>
+              <p className="text-[11px] text-[#667085]">Show browser notifications when new messages arrive.</p>
+            </div>
+            {desktopPermission === 'granted' ? (
+              <button
+                type="button"
+                onClick={toggleDesktopEnabled}
+                className={`rounded-full px-3 py-1 text-[11px] font-black ${desktopEnabled ? 'bg-[#dcfae6] text-[#067647]' : 'bg-[#f2f4f7] text-[#344054]'}`}
+              >
+                {desktopEnabled ? 'Enabled' : 'Off'}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => void requestDesktopPermission()}
+                className="rounded-full bg-[#214bc0] px-3 py-1 text-[11px] font-black text-white"
+              >
+                {desktopPermission === 'denied' ? 'Blocked' : 'Allow'}
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="max-h-96 space-y-2 overflow-y-auto pr-1">

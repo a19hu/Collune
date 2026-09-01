@@ -30,6 +30,11 @@ import type {
   NotificationListResponse,
   NotificationReadPayload,
   NotificationReadResponse,
+  ChatConversationApi,
+  ChatConversationCreateResponse,
+  ChatConversationListResponse,
+  ChatMessageListResponse,
+  ChatMessageSendResponse,
   OtpChannel,
   OtpResponse,
   PaginatedResponse,
@@ -65,6 +70,14 @@ function getAuthHeader() {
 
 export function getNotificationsSocketUrl(token: string) {
   return `${resolveWebSocketBaseUrl()}/ws/notifications/?token=${encodeURIComponent(token)}`;
+}
+
+export function getChatSocketUrl(conversationId: string, token: string) {
+  return `${resolveWebSocketBaseUrl()}/ws/chat/${conversationId}/?token=${encodeURIComponent(token)}`;
+}
+
+export function getChatInboxSocketUrl(token: string) {
+  return `${resolveWebSocketBaseUrl()}/ws/chat/?token=${encodeURIComponent(token)}`;
 }
 
 function detectOAuthClient() {
@@ -479,6 +492,26 @@ export function saveBrandCreator(creatorId: string) {
 
 export function removeBrandSavedCreator(creatorId: string) {
   return apiDelete<{ message: string; saved: boolean; removed: boolean }>("/brand/saved-creators/", { creator_id: creatorId }, true);
+}
+
+export function getChatConversations() {
+  return apiRequest<ChatConversationListResponse>("/chat/conversations/", {}, true);
+}
+
+export function createChatConversation(payload: { creator_id?: string; brand_id?: string }) {
+  return apiPost<ChatConversationCreateResponse>("/chat/conversations/", payload, true);
+}
+
+export function getChatConversationMessages(conversationId: string) {
+  return apiRequest<ChatMessageListResponse>(`/chat/conversations/${conversationId}/messages/`, {}, true);
+}
+
+export function sendChatMessage(conversationId: string, content: string) {
+  return apiPost<ChatMessageSendResponse>(`/chat/conversations/${conversationId}/messages/`, { content }, true);
+}
+
+export function markChatConversationRead(conversationId: string) {
+  return apiPatch<{ updated: number }>(`/chat/conversations/${conversationId}/read/`, {}, true);
 }
 
 export async function getBrandShortlists(page = 1, pageSize = 10) {

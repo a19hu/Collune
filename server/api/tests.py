@@ -9,7 +9,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import BrandProfile, Campaign, CreatorProfile, Notification, OtpChannel, OtpVerification, UserRole
+from .models import BrandProfile, Campaign, ChatConversation, ChatMessage, CreatorProfile, Notification, OtpChannel, OtpVerification, UserRole
 from .common.services import send_aisensy_whatsapp_otp
 
 
@@ -163,6 +163,48 @@ class ColluneAuthTests(APITestCase):
         self.assertEqual(read_response.status_code, status.HTTP_200_OK)
         self.assertEqual(read_response.data["updated"], 1)
         self.assertEqual(read_response.data["unread_count"], 1)
+
+    def test_brand_and_creator_can_create_chat_and_send_message(self):
+        brand_user = get_user_model().objects.create_user(
+            username="chat-brand",
+            email="chat.brand@test.com",
+            password="StrongPass123!",
+            role=UserRole.BRAND,
+        )
+        creator_user = get_user_model().objects.create_user(
+            username="chat-creator",
+            email="chat.creator@test.com",
+            password="StrongPass123!",
+            role=UserRole.CREATOR,
+        )
+        brand = BrandProfile.objects.create(user=brand_user, company_name="Chat Brand", industry="Tech")
+        creator = CreatorProfile.objects.create(user=creator_user, display_name="Chat Creator", category="Lifestyle")
+
+        self.client.force_authenticate(user=brand_user)
+        create_response = self.client.post(reverse("chat_conversations"), {"creator_id": str(creator.creator_id)}, format="json")
+
+        self.assertIn(create_response.status_code, {status.HTTP_200_OK, status.HTTP_201_CREATED})
+        conversation_id = create_response.data["conversation"]["conversation_id"]
+        self.assertTrue(ChatConversation.objects.filter(conversation_id=conversation_id, brand=brand, creator=creator).exists())
+
+        message_response = self.client.post(
+            reverse("chat_messages", args=[conversation_id]),
+            {"content": "Hello creator"},
+            format="json",
+        )
+
+        self.assertEqual(message_response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(ChatMessage.objects.filter(conversation_id=conversation_id, sender=brand_user, content="Hello creator").exists())
+        self.assertTrue(Notification.objects.filter(recipient=creator_user, event_type="chat.message.received").exists())
+
+        self.client.force_authenticate(user=creator_user)
+        list_response = self.client.get(reverse("chat_conversations"))
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(list_response.data["conversations"]), 1)
+
+        messages_response = self.client.get(reverse("chat_messages", args=[conversation_id]))
+        self.assertEqual(messages_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(messages_response.data["messages"]), 1)
 
     def test_brand_logo_carousel_returns_only_id_and_logo(self):
         user = get_user_model().objects.create_user(

@@ -247,6 +247,19 @@ export const SideBarLayout = () => {
         ),
       },
       {
+        matches: () => pathname === "/creator/chat",
+        render: () => (
+          <DashboardTopBar
+            title="Messages"
+            status={isVerified ? "verified-creator" : "under-review"}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+          />
+        ),
+      },
+      {
         matches: () => pathname === "/creator/profile",
         render: () => (
           <DashboardTopBar
@@ -327,6 +340,19 @@ export const SideBarLayout = () => {
         render: () => (
           <DashboardTopBar
             title="Saved Creators"
+            status={brandStatus}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+          />
+        ),
+      },
+      {
+        matches: () => pathname === "/brand/chat",
+        render: () => (
+          <DashboardTopBar
+            title="Messages"
             status={brandStatus}
             currentUser={currentUser}
             logout={logout}

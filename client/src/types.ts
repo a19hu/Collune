@@ -47,6 +47,58 @@ export type NotificationPayload = {
   notification?: NotificationItem;
 };
 
+export type ChatParticipantApi = {
+  id: string;
+  role: "BRAND" | "CREATOR" | string;
+  name: string;
+  subtitle: string;
+  avatar?: string | null;
+};
+
+export type ChatMessageApi = {
+  message_id: string;
+  conversation_id: string;
+  content: string;
+  sender: {
+    user_id: string;
+    role: string;
+    name: string;
+    email: string;
+  };
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+};
+
+export type ChatConversationApi = {
+  conversation_id: string;
+  brand_id: string;
+  creator_id: string;
+  created_at: string;
+  updated_at: string;
+  other_participant: ChatParticipantApi;
+  latest_message?: ChatMessageApi | null;
+  unread_count: number;
+};
+
+export type ChatConversationListResponse = {
+  conversations: ChatConversationApi[];
+};
+
+export type ChatConversationCreateResponse = {
+  conversation: ChatConversationApi;
+  created: boolean;
+};
+
+export type ChatMessageListResponse = {
+  conversation_id: string;
+  messages: ChatMessageApi[];
+};
+
+export type ChatMessageSendResponse = {
+  message: ChatMessageApi;
+};
+
 
 export type CreatorRegisterForm = {
   name: string;
