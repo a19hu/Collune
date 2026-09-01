@@ -10,6 +10,7 @@ import {
   useParams,
 } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { ToastProvider } from './context/ToastContext';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { ProtectedRoute } from './components/permissions/PermissionGuard';
@@ -215,7 +216,9 @@ export default function App() {
     <HashRouter>
       <ToastProvider>
         <AuthProvider>
-          <AppShell />
+          <NotificationProvider>
+            <AppShell />
+          </NotificationProvider>
         </AuthProvider>
       </ToastProvider>
     </HashRouter>

@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404
 from ..models import (
     ApplicationStatus, BrandProfile, BrandSavedCreator, BrandShortlist, Campaign, CampaignApplication, CreatorProfile, ShortlistStatus, UserRole, VerificationStatus,
 )
+from ..notification import create_notification, notify_admins
 from ..permissions import IsBrand, IsCreator, IsVerifiedColluneMember
 from ..common.services import auth_response, create_user, parse_payload
 from .serializers import (
@@ -85,6 +86,20 @@ class BrandRegisterView(APIView):
             pan_card=data.get("pan_card"),
             company_registration_certificate=data.get("company_registration_certificate"),
             logo=data.get("logo"),
+        )
+        create_notification(
+            recipient=user,
+            event_type="brand.account.created",
+            title="Brand account created",
+            message="Your brand account was created successfully.",
+            data={"brand_id": str(brand.brand_id), "company_name": brand.company_name},
+        )
+        notify_admins(
+            event_type="brand.account.created",
+            title="New brand registration",
+            message=f"{brand.company_name} joined the platform.",
+            actor=user,
+            data={"brand_id": str(brand.brand_id), "company_name": brand.company_name},
         )
         return Response(
             {
@@ -287,7 +302,7 @@ class CampaignsViewSet(APIView):
                 )
 
         try:
-            Campaign.objects.create(
+            campaign = Campaign.objects.create(
                 brand=brand,
                 title=data.get("title"),
                 internal_reference_name=data.get("internal_reference_name", ""),
@@ -331,6 +346,21 @@ class CampaignsViewSet(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        create_notification(
+            recipient=request.user,
+            event_type="campaign.created",
+            title="Campaign created",
+            message=f"Campaign '{campaign.title}' was created.",
+            actor=request.user,
+            data={"campaign_id": str(campaign.campaign_id), "title": campaign.title},
+        )
+        notify_admins(
+            event_type="campaign.created",
+            title="New campaign created",
+            message=f"{brand.company_name} created campaign '{campaign.title}'.",
+            actor=request.user,
+            data={"campaign_id": str(campaign.campaign_id), "brand_id": str(brand.brand_id)},
+        )
         return Response(
             {
                 "message": "Campaign created successfully.",
@@ -617,13 +647,33 @@ class BrandCampaignApplicationViewSet(APIView):
 
         campaign.save()
 
+        create_notification(
+            recipient=request.user,
+            event_type="campaign.updated",
+            title="Campaign updated",
+            message=f"Campaign '{campaign.title}' was updated.",
+            actor=request.user,
+            data={"campaign_id": str(campaign.campaign_id), "title": campaign.title},
+        )
+
         return Response({
             "message": "Campaign updated successfully."
         })
 
     def delete(self, request, campaign_id):
         campaign = self.get_campaign(request, campaign_id)
+        campaign_title = campaign.title
+        campaign_pk = str(campaign.campaign_id)
         campaign.delete()
+
+        create_notification(
+            recipient=request.user,
+            event_type="campaign.deleted",
+            title="Campaign deleted",
+            message=f"Campaign '{campaign_title}' was deleted.",
+            actor=request.user,
+            data={"campaign_id": campaign_pk, "title": campaign_title},
+        )
 
         return Response(
             {"message": "Campaign deleted successfully."},
@@ -703,7 +753,15 @@ class ShortlistViewSet(APIView):
         payload = self.normalize_payload(request.data)
         serializer = BrandShortlistSerializer(data=payload, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        serializer.save(brand=brand)
+        shortlist = serializer.save(brand=brand)
+        create_notification(
+            recipient=request.user,
+            event_type="shortlist.created",
+            title="Shortlist created",
+            message=f"Shortlist '{shortlist.title}' was created.",
+            actor=request.user,
+            data={"shortlist_id": str(shortlist.shortlist_id), "title": shortlist.title},
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def patch(self, request, shortlist_id):
@@ -715,6 +773,14 @@ class ShortlistViewSet(APIView):
         serializer = BrandShortlistSerializer(shortlist, data=payload, partial=True, context={"request": request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        create_notification(
+            recipient=request.user,
+            event_type="shortlist.updated",
+            title="Shortlist updated",
+            message=f"Shortlist '{shortlist.title}' was updated.",
+            actor=request.user,
+            data={"shortlist_id": str(shortlist.shortlist_id), "title": shortlist.title},
+        )
         return Response(serializer.data)
 
     def delete(self, request, shortlist_id):
@@ -722,7 +788,17 @@ class ShortlistViewSet(APIView):
             return Response({"error": "No brand profile found."}, status=status.HTTP_404_NOT_FOUND)
 
         shortlist = self.get_shortlist(request, shortlist_id)
+        shortlist_title = shortlist.title
+        shortlist_pk = str(shortlist.shortlist_id)
         shortlist.delete()
+        create_notification(
+            recipient=request.user,
+            event_type="shortlist.deleted",
+            title="Shortlist deleted",
+            message=f"Shortlist '{shortlist_title}' was deleted.",
+            actor=request.user,
+            data={"shortlist_id": shortlist_pk, "title": shortlist_title},
+        )
         return Response({"message": "Shortlist deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
     
 class BrandProfileViewSet(viewsets.ModelViewSet):
@@ -782,7 +858,22 @@ class CampaignViewSet(viewsets.ModelViewSet):
         return queryset.all()
 
     def perform_create(self, serializer):
-        serializer.save(brand=self.request.user.brand_profile)
+        campaign = serializer.save(brand=self.request.user.brand_profile)
+        create_notification(
+            recipient=self.request.user,
+            event_type="campaign.created",
+            title="Campaign created",
+            message=f"Campaign '{campaign.title}' was created.",
+            actor=self.request.user,
+            data={"campaign_id": str(campaign.campaign_id), "title": campaign.title},
+        )
+        notify_admins(
+            event_type="campaign.created",
+            title="New campaign created",
+            message=f"{campaign.brand.company_name} created campaign '{campaign.title}'.",
+            actor=self.request.user,
+            data={"campaign_id": str(campaign.campaign_id), "brand_id": str(campaign.brand.brand_id)},
+        )
 
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update", "destroy"]:
@@ -792,13 +883,37 @@ class CampaignViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsCreator])
     def apply(self, request, pk=None):
         campaign = self.get_object()
-        application, _ = CampaignApplication.objects.update_or_create(
+        application, created = CampaignApplication.objects.update_or_create(
             campaign=campaign,
             creator=request.user.creator_profile,
             defaults={
                 "status": ApplicationStatus.APPLIED,
             },
         )
+        if created:
+            create_notification(
+                recipient=request.user,
+                event_type="campaign.applied",
+                title="Application submitted",
+                message=f"You applied to '{campaign.title}'.",
+                actor=request.user,
+                data={"campaign_id": str(campaign.campaign_id), "application_id": str(application.application_id)},
+            )
+            create_notification(
+                recipient=campaign.brand.user,
+                event_type="campaign.application.received",
+                title="New campaign application",
+                message=f"{request.user.creator_profile.display_name} applied to '{campaign.title}'.",
+                actor=request.user,
+                data={"campaign_id": str(campaign.campaign_id), "application_id": str(application.application_id)},
+            )
+            notify_admins(
+                event_type="campaign.application.received",
+                title="Creator applied to campaign",
+                message=f"{request.user.creator_profile.display_name} applied to '{campaign.title}'.",
+                actor=request.user,
+                data={"campaign_id": str(campaign.campaign_id), "application_id": str(application.application_id)},
+            )
         serializer = CampaignApplicationSerializer(application, context={"request": request})
         return Response({"application": serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -838,6 +953,22 @@ class BrandProfileView(APIView):
             visible_value = request.data.get("is_profile_visible")
             brand.user.is_profile_visible = str(visible_value).lower() in {"true", "1", "yes", "on"}
             brand.user.save(update_fields=["is_profile_visible"])
+
+        create_notification(
+            recipient=request.user,
+            event_type="brand.profile.updated",
+            title="Brand profile updated",
+            message="Your brand profile changes were saved.",
+            actor=request.user,
+            data={"brand_id": str(brand.brand_id), "company_name": brand.company_name},
+        )
+        notify_admins(
+            event_type="brand.profile.updated",
+            title="Brand profile updated",
+            message=f"{brand.company_name} updated its profile.",
+            actor=request.user,
+            data={"brand_id": str(brand.brand_id), "company_name": brand.company_name},
+        )
 
         return Response(
             {"brand": BrandProfileSerializer(brand, context={"request": request}).data},
@@ -964,6 +1095,24 @@ class BrandSavedCreatorView(APIView):
             brand=brand,
             creator=creator,
         )
+
+        if created:
+            create_notification(
+                recipient=request.user,
+                event_type="creator.saved",
+                title="Creator saved",
+                message=f"{creator.display_name} was saved to your brand list.",
+                actor=request.user,
+                data={"creator_id": str(creator.creator_id), "brand_id": str(brand.brand_id)},
+            )
+            create_notification(
+                recipient=creator.user,
+                event_type="creator.saved_by_brand",
+                title="Brand saved your profile",
+                message=f"{brand.company_name} saved your creator profile.",
+                actor=request.user,
+                data={"creator_id": str(creator.creator_id), "brand_id": str(brand.brand_id)},
+            )
 
         return Response(
             {

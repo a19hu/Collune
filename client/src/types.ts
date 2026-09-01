@@ -1,8 +1,50 @@
 export type UserAccount = {
+  user_id?: string;
   name: string;
   email: string;
   role: 'Creator' | 'Brand' | string;
   verification_status:string;
+};
+
+export type NotificationActor = {
+  user_id: string;
+  name: string;
+  email: string;
+  role: string;
+};
+
+export type NotificationItem = {
+  notification_id: string;
+  event_type: string;
+  title: string;
+  message: string;
+  data: Record<string, unknown>;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+  actor: NotificationActor | null;
+};
+
+export type NotificationListResponse = {
+  notifications: NotificationItem[];
+  unread_count: number;
+  count: number;
+};
+
+export type NotificationReadPayload = {
+  notification_ids?: string[];
+  mark_all?: boolean;
+};
+
+export type NotificationReadResponse = {
+  updated: number;
+  unread_count: number;
+};
+
+export type NotificationPayload = {
+  event?: string;
+  unread_count?: number;
+  notification?: NotificationItem;
 };
 
 

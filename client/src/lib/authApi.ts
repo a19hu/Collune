@@ -27,6 +27,9 @@ import type {
   EmailAvailabilityResponse,
   LoginApiUser,
   LoginResponse,
+  NotificationListResponse,
+  NotificationReadPayload,
+  NotificationReadResponse,
   OtpChannel,
   OtpResponse,
   PaginatedResponse,
@@ -46,6 +49,11 @@ function resolveApiBaseUrl() {
 
 const API_BASE_URL = resolveApiBaseUrl();
 
+function resolveWebSocketBaseUrl() {
+  const base = API_BASE_URL.replace(/\/api\/v1$/, "");
+  return base.replace(/^http:/, "ws:").replace(/^https:/, "wss:");
+}
+
 type ApiError = { error?: string; detail?: string; message?: string };
 type ApiRecord = Record<string, unknown>;
 
@@ -53,6 +61,10 @@ function getAuthHeader() {
   const access = authStorage.getAccessToken();
   if (access) return `Bearer ${access}`;
   return "";
+}
+
+export function getNotificationsSocketUrl(token: string) {
+  return `${resolveWebSocketBaseUrl()}/ws/notifications/?token=${encodeURIComponent(token)}`;
 }
 
 function detectOAuthClient() {
@@ -248,6 +260,14 @@ export async function getCreatorDashboard(period = "7d") {
   const params = new URLSearchParams({ period });
   const data = await apiRequest<{ creator: CreatorDashboardApi }>(`/creators/dashboard/?${params.toString()}`, {}, true);
   return data.creator;
+}
+
+export async function getNotifications(limit = 20) {
+  return apiRequest<NotificationListResponse>(`/notifications/?limit=${limit}`, {}, true);
+}
+
+export async function markNotificationsRead(payload: NotificationReadPayload) {
+  return apiPatch<NotificationReadResponse>(`/notifications/read/`, payload, true);
 }
 
 export async function getBrandsList() {

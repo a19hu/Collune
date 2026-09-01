@@ -23,6 +23,7 @@ from rest_framework.views import APIView
 from ..models import (
     ApplicationStatus, Campaign, CampaignApplication, CreatorProfile, CreatorSavedCampaign, CreatorSocialAccount, SocialPlatform, UserRole, VerificationStatus,
 )
+from ..notification import create_notification, notify_admins
 from ..permissions import IsCreator,IsBrand
 from ..common.services import auth_response, create_user, parse_payload
 from .serializers import CreatorProfileSerializer, CreatorRegisterSerializer
@@ -159,6 +160,20 @@ class CreatorRegisterView(APIView):
                 for account in data.get("social_accounts", [])
                 if account.get("handle")
             ]
+        )
+        create_notification(
+            recipient=user,
+            event_type="creator.account.created",
+            title="Creator account created",
+            message="Your creator account was created successfully.",
+            data={"creator_id": str(creator.creator_id), "display_name": creator.display_name},
+        )
+        notify_admins(
+            event_type="creator.account.created",
+            title="New creator registration",
+            message=f"{creator.display_name} joined the platform.",
+            actor=user,
+            data={"creator_id": str(creator.creator_id), "display_name": creator.display_name},
         )
         return Response(
             {
@@ -528,6 +543,22 @@ class CreatorProfileView(APIView):
             creator.user.is_profile_visible = str(visible_value).lower() in {"true", "1", "yes", "on"}
             creator.user.save(update_fields=["is_profile_visible"])
 
+        create_notification(
+            recipient=request.user,
+            event_type="creator.profile.updated",
+            title="Creator profile updated",
+            message="Your creator profile changes were saved.",
+            actor=request.user,
+            data={"creator_id": str(creator.creator_id), "display_name": creator.display_name},
+        )
+        notify_admins(
+            event_type="creator.profile.updated",
+            title="Creator profile updated",
+            message=f"{creator.display_name} updated the creator profile.",
+            actor=request.user,
+            data={"creator_id": str(creator.creator_id), "display_name": creator.display_name},
+        )
+
         return Response(
             {
                 "message": "Profile updated successfully.",
@@ -566,7 +597,7 @@ class CampaignApplicationViewSet(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        _, created = CampaignApplication.objects.get_or_create(
+        application, created = CampaignApplication.objects.get_or_create(
             campaign=campaign,
             creator=creator,
             defaults={
@@ -575,6 +606,31 @@ class CampaignApplicationViewSet(APIView):
                 "status": ApplicationStatus.APPLIED,
             },
         )
+
+        if created:
+            create_notification(
+                recipient=request.user,
+                event_type="campaign.applied",
+                title="Application submitted",
+                message=f"You applied to '{campaign.title}'.",
+                actor=request.user,
+                data={"campaign_id": str(campaign.campaign_id), "application_id": str(application.application_id)},
+            )
+            create_notification(
+                recipient=campaign.brand.user,
+                event_type="campaign.application.received",
+                title="New campaign application",
+                message=f"{creator.display_name} applied to '{campaign.title}'.",
+                actor=request.user,
+                data={"campaign_id": str(campaign.campaign_id), "application_id": str(application.application_id)},
+            )
+            notify_admins(
+                event_type="campaign.application.received",
+                title="Creator applied to campaign",
+                message=f"{creator.display_name} applied to '{campaign.title}'.",
+                actor=request.user,
+                data={"campaign_id": str(campaign.campaign_id), "application_id": str(application.application_id)},
+            )
 
         return Response(
             {
@@ -600,10 +656,29 @@ class CampaignApplicationViewSet(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        campaign = Campaign.objects.filter(campaign_id=campaign_id).select_related("brand__user").first()
         deleted, _ = CampaignApplication.objects.filter(
             campaign_id=campaign_id,
             creator=creator,
         ).delete()
+
+        if deleted and campaign:
+            create_notification(
+                recipient=request.user,
+                event_type="campaign.application.withdrawn",
+                title="Application withdrawn",
+                message=f"You withdrew from '{campaign.title}'.",
+                actor=request.user,
+                data={"campaign_id": str(campaign.campaign_id)},
+            )
+            create_notification(
+                recipient=campaign.brand.user,
+                event_type="campaign.application.withdrawn",
+                title="Application withdrawn",
+                message=f"{creator.display_name} withdrew from '{campaign.title}'.",
+                actor=request.user,
+                data={"campaign_id": str(campaign.campaign_id)},
+            )
 
         return Response(
             {
@@ -694,6 +769,16 @@ class CreatorSavedCampaignView(APIView):
             campaign=campaign,
             creator=creator,
         )
+
+        if created:
+            create_notification(
+                recipient=request.user,
+                event_type="campaign.saved",
+                title="Campaign saved",
+                message=f"'{campaign.title}' was saved to your list.",
+                actor=request.user,
+                data={"campaign_id": str(campaign.campaign_id)},
+            )
 
         return Response(
             {

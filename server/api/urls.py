@@ -41,6 +41,7 @@ from .common.views import (
     ProfileView,
     SignoutView,
 )
+from .notification.views import NotificationListView, NotificationReadView
 from .creator.views import (
     CampaignApplicationViewSet,
     CreatorProfileView,
@@ -78,6 +79,8 @@ urlpatterns = [
     path("auth/password-reset/request/", PasswordResetRequestView.as_view(), name="password_reset_request"),
     path("auth/password-reset/confirm/", PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
     path("auth/me/", ProfileView.as_view(), name="profile"),
+    path("notifications/", NotificationListView.as_view(), name="notifications_list"),
+    path("notifications/read/", NotificationReadView.as_view(), name="notifications_read"),
 
     path("auth/brand/profile/", BrandProfileView.as_view(), name="brand_profile"),
     path("auth/creator/profile/", CreatorProfileView.as_view(), name="creator_profile"),

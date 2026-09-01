@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom
 import './index.css';
 import CreatorRegister from './pages/CreatorRegister.tsx';
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
+import { NotificationProvider } from './contexts/NotificationContext.tsx';
 import LandingPage from "./pages/LandingPage.tsx";
 import PublicCreatorProfile from "./pages/PublicCreatorProfile.tsx";
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
@@ -71,6 +72,7 @@ const App: React.FC = () => {
         <BrowserRouter>
             <ProjectToastContainer />
             <AuthProvider>
+                <NotificationProvider>
                 <Routes>
                     <Route element={<MainLayout />}>
                         <Route path='/' element={<LandingPage />} />
@@ -125,6 +127,7 @@ const App: React.FC = () => {
                     <Route path="*" element={<NotFoundPage />} />
 
                 </Routes>
+                </NotificationProvider>
             </AuthProvider>
         </BrowserRouter>
     )

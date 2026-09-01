@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'api',
     'rest_framework',
     'rest_framework.authtoken',
@@ -64,6 +65,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'server.wsgi.application'
+ASGI_APPLICATION = 'server.asgi.application'
 
 AUTH_USER_MODEL = "api.User"
 
@@ -253,3 +255,19 @@ X_OAUTH_SCOPES = env(
     "X_OAUTH_SCOPES",
     default="tweet.read users.read follows.read offline.access",
 )
+
+REDIS_URL = env("REDIS_URL", default="")
+
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {"hosts": [REDIS_URL]},
+        }
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        }
+    }

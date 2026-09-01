@@ -9,7 +9,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import BrandProfile, Campaign, CreatorProfile, OtpChannel, OtpVerification, UserRole
+from .models import BrandProfile, Campaign, CreatorProfile, Notification, OtpChannel, OtpVerification, UserRole
 from .common.services import send_aisensy_whatsapp_otp
 
 
@@ -89,6 +89,80 @@ class ColluneAuthTests(APITestCase):
         self.assertEqual(campaign.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Campaign.objects.count(), 1)
         self.assertEqual(BrandProfile.objects.get().campaigns.count(), 1)
+        brand_user = BrandProfile.objects.get().user
+        self.assertTrue(Notification.objects.filter(recipient=brand_user, event_type="campaign.created").exists())
+
+    def test_creator_application_creates_notifications_for_creator_brand_and_admin(self):
+        admin = get_user_model().objects.create_user(
+            username="admin-notify",
+            email="admin.notify@test.com",
+            password="StrongPass123!",
+            role=UserRole.ADMIN,
+        )
+        brand_user = get_user_model().objects.create_user(
+            username="brand-notify",
+            email="brand.notify@test.com",
+            password="StrongPass123!",
+            role=UserRole.BRAND,
+        )
+        creator_user = get_user_model().objects.create_user(
+            username="creator-notify",
+            email="creator.notify@test.com",
+            password="StrongPass123!",
+            role=UserRole.CREATOR,
+        )
+        brand = BrandProfile.objects.create(user=brand_user, company_name="Notify Brand", industry="Tech")
+        creator = CreatorProfile.objects.create(user=creator_user, display_name="Notify Creator")
+        campaign = Campaign.objects.create(brand=brand, title="Launch", brief="Test brief")
+
+        self.client.force_authenticate(user=creator_user)
+        response = self.client.post(
+            reverse("campaign_applications"),
+            {"campaign_id": str(campaign.campaign_id), "pitch": "Interested"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(Notification.objects.filter(recipient=creator_user, event_type="campaign.applied").exists())
+        self.assertTrue(Notification.objects.filter(recipient=brand_user, event_type="campaign.application.received").exists())
+        self.assertTrue(Notification.objects.filter(recipient=admin, event_type="campaign.application.received").exists())
+
+    def test_notification_list_and_mark_read_api(self):
+        user = get_user_model().objects.create_user(
+            username="notify-list",
+            email="notify.list@test.com",
+            password="StrongPass123!",
+            role=UserRole.CREATOR,
+        )
+        Notification.objects.create(
+            recipient=user,
+            event_type="campaign.saved",
+            title="Saved",
+            message="Saved one campaign.",
+        )
+        notification = Notification.objects.create(
+            recipient=user,
+            event_type="campaign.applied",
+            title="Applied",
+            message="Applied to one campaign.",
+        )
+
+        self.client.force_authenticate(user=user)
+        list_response = self.client.get(reverse("notifications_list"))
+
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(list_response.data["unread_count"], 2)
+        self.assertEqual(len(list_response.data["notifications"]), 2)
+
+        read_response = self.client.patch(
+            reverse("notifications_read"),
+            {"notification_ids": [str(notification.notification_id)]},
+            format="json",
+        )
+
+        self.assertEqual(read_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(read_response.data["updated"], 1)
+        self.assertEqual(read_response.data["unread_count"], 1)
 
     def test_brand_logo_carousel_returns_only_id_and_logo(self):
         user = get_user_model().objects.create_user(

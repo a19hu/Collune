@@ -7,6 +7,7 @@ import { BadgeCheck, ChevronDown, Menu, Plus } from "lucide-react";
 import { HeaderButton } from "@/src/HtmlComponents/HtmlButton";
 import type { UserAccount } from "../../types";
 import { WebsiteTutorial } from "./WebsiteTutorial";
+import { NotificationBell } from "../../contexts/NotificationContext";
 
 function useDashboardState() {
   const location = useLocation();
@@ -151,6 +152,7 @@ function DashboardTopBar({ title, status, actions, currentUser, logout, profileP
         {actions ? <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">{actions}</div> : null}
         <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">
           {status ? <VerificationPill status={status} /> : null}
+          <NotificationBell />
           {currentUser.role == "Brand" ? null : (
             <DashboardUserMenu currentUser={currentUser} logout={logout} profilePath={profilePath} />
           )}

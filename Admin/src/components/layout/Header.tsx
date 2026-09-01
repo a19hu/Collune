@@ -12,6 +12,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { NotificationBell } from '../../context/NotificationContext';
 import { BreadcrumbItem } from '../common/Breadcrumbs';
 
 interface HeaderProps {
@@ -83,6 +84,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right: Search, Role Switcher, Controls & Profile */}
       <div className="flex items-center gap-4 sm:gap-6">
+        <NotificationBell />
         <div className="flex items-center gap-3 border-l pl-4 sm:pl-6 border-slate-200 dark:border-slate-800">
           {/* Profile Menu */}
           <div className="relative">
