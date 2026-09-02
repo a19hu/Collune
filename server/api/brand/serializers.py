@@ -137,6 +137,7 @@ class CampaignSerializer(serializers.ModelSerializer):
     brand_guidelines_url = serializers.SerializerMethodField()
     cover_image = serializers.SerializerMethodField()
     status_summary = serializers.SerializerMethodField()
+    progress_steps = serializers.SerializerMethodField()
 
     class Meta:
         model = Campaign
@@ -191,6 +192,12 @@ class CampaignSerializer(serializers.ModelSerializer):
         if not obj.cover_image:
             return ""
         return request.build_absolute_uri(obj.cover_image.url) if request else obj.cover_image.url
+
+    def get_status_summary(self, obj):
+        return None
+
+    def get_progress_steps(self, obj):
+        return []
 
     def validate(self, attrs):
         attrs = super().validate(attrs)

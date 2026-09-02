@@ -466,6 +466,18 @@ export function removeCampaignApplication(campaignId: string) {
   return apiDelete<{ message: string; removed: boolean }>("/campaign-applications/", { campaign_id: campaignId }, true);
 }
 
+export function updateCampaignApplicationStatus(
+  campaignId: string,
+  applicationId: string,
+  status: "ACCEPTED" | "REJECTED",
+) {
+  return apiPatch<{ application: CampaignApplicationApi }>(
+    `/brands/campaigns/${campaignId}/applications/${applicationId}/`,
+    { status },
+    true,
+  );
+}
+
 export function getCreatorAppliedCampaigns() {
   return apiRequest<CreatorAppliedCampaignsResponse>("/creator/applied-campaigns/", {}, true);
 }

@@ -681,6 +681,43 @@ class BrandCampaignApplicationViewSet(APIView):
         )
 
 
+class BrandCampaignApplicationStatusView(APIView):
+    permission_classes = [IsAuthenticated, IsBrand]
+
+    def patch(self, request, campaign_id, application_id):
+        application = get_object_or_404(
+            CampaignApplication.objects.select_related("campaign", "creator", "creator__user"),
+            application_id=application_id,
+            campaign_id=campaign_id,
+            campaign__brand=request.user.brand_profile,
+        )
+
+        new_status = str(request.data.get("status", "")).upper()
+        if new_status not in {ApplicationStatus.ACCEPTED, ApplicationStatus.REJECTED}:
+            return Response(
+                {"error": "Status must be either ACCEPTED or REJECTED."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        application.status = new_status
+        application.save(update_fields=["status", "updated_at"])
+
+        create_notification(
+            recipient=application.creator.user,
+            event_type=f"campaign.application.{new_status.lower()}",
+            title=f"Application {new_status.lower()}",
+            message=f"Your application to '{application.campaign.title}' was {new_status.lower()}.",
+            actor=request.user,
+            data={
+                "campaign_id": str(application.campaign.campaign_id),
+                "application_id": str(application.application_id),
+            },
+        )
+
+        serializer = CampaignApplicationSerializer(application, context={"request": request})
+        return Response({"application": serializer.data})
+
+
 class ShortlistViewSet(APIView):
     permission_classes = [IsAuthenticated, IsBrand]
     parser_classes = [JSONParser, MultiPartParser, FormParser]

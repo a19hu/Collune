@@ -24,6 +24,7 @@ from .brand.views import (
     BrandProfileViewSet,
     BrandRegisterView,
     BrandSavedCreatorView,
+    BrandCampaignApplicationStatusView,
     BrandCampaignApplicationViewSet,
     CampaignReviewView,
     CampaignsViewSet,
@@ -80,8 +81,10 @@ urlpatterns = [
     path("auth/password-reset/request/", PasswordResetRequestView.as_view(), name="password_reset_request"),
     path("auth/password-reset/confirm/", PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
     path("auth/me/", ProfileView.as_view(), name="profile"),
+
     path("notifications/", NotificationListView.as_view(), name="notifications_list"),
     path("notifications/read/", NotificationReadView.as_view(), name="notifications_read"),
+
     path("chat/conversations/", ChatConversationListCreateView.as_view(), name="chat_conversations"),
     path("chat/conversations/<uuid:conversation_id>/messages/", ChatMessageListCreateView.as_view(), name="chat_messages"),
     path("chat/conversations/<uuid:conversation_id>/read/", ChatConversationReadView.as_view(), name="chat_read"),
@@ -102,6 +105,11 @@ urlpatterns = [
     path("brands/campaigns/", CampaignsViewSet.as_view(), name="brand_campaigns"),
     path("brands/campaigns/review/", CampaignReviewView.as_view(), name="brand_campaign_review"),
     path("brands/campaigns/<uuid:campaign_id>/", BrandCampaignApplicationViewSet.as_view(), name="brand_campaign_detail"),
+    path(
+        "brands/campaigns/<uuid:campaign_id>/applications/<uuid:application_id>/",
+        BrandCampaignApplicationStatusView.as_view(),
+        name="brand_campaign_application_status",
+    ),
     path("brand-shortlists/", ShortlistViewSet.as_view(), name="brand_shortlists"),
     path("brand-shortlists/<uuid:shortlist_id>/", ShortlistViewSet.as_view(), name="brand_shortlist_detail"),
     path("brand/<uuid:brand_id>/", PublicBrandProfileView.as_view(), name="brand_detail"),
