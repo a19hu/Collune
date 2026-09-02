@@ -49,10 +49,13 @@ export type NotificationPayload = {
 
 export type ChatParticipantApi = {
   id: string;
+  user_id: string;
   role: "BRAND" | "CREATOR" | string;
   name: string;
   subtitle: string;
   avatar?: string | null;
+  is_online?: boolean;
+  last_seen?: string | null;
 };
 
 export type ChatMessageApi = {

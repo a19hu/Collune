@@ -1,14 +1,18 @@
 from rest_framework import serializers
 
+from ..common.presence import get_last_seen, is_online
 from ..models import BrandProfile, ChatConversation, ChatMessage, CreatorProfile
 
 
 class ChatParticipantSerializer(serializers.Serializer):
     id = serializers.CharField()
+    user_id = serializers.CharField()
     role = serializers.CharField()
     name = serializers.CharField()
     subtitle = serializers.CharField(allow_blank=True)
     avatar = serializers.CharField(allow_blank=True, allow_null=True)
+    is_online = serializers.BooleanField()
+    last_seen = serializers.CharField(allow_blank=True, allow_null=True)
 
 
 class ChatMessageSerializer(serializers.ModelSerializer):
@@ -57,6 +61,7 @@ class ChatConversationSerializer(serializers.ModelSerializer):
     def _build_brand_participant(self, brand):
         return {
             "id": str(brand.brand_id),
+            "user_id": str(brand.user_id),
             "role": "BRAND",
             "name": brand.company_name,
             "subtitle": brand.industry or "Brand",
@@ -66,6 +71,7 @@ class ChatConversationSerializer(serializers.ModelSerializer):
     def _build_creator_participant(self, creator):
         return {
             "id": str(creator.creator_id),
+            "user_id": str(creator.user_id),
             "role": "CREATOR",
             "name": creator.display_name,
             "subtitle": creator.category or "Creator",
@@ -83,6 +89,8 @@ class ChatConversationSerializer(serializers.ModelSerializer):
             participant = self._build_brand_participant(obj.brand)
         if request and participant.get("avatar"):
             participant["avatar"] = request.build_absolute_uri(participant["avatar"])
+        participant["is_online"] = is_online(participant["user_id"])
+        participant["last_seen"] = get_last_seen(participant["user_id"])
         return participant
 
     def get_latest_message(self, obj):

@@ -7,6 +7,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.tokens import AccessToken
 
 from .services import notification_group_name
+from ..chat.services import broadcast_presence_change, get_chat_partner_user_ids
+from ..common.presence import get_last_seen, mark_offline, mark_online
 
 User = get_user_model()
 
@@ -30,9 +32,22 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
             }
         )
 
+        # This socket stays open app-wide, so it doubles as the presence heartbeat for chat.
+        became_online = await sync_to_async(mark_online)(self.user.user_id, self.channel_name)
+        if became_online:
+            partner_ids = await sync_to_async(get_chat_partner_user_ids)(self.user)
+            await sync_to_async(broadcast_presence_change)(self.user.user_id, partner_ids, True)
+
     async def disconnect(self, close_code):
         if getattr(self, "group_name", None):
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+        if getattr(self, "user", None):
+            went_offline = await sync_to_async(mark_offline)(self.user.user_id, self.channel_name)
+            if went_offline:
+                partner_ids = await sync_to_async(get_chat_partner_user_ids)(self.user)
+                last_seen = await sync_to_async(get_last_seen)(self.user.user_id)
+                await sync_to_async(broadcast_presence_change)(self.user.user_id, partner_ids, False, last_seen)
 
     async def receive_json(self, content, **kwargs):
         if content.get("event") == "ping":

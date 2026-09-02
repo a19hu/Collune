@@ -16,6 +16,45 @@ def chat_user_group_name(user_id):
     return f"chat.user.{user_id}"
 
 
+def get_chat_partner_user_ids(user):
+    """Return user_ids of everyone `user` has an open chat conversation with."""
+    from ..models import ChatConversation, UserRole
+
+    if user.role == UserRole.BRAND:
+        conversations = ChatConversation.objects.filter(brand__user=user).select_related("creator")
+        return [str(conversation.creator.user_id) for conversation in conversations]
+    if user.role == UserRole.CREATOR:
+        conversations = ChatConversation.objects.filter(creator__user=user).select_related("brand")
+        return [str(conversation.brand.user_id) for conversation in conversations]
+    return []
+
+
+def broadcast_presence_change(user_id, partner_user_ids, is_online, last_seen=None):
+    channel_layer = get_channel_layer()
+    if not channel_layer:
+        return
+
+    payload = {
+        "event": "presence.update",
+        "user_id": str(user_id),
+        "is_online": is_online,
+        "last_seen": last_seen,
+    }
+
+    for partner_id in set(partner_user_ids):
+        try:
+            async_to_sync(channel_layer.group_send)(
+                chat_user_group_name(partner_id),
+                {"type": "chat.message", "payload": payload},
+            )
+        except Exception:
+            logger.exception(
+                "Presence broadcast failed for user=%s partner=%s",
+                user_id,
+                partner_id,
+            )
+
+
 def serialize_chat_message(message):
     payload = ChatMessageSerializer(message).data
     payload["conversation_id"] = str(message.conversation_id)

@@ -37,3 +37,5 @@ gcloud run services add-iam-policy-binding collune-admin \
     --region=asia-south1 \
     --member="allUsers" \
     --role="roles/run.invoker"
+
+uvicorn server.asgi:application --reload --host 0.0.0.0 --port 8000

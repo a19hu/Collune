@@ -46,6 +46,38 @@ function formatDay(value?: string | null) {
   }).format(date);
 }
 
+type PresenceInfo = { is_online: boolean; last_seen?: string | null };
+
+function formatLastSeen(value?: string | null) {
+  if (!value) return "Offline";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Offline";
+
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / 60000);
+  if (diffMinutes < 1) return "Last seen just now";
+  if (diffMinutes < 60) return `Last seen ${diffMinutes}m ago`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `Last seen ${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `Last seen ${diffDays}d ago`;
+  return `Last seen ${formatDay(value)}`;
+}
+
+function extractPresence(items: ChatConversationApi[]) {
+  const map: Record<string, PresenceInfo> = {};
+  items.forEach((item) => {
+    const participant = item.other_participant;
+    if (participant?.user_id) {
+      map[participant.user_id] = {
+        is_online: !!participant.is_online,
+        last_seen: participant.last_seen ?? null,
+      };
+    }
+  });
+  return map;
+}
+
 function getAvatarFallback(name: string) {
   return name
     .split(/\s+/)
@@ -80,34 +112,54 @@ function ChatAvatar({
   subtitle,
   avatar,
   size = "md",
+  isOnline,
 }: {
   name: string;
   subtitle?: string;
   avatar?: string | null;
   size?: "sm" | "md" | "lg";
+  isOnline?: boolean;
 }) {
   const sizeClass = size === "lg" ? "h-12 w-12" : size === "sm" ? "h-10 w-10" : "h-11 w-11";
   const fallback = getAvatarFallback(name);
   const ringClass = subtitle?.toLowerCase().includes("brand") ? "from-[#0f766e] to-[#14b8a6]" : "from-[#3659d7] to-[#7c8fff]";
 
+  const statusDot = isOnline !== undefined ? (
+    <span
+      className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white ${
+        isOnline ? "bg-emerald-500" : "bg-[#b7c0c2]"
+      }`}
+    />
+  ) : null;
+
   if (avatar) {
-    return <img src={avatar} alt={name} className={`${sizeClass} rounded-full object-cover`} />;
+    return (
+      <span className="relative inline-block shrink-0">
+        <img src={avatar} alt={name} className={`${sizeClass} rounded-full object-cover`} />
+        {statusDot}
+      </span>
+    );
   }
 
   return (
-    <div className={`grid ${sizeClass} shrink-0 place-items-center rounded-full bg-gradient-to-br ${ringClass} text-sm font-black text-white`}>
-      {fallback}
-    </div>
+    <span className="relative inline-block shrink-0">
+      <div className={`grid ${sizeClass} place-items-center rounded-full bg-gradient-to-br ${ringClass} text-sm font-black text-white`}>
+        {fallback}
+      </div>
+      {statusDot}
+    </span>
   );
 }
 
 function ConversationItem({
   conversation,
   isActive,
+  isOnline,
   onClick,
 }: {
   conversation: ChatConversationApi;
   isActive: boolean;
+  isOnline?: boolean;
   onClick: () => void;
 }) {
   const latestMessage = conversation.latest_message?.content || "Start a conversation";
@@ -127,6 +179,7 @@ function ConversationItem({
         name={conversation.other_participant.name}
         subtitle={conversation.other_participant.subtitle}
         avatar={conversation.other_participant.avatar}
+        isOnline={isOnline}
       />
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-3">
@@ -174,6 +227,7 @@ export default function ChatPage() {
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [presenceMap, setPresenceMap] = useState<Record<string, PresenceInfo>>({});
   const inboxSocketRef = useRef<WebSocket | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -182,6 +236,10 @@ export default function ChatPage() {
     () => conversations.find((item) => item.conversation_id === activeConversationId) || null,
     [conversations, activeConversationId]
   );
+
+  const activePresence = activeConversation?.other_participant.user_id
+    ? presenceMap[activeConversation.other_participant.user_id]
+    : undefined;
 
   const filteredConversations = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -247,6 +305,7 @@ export default function ChatPage() {
         }
 
         setConversations(nextConversations);
+        setPresenceMap((prev) => ({ ...prev, ...extractPresence(nextConversations) }));
         const chosenId = selectedConversationId || nextConversations[0]?.conversation_id || "";
         if (chosenId) setActiveConversationId(chosenId);
       })
@@ -318,7 +377,22 @@ export default function ChatPage() {
           event?: string;
           conversation_id?: string;
           message?: ChatMessageApi;
+          user_id?: string;
+          is_online?: boolean;
+          last_seen?: string | null;
         };
+
+        if (payload.event === "presence.update" && payload.user_id) {
+          setPresenceMap((prev) => ({
+            ...prev,
+            [payload.user_id as string]: {
+              is_online: !!payload.is_online,
+              last_seen: payload.last_seen ?? prev[payload.user_id as string]?.last_seen ?? null,
+            },
+          }));
+          return;
+        }
+
         if (payload.event !== "chat.inbox" || !payload.message || !payload.conversation_id) return;
         const isOwnMessage = payload.message ? isOwnChatMessage(payload.message, currentUser) : false;
 
@@ -336,7 +410,10 @@ export default function ChatPage() {
 
           if (existing) return sortConversations(nextItems);
           void getChatConversations()
-            .then((response) => setConversations(sortConversations(response.conversations)))
+            .then((response) => {
+              setConversations(sortConversations(response.conversations));
+              setPresenceMap((prev) => ({ ...prev, ...extractPresence(response.conversations) }));
+            })
             .catch(() => undefined);
           return items;
         });
@@ -485,6 +562,7 @@ export default function ChatPage() {
                     key={conversation.conversation_id}
                     conversation={conversation}
                     isActive={activeConversationId === conversation.conversation_id}
+                    isOnline={presenceMap[conversation.other_participant.user_id]?.is_online ?? conversation.other_participant.is_online}
                     onClick={() => {
                       setActiveConversationId(conversation.conversation_id);
                       setSearchParams((current) => {
@@ -511,21 +589,15 @@ export default function ChatPage() {
                   subtitle={activeConversation.other_participant.subtitle}
                   avatar={activeConversation.other_participant.avatar}
                   size="lg"
+                  isOnline={activePresence?.is_online ?? activeConversation.other_participant.is_online}
                 />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[15px] font-black text-[#132238]">{activeConversation.other_participant.name}</p>
-                  <p className="truncate text-xs font-medium text-[#617086]">{activeConversation.other_participant.subtitle}</p>
-                </div>
-                <div className="hidden items-center gap-2 sm:flex">
-                  <button type="button" className="grid h-10 w-10 place-items-center rounded-full text-[#617086] transition hover:bg-[#ebe5de]">
-                    <Search className="h-4.5 w-4.5" />
-                  </button>
-                  <button type="button" className="grid h-10 w-10 place-items-center rounded-full text-[#617086] transition hover:bg-[#ebe5de]">
-                    <Phone className="h-4.5 w-4.5" />
-                  </button>
-                  <button type="button" className="grid h-10 w-10 place-items-center rounded-full text-[#617086] transition hover:bg-[#ebe5de]">
-                    <Video className="h-4.5 w-4.5" />
-                  </button>
+                  <p className="truncate text-xs font-medium text-[#617086]">
+                    {activePresence?.is_online ?? activeConversation.other_participant.is_online
+                      ? "Online"
+                      : formatLastSeen(activePresence?.last_seen ?? activeConversation.other_participant.last_seen)}
+                  </p>
                 </div>
               </header>
 
@@ -583,9 +655,6 @@ export default function ChatPage() {
 
               <div className="relative z-10 border-t border-[#ddd6ce] bg-[#f7f4ef] px-4 py-4 sm:px-5">
                 <div className="flex items-end gap-3 rounded-[24px] bg-white px-3 py-2 shadow-sm ring-1 ring-[#e6ded6]">
-                  <button type="button" className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[#617086] transition hover:bg-[#f5f5f5]">
-                    <Smile className="h-5 w-5" />
-                  </button>
                   <textarea
                     rows={1}
                     value={draft}
