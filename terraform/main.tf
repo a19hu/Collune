@@ -129,7 +129,7 @@ resource "google_cloud_run_service" "backend" {
       containers {
         image   = local.backend_image
         command = ["/bin/sh"]
-        args    = ["-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && python manage.py ensure_superuser && gunicorn server.wsgi:application --bind 0.0.0.0:8080"]
+        args    = ["-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && python manage.py ensure_superuser && uvicorn server.asgi:application --host 0.0.0.0 --port 8080"]
 
         ports {
           container_port = 8080

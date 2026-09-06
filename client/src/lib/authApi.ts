@@ -526,6 +526,14 @@ export function markChatConversationRead(conversationId: string) {
   return apiPatch<{ updated: number }>(`/chat/conversations/${conversationId}/read/`, {}, true);
 }
 
+export function editChatMessage(conversationId: string, messageId: string, content: string) {
+  return apiPatch<ChatMessageSendResponse>(`/chat/conversations/${conversationId}/messages/${messageId}/`, { content }, true);
+}
+
+export function deleteChatMessage(conversationId: string, messageId: string) {
+  return apiRequest<ChatMessageSendResponse>(`/chat/conversations/${conversationId}/messages/${messageId}/`, { method: "DELETE" }, true);
+}
+
 export async function getBrandShortlists(page = 1, pageSize = 10) {
   const query = new URLSearchParams({
     page: String(page),

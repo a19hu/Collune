@@ -61,7 +61,7 @@ def serialize_chat_message(message):
     return payload
 
 
-def broadcast_chat_message(message):
+def broadcast_chat_message(message, event="chat.message"):
     channel_layer = get_channel_layer()
     if not channel_layer:
         return
@@ -71,7 +71,7 @@ def broadcast_chat_message(message):
             {
                 "type": "chat.message",
                 "payload": {
-                    "event": "chat.message",
+                    "event": event,
                     "message": serialize_chat_message(message),
                 },
             },
@@ -84,13 +84,13 @@ def broadcast_chat_message(message):
         )
 
 
-def broadcast_chat_inbox_event(conversation, message):
+def broadcast_chat_inbox_event(conversation, message, event="chat.inbox"):
     channel_layer = get_channel_layer()
     if not channel_layer:
         return
 
     payload = {
-        "event": "chat.inbox",
+        "event": event,
         "conversation_id": str(conversation.conversation_id),
         "message": serialize_chat_message(message),
     }

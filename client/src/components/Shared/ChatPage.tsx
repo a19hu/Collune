@@ -2,6 +2,8 @@ import {
   CheckCheck,
   Loader2,
   MessageCircle,
+  Pencil,
+  Trash2,
   Phone,
   Search,
   SendHorizonal,
@@ -16,6 +18,8 @@ import { useAuth } from "../../contexts/AuthContext";
 import { authStorage } from "../../contexts/authStorage";
 import {
   createChatConversation,
+  deleteChatMessage,
+  editChatMessage,
   getChatConversationMessages,
   getChatConversations,
   getChatInboxSocketUrl,
@@ -162,7 +166,9 @@ function ConversationItem({
   isOnline?: boolean;
   onClick: () => void;
 }) {
-  const latestMessage = conversation.latest_message?.content || "Start a conversation";
+  const latestMessage = conversation.latest_message?.deleted_at
+    ? "This message was deleted"
+    : conversation.latest_message?.content || "Start a conversation";
   const latestAt = conversation.latest_message?.created_at || conversation.updated_at;
 
   return (
@@ -223,6 +229,10 @@ export default function ChatPage() {
   const [activeConversationId, setActiveConversationId] = useState("");
   const [messages, setMessages] = useState<ChatMessageApi[]>([]);
   const [draft, setDraft] = useState("");
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<ChatMessageApi | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [search, setSearch] = useState("");
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
@@ -231,6 +241,38 @@ export default function ChatPage() {
   const inboxSocketRef = useRef<WebSocket | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const activeConversationIdRef = useRef(activeConversationId);
+  activeConversationIdRef.current = activeConversationId;
+
+  function applyMessageUpdate(message: ChatMessageApi) {
+    if (message.conversation_id === activeConversationIdRef.current) {
+      setMessages((items) => items.map((item) => item.message_id === message.message_id ? message : item));
+      if (message.deleted_at) {
+        setEditingMessageId((current) => current === message.message_id ? null : current);
+        setDeleteTarget((current) => current?.message_id === message.message_id ? null : current);
+      }
+    }
+    setConversations((items) => items.map((item) =>
+      item.latest_message?.message_id === message.message_id ? { ...item, latest_message: message } : item,
+    ));
+  }
+
+  async function handleMessageUpdate(message: ChatMessageApi, remove = false) {
+    if (isUpdating || (!remove && !editDraft.trim())) return;
+    setIsUpdating(true);
+    try {
+      const response = remove
+        ? await deleteChatMessage(message.conversation_id, message.message_id)
+        : await editChatMessage(message.conversation_id, message.message_id, editDraft.trim());
+      applyMessageUpdate(response.message);
+      setEditingMessageId((current) => current === message.message_id ? null : current);
+      setDeleteTarget((current) => current?.message_id === message.message_id ? null : current);
+    } catch (error) {
+      showProjectToast("error", remove ? "Delete failed" : "Edit failed", error instanceof Error ? error.message : "Unable to update message.");
+    } finally {
+      setIsUpdating(false);
+    }
+  }
 
   const activeConversation = useMemo(
     () => conversations.find((item) => item.conversation_id === activeConversationId) || null,
@@ -327,6 +369,10 @@ export default function ChatPage() {
   }, [searchParamsKey, setSearchParams]);
 
   useEffect(() => {
+    setEditingMessageId(null);
+    setEditDraft("");
+    setDeleteTarget(null);
+    setMessages([]);
     if (!activeConversationId) {
       setMessages([]);
       return;
@@ -393,6 +439,10 @@ export default function ChatPage() {
           return;
         }
 
+        if (payload.event === "chat.message.updated" && payload.message) {
+          applyMessageUpdate(payload.message);
+          return;
+        }
         if (payload.event !== "chat.inbox" || !payload.message || !payload.conversation_id) return;
         const isOwnMessage = payload.message ? isOwnChatMessage(payload.message, currentUser) : false;
 
@@ -457,6 +507,10 @@ export default function ChatPage() {
           event?: string;
           message?: ChatMessageApi;
         };
+        if (payload.event === "chat.message.updated" && payload.message) {
+          applyMessageUpdate(payload.message);
+          return;
+        }
         if (payload.event !== "chat.message" || !payload.message) return;
         if (payload.message.conversation_id !== activeConversationId) return;
 
@@ -633,8 +687,37 @@ export default function ChatPage() {
                               <p className={`mb-1 text-[11px] font-black uppercase tracking-[0.14em] ${ownMessage ? "text-[#3a6d41]" : "text-[#0f766e]"}`}>
                                 {ownMessage ? "You" : message.sender.name}
                               </p>
-                              <p className="whitespace-pre-wrap text-[14px] font-medium leading-relaxed">{message.content}</p>
+                              {editingMessageId === message.message_id && !message.deleted_at ? (
+                                <form onSubmit={(event) => { event.preventDefault(); void handleMessageUpdate(message); }}>
+                                  <textarea
+                                    autoFocus
+                                    aria-label="Edit message"
+                                    value={editDraft}
+                                    disabled={isUpdating}
+                                    onChange={(event) => setEditDraft(event.target.value)}
+                                    onKeyDown={(event) => {
+                                      if (event.key === "Escape" && !isUpdating) setEditingMessageId(null);
+                                    }}
+                                    className="min-h-20 w-full rounded-lg border border-[#9dbab5] bg-white p-2 text-sm"
+                                  />
+                                  <div className="mt-2 flex justify-end gap-3 text-xs font-semibold">
+                                    <button type="button" disabled={isUpdating} onClick={() => setEditingMessageId(null)}>Cancel</button>
+                                    <button type="submit" disabled={isUpdating || !editDraft.trim()} className="text-[#0f766e] disabled:opacity-50">{isUpdating ? "Saving…" : "Save"}</button>
+                                  </div>
+                                </form>
+                              ) : (
+                                <p className={`whitespace-pre-wrap break-words text-[14px] font-medium leading-relaxed ${message.deleted_at ? "italic text-[#6d7a80]" : ""}`}>
+                                  {message.deleted_at ? "This message was deleted" : message.content}
+                                </p>
+                              )}
                               <div className="mt-2 flex items-center justify-end gap-1.5 text-[11px] font-semibold text-[#6d7a80]">
+                                {ownMessage && !message.deleted_at && editingMessageId !== message.message_id ? (
+                                  <>
+                                    <button type="button" aria-label="Edit message" title="Edit message" disabled={isUpdating} className="rounded p-1.5 hover:bg-black/10" onClick={() => { setEditingMessageId(message.message_id); setEditDraft(message.content); }}><Pencil className="h-3.5 w-3.5" /></button>
+                                    <button type="button" aria-label="Delete for everyone" title="Delete for everyone" disabled={isUpdating} className="rounded p-1.5 hover:bg-black/10" onClick={() => setDeleteTarget(message)}><Trash2 className="h-3.5 w-3.5" /></button>
+                                  </>
+                                ) : null}
+                                {message.edited_at && !message.deleted_at ? <span>Edited</span> : null}
                                 <span>{formatTime(message.created_at)}</span>
                                 {ownMessage ? <CheckCheck className="h-3.5 w-3.5 text-[#0f766e]" /> : null}
                               </div>
@@ -654,6 +737,16 @@ export default function ChatPage() {
               </div>
 
               <div className="relative z-10 border-t border-[#ddd6ce] bg-[#f7f4ef] px-4 py-4 sm:px-5">
+                {deleteTarget ? (
+                  <div role="alert" className="mb-3 rounded-xl border border-[#ddd6ce] bg-white p-4 text-sm">
+                    <p className="font-semibold">Delete this message for everyone?</p>
+                    <p className="mt-1 text-[#617086]">Both participants will see “This message was deleted”. This cannot be undone.</p>
+                    <div className="mt-3 flex justify-end gap-4 font-semibold">
+                      <button type="button" disabled={isUpdating} onClick={() => setDeleteTarget(null)}>Cancel</button>
+                      <button type="button" disabled={isUpdating} onClick={() => void handleMessageUpdate(deleteTarget, true)} className="text-red-600 disabled:opacity-50">{isUpdating ? "Deleting…" : "Delete for everyone"}</button>
+                    </div>
+                  </div>
+                ) : null}
                 <div className="flex items-end gap-3 rounded-[24px] bg-white px-3 py-2 shadow-sm ring-1 ring-[#e6ded6]">
                   <textarea
                     rows={1}

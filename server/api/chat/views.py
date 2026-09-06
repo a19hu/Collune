@@ -1,7 +1,9 @@
+from django.db import transaction
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
+from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -95,6 +97,45 @@ class ChatMessageListCreateView(ChatAccessMixin, APIView):
         broadcast_chat_inbox_event(conversation, message)
         serializer = ChatMessageSerializer(message)
         return Response({"message": serializer.data}, status=status.HTTP_201_CREATED)
+
+
+class ChatMessageUpdateSerializer(serializers.Serializer):
+    content = serializers.CharField(allow_blank=False, trim_whitespace=True)
+
+
+class ChatMessageDetailView(ChatAccessMixin, APIView):
+    def patch(self, request, conversation_id, message_id):
+        serializer = ChatMessageUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return self.update_message(request, conversation_id, message_id, serializer.validated_data["content"])
+
+    def delete(self, request, conversation_id, message_id):
+        return self.update_message(request, conversation_id, message_id)
+
+    def update_message(self, request, conversation_id, message_id, content=None):
+        conversation = self.get_conversation(request, conversation_id)
+        with transaction.atomic():
+            message = get_object_or_404(
+                ChatMessage.objects.select_for_update(),
+                conversation=conversation, message_id=message_id,
+            )
+            if message.sender_id != request.user.pk:
+                return Response({"detail": "You can only edit or delete your own messages."}, status=status.HTTP_403_FORBIDDEN)
+            if message.deleted_at:
+                if content is not None:
+                    return Response({"detail": "Deleted messages cannot be edited."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": ChatMessageSerializer(message).data})
+            if content is None:
+                message.content = ""
+                message.deleted_at = timezone.now()
+                message.save(update_fields=["content", "deleted_at"])
+            else:
+                message.content = content
+                message.edited_at = timezone.now()
+                message.save(update_fields=["content", "edited_at"])
+            transaction.on_commit(lambda: broadcast_chat_message(message, event="chat.message.updated"))
+            transaction.on_commit(lambda: broadcast_chat_inbox_event(conversation, message, event="chat.message.updated"))
+        return Response({"message": ChatMessageSerializer(message).data})
 
 
 class ChatConversationReadView(ChatAccessMixin, APIView):

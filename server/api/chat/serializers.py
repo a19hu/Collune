@@ -24,6 +24,8 @@ class ChatMessageSerializer(serializers.ModelSerializer):
             "message_id",
             "conversation_id",
             "content",
+            "edited_at",
+            "deleted_at",
             "sender",
             "is_read",
             "read_at",

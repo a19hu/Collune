@@ -43,7 +43,7 @@ from .common.views import (
     SignoutView,
 )
 from .notification.views import NotificationListView, NotificationReadView
-from .chat.views import ChatConversationListCreateView, ChatConversationReadView, ChatMessageListCreateView
+from .chat.views import ChatConversationListCreateView, ChatConversationReadView, ChatMessageListCreateView, ChatMessageDetailView
 from .creator.views import (
     CampaignApplicationViewSet,
     CreatorProfileView,
@@ -87,6 +87,7 @@ urlpatterns = [
 
     path("chat/conversations/", ChatConversationListCreateView.as_view(), name="chat_conversations"),
     path("chat/conversations/<uuid:conversation_id>/messages/", ChatMessageListCreateView.as_view(), name="chat_messages"),
+    path("chat/conversations/<uuid:conversation_id>/messages/<uuid:message_id>/", ChatMessageDetailView.as_view(), name="chat_message_detail"),
     path("chat/conversations/<uuid:conversation_id>/read/", ChatConversationReadView.as_view(), name="chat_read"),
 
     path("auth/brand/profile/", BrandProfileView.as_view(), name="brand_profile"),

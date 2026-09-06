@@ -62,6 +62,8 @@ export type ChatMessageApi = {
   message_id: string;
   conversation_id: string;
   content: string;
+  edited_at: string | null;
+  deleted_at: string | null;
   sender: {
     user_id: string;
     role: string;

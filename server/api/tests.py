@@ -13,6 +13,72 @@ from .models import BrandProfile, Campaign, ChatConversation, ChatMessage, Creat
 from .common.services import send_aisensy_whatsapp_otp
 
 
+class ChatMessageMutationTests(APITestCase):
+    def setUp(self):
+        self.brand_user = get_user_model().objects.create_user(username="edit-brand", email="edit-brand@test.com", role=UserRole.BRAND)
+        self.creator_user = get_user_model().objects.create_user(username="edit-creator", email="edit-creator@test.com", role=UserRole.CREATOR)
+        self.outsider = get_user_model().objects.create_user(username="outsider", email="outsider@test.com", role=UserRole.BRAND)
+        brand = BrandProfile.objects.create(user=self.brand_user, company_name="Brand")
+        creator = CreatorProfile.objects.create(user=self.creator_user, display_name="Creator")
+        self.conversation = ChatConversation.objects.create(brand=brand, creator=creator)
+        self.message = ChatMessage.objects.create(conversation=self.conversation, sender=self.brand_user, content="Original")
+        self.url = reverse("chat_message_detail", args=[self.conversation.pk, self.message.pk])
+        self.client.force_authenticate(self.brand_user)
+
+    def test_edit_and_delete_persist_and_broadcast(self):
+        with patch("api.chat.views.broadcast_chat_message") as broadcast, patch("api.chat.views.broadcast_chat_inbox_event") as inbox:
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.patch(self.url, {"content": "  Edited text  "}, format="json")
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.data["message"]["content"], "Edited text")
+            self.assertIsNotNone(response.data["message"]["edited_at"])
+            broadcast.assert_called_once_with(self.message, event="chat.message.updated")
+            inbox.assert_called_once_with(self.conversation, self.message, event="chat.message.updated")
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.delete(self.url)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.data["message"]["content"], "")
+            self.assertIsNotNone(response.data["message"]["deleted_at"])
+            self.assertEqual(broadcast.call_count, 2)
+            self.assertEqual(inbox.call_count, 2)
+        self.message.refresh_from_db()
+        self.assertEqual(self.message.content, "")
+        self.client.force_authenticate(self.creator_user)
+        response = self.client.get(reverse("chat_messages", args=[self.conversation.pk]))
+        self.assertEqual(response.data["messages"][0]["content"], "")
+        self.assertIsNotNone(response.data["messages"][0]["deleted_at"])
+        response = self.client.get(reverse("chat_conversations"))
+        self.assertIsNotNone(response.data["conversations"][0]["latest_message"]["deleted_at"])
+
+    def test_only_sender_can_mutate_messages(self):
+        for user, expected_status in [(self.creator_user, 403), (self.outsider, 404), (None, 401)]:
+            self.client.force_authenticate(user)
+            self.assertEqual(self.client.patch(self.url, {"content": "Changed"}, format="json").status_code, expected_status)
+            self.assertEqual(self.client.delete(self.url).status_code, expected_status)
+        self.message.refresh_from_db()
+        self.assertEqual(self.message.content, "Original")
+        self.assertIsNone(self.message.deleted_at)
+
+    def test_invalid_edits_and_deleted_message(self):
+        for payload in [{}, {"content": "  "}, {"content": None}, {"content": ["text"]}]:
+            self.assertEqual(self.client.patch(self.url, payload, format="json").status_code, 400)
+        self.assertEqual(self.client.delete(self.url).status_code, 200)
+        self.assertEqual(self.client.delete(self.url).status_code, 200)
+        self.assertEqual(self.client.patch(self.url, {"content": "Restore"}, format="json").status_code, 400)
+
+    def test_message_must_belong_to_requested_conversation(self):
+        import uuid
+
+        url = reverse("chat_message_detail", args=[self.conversation.pk, uuid.uuid4()])
+        self.assertEqual(self.client.delete(url).status_code, 404)
+
+    def test_creator_can_edit_their_own_message(self):
+        self.message.sender = self.creator_user
+        self.message.save(update_fields=["sender"])
+        self.client.force_authenticate(self.creator_user)
+        self.assertEqual(self.client.patch(self.url, {"content": "Creator edit"}, format="json").status_code, 200)
+
+
 class ColluneAuthTests(APITestCase):
     def verify_creator_otp(self, email="aakrit@example.com", phone="+919999944444"):
         for channel, target in [(OtpChannel.EMAIL, email), (OtpChannel.PHONE, phone)]:

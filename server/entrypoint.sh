@@ -5,4 +5,4 @@ python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 python manage.py ensure_superuser
 
-exec gunicorn server.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+exec uvicorn server.asgi:application --host 0.0.0.0 --port ${PORT:-8080}
