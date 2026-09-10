@@ -52,6 +52,10 @@ class BrandDashboardSerializer(serializers.Serializer):
 
 class BrandProfileSerializer(serializers.ModelSerializer):
     user = AuthUserSerializer(read_only=True)
+    contact_person_name = serializers.CharField(source="user.name", read_only=True)
+    work_email = serializers.EmailField(source="user.email", read_only=True)
+    contact_phone = serializers.CharField(source="user.phone_no", read_only=True)
+    whatsapp_number = serializers.CharField(source="user.phone_no", read_only=True)
     logo_url = serializers.SerializerMethodField()
     is_profile_visible = serializers.BooleanField(source="user.is_profile_visible", read_only=True)
     verification_status = serializers.CharField(source="user.verification_status", read_only=True)
@@ -66,6 +70,10 @@ class BrandProfileSerializer(serializers.ModelSerializer):
             "industry",
             "about_brand",
             "website",
+            "contact_person_name",
+            "work_email",
+            "contact_phone",
+            "whatsapp_number",
             "company_size",
             "linkedin_url",
             "gst_number",
@@ -110,6 +118,9 @@ class BrandProfileSerializer(serializers.ModelSerializer):
             obj.industry,
             obj.about_brand,
             obj.website,
+            obj.user.name,
+            obj.user.email,
+            obj.user.phone_no,
             obj.company_size,
             obj.linkedin_url,
             obj.gst_number,
@@ -271,4 +282,3 @@ class BrandShortlistSerializer(serializers.ModelSerializer):
         if value not in ShortlistStatus.values:
             raise serializers.ValidationError("Invalid shortlist status.")
         return value
-

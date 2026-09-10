@@ -655,6 +655,10 @@ export type BrandProfileApi = {
   industry: string;
   about_brand?: string;
   website: string;
+  contact_person_name?: string;
+  work_email?: string;
+  contact_phone?: string;
+  whatsapp_number?: string;
   company_size: string;
   linkedin_url: string;
   gst_number?: string;

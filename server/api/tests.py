@@ -410,6 +410,8 @@ class ColluneAuthTests(APITestCase):
             username="brand-profile-owner",
             email="brand.profile@test.com",
             password="StrongPass123!",
+            name="Aman Sharma",
+            phone_no="+919876543210",
             role=UserRole.BRAND,
         )
         BrandProfile.objects.create(
@@ -448,6 +450,10 @@ class ColluneAuthTests(APITestCase):
         self.assertEqual(brand.company_name, "Acme Global")
         self.assertEqual(brand.industry, "Fintech")
         self.assertEqual(brand.company_size, "51-200")
+        self.assertEqual(patch_response.data["brand"]["contact_person_name"], "Aman Sharma")
+        self.assertEqual(patch_response.data["brand"]["work_email"], "brand.profile@test.com")
+        self.assertEqual(patch_response.data["brand"]["contact_phone"], "+919876543210")
+        self.assertEqual(patch_response.data["brand"]["whatsapp_number"], "+919876543210")
         self.assertFalse(user.is_profile_visible)
 
     def test_public_brand_profile_view_returns_visible_brand(self):

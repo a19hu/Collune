@@ -208,6 +208,15 @@ BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
+CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = env("REDIS_URL", default="redis://localhost:6379/0")
+CELERY_BEAT_SCHEDULE = {
+    "email-unread-chat-reminders": {
+        "task": "api.chat.tasks.email_unread_chat_reminders",
+        "schedule": 60.0,
+    },
+}
+
 FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:3000")
 MOBILE_APP_URL = env("MOBILE_APP_URL", default="collune://")
 META_APP_ID = env("META_APP_ID", default="")

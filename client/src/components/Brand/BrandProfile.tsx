@@ -114,7 +114,7 @@ function TextField({
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  type?: "text" | "url";
+  type?: "text" | "url" | "email" | "tel";
 }) {
   return (
     <label className="grid gap-2">
@@ -432,6 +432,23 @@ export default function BrandProfile() {
                   helper="Use at least 100 characters for a stronger public profile."
                 />
               </div>
+            </SectionCard>
+
+            <SectionCard title="Contact Information" description="Add the best person and channels for creators or partners to reach your brand.">
+              <div className="grid gap-5 lg:grid-cols-2">
+                {[
+                  ["Contact Person", profile.contact_person_name],
+                  ["Work Email", profile.work_email],
+                  ["Phone Number", profile.contact_phone],
+                  ["WhatsApp Number", profile.whatsapp_number],
+                ].map(([label, value]) => (
+                  <div key={label} className="grid gap-2">
+                    <Label>{label}</Label>
+                    <p className="min-h-12 rounded-[8px] border border-[#d7deea] bg-[#f8faff] px-4 py-3 text-sm font-semibold text-[#25304a]">{value || "Not provided"}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 text-xs font-medium text-[#7b879e]">These details are taken from the account used to register this brand.</p>
             </SectionCard>
 
             <SectionCard title="Business Details" description="Add compliance and company identity details for a more complete profile.">

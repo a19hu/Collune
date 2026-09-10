@@ -22,3 +22,8 @@ def _patched_basecontext_copy(self):
 if django.VERSION[:2] == (4, 2):
     # Safe no-op on repeated imports.
     BaseContext.__copy__ = _patched_basecontext_copy
+
+
+from .celery import app as celery_app
+
+__all__ = ("celery_app",)
