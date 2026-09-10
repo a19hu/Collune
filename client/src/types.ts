@@ -506,6 +506,10 @@ export type CreatorRegisterResponse = LoginResponse & {
 export type CreatorProfileApi = {
   creator_id: string;
   user?: LoginApiUser;
+  contact_person_name?: string;
+  work_email?: string;
+  contact_phone?: string;
+  whatsapp_number?: string;
   display_name: string;
   category: string;
   username?: string;
@@ -681,6 +685,19 @@ export type BrandProfileApi = {
   profile_completion: number;
   created_at?: string;
   updated_at?: string;
+  campaigns?: PublicBrandCampaignApi[];
+};
+
+export type PublicBrandCampaignApi = {
+  campaign_id: string;
+  title: string;
+  objective: string;
+  brief: string;
+  status: "DRAFT" | "ACTIVE" | "PAUSED" | "COMPLETED";
+  deadline: string | null;
+  platforms: string[];
+  cover_image: string | null;
+  created_at: string;
 };
 
 export type BrandDashboardApi = {

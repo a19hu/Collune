@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
 import { NotificationProvider } from './contexts/NotificationContext.tsx';
 import LandingPage from "./pages/LandingPage.tsx";
 import PublicCreatorProfile from "./pages/PublicCreatorProfile.tsx";
+import PublicBrandProfile from "./pages/PublicBrandProfile.tsx";
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
 import MainLayout from './components/layout/MainLayout.tsx';
 import BrandRegister from './pages/BrandRegister.tsx';
@@ -86,6 +87,7 @@ const App: React.FC = () => {
                         <Route path="discover-creators" element={<DiscoverCreatorsPage />} />
                         <Route path="creator_profile/:creatorId" element={<PublicCreatorProfile />} />
                         <Route path="creators/:creatorId" element={<PublicCreatorProfile />} />
+                        <Route path="brands/:brandId" element={<PublicBrandProfile />} />
 
 
                     </Route>

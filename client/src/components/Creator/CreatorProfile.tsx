@@ -355,6 +355,24 @@ export function CreatorProfile() {
             </div>
           </Card>
 
+          <Card className="p-5" id="contact">
+            <h2 className="text-xl font-black text-[#172554]">Contact Information</h2>
+            <p className="mt-1 text-sm font-semibold text-[#63708a]">These details come from the account used to register your creator profile.</p>
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              {[
+                ["Contact Person", profile.contact_person_name],
+                ["Work Email", profile.work_email],
+                ["Phone Number", profile.contact_phone],
+                ["WhatsApp Number", profile.whatsapp_number],
+              ].map(([label, value]) => (
+                <div key={label} className="grid gap-2">
+                  <FieldLabel>{label}</FieldLabel>
+                  <p className="min-h-11 rounded-md border border-[#d7deea] bg-[#f8faff] px-3 py-2.5 text-sm font-semibold text-[#25304a]">{value || "Not provided"}</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+
           <Card className="p-5" id="content">
             <h2 className="text-xl font-black text-[#172554]">Content</h2>
             <div className="mt-5 grid gap-4">

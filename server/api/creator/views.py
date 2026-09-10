@@ -481,6 +481,10 @@ class CreatorProfileView(APIView):
             "verified": creator.user.verification_status
             == VerificationStatus.VERIFIED.value,
             "username": creator.user.username,
+            "contact_person_name": creator.user.name,
+            "work_email": creator.user.email,
+            "contact_phone": creator.user.phone_no,
+            "whatsapp_number": creator.user.phone_no,
             "profile_image": (
                 request.build_absolute_uri(creator.profile_image.url)
                 if creator.profile_image

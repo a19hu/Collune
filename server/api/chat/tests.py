@@ -1,12 +1,14 @@
 from datetime import timedelta
+from io import StringIO
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from ..models import BrandProfile, ChatConversation, ChatMessage, CreatorProfile, UserRole
-from .tasks import email_unread_chat_reminders
+from .reminders import email_unread_chat_reminders
 
 
 @override_settings(DEFAULT_FROM_EMAIL="noreply@example.com", FRONTEND_URL="https://app.collune.test")
@@ -22,7 +24,7 @@ class UnreadChatEmailReminderTests(TestCase):
         creator = CreatorProfile.objects.create(user=self.creator_user, display_name="Creator")
         self.conversation = ChatConversation.objects.create(brand=brand, creator=creator)
 
-    @patch("api.chat.tasks.send_mail", return_value=1)
+    @patch("api.chat.reminders.send_mail", return_value=1)
     def test_emails_an_unread_message_once_after_30_minutes(self, send_mail):
         message = ChatMessage.objects.create(
             conversation=self.conversation, sender=self.brand_user, content="Hello creator",
@@ -36,7 +38,7 @@ class UnreadChatEmailReminderTests(TestCase):
         self.assertIn("Hello creator", send_mail.call_args.kwargs["message"])
         self.assertEqual(email_unread_chat_reminders(), 0)
 
-    @patch("api.chat.tasks.send_mail")
+    @patch("api.chat.reminders.send_mail")
     def test_does_not_email_messages_that_were_read(self, send_mail):
         message = ChatMessage.objects.create(
             conversation=self.conversation, sender=self.brand_user, content="Already read", is_read=True,
@@ -45,3 +47,16 @@ class UnreadChatEmailReminderTests(TestCase):
 
         self.assertEqual(email_unread_chat_reminders(), 0)
         send_mail.assert_not_called()
+
+    @patch("api.chat.reminders.send_mail", return_value=1)
+    def test_management_command_runs_the_reminder(self, send_mail):
+        message = ChatMessage.objects.create(
+            conversation=self.conversation, sender=self.brand_user, content="Command reminder",
+        )
+        ChatMessage.objects.filter(pk=message.pk).update(created_at=timezone.now() - timedelta(minutes=31))
+
+        output = StringIO()
+        call_command("send_unread_chat_reminders", stdout=output)
+
+        self.assertIn("Sent 1 unread chat email reminder", output.getvalue())
+        send_mail.assert_called_once()

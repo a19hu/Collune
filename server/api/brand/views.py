@@ -1024,6 +1024,7 @@ class PublicBrandProfileView(APIView):
             user__is_profile_visible=True,
         )
 
+        campaigns = Campaign.objects.filter(brand=brand).order_by("-created_at")
         response = {
             "brand_id": str(brand.brand_id),
             "company_name": brand.company_name,
@@ -1031,9 +1032,6 @@ class PublicBrandProfileView(APIView):
             "about_brand": brand.about_brand,
             "website": brand.website,
             "contact_person_name": brand.user.name,
-            "work_email": brand.user.email,
-            "contact_phone": brand.user.phone_no,
-            "whatsapp_number": brand.user.phone_no,
             "company_size": brand.company_size,
             "linkedin_url": brand.linkedin_url,
             "gst_number": brand.gst_number,
@@ -1054,6 +1052,20 @@ class PublicBrandProfileView(APIView):
             "is_profile_visible": brand.user.is_profile_visible,
             "created_at": brand.created_at,
             "updated_at": brand.updated_at,
+            "campaigns": [
+                {
+                    "campaign_id": str(campaign.campaign_id),
+                    "title": campaign.title,
+                    "objective": campaign.objective,
+                    "brief": campaign.brief,
+                    "status": campaign.status,
+                    "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
+                    "platforms": campaign.platforms,
+                    "cover_image": request.build_absolute_uri(campaign.cover_image.url) if campaign.cover_image else None,
+                    "created_at": campaign.created_at,
+                }
+                for campaign in campaigns
+            ],
         }
         return Response({"brand": response})
 

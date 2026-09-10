@@ -259,6 +259,11 @@ export async function getBrandMe() {
   return data.brand;
 }
 
+export async function getPublicBrandProfile(brandId: string) {
+  const data = await apiRequest<{ brand: BrandProfileApi }>(`/brand/${encodeURIComponent(brandId)}/`);
+  return data.brand;
+}
+
 export async function updateBrandProfile(body: FormData) {
   const data = await apiPatchForm<{ brand: BrandProfileApi }>("/auth/brand/profile/", body, true);
   return data.brand;

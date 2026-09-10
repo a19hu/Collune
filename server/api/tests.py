@@ -85,7 +85,13 @@ class CreatorDiscoveryTests(APITestCase):
             self.assertIsNone(creator[field])
 
     def setUp(self):
-        self.user = get_user_model().objects.create_user(username="travel-handle", email="discover@test.com", role=UserRole.CREATOR)
+        self.user = get_user_model().objects.create_user(
+            username="travel-handle",
+            email="discover@test.com",
+            name="Travel Creator",
+            phone_no="+919876543210",
+            role=UserRole.CREATOR,
+        )
         self.creator = CreatorProfile.objects.create(
             user=self.user, display_name="Travel Creator", category="Travel",
             location="country: India | state: Maharashtra | city: Pune | postalCode: 411001 | streetAddress: Private street",
@@ -122,6 +128,16 @@ class CreatorDiscoveryTests(APITestCase):
         self.creator.save(update_fields=["city"])
         response = self.client.get(reverse("creators_list"), {"city": "Nashik"})
         self.assertEqual(response.data["creators"][0]["location"], "Nashik, Maharashtra, India")
+
+    def test_creator_profile_returns_account_contact_details(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(reverse("creator_profile"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["creator"]["contact_person_name"], "Travel Creator")
+        self.assertEqual(response.data["creator"]["work_email"], "discover@test.com")
+        self.assertEqual(response.data["creator"]["contact_phone"], "+919876543210")
+        self.assertEqual(response.data["creator"]["whatsapp_number"], "+919876543210")
 
 
 class ChatMessageMutationTests(APITestCase):
@@ -473,6 +489,8 @@ class ColluneAuthTests(APITestCase):
             company_size="201-500",
             linkedin_url="https://linkedin.com/company/public-brand",
         )
+        Campaign.objects.create(brand=brand, title="Open Campaign", brief="Public brief", status="ACTIVE")
+        Campaign.objects.create(brand=brand, title="Draft Campaign", brief="Private brief", status="DRAFT")
 
         response = self.client.get(reverse("brand_detail", args=[brand.brand_id]))
 
@@ -481,6 +499,7 @@ class ColluneAuthTests(APITestCase):
         self.assertEqual(response.data["brand"]["company_name"], "Public Brand")
         self.assertEqual(response.data["brand"]["industry"], "Retail")
         self.assertTrue(response.data["brand"]["verified"])
+        self.assertEqual({item["title"] for item in response.data["brand"]["campaigns"]}, {"Open Campaign", "Draft Campaign"})
         self.assertNotIn("user", response.data["brand"])
 
     def test_admin_can_create_internal_user_with_role_template_and_permissions(self):

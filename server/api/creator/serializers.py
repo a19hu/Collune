@@ -106,6 +106,10 @@ class CreatorSocialAccountSerializer(serializers.ModelSerializer):
 
 class CreatorProfileSerializer(serializers.ModelSerializer):
     user = AuthUserSerializer(read_only=True)
+    contact_person_name = serializers.CharField(source="user.name", read_only=True)
+    work_email = serializers.EmailField(source="user.email", read_only=True)
+    contact_phone = serializers.CharField(source="user.phone_no", read_only=True)
+    whatsapp_number = serializers.CharField(source="user.phone_no", read_only=True)
     social_accounts = CreatorSocialAccountSerializer(many=True, read_only=True)
     profile_image_url = serializers.SerializerMethodField()
     is_profile_visible = serializers.BooleanField(source="user.is_profile_visible", read_only=True)
@@ -118,6 +122,10 @@ class CreatorProfileSerializer(serializers.ModelSerializer):
         fields = [
             "creator_id",
             "user",
+            "contact_person_name",
+            "work_email",
+            "contact_phone",
+            "whatsapp_number",
             "display_name",
             "category",
             "location",
@@ -152,6 +160,10 @@ class CreatorProfileSerializer(serializers.ModelSerializer):
 
 class CreatorsProfileListSerializer(serializers.ModelSerializer):
     user = AuthUserSerializer(read_only=True)
+    contact_person_name = serializers.CharField(source="user.name", read_only=True)
+    work_email = serializers.EmailField(source="user.email", read_only=True)
+    contact_phone = serializers.CharField(source="user.phone_no", read_only=True)
+    whatsapp_number = serializers.CharField(source="user.phone_no", read_only=True)
     social_accounts = CreatorSocialAccountSerializer(many=True, read_only=True)
     profile_image_url = serializers.SerializerMethodField()
     is_profile_visible = serializers.BooleanField(source="user.is_profile_visible", read_only=True)
@@ -164,6 +176,10 @@ class CreatorsProfileListSerializer(serializers.ModelSerializer):
         fields = [
             "creator_id",
             "user",
+            "contact_person_name",
+            "work_email",
+            "contact_phone",
+            "whatsapp_number",
             "display_name",
             "category",
             "location",

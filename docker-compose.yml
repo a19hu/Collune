@@ -44,28 +44,6 @@ services:
       - POSTGRES_PASSWORD=postgres
       - REDIS_URL=redis://redis:6379/0
 
-  celery_beat:
-    build:
-      context: ./server
-      dockerfile: dockerfile
-    command: celery -A server beat -l info
-    depends_on:
-      - db
-      - redis
-      - server
-    networks:
-      - app_network
-    volumes:
-      - ./server:/app
-    env_file:
-      - ./server/.env
-    environment:
-      - POSTGRES_HOST=db
-      - POSTGRES_DB=data
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - REDIS_URL=redis://redis:6379/0
-
   db:
     image: postgres:13
     volumes:

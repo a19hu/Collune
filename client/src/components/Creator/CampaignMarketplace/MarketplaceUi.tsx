@@ -320,6 +320,7 @@ export function BrandBlock({
   isApplying: boolean;
   onApply: () => void;
 }) {
+  const navigate = useNavigate();
   const applyLabel = hasApplied ? "Applied" : isApplying ? "Applying..." : "Apply To Campaign";
 
   return (
@@ -337,9 +338,13 @@ export function BrandBlock({
           </div>
         </div>
         {campaign.brandId ? (
-          <span className="inline-flex h-11 max-w-full items-center rounded-lg border border-[#dfe6f0] px-4 text-xs font-black text-[#65758f]">
-            Brand ID: <span className="ml-2 truncate text-[#1d2430]">{campaign.brandId}</span>
-          </span>
+            <button
+              type="button"
+              onClick={() => navigate(`/brands/${campaign.brandId}`)}
+              className="mx-5 h-11 items-center rounded-lg bg-[#173fb5] px-4 text-xs font-black text-white transition hover:bg-[#11349b]"
+            >
+              View Brand Profile
+            </button>
         ) : null}
       </div>
 
