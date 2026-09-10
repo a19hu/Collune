@@ -36,6 +36,7 @@ import BrandSubscriptionPage from './components/Brand/BrandSubscriptionPage.tsx'
 import SavedCreators from './components/Brand/SavedCreators.tsx';
 import CreatorSubscriptionPage from './components/Creator/CreatorSubscriptionPage.tsx';
 import ChatPage from './components/Shared/ChatPage.tsx';
+import NotificationsPage from './components/Shared/NotificationsPage.tsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.tsx';
 import TermsConditions from './pages/TermsConditions.tsx';
 import BrandServicesTerms from './pages/BrandServicesTerms.tsx';
@@ -101,6 +102,7 @@ const App: React.FC = () => {
                             <Route path="applied-campaigns" element={<RequireVerified><AppliedCampaigns /></RequireVerified>} />
                             <Route path="saved-campaigns" element={<RequireVerified><SavedCampaigns /></RequireVerified>} />
                             <Route path="chat" element={<ChatPage />} />
+                            <Route path="notifications" element={<NotificationsPage />} />
                             <Route path="creator-subscription" element={<CreatorSubscriptionPage />} />
                             <Route path="*" element={<NotFoundPage />} />
                         </Route>
@@ -112,6 +114,7 @@ const App: React.FC = () => {
                             <Route path="profile" element={<BrandProfile />} />
                             <Route path="saved-creators" element={<RequireVerified><SavedCreators /></RequireVerified>} />
                             <Route path="chat" element={<RequireVerified><ChatPage /></RequireVerified>} />
+                            <Route path="notifications" element={<NotificationsPage />} />
                             <Route path="shortlists" element={<BrandShortlists />} />
                             <Route path="shortlists/new_create" element={<ShortlistCreateForm />} />
                             <Route path="shortlists/:shortlistId/edit" element={<ShortlistCreateForm />} />

@@ -280,8 +280,10 @@ export async function getCreatorDashboard(period = "7d") {
   return data.creator;
 }
 
-export async function getNotifications(limit = 20) {
-  return apiRequest<NotificationListResponse>(`/notifications/?limit=${limit}`, {}, true);
+export async function getNotifications(limit = 20, unreadOnly = false, page = 1) {
+  const query = new URLSearchParams({ limit: String(limit), page_size: String(limit), page: String(page) });
+  if (unreadOnly) query.set("unread", "true");
+  return apiRequest<NotificationListResponse>(`/notifications/?${query.toString()}`, {}, true);
 }
 
 export async function markNotificationsRead(payload: NotificationReadPayload) {

@@ -13,19 +13,25 @@ class NotificationListView(APIView):
 
     def get(self, request):
         unread_only = str(request.query_params.get("unread", "")).lower() in {"1", "true", "yes"}
-        limit = min(int(request.query_params.get("limit", 20) or 20), 100)
+        page = max(int(request.query_params.get("page", 1) or 1), 1)
+        page_size = min(max(int(request.query_params.get("page_size", request.query_params.get("limit", 10)) or 10), 1), 100)
 
         queryset = request.user.notifications.select_related("actor").order_by("-created_at")
         if unread_only:
             queryset = queryset.filter(is_read=False)
 
-        notifications = queryset[:limit]
+        count = queryset.count()
+        start = (page - 1) * page_size
+        notifications = queryset[start:start + page_size]
         unread_count = request.user.notifications.filter(is_read=False).count()
         return Response(
             {
                 "notifications": NotificationSerializer(notifications, many=True).data,
                 "unread_count": unread_count,
-                "count": queryset.count(),
+                "count": count,
+                "page": page,
+                "page_size": page_size,
+                "total_pages": max((count + page_size - 1) // page_size, 1),
             }
         )
 

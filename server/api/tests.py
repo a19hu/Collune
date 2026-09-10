@@ -140,6 +140,35 @@ class CreatorDiscoveryTests(APITestCase):
         self.assertEqual(response.data["creator"]["whatsapp_number"], "+919876543210")
 
 
+class NotificationPaginationTests(APITestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="notification-user", email="notifications@test.com", role=UserRole.CREATOR,
+        )
+        self.client.force_authenticate(self.user)
+        for index in range(12):
+            Notification.objects.create(
+                recipient=self.user,
+                event_type="test.notification",
+                title=f"Notification {index}",
+                message="Test message",
+                is_read=index < 2,
+            )
+
+    def test_notifications_are_paginated_and_can_be_filtered_to_unread(self):
+        response = self.client.get(reverse("notifications_list"), {"page": 1, "page_size": 10})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["notifications"]), 10)
+        self.assertEqual(response.data["count"], 12)
+        self.assertEqual(response.data["page"], 1)
+        self.assertEqual(response.data["total_pages"], 2)
+
+        response = self.client.get(reverse("notifications_list"), {"unread": "true", "page_size": 10})
+        self.assertEqual(len(response.data["notifications"]), 10)
+        self.assertTrue(all(not item["is_read"] for item in response.data["notifications"]))
+        self.assertEqual(response.data["unread_count"], 10)
+
+
 class ChatMessageMutationTests(APITestCase):
     def setUp(self):
         self.brand_user = get_user_model().objects.create_user(username="edit-brand", email="edit-brand@test.com", role=UserRole.BRAND)

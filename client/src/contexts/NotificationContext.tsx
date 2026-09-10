@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Bell } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-import { useAuth } from './AuthContext';
 import { authStorage } from './authStorage';
 import { getNotifications, getNotificationsSocketUrl, markNotificationsRead } from '../lib/authApi';
 import {
@@ -14,6 +14,8 @@ import {
   showDesktopNotification,
 } from '../lib/sound';
 import type { NotificationItem, NotificationPayload } from '../types';
+import { notificationDestination } from '../lib/notificationNavigation';
+import { useAuth } from './AuthContext';
 import { showProjectToast } from '../HtmlComponents/HtmlRoster';
 
 interface NotificationContextValue {
@@ -245,8 +247,23 @@ export function NotificationBell() {
     toggleDesktopEnabled,
     requestDesktopPermission,
   } = useNotifications();
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState<NotificationItem[]>([]);
+  const [isUnreadLoading, setIsUnreadLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let active = true;
+    setIsUnreadLoading(true);
+    getNotifications(10, true)
+      .then((response) => { if (active) setUnreadNotifications(response.notifications); })
+      .catch(() => { if (active) setUnreadNotifications(notifications.filter((item) => !item.is_read)); })
+      .finally(() => { if (active) setIsUnreadLoading(false); });
+    return () => { active = false; };
+  }, [isOpen, notifications]);
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
@@ -332,9 +349,10 @@ export function NotificationBell() {
 
         <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
           {isLoading ? <p className="px-2 py-8 text-center text-sm text-[#667085]">Loading notifications...</p> : null}
-          {!isLoading && notifications.length === 0 ? <p className="px-2 py-8 text-center text-sm text-[#667085]">No notifications yet.</p> : null}
-          {!isLoading
-            ? notifications.map((notification) => (
+          {isLoading || isUnreadLoading ? <p className="px-2 py-8 text-center text-sm text-[#667085]">Loading notifications...</p> : null}
+          {!isLoading && !isUnreadLoading && unreadNotifications.length === 0 ? <p className="px-2 py-8 text-center text-sm text-[#667085]">No unread notifications.</p> : null}
+          {!isLoading && !isUnreadLoading
+            ? unreadNotifications.map((notification) => (
                 <button
                   key={notification.notification_id}
                   type="button"
@@ -342,7 +360,9 @@ export function NotificationBell() {
                     setIsOpen(false);
                     if (!notification.is_read) {
                       void markAsRead([notification.notification_id]);
+                      setUnreadNotifications((items) => items.filter((item) => item.notification_id !== notification.notification_id));
                     }
+                    navigate(notificationDestination(notification, currentUser?.role || "Creator"));
                   }}
                   className={`block w-full rounded-2xl border px-4 py-3 text-left transition ${notification.is_read ? 'border-[#edf1fb] bg-white' : 'border-[#dbe7ff] bg-[#f5f8ff]'}`}
                 >
