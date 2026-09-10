@@ -102,14 +102,29 @@ def normalize_otp_target(channel, target):
     value = target.strip()
     if channel == OtpChannel.EMAIL:
         return value.lower()
-    return value.replace(" ", "")
+    value = value.replace(" ", "")
+    digits = value.removeprefix("+")
+    if digits.isdigit():
+        if len(digits) == 10:
+            return "+91" + digits
+        if len(digits) == 12 and digits.startswith("91"):
+            return "+" + digits
+    return value
+
+
+def otp_target_variants(channel, target):
+    normalized = normalize_otp_target(channel, target)
+    variants = {normalized}
+    if channel == OtpChannel.PHONE and normalized.startswith("+91") and len(normalized) == 13:
+        variants.update({normalized[1:], normalized[3:]})
+    return variants
 
 def create_otp(channel, target, purpose="creator_registration"):
     normalized_target = normalize_otp_target(channel, target)
     code = get_random_string(6, allowed_chars=string.digits)
     OtpVerification.objects.filter(
         channel=channel,
-        target=normalized_target,
+        target__in=otp_target_variants(channel, target),
         purpose=purpose,
         is_verified=False,
     ).delete()

@@ -388,6 +388,8 @@ const BrandRegister = () => {
   const onFieldChange = (field: keyof BrandRegisterForm) => (event: BrandFieldChangeEvent) => {
     if (submitError) setSubmitError("");
     setForm((current) => ({ ...current, [field]: event.target.value }));
+    if (field === "phone_no") setVerification((current) => ({ ...current, phoneVerified: false, phoneOtpSent: false }));
+    if (field === "email") setVerification((current) => ({ ...current, emailVerified: false, emailOtpSent: false }));
   };
 
   const validateFile = (file: File, kind: "logo" | "document") => {

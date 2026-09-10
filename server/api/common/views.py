@@ -12,7 +12,7 @@ from ..models import (
     OtpVerification,
 )
 from .serializers import AuthUserSerializer, LoginSerializer, OtpSendSerializer, OtpVerifySerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer
-from .services import OTP_EXPIRY_MINUTES, OTP_MAX_ATTEMPTS, auth_response, create_otp, normalize_otp_target, send_otp_message
+from .services import OTP_EXPIRY_MINUTES, OTP_MAX_ATTEMPTS, auth_response, create_otp, normalize_otp_target, otp_target_variants, send_otp_message
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -103,7 +103,7 @@ class OtpVerifyView(APIView):
         target = normalize_otp_target(channel, serializer.validated_data["target"])
         otp = OtpVerification.objects.filter(
             channel=channel,
-            target=target,
+            target__in=otp_target_variants(channel, target),
             purpose="creator_registration",
             is_verified=False,
         ).first()

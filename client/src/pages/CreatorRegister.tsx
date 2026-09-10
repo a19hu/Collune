@@ -102,6 +102,8 @@ const CreatorRegister = () => {
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => {
     setForm((current) => ({ ...current, [field]: event.target.value }));
+    if (field === "phone_no") setVerification((current) => ({ ...current, phoneVerified: false, phoneOtpSent: false }));
+    if (field === "email") setVerification((current) => ({ ...current, emailVerified: false, emailOtpSent: false }));
     setFieldErrors((current) => { const next = { ...current }; delete next[field]; return next; });
   };
 

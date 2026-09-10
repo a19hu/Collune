@@ -13,6 +13,117 @@ from .models import BrandProfile, Campaign, ChatConversation, ChatMessage, Creat
 from .common.services import send_aisensy_whatsapp_otp
 
 
+class RegistrationPhoneOtpTests(APITestCase):
+    def verified_email(self):
+        OtpVerification.objects.create(channel="EMAIL", target="phone-test@example.com", code="123456", is_verified=True, verified_at=timezone.now(), expires_at=timezone.now() + timedelta(minutes=10))
+
+    def register(self):
+        return self.client.post(reverse("creator_register"), {
+            "user": {"name": "Phone Test", "email": "phone-test@example.com", "phone_no": "+919999944444", "password": "StrongPass123!"},
+            "category": "Travel",
+        }, format="json")
+
+    @patch("api.common.views.send_otp_message")
+    def test_local_phone_otp_then_international_registration(self, send_message):
+        self.verified_email()
+        response = self.client.post(reverse("otp_send"), {"channel": "PHONE", "target": "9999944444"}, format="json")
+        self.assertEqual(response.status_code, 200)
+        otp = OtpVerification.objects.get(channel="PHONE")
+        self.assertEqual(otp.target, "+919999944444")
+        response = self.client.post(reverse("otp_verify"), {"channel": "PHONE", "target": "9999944444", "code": otp.code}, format="json")
+        self.assertEqual(response.status_code, 200)
+        response = self.register()
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertTrue(get_user_model().objects.filter(phone_no="+919999944444").exists())
+
+    def test_already_verified_legacy_phone_remains_valid(self):
+        self.verified_email()
+        OtpVerification.objects.create(channel="PHONE", target="9999944444", code="123456", is_verified=True, verified_at=timezone.now(), expires_at=timezone.now() + timedelta(minutes=10))
+        response = self.register()
+        self.assertEqual(response.status_code, 201, response.data)
+
+    def test_pending_legacy_otp_can_be_verified_with_country_code(self):
+        OtpVerification.objects.create(channel="PHONE", target="9999944444", code="123456", expires_at=timezone.now() + timedelta(minutes=10))
+        response = self.client.post(reverse("otp_verify"), {"channel": "PHONE", "target": "+919999944444", "code": "123456"}, format="json")
+        self.assertEqual(response.status_code, 200)
+
+    def test_unverified_or_different_phone_is_rejected(self):
+        self.verified_email()
+        OtpVerification.objects.create(channel="PHONE", target="9999944444", code="123456", expires_at=timezone.now() + timedelta(minutes=10))
+        OtpVerification.objects.create(channel="PHONE", target="8888844444", code="123456", is_verified=True, expires_at=timezone.now() + timedelta(minutes=10))
+        response = self.register()
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("phone_no", response.data["otp"])
+
+
+class CreatorCampaignCountTests(APITestCase):
+    def setUp(self):
+        brand_user = get_user_model().objects.create_user(username="count-brand", email="count-brand@test.com", role=UserRole.BRAND)
+        creator_user = get_user_model().objects.create_user(username="count-creator", email="count-creator@test.com", role=UserRole.CREATOR)
+        brand = BrandProfile.objects.create(user=brand_user, company_name="Brand")
+        self.creator = CreatorProfile.objects.create(user=creator_user, display_name="Creator")
+        self.campaign = Campaign.objects.create(brand=brand, title="Launch", brief="Brief", status="ACTIVE")
+        self.client.force_authenticate(brand_user)
+
+    def test_card_counts_only_accepted_completed_campaigns(self):
+        from .models import CampaignApplication
+
+        CampaignApplication.objects.create(campaign=self.campaign, creator=self.creator, status="ACCEPTED")
+        response = self.client.get(reverse("creators_list"))
+        self.assertEqual(response.data["creators"][0]["campaigns_completed"], 0)
+        self.campaign.status = "COMPLETED"
+        self.campaign.save()
+        response = self.client.get(reverse("creators_list"))
+        self.assertEqual(response.data["creators"][0]["campaigns_completed"], 1)
+
+
+class CreatorDiscoveryTests(APITestCase):
+    def test_sort_metrics_include_unknown_values_without_fabricated_defaults(self):
+        response = self.client.get(reverse("creators_list"), {"search": "travel-handle"})
+        creator = response.data["creators"][0]
+        for field in ("avg_eng_rate", "last_active_at"):
+            self.assertIsNone(creator[field])
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username="travel-handle", email="discover@test.com", role=UserRole.CREATOR)
+        self.creator = CreatorProfile.objects.create(
+            user=self.user, display_name="Travel Creator", category="Travel",
+            location="country: India | state: Maharashtra | city: Pune | postalCode: 411001 | streetAddress: Private street",
+            languages=["Hindi", "Marathi"], bio="Mountain photography", work_with=["Tourism"],
+        )
+        other_user = get_user_model().objects.create_user(username="food-handle", email="food@test.com", role=UserRole.CREATOR)
+        CreatorProfile.objects.create(user=other_user, display_name="Food Creator", category="Food", city="Mumbai", state="Maharashtra", country="India", languages=["English"])
+
+    def test_discovery_exposes_clean_address_and_filter_fields(self):
+        response = self.client.get(reverse("creators_list"), {"search": "travel-handle"})
+        self.assertEqual(response.status_code, 200)
+        creator = response.data["creators"][0]
+        self.assertEqual(creator["location"], "Pune, Maharashtra, India")
+        self.assertEqual(creator["city"], "Pune")
+        self.assertEqual(creator["state"], "Maharashtra")
+        self.assertEqual(creator["country"], "India")
+        self.assertEqual(creator["languages"], ["Hindi", "Marathi"])
+        self.assertNotIn("streetAddress", creator)
+
+    def test_search_matches_location_language_and_keywords(self):
+        for search in ["PUNE", "Marathi", "photography", "Tourism", "travel-handle", "Pune Hindi mountain"]:
+            response = self.client.get(reverse("creators_list"), {"search": search})
+            self.assertEqual([item["username"] for item in response.data["creators"]], ["travel-handle"])
+
+    def test_dedicated_filters_combine(self):
+        filters = {"country": "india", "state": "maharashtra", "city": "pune", "language": "hindi", "category": "travel"}
+        response = self.client.get(reverse("creators_list"), filters)
+        self.assertEqual(len(response.data["creators"]), 1)
+        response = self.client.get(reverse("creators_list"), {**filters, "category": "Food"})
+        self.assertEqual(response.data["creators"], [])
+
+    def test_structured_address_overrides_legacy_values(self):
+        self.creator.city = "Nashik"
+        self.creator.save(update_fields=["city"])
+        response = self.client.get(reverse("creators_list"), {"city": "Nashik"})
+        self.assertEqual(response.data["creators"][0]["location"], "Nashik, Maharashtra, India")
+
+
 class ChatMessageMutationTests(APITestCase):
     def setUp(self):
         self.brand_user = get_user_model().objects.create_user(username="edit-brand", email="edit-brand@test.com", role=UserRole.BRAND)

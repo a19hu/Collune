@@ -1,12 +1,13 @@
 import { Search } from "lucide-react";
+import { creatorSortOptions, sortCreators } from "../lib/creatorSorting";
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext.tsx";
-import { getBrandSavedCreators, getCreatorsList, removeBrandSavedCreator, saveBrandCreator } from "../lib/authApi.ts";
+import { getCreatorsList } from "../lib/authApi.ts";
 import type { CreatorListItemApi } from "../types.ts";
 import { Lock } from "lucide-react";
 import { CreatorCard } from "../HtmlComponents/CreatorCard.tsx";
-import { showProjectToast } from "../HtmlComponents/HtmlRoster.tsx";
+import { CreatorComparison } from "../components/Shared/CreatorComparison";
 
 const baseCategoryOptions = [
   "Fashion",
@@ -80,16 +81,33 @@ export const DiscoverCreatorsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
-  const [sortBy, setSortBy] = useState("relevance");
+  const [sortBy, setSortBy] = useState("recommended");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [minFollowers, setMinFollowers] = useState(0);
-  const [location, setLocation] = useState("");
+  const [country, setCountry] = useState("");
+  const [state, setState] = useState("");
+  const [city, setCity] = useState("");
+  const [language, setLanguage] = useState("");
   const [categoryQuery, setCategoryQuery] = useState("");
-  const [locationQuery, setLocationQuery] = useState("");
-  const [savedCreatorIds, setSavedCreatorIds] = useState<string[]>([]);
-  const [savingCreatorId, setSavingCreatorId] = useState("");
+  const [comparisonIds, setComparisonIds] = useState<string[]>([]);
+  const [showComparison, setShowComparison] = useState(false);
   const isBrand = currentUser?.role === "Brand";
+  const comparedCreators = useMemo(() => comparisonIds.flatMap((creatorId) => {
+    const creator = creators.find((item) => item.creator_id === creatorId);
+    return creator ? [creator] : [];
+  }), [comparisonIds, creators]);
+
+  function toggleComparison(creatorId: string) {
+    setComparisonIds((current) => current.includes(creatorId)
+      ? current.filter((item) => item !== creatorId)
+      : current.length < 5 ? [...current, creatorId] : current);
+  }
+
+  useEffect(() => {
+    setComparisonIds([]);
+    setShowComparison(false);
+  }, [currentUser?.user_id]);
 
   useEffect(() => {
     let mounted = true;
@@ -109,49 +127,20 @@ export const DiscoverCreatorsPage = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (!isBrand) return;
-
-    let mounted = true;
-    getBrandSavedCreators()
-      .then((data) => {
-        if (!mounted) return;
-        setSavedCreatorIds(data.creators.map((item) => item.creator.id));
-      })
-      .catch(() => {
-        if (mounted) setSavedCreatorIds([]);
-      });
-
-    return () => {
-      mounted = false;
+  const filterOptions = useMemo(() => {
+    const unique = (values: (string | undefined)[]) => Array.from(new Map(values
+      .map((value) => value?.trim() || "")
+      .filter(Boolean)
+      .map((value) => [value.toLowerCase(), value])).values()).sort((first, second) => first.localeCompare(second));
+    return {
+      countries: unique(creators.map((creator) => creator.country)),
+      states: unique(creators.filter((creator) => !country || creator.country?.toLowerCase() === country.toLowerCase()).map((creator) => creator.state)),
+      cities: unique(creators.filter((creator) =>
+        (!country || creator.country?.toLowerCase() === country.toLowerCase()) && (!state || creator.state?.toLowerCase() === state.toLowerCase()),
+      ).map((creator) => creator.city)),
+      languages: unique(creators.flatMap((creator) => creator.languages || [])),
     };
-  }, [isBrand]);
-
-  const toggleSavedCreator = async (creator: CreatorListItemApi) => {
-    if (!isBrand || !creator.creator_id || savingCreatorId) return;
-
-    const creatorId = creator.creator_id;
-    setSavingCreatorId(creatorId);
-    try {
-      if (savedCreatorIds.includes(creatorId)) {
-        await removeBrandSavedCreator(creatorId);
-        setSavedCreatorIds((items) => items.filter((item) => item !== creatorId));
-        showProjectToast("info", "Creator removed", "The creator has been removed from your saved list.");
-      } else {
-        await saveBrandCreator(creatorId);
-        setSavedCreatorIds((items) => [...items, creatorId]);
-        showProjectToast("success", "Creator saved", "The creator has been added to your saved list.");
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to update saved creator.";
-      setError(message);
-      showProjectToast("error", "Save action failed", message);
-    } finally {
-      setSavingCreatorId("");
-    }
-  };
-
-  const locations = useMemo(() => Array.from(new Set(creators.map((creator) => creator.location).filter(Boolean))), [creators]);
+  }, [creators, country, state]);
   const categoryOptions = useMemo(() => {
     const creatorCategories = creators
       .map((creator) => creator.category)
@@ -167,23 +156,26 @@ export const DiscoverCreatorsPage = () => {
     const text = categoryQuery.trim().toLowerCase();
     return categoryOptions.filter((category) => !text || category.toLowerCase().includes(text));
   }, [categoryOptions, categoryQuery]);
-  const visibleLocationOptions = useMemo(() => {
-    const text = locationQuery.trim().toLowerCase();
-    return locations.filter((item) => !text || item.toLowerCase().includes(text));
-  }, [locationQuery, locations]);
   const filteredCreators = useMemo(() => {
     const text = query.trim().toLowerCase();
     const next = creators.filter((creator) => {
       const platformData = creator.platform_data ?? [];
       const workWith = creator.work_with ?? [];
-      const matchesText = !text || [
+      const searchable = [
         creator.display_name,
         creator.username,
         creator.category,
         creator.location,
+        creator.city,
+        creator.state,
+        creator.country,
+        creator.bio,
+        creator.about,
+        ...(creator.languages || []),
         ...workWith,
         ...platformData.map((account) => account.name),
-      ].filter(Boolean).some((value) => String(value).toLowerCase().includes(text));
+      ].filter(Boolean).join(" ").toLowerCase();
+      const matchesText = !text || text.split(/\s+/).every((term) => searchable.includes(term));
 
       if (!isBrand) return matchesText;
 
@@ -192,17 +184,15 @@ export const DiscoverCreatorsPage = () => {
         selectedPlatforms.some((platform) => platformMatchesFilter(platform, account.name)),
       );
       const matchesFollowers = (creator.total_followers || 0) >= minFollowers;
-      const matchesLocation = !location || creator.location === location;
-      return matchesText && matchesCategory && matchesPlatform && matchesFollowers && matchesLocation;
+      const matchesLocation = (!country || creator.country?.toLowerCase() === country.toLowerCase())
+        && (!state || creator.state?.toLowerCase() === state.toLowerCase())
+        && (!city || creator.city?.toLowerCase() === city.toLowerCase());
+      const matchesLanguage = !language || creator.languages?.some((value) => value.toLowerCase() === language.toLowerCase());
+      return matchesText && matchesCategory && matchesPlatform && matchesFollowers && matchesLocation && matchesLanguage;
     });
 
-    return [...next].sort((a, b) => {
-      if (!isBrand) return 0;
-      if (sortBy === "followers") return (b.total_followers || 0) - (a.total_followers || 0);
-      if (sortBy === "newest") return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-      return (b.total_followers || 0) - (a.total_followers || 0);
-    });
-  }, [creators, isBrand, location, minFollowers, query, selectedCategories, selectedPlatforms, sortBy]);
+    return isBrand ? sortCreators(next, sortBy, query) : next;
+  }, [creators, isBrand, country, state, city, language, minFollowers, query, selectedCategories, selectedPlatforms, sortBy]);
   const visibleCreators = isBrand ? filteredCreators : filteredCreators.slice(0, 12);
 
   function toggleValue(value: string, setter: (value: string[]) => void, current: string[]) {
@@ -211,13 +201,15 @@ export const DiscoverCreatorsPage = () => {
 
   function clearFilters() {
     setQuery("");
-    setSortBy("relevance");
+    setSortBy("recommended");
     setSelectedCategories([]);
     setSelectedPlatforms([]);
     setMinFollowers(0);
-    setLocation("");
+    setCountry("");
+    setState("");
+    setCity("");
+    setLanguage("");
     setCategoryQuery("");
-    setLocationQuery("");
   }
 
 
@@ -237,7 +229,8 @@ export const DiscoverCreatorsPage = () => {
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search creators by name, handle or keywords..."
+                aria-label="Search creators by name, username, category, city, state, language or keyword"
+                placeholder="Search name, city, language or keywords..."
                 className="h-13 w-full rounded-[10px] border border-[#d8e2fb] bg-white px-14 text-sm font-bold text-[#334260] outline-none placeholder:text-[#cfdaff]"
               />
             </label>
@@ -248,13 +241,30 @@ export const DiscoverCreatorsPage = () => {
               {isBrand ? `${filteredCreators.length} of ${creators.length} creators found.` : `Showing ${visibleCreators.length} of ${filteredCreators.length} creators`}
             </p>
             {isBrand ? (
-              <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="h-9 rounded-[6px] border border-[#d8e2fb] bg-white px-3 text-sm font-bold text-[#65718a]">
-                <option value="relevance">Sort by: Relevance</option>
-                <option value="followers">Sort by: Followers</option>
-                <option value="newest">Sort by: Newest</option>
+              <select aria-label="Sort creators" value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="h-9 rounded-[6px] border border-[#d8e2fb] bg-white px-3 text-sm font-bold text-[#65718a]">
+                {creatorSortOptions.map(([value, label]) => <option key={value} value={value}>Sort by: {label}</option>)}
               </select>
             ) : null}
           </div>
+          {isBrand ? (
+            <section aria-label="Compare creators" className="mt-5 min-w-0 rounded-xl border border-[#d8e2fb] bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p aria-live="polite" className="text-sm font-bold text-[#334260]">Compare creators ({comparedCreators.length}/5) · Select 2–5 creators</p>
+                <div className="flex gap-3">
+                  <button type="button" disabled={!comparisonIds.length} onClick={() => { setComparisonIds([]); setShowComparison(false); }} className="text-sm font-bold text-[#65718a] disabled:opacity-40">Clear selection</button>
+                  <button type="button" aria-expanded={showComparison && comparedCreators.length >= 2} aria-controls="creator-comparison" disabled={comparedCreators.length < 2} onClick={() => setShowComparison((current) => !current)} className="rounded-lg bg-[#1438c8] px-4 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">{showComparison && comparedCreators.length >= 2 ? "Hide comparison" : "Compare selected"}</button>
+                </div>
+              </div>
+              {comparedCreators.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {comparedCreators.map((creator) => <button key={creator.creator_id} type="button" aria-label={`Remove ${creator.display_name} from comparison`} onClick={() => toggleComparison(creator.creator_id!)} className="rounded-full bg-[#eef2ff] px-3 py-1 text-sm font-semibold text-[#334260]">{creator.display_name} ×</button>)}
+                </div>
+              ) : null}
+              <div id="creator-comparison">
+                {showComparison && comparedCreators.length >= 2 ? <CreatorComparison creators={comparedCreators} onRemove={toggleComparison} /> : null}
+              </div>
+            </section>
+          ) : null}
           <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_minmax(300px,170px)] lg:items-start">
 
           {error ? <p className="mt-8 rounded-[8px] bg-white p-5 text-sm font-black text-[#b42318]">{error}</p> : null}
@@ -264,15 +274,20 @@ export const DiscoverCreatorsPage = () => {
               <p className="col-span-full py-10 text-center text-sm font-black text-[#65718a]">Loading creators...</p>
             ) : visibleCreators.length ? (
               visibleCreators.map((creator, index) => (
+                <div key={creator.creator_id || creator.username || `${creator.display_name}-${index}`} className="min-w-0">
                 <CreatorCard
                   key={creator.creator_id || creator.username || `${creator.display_name}-${index}`}
                   creator={creator}
                   index={index}
                   isBrand={isBrand}
-                  isSaved={Boolean(creator.creator_id && savedCreatorIds.includes(creator.creator_id))}
-                  // isSaving={savingCreatorId === creator.creator_id}
-                  onToggleSaved={toggleSavedCreator}
                 />
+                {isBrand ? (
+                  <label className="mt-2 flex items-center gap-2 rounded-lg border border-[#d8e2fb] bg-white px-3 py-2 text-sm font-bold text-[#334260]">
+                    <input type="checkbox" checked={!!creator.creator_id && comparisonIds.includes(creator.creator_id)} disabled={!creator.creator_id || (comparisonIds.length >= 5 && !comparisonIds.includes(creator.creator_id))} onChange={() => creator.creator_id && toggleComparison(creator.creator_id)} aria-label={`Compare ${creator.display_name}`} className="accent-[#1438c8]" />
+                    {!creator.creator_id ? "Private profile" : comparisonIds.length >= 5 && !comparisonIds.includes(creator.creator_id) ? "Comparison limit reached" : "Add to comparison"}
+                  </label>
+                ) : null}
+                </div>
               ))
             ) : (
               <p className="col-span-full py-10 text-center text-sm font-black text-[#65718a]">No creators match these filters.</p>
@@ -301,7 +316,7 @@ export const DiscoverCreatorsPage = () => {
                 <div className="grid grid-cols-2 gap-3 text-sm font-semibold text-[#65718a]">
                   {visibleCategoryOptions.map((category) => (
                     <label key={category} className="flex items-center gap-2">
-                      <input type="checkbox" checked={selectedCategories.includes(category)} onChange={() => toggleValue(category, setSelectedCategories, selectedCategories)} className="accent-[#7288ff]" />
+                      <input type="checkbox" checked={selectedCategories.includes(category)} onChange={() => { toggleValue(category, setSelectedCategories, selectedCategories); }} className="accent-[#7288ff]" />
                       {category}
                     </label>
                   ))}
@@ -328,26 +343,13 @@ export const DiscoverCreatorsPage = () => {
               </div>
               <div>
                 <h3 className="mb-3 text-sm font-black text-[#334260]">Location</h3>
-                <label className="mb-3 flex h-9 items-center gap-2 rounded-[6px] border border-[#d8e2fb] px-3 text-xs font-bold text-[#65718a]">
-                  <Search className="h-4 w-4" />
-                  <input
-                    value={locationQuery}
-                    onChange={(event) => setLocationQuery(event.target.value)}
-                    placeholder="Search Location..."
-                    className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-[#9aa7c4]"
-                  />
-                </label>
-                <div className="grid max-h-36 gap-2 overflow-y-auto text-sm font-semibold text-[#65718a]">
-                  <button type="button" onClick={() => setLocation("")} className={`rounded-[5px] border border-[#d8e2fb] px-3 py-2 text-left ${!location ? "bg-[#dfe7ff] text-[#334260]" : "bg-white"}`}>
-                    All locations
-                  </button>
-                  {visibleLocationOptions.map((item) => (
-                    <button key={item} type="button" onClick={() => setLocation(item)} className={`rounded-[5px] border border-[#d8e2fb] px-3 py-2 text-left ${location === item ? "bg-[#dfe7ff] text-[#334260]" : "bg-white"}`}>
-                      {item}
-                    </button>
-                  ))}
+                <div className="grid gap-3">
+                  <FilterSelect label="Country" value={country} options={filterOptions.countries} onChange={(value) => { setCountry(value); setState(""); setCity(""); }} />
+                  <FilterSelect label="State" value={state} options={filterOptions.states} onChange={(value) => { setState(value); setCity(""); }} />
+                  <FilterSelect label="City" value={city} options={filterOptions.cities} onChange={setCity} />
                 </div>
               </div>
+              <FilterSelect label="Language" value={language} options={filterOptions.languages} onChange={setLanguage} />
             </div>
           </aside>
         ) : (
@@ -360,6 +362,18 @@ export const DiscoverCreatorsPage = () => {
     </main>
         </>
     )
+}
+
+function FilterSelect({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (value: string) => void }) {
+  return (
+    <label className="grid gap-2 text-sm font-bold text-[#334260]">
+      {label}
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="h-10 w-full rounded-md border border-[#d8e2fb] bg-white px-3 text-[#65718a]">
+        <option value="">All {label.toLowerCase()} options</option>
+        {options.map((option) => <option key={option} value={option}>{option}</option>)}
+      </select>
+    </label>
+  );
 }
 
 function LockedFilters() {
@@ -376,7 +390,7 @@ function LockedFilters() {
         Sign in to continue
       </Link>
       <div className="mt-8 grid gap-4 text-sm font-bold text-[#25304a]">
-        {["Categories", "Platform", "Followers", "Location"].map((label) => (
+        {["Categories", "Platform", "Followers", "Location", "Language"].map((label) => (
           <div key={label} className="flex items-center justify-between">
             <span>{label}</span>
             <Lock className="h-4 w-4" />

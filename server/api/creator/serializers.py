@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from ..common.services import otp_target_variants
 
 from ..models import (
     CreatorProfile,
@@ -52,7 +53,7 @@ class CreatorRegisterSerializer(serializers.Serializer):
             missing["email"] = "Email OTP is not verified."
         if phone and not OtpVerification.objects.filter(
             channel=OtpChannel.PHONE,
-            target=phone,
+            target__in=otp_target_variants(OtpChannel.PHONE, phone),
             purpose="creator_registration",
             is_verified=True,
         ).exists():

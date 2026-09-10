@@ -9,7 +9,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import signing
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.db import transaction
 from django.shortcuts import redirect
 from django.utils import timezone
@@ -27,6 +27,7 @@ from ..notification import create_notification, notify_admins
 from ..permissions import IsCreator,IsBrand
 from ..common.services import auth_response, create_user, parse_payload
 from .serializers import CreatorProfileSerializer, CreatorRegisterSerializer
+from ..common.presence import get_last_seen, is_online
 from .services import fetch_youtube_analytics, fetch_youtube_videos, sync_youtube_account
 
 User = get_user_model()
@@ -103,6 +104,24 @@ def creator_address_response(creator):
         "postalCode": creator.postal_code,
         "streetAddress": creator.street_address,
     }
+
+
+def creator_discovery_address(creator):
+    legacy_parts = {}
+    for part in creator.location.split("|"):
+        key, separator, value = part.partition(":")
+        if separator:
+            legacy_parts[key.strip().lower()] = value.strip()
+    if not legacy_parts and "," in creator.location:
+        legacy_parts = dict(zip(("city", "state", "country"), [part.strip() for part in creator.location.split(",")]))
+    address = {
+        field: (getattr(creator, field) or legacy_parts.get(field, "")).strip()
+        for field in ("city", "state", "country")
+    }
+    address["location"] = ", ".join(dict.fromkeys(value for value in address.values() if value))
+    if not address["location"] and not legacy_parts:
+        address["location"] = creator.location.strip()
+    return address
 
 
 def resolve_oauth_client(request):
@@ -486,6 +505,7 @@ class CreatorProfileView(APIView):
             "collaboration_preferences":creator.collaboration_preferences
         }
         response.update(creator_address_response(creator))
+
 
         return Response({"creator": response})
 
@@ -977,6 +997,7 @@ class CreatorListViewSet(APIView):
         creators = (
             CreatorProfile.objects.select_related("user")
             .prefetch_related("social_accounts")
+            .annotate(completed_campaign_count=Count("applications", filter=Q(applications__status="ACCEPTED", applications__campaign__status="COMPLETED"), distinct=True))
             .order_by("-created_at")
         )
 
@@ -1005,9 +1026,37 @@ class CreatorListViewSet(APIView):
                 "is_profile_visible": is_profile_visible,
                 "created_at": creator.created_at.isoformat(),
             }
-            item.update(creator_address_response(creator))
+            item.update(creator_discovery_address(creator))
+            item["languages"] = creator.languages
+            item["bio"] = creator.bio
+            item["about"] = creator.about
+            item["platform_data"] = [
+                {"name": account.platform, "followers": account.followers}
+                for account in creator.social_accounts.all()
+            ]
             item["gender"] = creator.gender
+            item["campaigns_completed"] = creator.completed_campaign_count
+            accounts = list(creator.social_accounts.all())
+            item["avg_eng_rate"] = round(sum(account.engagement_rate for account in accounts) / len(accounts), 2) if accounts else None
+            item["is_online"] = is_online(creator.user_id)
+            item["last_active_at"] = get_last_seen(creator.user_id) or (creator.user.last_login.isoformat() if creator.user.last_login else None)
 
+            search = request.query_params.get("search", "").strip().casefold()
+            searchable = " ".join(str(value) for value in [
+                item["display_name"], item["username"], item["category"],
+                item["location"], item["bio"], item["about"], *item["languages"], *creator.work_with,
+            ]).casefold()
+            if search and not all(term in searchable for term in search.split()):
+                continue
+            if any(
+                request.query_params.get(field, "").strip()
+                and item[field].casefold() != request.query_params[field].strip().casefold()
+                for field in ("city", "state", "country", "category")
+            ):
+                continue
+            language = request.query_params.get("language", "").strip().casefold()
+            if language and language not in [value.casefold() for value in creator.languages]:
+                continue
             data.append(item)
 
         return Response({"creators": data})

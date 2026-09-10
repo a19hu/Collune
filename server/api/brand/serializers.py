@@ -19,7 +19,7 @@ class BrandRegisterSerializer(serializers.Serializer):
     website = serializers.URLField(required=False, allow_blank=True)
     company_size = serializers.CharField(max_length=64, required=False, allow_blank=True)
     linkedin_url = serializers.URLField(required=False, allow_blank=True)
-    about_brand = serializers.CharField(required=False, allow_blank=True, min_length=500, max_length=1000)
+    about_brand = serializers.CharField(required=False, allow_blank=True, min_length=100, max_length=1000)
     gst_number = serializers.CharField(max_length=64, required=False, allow_blank=True)
     cin_registration_number = serializers.CharField(max_length=64, required=False, allow_blank=True)
     year_established = serializers.IntegerField(required=False, allow_null=True)

@@ -581,9 +581,16 @@ export type CreatorListPlatformApi = {
 };
 
 export type CreatorListItemApi = {
+  campaigns_completed?: number;
+  avg_eng_rate?: number | null;
+  is_online?: boolean;
+  last_active_at?: string | null;
   creator_id: string | null;
   display_name: string;
   category: string;
+  languages?: string[];
+  bio?: string;
+  about?: string;
   verified?: boolean;
   username?: string;
   profile_image: string | null;

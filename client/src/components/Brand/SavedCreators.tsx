@@ -4,8 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { Panel } from "../../HtmlComponents/BrandCard";
 import { CreatorCard } from "../../HtmlComponents/CreatorCard";
-import { showProjectToast } from "../../HtmlComponents/HtmlRoster";
-import { getBrandSavedCreators, removeBrandSavedCreator } from "../../lib/authApi";
+import { getBrandSavedCreators } from "../../lib/authApi";
 import type { BrandSavedCreatorApi } from "../../types";
 
 function mapSavedCreatorToCard(savedCreator: BrandSavedCreatorApi) {
@@ -22,7 +21,6 @@ export default function SavedCreators() {
   const navigate = useNavigate();
   const [savedCreators, setSavedCreators] = useState<BrandSavedCreatorApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [removingId, setRemovingId] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -48,25 +46,6 @@ export default function SavedCreators() {
       mounted = false;
     };
   }, []);
-
-  const removeCreator = async (savedCreator: BrandSavedCreatorApi) => {
-    const creatorId = savedCreator.creator.id;
-    if (!creatorId) return;
-
-    setRemovingId(savedCreator.saved_id);
-    setError("");
-    try {
-      await removeBrandSavedCreator(creatorId);
-      setSavedCreators((items) => items.filter((item) => item.saved_id !== savedCreator.saved_id));
-      showProjectToast("info", "Creator removed", "The creator has been removed from your saved list.");
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to remove saved creator.";
-      setError(message);
-      showProjectToast("error", "Remove failed", message);
-    } finally {
-      setRemovingId("");
-    }
-  };
 
   if (isLoading) {
     return (
@@ -115,9 +94,6 @@ export default function SavedCreators() {
               creator={creator}
               index={index}
               isBrand
-              isSaved
-              isSaving={removingId === savedCreator.saved_id}
-              onToggleSaved={() => removeCreator(savedCreator)}
             />
             <button
               type="button"
