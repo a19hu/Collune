@@ -21,12 +21,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..models import (
-    ApplicationStatus, Campaign, CampaignApplication, CreatorProfile, CreatorSavedCampaign, CreatorSocialAccount, SocialPlatform, UserRole, VerificationStatus,
+    ApplicationStatus, Campaign, CampaignApplication, CreatorPortfolio, CreatorProfile, CreatorSavedCampaign, CreatorSocialAccount, CreatorSocialMediaPricing, SocialPlatform, UserRole, VerificationStatus,
 )
 from ..notification import create_notification, notify_admins
 from ..permissions import IsCreator,IsBrand
 from ..common.services import auth_response, create_user, parse_payload
-from .serializers import CreatorProfileSerializer, CreatorRegisterSerializer
+from .serializers import CreatorPortfolioSerializer, CreatorProfileSerializer, CreatorRegisterSerializer, CreatorSocialMediaPricingSerializer
 from ..common.presence import get_last_seen, is_online
 from .services import fetch_youtube_analytics, fetch_youtube_videos, sync_youtube_account
 
@@ -590,6 +590,111 @@ class CreatorProfileView(APIView):
             status=status.HTTP_200_OK,
         )
 
+class CreatorPortfolioView(APIView):
+    """Manage portfolio entries belonging to the authenticated creator."""
+
+    permission_classes = [IsAuthenticated, IsCreator]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get_creator(self, request):
+        return getattr(request.user, "creator_profile", None)
+
+    def get(self, request, portfolio_id=None):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+
+        queryset = creator.portfolio_items.all().order_by("-id")
+        if portfolio_id:
+            try:
+                portfolio = queryset.get(id=portfolio_id)
+            except CreatorPortfolio.DoesNotExist:
+                return Response({"error": "Portfolio item not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"portfolio": CreatorPortfolioSerializer(portfolio, context={"request": request}).data})
+        return Response({"portfolio": CreatorPortfolioSerializer(queryset, many=True, context={"request": request}).data})
+
+    def post(self, request):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CreatorPortfolioSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        portfolio = serializer.save(creator=creator)
+        return Response({"portfolio": CreatorPortfolioSerializer(portfolio, context={"request": request}).data}, status=status.HTTP_201_CREATED)
+
+    def patch(self, request, portfolio_id):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            portfolio = creator.portfolio_items.get(id=portfolio_id)
+        except CreatorPortfolio.DoesNotExist:
+            return Response({"error": "Portfolio item not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CreatorPortfolioSerializer(portfolio, data=request.data, partial=True, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        portfolio = serializer.save()
+        return Response({"portfolio": CreatorPortfolioSerializer(portfolio, context={"request": request}).data})
+
+    def delete(self, request, portfolio_id):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        deleted, _ = creator.portfolio_items.filter(id=portfolio_id).delete()
+        if not deleted:
+            return Response({"error": "Portfolio item not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CreatorSocialMediaPricingView(APIView):
+    permission_classes = [IsAuthenticated, IsCreator]
+
+    def get_creator(self, request):
+        return getattr(request.user, "creator_profile", None)
+
+    def get(self, request, pricing_id=None):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        queryset = creator.social_accounts_pricing.all().order_by("social_media_name")
+        if pricing_id:
+            try:
+                pricing = queryset.get(id=pricing_id)
+            except CreatorSocialMediaPricing.DoesNotExist:
+                return Response({"error": "Pricing item not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"pricing": CreatorSocialMediaPricingSerializer(pricing).data})
+        return Response({"pricing": CreatorSocialMediaPricingSerializer(queryset, many=True).data})
+
+    def post(self, request):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CreatorSocialMediaPricingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        pricing = serializer.save(creator=creator)
+        return Response({"pricing": CreatorSocialMediaPricingSerializer(pricing).data}, status=status.HTTP_201_CREATED)
+
+    def patch(self, request, pricing_id):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            pricing = creator.social_accounts_pricing.get(id=pricing_id)
+        except CreatorSocialMediaPricing.DoesNotExist:
+            return Response({"error": "Pricing item not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CreatorSocialMediaPricingSerializer(pricing, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        return Response({"pricing": CreatorSocialMediaPricingSerializer(serializer.save()).data})
+
+    def delete(self, request, pricing_id):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        deleted, _ = creator.social_accounts_pricing.filter(id=pricing_id).delete()
+        if not deleted:
+            return Response({"error": "Pricing item not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class CampaignApplicationViewSet(APIView):
     permission_classes = [IsAuthenticated,IsCreator]
 
@@ -919,7 +1024,7 @@ class CreatorListViewSet(APIView):
         try:
             creator = (
                 CreatorProfile.objects.select_related("user")
-                .prefetch_related("social_accounts")
+                .prefetch_related("social_accounts", "portfolio_items", "social_accounts_pricing")
                 .get(
                     creator_id=creator_id,
                     user__is_profile_visible=True,
@@ -979,6 +1084,12 @@ class CreatorListViewSet(APIView):
             "collaboration_preferences": creator.collaboration_preferences,
             "total_followers": total_followers,
             "platform_data": platforms,
+            "portfolio": CreatorPortfolioSerializer(
+                creator.portfolio_items.all(), many=True, context={"request": request}
+            ).data,
+            "pricing": CreatorSocialMediaPricingSerializer(
+                creator.social_accounts_pricing.filter(is_visible=True), many=True
+            ).data,
         }
         response.update(creator_address_response(creator))
 

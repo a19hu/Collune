@@ -348,7 +348,11 @@ export default function ChatPage() {
 
         setConversations(nextConversations);
         setPresenceMap((prev) => ({ ...prev, ...extractPresence(nextConversations) }));
-        const chosenId = selectedConversationId || nextConversations[0]?.conversation_id || "";
+        // Confirm the URL ID is one of this user's conversations before using
+        // it for message requests or a WebSocket connection.
+        const chosenId = nextConversations.some((item) => item.conversation_id === selectedConversationId)
+          ? selectedConversationId
+          : nextConversations[0]?.conversation_id || "";
         if (chosenId) setActiveConversationId(chosenId);
       })
       .catch((error) => {

@@ -47,6 +47,8 @@ from .chat.views import ChatConversationListCreateView, ChatConversationReadView
 from .creator.views import (
     CampaignApplicationViewSet,
     CreatorProfileView,
+    CreatorPortfolioView,
+    CreatorSocialMediaPricingView,
     CreatorRegisterView,
     FacebookCallbackView,
     FacebookConnectView,
@@ -92,6 +94,10 @@ urlpatterns = [
 
     path("auth/brand/profile/", BrandProfileView.as_view(), name="brand_profile"),
     path("auth/creator/profile/", CreatorProfileView.as_view(), name="creator_profile"),
+    path("auth/creator/portfolio/", CreatorPortfolioView.as_view(), name="creator_portfolio"),
+    path("auth/creator/portfolio/<uuid:portfolio_id>/", CreatorPortfolioView.as_view(), name="creator_portfolio_detail"),
+    path("auth/creator/pricing/", CreatorSocialMediaPricingView.as_view(), name="creator_pricing"),
+    path("auth/creator/pricing/<uuid:pricing_id>/", CreatorSocialMediaPricingView.as_view(), name="creator_pricing_detail"),
 
     path("brands/dashboard/", BrandDetailDashboardView.as_view(), name="brand_dashboard"),
     path("brands/logo-carousel/", BrandLogoCarouselView.as_view(), name="brand_logo_carousel"),

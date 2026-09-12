@@ -624,6 +624,26 @@ export type CreatorPublicProfileApi = CreatorListItemApi & {
   total_view_count?: number;
   total_media_count?: number;
   collaboration_preferences?: string[];
+  portfolio?: CreatorPortfolioApi[];
+  pricing?: CreatorSocialMediaPricingApi[];
+};
+
+export type CreatorPortfolioApi = {
+  id: string;
+  title: string;
+  sub_title: string;
+  link: string;
+  image: string | null;
+  image_url: string;
+  video: string | null;
+  video_url: string;
+};
+
+export type CreatorSocialMediaPricingApi = {
+  id: string;
+  social_media_name: string;
+  social_media_pricing: number;
+  is_visible: boolean;
 };
 
 export type BrandRegisterPayload = {

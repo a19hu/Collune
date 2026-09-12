@@ -20,6 +20,8 @@ import type {
   CreatorDashboardApi,
   CreatorListItemApi,
   CreatorPublicProfileApi,
+  CreatorPortfolioApi,
+  CreatorSocialMediaPricingApi,
   CreatorProfileApi,
   CreatorRegisterPayload,
   CreatorRegisterResponse,
@@ -334,6 +336,44 @@ export async function getCreatorPublicProfile(creatorId: string) {
 export async function updateCreatorProfile(payload: FormData) {
   await apiPatchForm<{ message: string }>("/auth/creator/profile/", payload, true);
   return getCreatorProfile();
+}
+
+export async function getCreatorPortfolio() {
+  const data = await apiRequest<{ portfolio: CreatorPortfolioApi[] }>("/auth/creator/portfolio/", {}, true);
+  return data.portfolio;
+}
+
+export async function createCreatorPortfolio(payload: FormData) {
+  const data = await apiPostForm<{ portfolio: CreatorPortfolioApi }>("/auth/creator/portfolio/", payload, true);
+  return data.portfolio;
+}
+
+export async function updateCreatorPortfolio(id: string, payload: FormData) {
+  const data = await apiPatchForm<{ portfolio: CreatorPortfolioApi }>(`/auth/creator/portfolio/${id}/`, payload, true);
+  return data.portfolio;
+}
+
+export async function deleteCreatorPortfolio(id: string) {
+  await apiDelete<never>(`/auth/creator/portfolio/${id}/`, undefined, true);
+}
+
+export async function getCreatorPricing() {
+  const data = await apiRequest<{ pricing: CreatorSocialMediaPricingApi[] }>("/auth/creator/pricing/", {}, true);
+  return data.pricing;
+}
+
+export async function createCreatorPricing(payload: Omit<CreatorSocialMediaPricingApi, "id">) {
+  const data = await apiPost<{ pricing: CreatorSocialMediaPricingApi }>("/auth/creator/pricing/", payload, true);
+  return data.pricing;
+}
+
+export async function updateCreatorPricing(id: string, payload: Omit<CreatorSocialMediaPricingApi, "id">) {
+  const data = await apiPatch<{ pricing: CreatorSocialMediaPricingApi }>(`/auth/creator/pricing/${id}/`, payload, true);
+  return data.pricing;
+}
+
+export async function deleteCreatorPricing(id: string) {
+  await apiDelete<never>(`/auth/creator/pricing/${id}/`, undefined, true);
 }
 
 function oauthReturnQuery(returnTo?: "registration") {

@@ -3,6 +3,8 @@ from ..common.services import otp_target_variants
 
 from ..models import (
     CreatorProfile,
+    CreatorPortfolio,
+    CreatorSocialMediaPricing,
     CreatorSocialAccount,
     OtpChannel,
     OtpVerification,
@@ -103,6 +105,36 @@ class CreatorSocialAccountSerializer(serializers.ModelSerializer):
             "last_synced_at",
             "created_at",
         ]
+
+
+class CreatorPortfolioSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    video_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CreatorPortfolio
+        fields = ["id", "title", "sub_title", "link", "image", "image_url", "video", "video_url"]
+        read_only_fields = ["id", "image_url", "video_url"]
+
+    def _file_url(self, obj, field_name):
+        file = getattr(obj, field_name)
+        if not file:
+            return ""
+        request = self.context.get("request")
+        return request.build_absolute_uri(file.url) if request else file.url
+
+    def get_image_url(self, obj):
+        return self._file_url(obj, "image")
+
+    def get_video_url(self, obj):
+        return self._file_url(obj, "video")
+
+
+class CreatorSocialMediaPricingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CreatorSocialMediaPricing
+        fields = ["id", "social_media_name", "social_media_pricing", "is_visible"]
+        read_only_fields = ["id"]
 
 class CreatorProfileSerializer(serializers.ModelSerializer):
     user = AuthUserSerializer(read_only=True)

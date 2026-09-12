@@ -229,17 +229,17 @@ class CreatorProfile(models.Model):
         return self.display_name
 
 class CreatorSocialMediaPricing(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="social_accounts_pricing")
     is_visible = models.BooleanField(default=False)
-    social_midia_name = models.TextField(blank=True, default="")
-    social_media_pricing = models.PositiveSmallIntegerField(default=0.0)
+    social_media_name = models.CharField(max_length=100, blank=True, default="")
+    social_media_pricing = models.PositiveIntegerField(default=0)
 
 class CreatorPortfolio(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
-    creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="social_accounts_pricing")
-    title = models.TextField(blank=True, default="", max_length=20)
-    sub_title = models.TextField(blank=True, default="", max_length=100)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="portfolio_items")
+    title = models.CharField(max_length=100, blank=True, default="")
+    sub_title = models.CharField(max_length=255, blank=True, default="")
     link = models.URLField(blank=True, default="")
     video = models.FileField(
         upload_to="creators/profiles/portfolio/videos/",

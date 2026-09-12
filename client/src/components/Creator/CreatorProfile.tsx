@@ -9,6 +9,7 @@ import {
   Loader2,
   MapPin,
   Save,
+  Trash2,
   Twitter,
   Upload,
   UserRound,
@@ -17,12 +18,20 @@ import {
 import {
   getFacebookConnectUrl,
   getCreatorProfile,
+  createCreatorPortfolio,
+  createCreatorPricing,
+  deleteCreatorPortfolio,
+  deleteCreatorPricing,
+  getCreatorPortfolio,
+  getCreatorPricing,
   getInstagramConnectUrl,
   getXConnectUrl,
   getYouTubeConnectUrl,
   updateCreatorProfile,
+  updateCreatorPortfolio,
+  updateCreatorPricing,
 } from "../../lib/authApi";
-import type { CreatorListPlatformApi, CreatorProfileApi, CreatorSocialPlatform } from "../../types";
+import type { CreatorListPlatformApi, CreatorPortfolioApi, CreatorProfileApi, CreatorSocialMediaPricingApi, CreatorSocialPlatform } from "../../types";
 import { AddressComposer, formatLocationParts, getLocationDisplayValue, parseLocationParts } from "../../pages/StepsCreatorRegister";
 import { showProjectToast } from "../../HtmlComponents/HtmlRoster";
 
@@ -38,6 +47,12 @@ type EditForm = {
   is_profile_visible: boolean;
   profile_image: File | null;
 };
+
+type NewPortfolioForm = { title: string; sub_title: string; link: string; image: File | null; video: File | null };
+type NewPricingForm = Omit<CreatorSocialMediaPricingApi, "id">;
+
+const emptyPortfolioForm: NewPortfolioForm = { title: "", sub_title: "", link: "", image: null, video: null };
+const emptyPricingForm: NewPricingForm = { social_media_name: "", social_media_pricing: 0, is_visible: false };
 
 const platformMeta: Record<CreatorSocialPlatform, { label: string; color: string; Icon: typeof Instagram }> = {
   INSTAGRAM: { label: "Instagram", color: "bg-[#e1306c]", Icon: Instagram },
@@ -166,16 +181,24 @@ export function CreatorProfile() {
   const [connectingPlatform, setConnectingPlatform] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [portfolio, setPortfolio] = useState<CreatorPortfolioApi[]>([]);
+  const [pricing, setPricing] = useState<CreatorSocialMediaPricingApi[]>([]);
+  const [newPortfolio, setNewPortfolio] = useState<NewPortfolioForm>(emptyPortfolioForm);
+  const [newPricing, setNewPricing] = useState<NewPricingForm>(emptyPricingForm);
+  const [isManagingPortfolio, setIsManagingPortfolio] = useState(false);
+  const [isManagingPricing, setIsManagingPricing] = useState(false);
 
   useEffect(() => {
     let mounted = true;
     setIsLoading(true);
 
-    getCreatorProfile()
-      .then((data) => {
+    Promise.all([getCreatorProfile(), getCreatorPortfolio(), getCreatorPricing()])
+      .then(([data, portfolioItems, pricingItems]) => {
         if (!mounted) return;
         setProfile(data);
         setForm(toEditForm(data));
+        setPortfolio(portfolioItems);
+        setPricing(pricingItems);
 
         const params = new URLSearchParams(window.location.search);
         const connected = ["instagram", "youtube", "facebook", "x"].find((key) => params.get(key) === "connected");
@@ -270,6 +293,72 @@ export function CreatorProfile() {
       showProjectToast("error", "Connection failed", message);
       setConnectingPlatform("");
     }
+  }
+
+  async function addPortfolio() {
+    if (!newPortfolio.title.trim() && !newPortfolio.image && !newPortfolio.video && !newPortfolio.link.trim()) return;
+    setIsManagingPortfolio(true);
+    try {
+      const body = new FormData();
+      body.append("title", newPortfolio.title);
+      body.append("sub_title", newPortfolio.sub_title);
+      body.append("link", newPortfolio.link);
+      if (newPortfolio.image) body.append("image", newPortfolio.image);
+      if (newPortfolio.video) body.append("video", newPortfolio.video);
+      const item = await createCreatorPortfolio(body);
+      setPortfolio((current) => [item, ...current]);
+      setNewPortfolio(emptyPortfolioForm);
+      showProjectToast("success", "Portfolio item added", "Your work is ready for your public profile.");
+    } catch (err) {
+      showProjectToast("error", "Could not add portfolio item", err instanceof Error ? err.message : "Please try again.");
+    } finally { setIsManagingPortfolio(false); }
+  }
+
+  async function savePortfolioItem(item: CreatorPortfolioApi) {
+    setIsManagingPortfolio(true);
+    try {
+      const body = new FormData();
+      body.append("title", item.title);
+      body.append("sub_title", item.sub_title);
+      body.append("link", item.link);
+      const updated = await updateCreatorPortfolio(item.id, body);
+      setPortfolio((current) => current.map((value) => value.id === updated.id ? updated : value));
+      showProjectToast("success", "Portfolio item updated", "Changes saved.");
+    } catch (err) { showProjectToast("error", "Could not update portfolio", err instanceof Error ? err.message : "Please try again."); }
+    finally { setIsManagingPortfolio(false); }
+  }
+
+  async function removePortfolioItem(id: string) {
+    setIsManagingPortfolio(true);
+    try { await deleteCreatorPortfolio(id); setPortfolio((current) => current.filter((item) => item.id !== id)); }
+    catch (err) { showProjectToast("error", "Could not delete portfolio item", err instanceof Error ? err.message : "Please try again."); }
+    finally { setIsManagingPortfolio(false); }
+  }
+
+  async function addPricing() {
+    if (!newPricing.social_media_name.trim()) return;
+    setIsManagingPricing(true);
+    try {
+      const item = await createCreatorPricing({ ...newPricing, social_media_pricing: Number(newPricing.social_media_pricing) || 0 });
+      setPricing((current) => [...current, item]); setNewPricing(emptyPricingForm);
+    } catch (err) { showProjectToast("error", "Could not add pricing", err instanceof Error ? err.message : "Please try again."); }
+    finally { setIsManagingPricing(false); }
+  }
+
+  async function savePricingItem(item: CreatorSocialMediaPricingApi) {
+    setIsManagingPricing(true);
+    try {
+      const updated = await updateCreatorPricing(item.id, { social_media_name: item.social_media_name, social_media_pricing: Number(item.social_media_pricing) || 0, is_visible: item.is_visible });
+      setPricing((current) => current.map((value) => value.id === updated.id ? updated : value));
+    } catch (err) { showProjectToast("error", "Could not update pricing", err instanceof Error ? err.message : "Please try again."); }
+    finally { setIsManagingPricing(false); }
+  }
+
+  async function removePricingItem(id: string) {
+    setIsManagingPricing(true);
+    try { await deleteCreatorPricing(id); setPricing((current) => current.filter((item) => item.id !== id)); }
+    catch (err) { showProjectToast("error", "Could not delete pricing", err instanceof Error ? err.message : "Please try again."); }
+    finally { setIsManagingPricing(false); }
   }
 
   if (isLoading) {
@@ -432,6 +521,59 @@ export function CreatorProfile() {
                   No social accounts connected yet.
                 </div>
               )}
+            </div>
+          </Card>
+
+          <Card className="p-5" id="portfolio">
+            <div>
+              <h2 className="text-xl font-black text-[#172554]">Portfolio</h2>
+              <p className="mt-1 text-sm font-semibold text-[#63708a]">Add work samples that appear on your public profile.</p>
+            </div>
+            <div className="mt-5 grid gap-3 rounded-[6px] bg-[#f8faff] p-4 md:grid-cols-2">
+              <TextInput label="Title" value={newPortfolio.title} onChange={(title) => setNewPortfolio((value) => ({ ...value, title }))} placeholder="Campaign title" />
+              <TextInput label="Subtitle" value={newPortfolio.sub_title} onChange={(sub_title) => setNewPortfolio((value) => ({ ...value, sub_title }))} placeholder="Brand or campaign" />
+              <TextInput label="External link" value={newPortfolio.link} onChange={(link) => setNewPortfolio((value) => ({ ...value, link }))} placeholder="https://..." />
+              <div className="grid gap-2">
+                <FieldLabel>Media</FieldLabel>
+                <div className="flex flex-wrap gap-2">
+                  <label className="cursor-pointer rounded-[6px] border border-[#d7deea] bg-white px-3 py-2 text-xs font-black text-[#173ca8]">Image<input type="file" accept="image/*" className="hidden" onChange={(event) => setNewPortfolio((value) => ({ ...value, image: event.target.files?.[0] || null }))} /></label>
+                  <label className="cursor-pointer rounded-[6px] border border-[#d7deea] bg-white px-3 py-2 text-xs font-black text-[#173ca8]">Video<input type="file" accept=".mp4,.mov,.avi,.webm,video/*" className="hidden" onChange={(event) => setNewPortfolio((value) => ({ ...value, video: event.target.files?.[0] || null }))} /></label>
+                  <span className="self-center text-xs font-semibold text-[#63708a]">{newPortfolio.image?.name || newPortfolio.video?.name || "Optional"}</span>
+                </div>
+              </div>
+              <button type="button" onClick={() => void addPortfolio()} disabled={isManagingPortfolio} className="h-11 self-end rounded-[6px] bg-[#2447bd] px-4 text-sm font-black text-white disabled:opacity-60">Add portfolio item</button>
+            </div>
+            <div className="mt-4 grid gap-3">
+              {portfolio.length ? portfolio.map((item) => (
+                <div key={item.id} className="grid gap-3 rounded-[6px] border border-[#dbe3ee] p-4 md:grid-cols-[96px_1fr_auto]">
+                  <div className="aspect-square overflow-hidden rounded-[5px] bg-[#eef4ff]">{item.image_url ? <img src={item.image_url} alt={item.title} className="h-full w-full object-cover" /> : item.video_url ? <video src={item.video_url} className="h-full w-full object-cover" muted /> : null}</div>
+                  <div className="grid gap-2 md:grid-cols-3">
+                    <input value={item.title} onChange={(event) => setPortfolio((current) => current.map((value) => value.id === item.id ? { ...value, title: event.target.value } : value))} aria-label="Portfolio title" className="h-10 rounded-[6px] border border-[#d7deea] px-3 text-sm" />
+                    <input value={item.sub_title} onChange={(event) => setPortfolio((current) => current.map((value) => value.id === item.id ? { ...value, sub_title: event.target.value } : value))} aria-label="Portfolio subtitle" className="h-10 rounded-[6px] border border-[#d7deea] px-3 text-sm" />
+                    <input value={item.link} onChange={(event) => setPortfolio((current) => current.map((value) => value.id === item.id ? { ...value, link: event.target.value } : value))} aria-label="Portfolio link" className="h-10 rounded-[6px] border border-[#d7deea] px-3 text-sm" />
+                  </div>
+                  <div className="flex gap-2"><button type="button" onClick={() => void savePortfolioItem(item)} disabled={isManagingPortfolio} className="rounded-[6px] border border-[#c9d7ff] px-3 text-xs font-black text-[#173ca8]">Save</button><button type="button" onClick={() => void removePortfolioItem(item.id)} disabled={isManagingPortfolio} className="rounded-[6px] border border-[#f5c2c7] px-3 text-[#b42318]"><Trash2 className="h-4 w-4" /></button></div>
+                </div>
+              )) : <p className="text-sm font-semibold text-[#63708a]">No portfolio items yet.</p>}
+            </div>
+          </Card>
+
+          <Card className="p-5" id="pricing">
+            <h2 className="text-xl font-black text-[#172554]">Social media pricing</h2>
+            <p className="mt-1 text-sm font-semibold text-[#63708a]">Toggle visibility to control which rates are shown publicly.</p>
+            <div className="mt-5 grid gap-3 rounded-[6px] bg-[#f8faff] p-4 md:grid-cols-[1fr_180px_auto_auto]">
+              <input value={newPricing.social_media_name} onChange={(event) => setNewPricing((value) => ({ ...value, social_media_name: event.target.value }))} placeholder="Instagram Reel" className="h-11 rounded-[6px] border border-[#d7deea] px-3 text-sm" />
+              <input type="number" min="0" value={newPricing.social_media_pricing} onChange={(event) => setNewPricing((value) => ({ ...value, social_media_pricing: Number(event.target.value) }))} placeholder="Price" className="h-11 rounded-[6px] border border-[#d7deea] px-3 text-sm" />
+              <label className="inline-flex items-center gap-2 text-sm font-bold text-[#25304a]"><input type="checkbox" checked={newPricing.is_visible} onChange={(event) => setNewPricing((value) => ({ ...value, is_visible: event.target.checked }))} /> Visible publicly</label>
+              <button type="button" onClick={() => void addPricing()} disabled={isManagingPricing} className="h-11 rounded-[6px] bg-[#2447bd] px-4 text-sm font-black text-white disabled:opacity-60">Add price</button>
+            </div>
+            <div className="mt-4 grid gap-3">
+              {pricing.length ? pricing.map((item) => <div key={item.id} className="grid items-center gap-3 rounded-[6px] border border-[#dbe3ee] p-4 md:grid-cols-[1fr_180px_auto_auto]">
+                <input value={item.social_media_name} onChange={(event) => setPricing((current) => current.map((value) => value.id === item.id ? { ...value, social_media_name: event.target.value } : value))} className="h-10 rounded-[6px] border border-[#d7deea] px-3 text-sm" />
+                <input type="number" min="0" value={item.social_media_pricing} onChange={(event) => setPricing((current) => current.map((value) => value.id === item.id ? { ...value, social_media_pricing: Number(event.target.value) } : value))} className="h-10 rounded-[6px] border border-[#d7deea] px-3 text-sm" />
+                <label className="inline-flex items-center gap-2 text-sm font-bold text-[#25304a]"><input type="checkbox" checked={item.is_visible} onChange={(event) => setPricing((current) => current.map((value) => value.id === item.id ? { ...value, is_visible: event.target.checked } : value))} /> Visible</label>
+                <div className="flex gap-2"><button type="button" onClick={() => void savePricingItem(item)} disabled={isManagingPricing} className="rounded-[6px] border border-[#c9d7ff] px-3 py-2 text-xs font-black text-[#173ca8]">Save</button><button type="button" onClick={() => void removePricingItem(item.id)} disabled={isManagingPricing} className="rounded-[6px] border border-[#f5c2c7] px-3 text-[#b42318]"><Trash2 className="h-4 w-4" /></button></div>
+              </div>) : <p className="text-sm font-semibold text-[#63708a]">No pricing entries yet.</p>}
             </div>
           </Card>
         </main>
