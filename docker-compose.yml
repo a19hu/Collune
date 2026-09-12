@@ -2,7 +2,7 @@ services:
   server:
     build: 
       context: ./server
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     depends_on:
@@ -25,8 +25,8 @@ services:
   celery_worker:
     build: 
       context: ./server
-      dockerfile: dockerfile
-    command: celery -A server worker -l info
+      dockerfile: Dockerfile
+    command: celery -A api.message_queue worker -l info
     depends_on:
       - db
       - redis

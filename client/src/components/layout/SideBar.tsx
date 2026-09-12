@@ -23,7 +23,7 @@ const navByMode = {
     { label: "Dashboard", to: "/brand", icon: Home },
     { label: "Profile", to: "/brand/profile", icon: UserRound },
     { label: "Campaigns", to: "/brand/campaigns", icon: FileText },
-    { label: "Discover Creators", to: "/discover-creators", icon: Users },
+    { label: "Discover Creators", to: "/brand/discover-creators", icon: Users },
     { label: "Saved Creators", to: "/brand/saved-creators", icon: Star, lockedWhenUnverified: true },
     { label: "Messages", to: "/brand/chat", icon: MessageCircle, lockedWhenUnverified: true },
     { label: "Notifications", to: "/brand/notifications", icon: Bell },

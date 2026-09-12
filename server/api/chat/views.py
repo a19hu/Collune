@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
@@ -13,6 +14,7 @@ from ..notification import create_notification
 from ..permissions import IsBrand, IsCreator
 from .serializers import ChatConversationCreateSerializer, ChatConversationSerializer, ChatMessageSerializer
 from .services import broadcast_chat_inbox_event, broadcast_chat_message
+from ..message_queue.tasks import email_unread_chat_reminder
 
 
 class ChatAccessMixin:
@@ -80,6 +82,12 @@ class ChatMessageListCreateView(ChatAccessMixin, APIView):
             conversation=conversation,
             sender=request.user,
             content=content,
+        )
+        transaction.on_commit(
+            lambda: email_unread_chat_reminder.apply_async(
+                args=[str(message.message_id)],
+                countdown=settings.CHAT_UNREAD_EMAIL_REMINDER_DELAY_SECONDS,
+            )
         )
         conversation.updated_at = timezone.now()
         conversation.save(update_fields=["updated_at"])

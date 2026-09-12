@@ -3,6 +3,7 @@ import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
+from django.core.validators import FileExtensionValidator
 
 
 class UserRole(models.TextChoices):
@@ -227,6 +228,34 @@ class CreatorProfile(models.Model):
     def __str__(self):
         return self.display_name
 
+class CreatorSocialMediaPricing(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
+    creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="social_accounts_pricing")
+    is_visible = models.BooleanField(default=False)
+    social_midia_name = models.TextField(blank=True, default="")
+    social_media_pricing = models.PositiveSmallIntegerField(default=0.0)
+
+class CreatorPortfolio(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
+    creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="social_accounts_pricing")
+    title = models.TextField(blank=True, default="", max_length=20)
+    sub_title = models.TextField(blank=True, default="", max_length=100)
+    link = models.URLField(blank=True, default="")
+    video = models.FileField(
+        upload_to="creators/profiles/portfolio/videos/",
+        blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["mp4", "mov", "avi", "webm"]
+            )
+        ]
+    )
+    image = models.ImageField(
+        upload_to="creators/profiles/portfolio/images/",
+        blank=True,
+        null=True
+    )
 
 class CreatorSocialAccount(models.Model):
     account_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

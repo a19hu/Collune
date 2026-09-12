@@ -336,6 +336,19 @@ export const SideBarLayout = () => {
         ),
       },
       {
+        matches: () => pathname === "/brand/discover-creators",
+        render: () => (
+          <DashboardTopBar
+            title="Discover Creators"
+            status={brandStatus}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+          />
+        ),
+      },
+      {
         matches: () => pathname === "/brand/saved-creators",
         render: () => (
           <DashboardTopBar

@@ -3,6 +3,7 @@ import logging
 import os
 import string
 from datetime import timedelta
+from html import escape
 
 import requests
 from django.contrib.auth import get_user_model
@@ -154,13 +155,41 @@ def brevo_headers():
         "content-type": "application/json",
     }
 
-def send_brevo_email_otp(target, code):
+
+def send_brevo_email(target, subject, html_content, text_content=""):
+    """Send an email through Brevo's transactional-email API."""
     sender_email = get_env("BREVO_EMAIL_SENDER") or get_env("DEFAULT_FROM_EMAIL")
     if not sender_email:
         raise RuntimeError("DEFAULT_FROM_EMAIL is not configured.")
-    sender_name = get_env("BREVO_EMAIL_SENDER_NAME", "Collune")
-    brevo_email_url = f"{BREVO_API_BASE}/smtp/email"
 
+    payload = {
+        "sender": {
+            "name": get_env("BREVO_EMAIL_SENDER_NAME", "Collune"),
+            "email": sender_email,
+        },
+        "to": [{"email": target, "name": target}],
+        "subject": subject,
+        "htmlContent": html_content,
+        "textContent": text_content,
+    }
+    try:
+        response = requests.post(
+            f"{BREVO_API_BASE}/smtp/email",
+            json=payload,
+            headers=brevo_headers(),
+            timeout=20,
+        )
+        response.raise_for_status()
+    except requests.HTTPError as error:
+        body = error.response.text[:500] if error.response is not None else ""
+        logger.error("Brevo email API rejected delivery. status=%s body=%s", getattr(error.response, "status_code", "unknown"), body)
+        raise
+    except requests.RequestException:
+        logger.exception("Brevo email API request failed.")
+        raise
+
+
+def send_brevo_email_otp(target, code):
     html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -186,36 +215,12 @@ def send_brevo_email_otp(target, code):
         </html>
         """
 
-    payload = {
-            "sender": {
-                "name": sender_name,
-                "email": sender_email,
-            },
-            "to": [
-                {
-                    "email": target,
-                    "name": target,
-                }
-            ],
-            "subject": "Your Collune verification code",
-            "htmlContent": html_content,
-    }
-
-    try:
-        response = requests.post(
-            brevo_email_url,
-            json=payload,
-            headers=brevo_headers(),
-            timeout=20,
-        )
-        response.raise_for_status()
-    except requests.HTTPError as error:
-        body = error.response.text[:500] if error.response is not None else ""
-        logger.error("Brevo email API rejected OTP send. status=%s body=%s", getattr(error.response, "status_code", "unknown"), body)
-        raise
-    except requests.RequestException:
-        logger.exception("Brevo email API request failed.")
-        raise
+    send_brevo_email(
+        target,
+        "Your Collune verification code",
+        html_content,
+        f"Your Collune verification code is: {code}",
+    )
 
 def send_aisensy_whatsapp_otp(target, code, user_name=None):
     api_key = get_env("AISENSY_API_KEY")

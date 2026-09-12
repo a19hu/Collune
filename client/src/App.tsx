@@ -126,6 +126,7 @@ const App: React.FC = () => {
                             <Route path="campaigns/:campaignId/applications" element={<CampaignAllApplicationsPage />} />
                             <Route path="campaigns/:campaignId" element={<CampaignApplicationsPage />} />
                             <Route path="brand-subscription" element={<BrandSubscriptionPage />} />
+                            <Route path="discover-creators" element={<DiscoverCreatorsPage brandsidebar={true} />} />
                         </Route>
                     </Route>
                     <Route path="/creator-register" element={<CreatorRegister />} />

@@ -85,7 +85,7 @@ export function CreatorCard({
       )}
       {isBrand ? (
         <div className="grid gap-2 border-t border-[#edf1fb] p-3 text-xs font-bold text-[#3356c5]">
-          {isPrivate ? <button type="button" disabled className="rounded border border-[#d8e2fb] p-2 opacity-40">Message</button> : <Link to={`/brand/chat?creatorId=${creator.creator_id}`} className="rounded border border-[#d8e2fb] p-2 text-center">Message</Link>}
+          {isPrivate ? <button type="button" disabled className="rounded border border-[#d8e2fb] p-2 opacity-40">Message</button> : <Link to={`/brand/chat?creatorId=${creator.creator_id}`} className="rounded border border-[#d8e2fb] p-2 text-center text-[13px]">Message</Link>}
         </div>
       ) : null}
     </article>

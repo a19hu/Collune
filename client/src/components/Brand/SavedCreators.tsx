@@ -18,7 +18,6 @@ function mapSavedCreatorToCard(savedCreator: BrandSavedCreatorApi) {
 }
 
 export default function SavedCreators() {
-  const navigate = useNavigate();
   const [savedCreators, setSavedCreators] = useState<BrandSavedCreatorApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -95,14 +94,6 @@ export default function SavedCreators() {
               index={index}
               isBrand
             />
-            <button
-              type="button"
-              onClick={() => navigate(`/brand/chat?creatorId=${savedCreator.creator.id}`)}
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#d8e3ff] bg-white text-sm font-black text-[#3556b8]"
-            >
-              <MessageCircle className="h-4 w-4" />
-              Chat with creator
-            </button>
           </div>
         );
       })}

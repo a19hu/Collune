@@ -75,7 +75,7 @@ function categoryMatchesFilter(filterValue: string, creatorCategory?: string) {
   return aliases.some((alias) => normalizedCreatorCategory.includes(alias));
 }
 
-export const DiscoverCreatorsPage = () => {
+export const DiscoverCreatorsPage = ({brandsidebar= false}:{brandsidebar?:boolean}) => {
   const { currentUser } = useAuth();
   const [creators, setCreators] = useState<CreatorListItemApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -215,15 +215,18 @@ export const DiscoverCreatorsPage = () => {
 
     return (
         <>
-        <main className="min-h-screen bg-[#f5f7ff] px-6 pb-24 pt-47 text-[#17327c]">
-      <section className="mx-auto grid max-w-7xl gap-8 lg:grid-row-[1fr_300px]">
+        <main   className={`${brandsidebar ? "" : "pt-47 bg-[#f5f7ff]" } min-h-screen  px-6 pb-24  text-[#17327c]`}>
+      <section className={`${brandsidebar ? "" :"max-w-7xl"} mx-auto grid  gap-8 lg:grid-row-[1fr_300px]`}>
           <div className="grid gap-6 lg:grid-cols-[1fr_minmax(360px,480px)] lg:items-end justify-">
+            {
+              brandsidebar ? null :
             <div>
               <h2 className="text-[clamp(30px,1vw,40px)] font-black leading-none text-[#1438c8]">Discover Creators</h2>
               <p className="mt-3 max-w-md text-base font-bold leading-tight text-[#65718a]">
                 Explore verified creators across different categories. Find the perfect match for your brand.
               </p>
             </div>
+            }
             <label className="relative block">
               <Search className="absolute left-4 top-1/2 h-6 w-6 -translate-y-1/2 text-[#cfdaff]" />
               <input

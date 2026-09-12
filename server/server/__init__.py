@@ -24,6 +24,6 @@ if django.VERSION[:2] == (4, 2):
     BaseContext.__copy__ = _patched_basecontext_copy
 
 
-from .celery import app as celery_app
+from api.message_queue import celery_app
 
 __all__ = ("celery_app",)

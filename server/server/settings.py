@@ -173,8 +173,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
     "https://collune.com",
+    "http://admin.collune.com",
+    "https://admin.collune.com",
     "https://www.collune.com",
-    "https://collune-frontend-727341248620.asia-south1.run.app",
     "https://collune-admin-727341248620.asia-south1.run.app"
 ]
 
@@ -257,6 +258,9 @@ X_OAUTH_SCOPES = env(
 )
 
 REDIS_URL = env("REDIS_URL", default="")
+CHAT_UNREAD_EMAIL_REMINDER_DELAY_SECONDS = env.int(
+    "CHAT_UNREAD_EMAIL_REMINDER_DELAY_SECONDS", default=2 * 60,
+)
 
 if REDIS_URL:
     CHANNEL_LAYERS = {

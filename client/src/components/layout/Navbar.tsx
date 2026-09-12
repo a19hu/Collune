@@ -12,30 +12,6 @@ export function ColluneLogo({ to = "/" }: { to?: string }) {
   );
 }
 
-const navItems = [
-  {
-    label: "Creators",
-    items: [
-      { label: "Discover Creators", href: "/discover-creators" },
-      { label: "Featured Creators", href: "/#featured-creators" },
-    ],
-  },
-  // {
-  //   label: "Brands",
-  //   items: [
-  //     { label: "Success Stories", href: "/success-stories" },
-  //   ],
-  // },
-  { label: "How it Works", href: "/#how-it-works" },
-  // {
-  //   label: "Resources",
-  //   items: [
-  //     { label: "Blogs", href: "/blogs" },
-  //     { label: "FAQs", href: "/faqs" },
-  //   ],
-  // },
-  { label: "About", href: "/about-collune" },
-];
 
 const Navbar = () => {
   const location = useLocation();
@@ -73,6 +49,37 @@ const Navbar = () => {
       document.removeEventListener("keydown", handleEscape);
     };
   }, []);
+
+  const navItems = [
+    {
+      label: "Creators",
+      items:
+        currentUser?.role === "Creator" ?
+         [
+          { label: "Discover Campaigns", href: "/creator/marketplace" },
+          { label: "Featured Campaigns", href: "/#featured-campaigns" },
+        ] :
+         [
+          { label: "Discover Creators", href: "/discover-creators" },
+          { label: "Featured Creators", href: "/#featured-creators" },
+        ]
+    },
+    // {
+    //   label: "Brands",
+    //   items: [
+    //     { label: "Success Stories", href: "/success-stories" },
+    //   ],
+    // },
+    { label: "How it Works", href: "/#how-it-works" },
+    // {
+    //   label: "Resources",
+    //   items: [
+    //     { label: "Blogs", href: "/blogs" },
+    //     { label: "FAQs", href: "/faqs" },
+    //   ],
+    // },
+    { label: "About", href: "/about-collune" },
+  ];
 
   return (
     <header className="fixed left-1/2 top-4 z-50 w-[calc(100%-32px)] max-w-7xl -translate-x-1/2 md:top-5">
