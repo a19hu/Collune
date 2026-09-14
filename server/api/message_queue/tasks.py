@@ -24,8 +24,8 @@ def _send_unread_chat_reminder(message_id):
             return False
 
         chat_path = "/creator/chat" if recipient.role == UserRole.CREATOR else "/brand/chat"
-        chat_url = f"{settings.FRONTEND_URL.rstrip('/')}{chat_path}?conversationId={message.conversation_id}"
-        sender_name = message.sender.profile_name
+        chat_url = f"https://collune.com{chat_path}?conversationId={message.conversation_id}"
+        sender_name = message.sender.name
         subject = f"Unread message from {sender_name} on Collune"
         text_content = (
             f"Hi {recipient.profile_name},\n\n"

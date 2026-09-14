@@ -7,7 +7,6 @@ services:
       - "8000:8000"
     depends_on:
       - db
-      - redis
     networks:
       - app_network
     volumes:
@@ -20,7 +19,6 @@ services:
       - POSTGRES_DB=data
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - REDIS_URL=redis://redis:6379/0
 
   celery_worker:
     build: 
@@ -29,7 +27,6 @@ services:
     command: celery -A api.message_queue worker -l info
     depends_on:
       - db
-      - redis
       - server
     networks:
       - app_network
@@ -42,7 +39,6 @@ services:
       - POSTGRES_DB=data
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - REDIS_URL=redis://redis:6379/0
 
   db:
     image: postgres:13
@@ -52,13 +48,6 @@ services:
       - POSTGRES_DB=data
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-    networks:
-      - app_network
-
-  redis:
-    image: redis:6
-    ports:
-      - "6379:6379"
     networks:
       - app_network
 

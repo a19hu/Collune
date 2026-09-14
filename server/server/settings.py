@@ -173,10 +173,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
     "https://collune.com",
-    "http://admin.collune.com",
     "https://admin.collune.com",
-    "https://www.collune.com",
-    "https://collune-admin-727341248620.asia-south1.run.app"
+    "https://www.collune.com"
 ]
 
 CORS_ALLOW_HEADERS = (
