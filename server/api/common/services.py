@@ -3,6 +3,7 @@ import logging
 import os
 import string
 from datetime import timedelta
+from html import escape
 
 import requests
 from django.contrib.auth import get_user_model
@@ -102,14 +103,29 @@ def normalize_otp_target(channel, target):
     value = target.strip()
     if channel == OtpChannel.EMAIL:
         return value.lower()
-    return value.replace(" ", "")
+    value = value.replace(" ", "")
+    digits = value.removeprefix("+")
+    if digits.isdigit():
+        if len(digits) == 10:
+            return "+91" + digits
+        if len(digits) == 12 and digits.startswith("91"):
+            return "+" + digits
+    return value
+
+
+def otp_target_variants(channel, target):
+    normalized = normalize_otp_target(channel, target)
+    variants = {normalized}
+    if channel == OtpChannel.PHONE and normalized.startswith("+91") and len(normalized) == 13:
+        variants.update({normalized[1:], normalized[3:]})
+    return variants
 
 def create_otp(channel, target, purpose="creator_registration"):
     normalized_target = normalize_otp_target(channel, target)
     code = get_random_string(6, allowed_chars=string.digits)
     OtpVerification.objects.filter(
         channel=channel,
-        target=normalized_target,
+        target__in=otp_target_variants(channel, target),
         purpose=purpose,
         is_verified=False,
     ).delete()
@@ -139,56 +155,26 @@ def brevo_headers():
         "content-type": "application/json",
     }
 
-def send_brevo_email_otp(target, code):
+
+def send_brevo_email(target, subject, html_content, text_content=""):
+    """Send an email through Brevo's transactional-email API."""
     sender_email = get_env("BREVO_EMAIL_SENDER") or get_env("DEFAULT_FROM_EMAIL")
     if not sender_email:
         raise RuntimeError("DEFAULT_FROM_EMAIL is not configured.")
-    sender_name = get_env("BREVO_EMAIL_SENDER_NAME", "Collune")
-    brevo_email_url = f"{BREVO_API_BASE}/smtp/email"
-
-    html_content = f"""
-        <!DOCTYPE html>
-        <html>
-            <body style="font-family: Arial, sans-serif;">
-                <h2>Verify your Collune account</h2>
-
-                <p>Your verification code is:</p>
-
-                <div style="
-                    font-size: 30px;
-                    font-weight: bold;
-                    letter-spacing: 8px;
-                    margin: 20px 0;
-                ">
-                    {code}
-                </div>
-
-                <p>This code will expire shortly.</p>
-                <p>Do not share this code with anyone.</p>
-
-                <p>Regards,<br>Collune Team</p>
-            </body>
-        </html>
-        """
 
     payload = {
-            "sender": {
-                "name": sender_name,
-                "email": sender_email,
-            },
-            "to": [
-                {
-                    "email": target,
-                    "name": target,
-                }
-            ],
-            "subject": "Your Collune verification code",
-            "htmlContent": html_content,
+        "sender": {
+            "name": get_env("BREVO_EMAIL_SENDER_NAME", "Collune"),
+            "email": sender_email,
+        },
+        "to": [{"email": target, "name": target}],
+        "subject": subject,
+        "htmlContent": html_content,
+        "textContent": text_content,
     }
-
     try:
         response = requests.post(
-            brevo_email_url,
+            f"{BREVO_API_BASE}/smtp/email",
             json=payload,
             headers=brevo_headers(),
             timeout=20,
@@ -196,11 +182,72 @@ def send_brevo_email_otp(target, code):
         response.raise_for_status()
     except requests.HTTPError as error:
         body = error.response.text[:500] if error.response is not None else ""
-        logger.error("Brevo email API rejected OTP send. status=%s body=%s", getattr(error.response, "status_code", "unknown"), body)
+        logger.error("Brevo email API rejected delivery. status=%s body=%s", getattr(error.response, "status_code", "unknown"), body)
         raise
     except requests.RequestException:
         logger.exception("Brevo email API request failed.")
         raise
+
+
+def send_brevo_email_otp(target, code):
+    safe_code = escape(str(code))
+    html_content = f"""
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Collune verification code</title>
+  </head>
+  <body style="margin:0; padding:0; background:#f4f7fb; color:#172033; font-family:Arial, Helvetica, sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f4f7fb;">
+      <tr>
+        <td align="center" style="padding:36px 16px;">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%; max-width:600px; background:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 4px 18px rgba(20,56,168,0.08);">
+            <tr>
+              <td style="padding:26px 40px; background:#1438a8;">
+                <a href="https://collune.com" style="color:#ffffff; text-decoration:none; display:inline-block; font-size:24px; font-weight:700; letter-spacing:-0.5px;">
+                  <img src="https://collune.com/favicon.svg" width="28" height="28" alt="" style="display:inline-block; vertical-align:middle; margin-right:9px; border:0;" />
+                  <span style="vertical-align:middle;">Collune</span>
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:40px 40px 16px;">
+                <div style="display:inline-block; padding:6px 10px; border-radius:999px; background:#eef2ff; color:#1438a8; font-size:12px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;">Account security</div>
+                <h1 style="margin:18px 0 12px; color:#172033; font-size:27px; line-height:34px; font-weight:700; letter-spacing:-0.4px;">Verify your email address</h1>
+                <p style="margin:0; color:#526176; font-size:16px; line-height:25px;">Use this verification code to complete your Collune sign-in or account setup.</p>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding:16px 40px 28px;">
+                <div style="padding:20px 18px; border:1px solid #dce4ff; border-radius:12px; background:#f7f8ff; color:#1438a8; font-size:32px; font-weight:700; letter-spacing:9px; line-height:40px;">{safe_code}</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 40px 40px; color:#526176; font-size:15px; line-height:24px;">
+                This code expires in {OTP_EXPIRY_MINUTES} minutes. For your security, do not share it with anyone — Collune will never ask for it by phone, email, or message.
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 40px; border-top:1px solid #e8ecf3; background:#fbfcfe; color:#7a8699; font-size:12px; line-height:18px;">
+                If you did not request this code, you can safely ignore this email.
+              </td>
+            </tr>
+          </table>
+          <p style="margin:20px 0 0; color:#98a2b3; font-size:12px; line-height:18px;">© Collune. Connecting brands and creators.</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>"""
+
+    send_brevo_email(
+        target,
+        "Your Collune verification code",
+        html_content,
+        f"Your Collune verification code is: {code}",
+    )
 
 def send_aisensy_whatsapp_otp(target, code, user_name=None):
     api_key = get_env("AISENSY_API_KEY")

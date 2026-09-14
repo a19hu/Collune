@@ -7,6 +7,7 @@ import { BadgeCheck, ChevronDown, Menu, Plus } from "lucide-react";
 import { HeaderButton } from "@/src/HtmlComponents/HtmlButton";
 import type { UserAccount } from "../../types";
 import { WebsiteTutorial } from "./WebsiteTutorial";
+import { NotificationBell } from "../../contexts/NotificationContext";
 
 function useDashboardState() {
   const location = useLocation();
@@ -151,6 +152,7 @@ function DashboardTopBar({ title, status, actions, currentUser, logout, profileP
         {actions ? <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">{actions}</div> : null}
         <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">
           {status ? <VerificationPill status={status} /> : null}
+          <NotificationBell />
           {currentUser.role == "Brand" ? null : (
             <DashboardUserMenu currentUser={currentUser} logout={logout} profilePath={profilePath} />
           )}
@@ -245,6 +247,19 @@ export const SideBarLayout = () => {
         ),
       },
       {
+        matches: () => pathname === "/creator/chat",
+        render: () => (
+          <DashboardTopBar
+            title="Messages"
+            status={isVerified ? "verified-creator" : "under-review"}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+          />
+        ),
+      },
+      {
         matches: () => pathname === "/creator/profile",
         render: () => (
           <DashboardTopBar
@@ -321,10 +336,36 @@ export const SideBarLayout = () => {
         ),
       },
       {
+        matches: () => pathname === "/brand/discover-creators",
+        render: () => (
+          <DashboardTopBar
+            title="Discover Creators"
+            status={brandStatus}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+          />
+        ),
+      },
+      {
         matches: () => pathname === "/brand/saved-creators",
         render: () => (
           <DashboardTopBar
             title="Saved Creators"
+            status={brandStatus}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+          />
+        ),
+      },
+      {
+        matches: () => pathname === "/brand/chat",
+        render: () => (
+          <DashboardTopBar
+            title="Messages"
             status={brandStatus}
             currentUser={currentUser}
             logout={logout}

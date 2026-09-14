@@ -20,6 +20,8 @@ import type {
   CreatorDashboardApi,
   CreatorListItemApi,
   CreatorPublicProfileApi,
+  CreatorPortfolioApi,
+  CreatorSocialMediaPricingApi,
   CreatorProfileApi,
   CreatorRegisterPayload,
   CreatorRegisterResponse,
@@ -27,6 +29,14 @@ import type {
   EmailAvailabilityResponse,
   LoginApiUser,
   LoginResponse,
+  NotificationListResponse,
+  NotificationReadPayload,
+  NotificationReadResponse,
+  ChatConversationApi,
+  ChatConversationCreateResponse,
+  ChatConversationListResponse,
+  ChatMessageListResponse,
+  ChatMessageSendResponse,
   OtpChannel,
   OtpResponse,
   PaginatedResponse,
@@ -46,6 +56,11 @@ function resolveApiBaseUrl() {
 
 const API_BASE_URL = resolveApiBaseUrl();
 
+function resolveWebSocketBaseUrl() {
+  const base = API_BASE_URL.replace(/\/api\/v1$/, "");
+  return base.replace(/^http:/, "ws:").replace(/^https:/, "wss:");
+}
+
 type ApiError = { error?: string; detail?: string; message?: string };
 type ApiRecord = Record<string, unknown>;
 
@@ -53,6 +68,18 @@ function getAuthHeader() {
   const access = authStorage.getAccessToken();
   if (access) return `Bearer ${access}`;
   return "";
+}
+
+export function getNotificationsSocketUrl(token: string) {
+  return `${resolveWebSocketBaseUrl()}/ws/notifications/?token=${encodeURIComponent(token)}`;
+}
+
+export function getChatSocketUrl(conversationId: string, token: string) {
+  return `${resolveWebSocketBaseUrl()}/ws/chat/${conversationId}/?token=${encodeURIComponent(token)}`;
+}
+
+export function getChatInboxSocketUrl(token: string) {
+  return `${resolveWebSocketBaseUrl()}/ws/chat/?token=${encodeURIComponent(token)}`;
 }
 
 function detectOAuthClient() {
@@ -234,6 +261,11 @@ export async function getBrandMe() {
   return data.brand;
 }
 
+export async function getPublicBrandProfile(brandId: string) {
+  const data = await apiRequest<{ brand: BrandProfileApi }>(`/brand/${encodeURIComponent(brandId)}/`);
+  return data.brand;
+}
+
 export async function updateBrandProfile(body: FormData) {
   const data = await apiPatchForm<{ brand: BrandProfileApi }>("/auth/brand/profile/", body, true);
   return data.brand;
@@ -248,6 +280,16 @@ export async function getCreatorDashboard(period = "7d") {
   const params = new URLSearchParams({ period });
   const data = await apiRequest<{ creator: CreatorDashboardApi }>(`/creators/dashboard/?${params.toString()}`, {}, true);
   return data.creator;
+}
+
+export async function getNotifications(limit = 20, unreadOnly = false, page = 1) {
+  const query = new URLSearchParams({ limit: String(limit), page_size: String(limit), page: String(page) });
+  if (unreadOnly) query.set("unread", "true");
+  return apiRequest<NotificationListResponse>(`/notifications/?${query.toString()}`, {}, true);
+}
+
+export async function markNotificationsRead(payload: NotificationReadPayload) {
+  return apiPatch<NotificationReadResponse>(`/notifications/read/`, payload, true);
 }
 
 export async function getBrandsList() {
@@ -294,6 +336,44 @@ export async function getCreatorPublicProfile(creatorId: string) {
 export async function updateCreatorProfile(payload: FormData) {
   await apiPatchForm<{ message: string }>("/auth/creator/profile/", payload, true);
   return getCreatorProfile();
+}
+
+export async function getCreatorPortfolio() {
+  const data = await apiRequest<{ portfolio: CreatorPortfolioApi[] }>("/auth/creator/portfolio/", {}, true);
+  return data.portfolio;
+}
+
+export async function createCreatorPortfolio(payload: FormData) {
+  const data = await apiPostForm<{ portfolio: CreatorPortfolioApi }>("/auth/creator/portfolio/", payload, true);
+  return data.portfolio;
+}
+
+export async function updateCreatorPortfolio(id: string, payload: FormData) {
+  const data = await apiPatchForm<{ portfolio: CreatorPortfolioApi }>(`/auth/creator/portfolio/${id}/`, payload, true);
+  return data.portfolio;
+}
+
+export async function deleteCreatorPortfolio(id: string) {
+  await apiDelete<never>(`/auth/creator/portfolio/${id}/`, undefined, true);
+}
+
+export async function getCreatorPricing() {
+  const data = await apiRequest<{ pricing: CreatorSocialMediaPricingApi[] }>("/auth/creator/pricing/", {}, true);
+  return data.pricing;
+}
+
+export async function createCreatorPricing(payload: Omit<CreatorSocialMediaPricingApi, "id">) {
+  const data = await apiPost<{ pricing: CreatorSocialMediaPricingApi }>("/auth/creator/pricing/", payload, true);
+  return data.pricing;
+}
+
+export async function updateCreatorPricing(id: string, payload: Omit<CreatorSocialMediaPricingApi, "id">) {
+  const data = await apiPatch<{ pricing: CreatorSocialMediaPricingApi }>(`/auth/creator/pricing/${id}/`, payload, true);
+  return data.pricing;
+}
+
+export async function deleteCreatorPricing(id: string) {
+  await apiDelete<never>(`/auth/creator/pricing/${id}/`, undefined, true);
 }
 
 function oauthReturnQuery(returnTo?: "registration") {
@@ -433,6 +513,18 @@ export function removeCampaignApplication(campaignId: string) {
   return apiDelete<{ message: string; removed: boolean }>("/campaign-applications/", { campaign_id: campaignId }, true);
 }
 
+export function updateCampaignApplicationStatus(
+  campaignId: string,
+  applicationId: string,
+  status: "ACCEPTED" | "REJECTED",
+) {
+  return apiPatch<{ application: CampaignApplicationApi }>(
+    `/brands/campaigns/${campaignId}/applications/${applicationId}/`,
+    { status },
+    true,
+  );
+}
+
 export function getCreatorAppliedCampaigns() {
   return apiRequest<CreatorAppliedCampaignsResponse>("/creator/applied-campaigns/", {}, true);
 }
@@ -459,6 +551,34 @@ export function saveBrandCreator(creatorId: string) {
 
 export function removeBrandSavedCreator(creatorId: string) {
   return apiDelete<{ message: string; saved: boolean; removed: boolean }>("/brand/saved-creators/", { creator_id: creatorId }, true);
+}
+
+export function getChatConversations() {
+  return apiRequest<ChatConversationListResponse>("/chat/conversations/", {}, true);
+}
+
+export function createChatConversation(payload: { creator_id?: string; brand_id?: string }) {
+  return apiPost<ChatConversationCreateResponse>("/chat/conversations/", payload, true);
+}
+
+export function getChatConversationMessages(conversationId: string) {
+  return apiRequest<ChatMessageListResponse>(`/chat/conversations/${conversationId}/messages/`, {}, true);
+}
+
+export function sendChatMessage(conversationId: string, content: string) {
+  return apiPost<ChatMessageSendResponse>(`/chat/conversations/${conversationId}/messages/`, { content }, true);
+}
+
+export function markChatConversationRead(conversationId: string) {
+  return apiPatch<{ updated: number }>(`/chat/conversations/${conversationId}/read/`, {}, true);
+}
+
+export function editChatMessage(conversationId: string, messageId: string, content: string) {
+  return apiPatch<ChatMessageSendResponse>(`/chat/conversations/${conversationId}/messages/${messageId}/`, { content }, true);
+}
+
+export function deleteChatMessage(conversationId: string, messageId: string) {
+  return apiRequest<ChatMessageSendResponse>(`/chat/conversations/${conversationId}/messages/${messageId}/`, { method: "DELETE" }, true);
 }
 
 export async function getBrandShortlists(page = 1, pageSize = 10) {

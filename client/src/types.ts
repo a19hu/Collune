@@ -1,8 +1,110 @@
 export type UserAccount = {
+  user_id?: string;
   name: string;
   email: string;
   role: 'Creator' | 'Brand' | string;
   verification_status:string;
+};
+
+export type NotificationActor = {
+  user_id: string;
+  name: string;
+  email: string;
+  role: string;
+};
+
+export type NotificationItem = {
+  notification_id: string;
+  event_type: string;
+  title: string;
+  message: string;
+  data: Record<string, unknown>;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+  actor: NotificationActor | null;
+};
+
+export type NotificationListResponse = {
+  notifications: NotificationItem[];
+  unread_count: number;
+  count: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+};
+
+export type NotificationReadPayload = {
+  notification_ids?: string[];
+  mark_all?: boolean;
+};
+
+export type NotificationReadResponse = {
+  updated: number;
+  unread_count: number;
+};
+
+export type NotificationPayload = {
+  event?: string;
+  unread_count?: number;
+  notification?: NotificationItem;
+};
+
+export type ChatParticipantApi = {
+  id: string;
+  user_id: string;
+  role: "BRAND" | "CREATOR" | string;
+  name: string;
+  subtitle: string;
+  avatar?: string | null;
+  is_online?: boolean;
+  last_seen?: string | null;
+};
+
+export type ChatMessageApi = {
+  message_id: string;
+  conversation_id: string;
+  content: string;
+  edited_at: string | null;
+  deleted_at: string | null;
+  sender: {
+    user_id: string;
+    role: string;
+    name: string;
+    email: string;
+  };
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+};
+
+export type ChatConversationApi = {
+  conversation_id: string;
+  brand_id: string;
+  creator_id: string;
+  created_at: string;
+  updated_at: string;
+  other_participant: ChatParticipantApi;
+  latest_message?: ChatMessageApi | null;
+  unread_count: number;
+};
+
+export type ChatConversationListResponse = {
+  conversations: ChatConversationApi[];
+};
+
+export type ChatConversationCreateResponse = {
+  conversation: ChatConversationApi;
+  created: boolean;
+};
+
+export type ChatMessageListResponse = {
+  conversation_id: string;
+  messages: ChatMessageApi[];
+};
+
+export type ChatMessageSendResponse = {
+  message: ChatMessageApi;
 };
 
 
@@ -407,6 +509,10 @@ export type CreatorRegisterResponse = LoginResponse & {
 export type CreatorProfileApi = {
   creator_id: string;
   user?: LoginApiUser;
+  contact_person_name?: string;
+  work_email?: string;
+  contact_phone?: string;
+  whatsapp_number?: string;
   display_name: string;
   category: string;
   username?: string;
@@ -482,9 +588,16 @@ export type CreatorListPlatformApi = {
 };
 
 export type CreatorListItemApi = {
+  campaigns_completed?: number;
+  avg_eng_rate?: number | null;
+  is_online?: boolean;
+  last_active_at?: string | null;
   creator_id: string | null;
   display_name: string;
   category: string;
+  languages?: string[];
+  bio?: string;
+  about?: string;
   verified?: boolean;
   username?: string;
   profile_image: string | null;
@@ -511,6 +624,26 @@ export type CreatorPublicProfileApi = CreatorListItemApi & {
   total_view_count?: number;
   total_media_count?: number;
   collaboration_preferences?: string[];
+  portfolio?: CreatorPortfolioApi[];
+  pricing?: CreatorSocialMediaPricingApi[];
+};
+
+export type CreatorPortfolioApi = {
+  id: string;
+  title: string;
+  sub_title: string;
+  link: string;
+  image: string | null;
+  image_url: string;
+  video: string | null;
+  video_url: string;
+};
+
+export type CreatorSocialMediaPricingApi = {
+  id: string;
+  social_media_name: string;
+  social_media_pricing: number;
+  is_visible: boolean;
 };
 
 export type BrandRegisterPayload = {
@@ -549,6 +682,10 @@ export type BrandProfileApi = {
   industry: string;
   about_brand?: string;
   website: string;
+  contact_person_name?: string;
+  work_email?: string;
+  contact_phone?: string;
+  whatsapp_number?: string;
   company_size: string;
   linkedin_url: string;
   gst_number?: string;
@@ -571,6 +708,19 @@ export type BrandProfileApi = {
   profile_completion: number;
   created_at?: string;
   updated_at?: string;
+  campaigns?: PublicBrandCampaignApi[];
+};
+
+export type PublicBrandCampaignApi = {
+  campaign_id: string;
+  title: string;
+  objective: string;
+  brief: string;
+  status: "DRAFT" | "ACTIVE" | "PAUSED" | "COMPLETED";
+  deadline: string | null;
+  platforms: string[];
+  cover_image: string | null;
+  created_at: string;
 };
 
 export type BrandDashboardApi = {

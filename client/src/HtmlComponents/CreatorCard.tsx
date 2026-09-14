@@ -1,13 +1,14 @@
-import { ArrowRight, BadgeCheck, Bookmark, Trash2, Loader2, UserRound } from "lucide-react";
+import { ArrowRight, BadgeCheck, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import type { CreatorListItemApi } from "../types";
 
-type CreatorProfileApi = {
+type CreatorProfileApi = Omit<Partial<CreatorListItemApi>, "verified"> & {
     id?: string;
     creator_id: string | null;
     display_name?: string;
     category?: string;
-    profile_image?: string;
+    profile_image?: string | null;
     verified?: boolean | string;
     username?: string;
 }
@@ -16,19 +17,12 @@ type CreatorProfileApi = {
 export function CreatorCard({
   creator,
   index,
-  key,
   isBrand,
-  isSaved = false,
-  isSaving = false,
-  onToggleSaved,
 }: {
   creator: CreatorProfileApi;
   index: number;
-  key?: number;
+  key?: string | number;
   isBrand?: boolean;
-  isSaved?: boolean;
-  isSaving?: boolean;
-  onToggleSaved?: (creator: CreatorProfileApi) => void;
 }) {
   const [showPrivateToast, setShowPrivateToast] = useState(false);
   const imageUrl = creator.profile_image;
@@ -50,7 +44,7 @@ export function CreatorCard({
         </div>
       ) : null}
       <div className="relative aspect-[1.55] overflow-hidden">
-        {imageUrl && isVerified ? (
+        {imageUrl ? (
           <img src={imageUrl} alt={creator.display_name} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#eef3ff_0%,#f7f9ff_45%,#ebe7ff_100%)] text-[#93a3d8]">
@@ -65,39 +59,14 @@ export function CreatorCard({
           </div>
         )}
         <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-white/75 px-2 py-1 text-[9px] font-black text-[#7690ff] backdrop-blur-sm">
-          <BadgeCheck className="h-3 w-3 fill-current" />
+          {isVerified ? <BadgeCheck className="h-3 w-3" /> : null}
           {isVerified ? "verified" :  "pending"}
         </span>
-        {isBrand ? (
-          <button
-            type="button"
-            onClick={() => onToggleSaved?.(creator)}
-            disabled={isSaving || !creator.creator_id}
-            className={`absolute right-2.5 top-2.5 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border shadow-sm backdrop-blur-sm transition disabled:cursor-not-allowed disabled:opacity-60 ${isSaved ? "border-[#c9d7ff] bg-[#eef3ff]/95 text-[#1438c8]" : "border-white/70 bg-white/90 text-[#1438c8] hover:bg-white"}`}
-            aria-label={isSaved ? "Unsave creator" : "Save creator"}
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : isSaved ? (
-              <Bookmark className="h-4 w-4 fill-current" />
-            ) : (
-              <Bookmark className="h-4 w-4" />
-            )}
-          </button>
-        ) : null}
       </div>
       <div className="px-4 py-3">
         <h3 className="inline text-lg font-black text-[#314064]">{creator.display_name}</h3>
         {username ? <p className="ml-1 inline text-xs font-extrabold text-[#7b8aaa]">@{username}</p> : null}
         <strong className="mt-1 block text-xs font-black text-[#3158ca]">{creator.category}</strong>
-        <span className="block text-xs font-black text-[#8a96b1] mt-2">Worked with:</span>
-        {/* <div className="mt-2 grid grid-cols-3 gap-2">
-          {(chips.length ? chips : ["Creator"]).map((chip) => (
-            <span key={chip} className="grid min-h-6 place-items-center rounded-full bg-[#eef3ff] px-2 text-center text-[10px] font-black text-[#60749e]">
-              {chip}
-            </span>
-          ))}
-        </div> */}
       </div>
       {isPrivate ? (
         <button
@@ -114,6 +83,11 @@ export function CreatorCard({
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       )}
+      {isBrand ? (
+        <div className="grid gap-2 border-t border-[#edf1fb] p-3 text-xs font-bold text-[#3356c5]">
+          {isPrivate ? <button type="button" disabled className="rounded border border-[#d8e2fb] p-2 opacity-40">Message</button> : <Link to={`/brand/chat?creatorId=${creator.creator_id}`} className="rounded border border-[#d8e2fb] p-2 text-center text-[13px]">Message</Link>}
+        </div>
+      ) : null}
     </article>
   );
 }

@@ -9,7 +9,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import signing
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.db import transaction
 from django.shortcuts import redirect
 from django.utils import timezone
@@ -21,11 +21,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..models import (
-    ApplicationStatus, Campaign, CampaignApplication, CreatorProfile, CreatorSavedCampaign, CreatorSocialAccount, SocialPlatform, UserRole, VerificationStatus,
+    ApplicationStatus, Campaign, CampaignApplication, CreatorPortfolio, CreatorProfile, CreatorSavedCampaign, CreatorSocialAccount, CreatorSocialMediaPricing, SocialPlatform, UserRole, VerificationStatus,
 )
+from ..notification import create_notification, notify_admins
 from ..permissions import IsCreator,IsBrand
 from ..common.services import auth_response, create_user, parse_payload
-from .serializers import CreatorProfileSerializer, CreatorRegisterSerializer
+from .serializers import CreatorPortfolioSerializer, CreatorProfileSerializer, CreatorRegisterSerializer, CreatorSocialMediaPricingSerializer
+from ..common.presence import get_last_seen, is_online
 from .services import fetch_youtube_analytics, fetch_youtube_videos, sync_youtube_account
 
 User = get_user_model()
@@ -104,6 +106,24 @@ def creator_address_response(creator):
     }
 
 
+def creator_discovery_address(creator):
+    legacy_parts = {}
+    for part in creator.location.split("|"):
+        key, separator, value = part.partition(":")
+        if separator:
+            legacy_parts[key.strip().lower()] = value.strip()
+    if not legacy_parts and "," in creator.location:
+        legacy_parts = dict(zip(("city", "state", "country"), [part.strip() for part in creator.location.split(",")]))
+    address = {
+        field: (getattr(creator, field) or legacy_parts.get(field, "")).strip()
+        for field in ("city", "state", "country")
+    }
+    address["location"] = ", ".join(dict.fromkeys(value for value in address.values() if value))
+    if not address["location"] and not legacy_parts:
+        address["location"] = creator.location.strip()
+    return address
+
+
 def resolve_oauth_client(request):
     requested_client = (request.query_params.get("client") or "").strip().lower()
     if requested_client in {"app", "web"}:
@@ -159,6 +179,20 @@ class CreatorRegisterView(APIView):
                 for account in data.get("social_accounts", [])
                 if account.get("handle")
             ]
+        )
+        create_notification(
+            recipient=user,
+            event_type="creator.account.created",
+            title="Creator account created",
+            message="Your creator account was created successfully.",
+            data={"creator_id": str(creator.creator_id), "display_name": creator.display_name},
+        )
+        notify_admins(
+            event_type="creator.account.created",
+            title="New creator registration",
+            message=f"{creator.display_name} joined the platform.",
+            actor=user,
+            data={"creator_id": str(creator.creator_id), "display_name": creator.display_name},
         )
         return Response(
             {
@@ -447,6 +481,10 @@ class CreatorProfileView(APIView):
             "verified": creator.user.verification_status
             == VerificationStatus.VERIFIED.value,
             "username": creator.user.username,
+            "contact_person_name": creator.user.name,
+            "work_email": creator.user.email,
+            "contact_phone": creator.user.phone_no,
+            "whatsapp_number": creator.user.phone_no,
             "profile_image": (
                 request.build_absolute_uri(creator.profile_image.url)
                 if creator.profile_image
@@ -471,6 +509,7 @@ class CreatorProfileView(APIView):
             "collaboration_preferences":creator.collaboration_preferences
         }
         response.update(creator_address_response(creator))
+
 
         return Response({"creator": response})
 
@@ -528,12 +567,133 @@ class CreatorProfileView(APIView):
             creator.user.is_profile_visible = str(visible_value).lower() in {"true", "1", "yes", "on"}
             creator.user.save(update_fields=["is_profile_visible"])
 
+        create_notification(
+            recipient=request.user,
+            event_type="creator.profile.updated",
+            title="Creator profile updated",
+            message="Your creator profile changes were saved.",
+            actor=request.user,
+            data={"creator_id": str(creator.creator_id), "display_name": creator.display_name},
+        )
+        notify_admins(
+            event_type="creator.profile.updated",
+            title="Creator profile updated",
+            message=f"{creator.display_name} updated the creator profile.",
+            actor=request.user,
+            data={"creator_id": str(creator.creator_id), "display_name": creator.display_name},
+        )
+
         return Response(
             {
                 "message": "Profile updated successfully.",
             },
             status=status.HTTP_200_OK,
         )
+
+class CreatorPortfolioView(APIView):
+    """Manage portfolio entries belonging to the authenticated creator."""
+
+    permission_classes = [IsAuthenticated, IsCreator]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get_creator(self, request):
+        return getattr(request.user, "creator_profile", None)
+
+    def get(self, request, portfolio_id=None):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+
+        queryset = creator.portfolio_items.all().order_by("-id")
+        if portfolio_id:
+            try:
+                portfolio = queryset.get(id=portfolio_id)
+            except CreatorPortfolio.DoesNotExist:
+                return Response({"error": "Portfolio item not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"portfolio": CreatorPortfolioSerializer(portfolio, context={"request": request}).data})
+        return Response({"portfolio": CreatorPortfolioSerializer(queryset, many=True, context={"request": request}).data})
+
+    def post(self, request):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CreatorPortfolioSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        portfolio = serializer.save(creator=creator)
+        return Response({"portfolio": CreatorPortfolioSerializer(portfolio, context={"request": request}).data}, status=status.HTTP_201_CREATED)
+
+    def patch(self, request, portfolio_id):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            portfolio = creator.portfolio_items.get(id=portfolio_id)
+        except CreatorPortfolio.DoesNotExist:
+            return Response({"error": "Portfolio item not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CreatorPortfolioSerializer(portfolio, data=request.data, partial=True, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        portfolio = serializer.save()
+        return Response({"portfolio": CreatorPortfolioSerializer(portfolio, context={"request": request}).data})
+
+    def delete(self, request, portfolio_id):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        deleted, _ = creator.portfolio_items.filter(id=portfolio_id).delete()
+        if not deleted:
+            return Response({"error": "Portfolio item not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CreatorSocialMediaPricingView(APIView):
+    permission_classes = [IsAuthenticated, IsCreator]
+
+    def get_creator(self, request):
+        return getattr(request.user, "creator_profile", None)
+
+    def get(self, request, pricing_id=None):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        queryset = creator.social_accounts_pricing.all().order_by("social_media_name")
+        if pricing_id:
+            try:
+                pricing = queryset.get(id=pricing_id)
+            except CreatorSocialMediaPricing.DoesNotExist:
+                return Response({"error": "Pricing item not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"pricing": CreatorSocialMediaPricingSerializer(pricing).data})
+        return Response({"pricing": CreatorSocialMediaPricingSerializer(queryset, many=True).data})
+
+    def post(self, request):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CreatorSocialMediaPricingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        pricing = serializer.save(creator=creator)
+        return Response({"pricing": CreatorSocialMediaPricingSerializer(pricing).data}, status=status.HTTP_201_CREATED)
+
+    def patch(self, request, pricing_id):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            pricing = creator.social_accounts_pricing.get(id=pricing_id)
+        except CreatorSocialMediaPricing.DoesNotExist:
+            return Response({"error": "Pricing item not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CreatorSocialMediaPricingSerializer(pricing, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        return Response({"pricing": CreatorSocialMediaPricingSerializer(serializer.save()).data})
+
+    def delete(self, request, pricing_id):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+        deleted, _ = creator.social_accounts_pricing.filter(id=pricing_id).delete()
+        if not deleted:
+            return Response({"error": "Pricing item not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class CampaignApplicationViewSet(APIView):
     permission_classes = [IsAuthenticated,IsCreator]
@@ -566,7 +726,7 @@ class CampaignApplicationViewSet(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        _, created = CampaignApplication.objects.get_or_create(
+        application, created = CampaignApplication.objects.get_or_create(
             campaign=campaign,
             creator=creator,
             defaults={
@@ -575,6 +735,31 @@ class CampaignApplicationViewSet(APIView):
                 "status": ApplicationStatus.APPLIED,
             },
         )
+
+        if created:
+            create_notification(
+                recipient=request.user,
+                event_type="campaign.applied",
+                title="Application submitted",
+                message=f"You applied to '{campaign.title}'.",
+                actor=request.user,
+                data={"campaign_id": str(campaign.campaign_id), "application_id": str(application.application_id)},
+            )
+            create_notification(
+                recipient=campaign.brand.user,
+                event_type="campaign.application.received",
+                title="New campaign application",
+                message=f"{creator.display_name} applied to '{campaign.title}'.",
+                actor=request.user,
+                data={"campaign_id": str(campaign.campaign_id), "application_id": str(application.application_id)},
+            )
+            notify_admins(
+                event_type="campaign.application.received",
+                title="Creator applied to campaign",
+                message=f"{creator.display_name} applied to '{campaign.title}'.",
+                actor=request.user,
+                data={"campaign_id": str(campaign.campaign_id), "application_id": str(application.application_id)},
+            )
 
         return Response(
             {
@@ -600,10 +785,29 @@ class CampaignApplicationViewSet(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        campaign = Campaign.objects.filter(campaign_id=campaign_id).select_related("brand__user").first()
         deleted, _ = CampaignApplication.objects.filter(
             campaign_id=campaign_id,
             creator=creator,
         ).delete()
+
+        if deleted and campaign:
+            create_notification(
+                recipient=request.user,
+                event_type="campaign.application.withdrawn",
+                title="Application withdrawn",
+                message=f"You withdrew from '{campaign.title}'.",
+                actor=request.user,
+                data={"campaign_id": str(campaign.campaign_id)},
+            )
+            create_notification(
+                recipient=campaign.brand.user,
+                event_type="campaign.application.withdrawn",
+                title="Application withdrawn",
+                message=f"{creator.display_name} withdrew from '{campaign.title}'.",
+                actor=request.user,
+                data={"campaign_id": str(campaign.campaign_id)},
+            )
 
         return Response(
             {
@@ -694,6 +898,16 @@ class CreatorSavedCampaignView(APIView):
             campaign=campaign,
             creator=creator,
         )
+
+        if created:
+            create_notification(
+                recipient=request.user,
+                event_type="campaign.saved",
+                title="Campaign saved",
+                message=f"'{campaign.title}' was saved to your list.",
+                actor=request.user,
+                data={"campaign_id": str(campaign.campaign_id)},
+            )
 
         return Response(
             {
@@ -810,7 +1024,7 @@ class CreatorListViewSet(APIView):
         try:
             creator = (
                 CreatorProfile.objects.select_related("user")
-                .prefetch_related("social_accounts")
+                .prefetch_related("social_accounts", "portfolio_items", "social_accounts_pricing")
                 .get(
                     creator_id=creator_id,
                     user__is_profile_visible=True,
@@ -870,6 +1084,12 @@ class CreatorListViewSet(APIView):
             "collaboration_preferences": creator.collaboration_preferences,
             "total_followers": total_followers,
             "platform_data": platforms,
+            "portfolio": CreatorPortfolioSerializer(
+                creator.portfolio_items.all(), many=True, context={"request": request}
+            ).data,
+            "pricing": CreatorSocialMediaPricingSerializer(
+                creator.social_accounts_pricing.filter(is_visible=True), many=True
+            ).data,
         }
         response.update(creator_address_response(creator))
 
@@ -892,6 +1112,7 @@ class CreatorListViewSet(APIView):
         creators = (
             CreatorProfile.objects.select_related("user")
             .prefetch_related("social_accounts")
+            .annotate(completed_campaign_count=Count("applications", filter=Q(applications__status="ACCEPTED", applications__campaign__status="COMPLETED"), distinct=True))
             .order_by("-created_at")
         )
 
@@ -920,9 +1141,37 @@ class CreatorListViewSet(APIView):
                 "is_profile_visible": is_profile_visible,
                 "created_at": creator.created_at.isoformat(),
             }
-            item.update(creator_address_response(creator))
+            item.update(creator_discovery_address(creator))
+            item["languages"] = creator.languages
+            item["bio"] = creator.bio
+            item["about"] = creator.about
+            item["platform_data"] = [
+                {"name": account.platform, "followers": account.followers}
+                for account in creator.social_accounts.all()
+            ]
             item["gender"] = creator.gender
+            item["campaigns_completed"] = creator.completed_campaign_count
+            accounts = list(creator.social_accounts.all())
+            item["avg_eng_rate"] = round(sum(account.engagement_rate for account in accounts) / len(accounts), 2) if accounts else None
+            item["is_online"] = is_online(creator.user_id)
+            item["last_active_at"] = get_last_seen(creator.user_id) or (creator.user.last_login.isoformat() if creator.user.last_login else None)
 
+            search = request.query_params.get("search", "").strip().casefold()
+            searchable = " ".join(str(value) for value in [
+                item["display_name"], item["username"], item["category"],
+                item["location"], item["bio"], item["about"], *item["languages"], *creator.work_with,
+            ]).casefold()
+            if search and not all(term in searchable for term in search.split()):
+                continue
+            if any(
+                request.query_params.get(field, "").strip()
+                and item[field].casefold() != request.query_params[field].strip().casefold()
+                for field in ("city", "state", "country", "category")
+            ):
+                continue
+            language = request.query_params.get("language", "").strip().casefold()
+            if language and language not in [value.casefold() for value in creator.languages]:
+                continue
             data.append(item)
 
         return Response({"creators": data})

@@ -3,8 +3,10 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom
 import './index.css';
 import CreatorRegister from './pages/CreatorRegister.tsx';
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
+import { NotificationProvider } from './contexts/NotificationContext.tsx';
 import LandingPage from "./pages/LandingPage.tsx";
 import PublicCreatorProfile from "./pages/PublicCreatorProfile.tsx";
+import PublicBrandProfile from "./pages/PublicBrandProfile.tsx";
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
 import MainLayout from './components/layout/MainLayout.tsx';
 import BrandRegister from './pages/BrandRegister.tsx';
@@ -17,6 +19,7 @@ import BrandProfile from './components/Brand/BrandProfile.tsx';
 import BrandDashBoard from './components/Brand/BrandDashBoard.tsx';
 import { BrandCampaigns } from './components/Brand/BrandCampaigns.tsx';
 import { CampaignApplicationsPage } from './components/Brand/Campaigns/CampaignApplicationsPage.tsx';
+import { CampaignAllApplicationsPage } from './components/Brand/Campaigns/CampaignAllApplicationsPage.tsx';
 import { RecommendedCreatorsPage } from './components/Brand/Campaigns/RecommendedCreatorsPage.tsx';
 import { BrandShortlists } from './components/Brand/BrandShortlists.tsx';
 import LoadingPage from './components/layout/LoadingPage.tsx';
@@ -32,6 +35,8 @@ import AboutCollune from './pages/AboutCollune.tsx';
 import BrandSubscriptionPage from './components/Brand/BrandSubscriptionPage.tsx';
 import SavedCreators from './components/Brand/SavedCreators.tsx';
 import CreatorSubscriptionPage from './components/Creator/CreatorSubscriptionPage.tsx';
+import ChatPage from './components/Shared/ChatPage.tsx';
+import NotificationsPage from './components/Shared/NotificationsPage.tsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.tsx';
 import TermsConditions from './pages/TermsConditions.tsx';
 import BrandServicesTerms from './pages/BrandServicesTerms.tsx';
@@ -71,6 +76,7 @@ const App: React.FC = () => {
         <BrowserRouter>
             <ProjectToastContainer />
             <AuthProvider>
+                <NotificationProvider>
                 <Routes>
                     <Route element={<MainLayout />}>
                         <Route path='/' element={<LandingPage />} />
@@ -82,6 +88,7 @@ const App: React.FC = () => {
                         <Route path="discover-creators" element={<DiscoverCreatorsPage />} />
                         <Route path="creator_profile/:creatorId" element={<PublicCreatorProfile />} />
                         <Route path="creators/:creatorId" element={<PublicCreatorProfile />} />
+                        <Route path="brands/:brandId" element={<PublicBrandProfile />} />
 
 
                     </Route>
@@ -94,6 +101,8 @@ const App: React.FC = () => {
                             <Route path="marketplace" element={<RequireVerified><CampaignMarketplaceList /></RequireVerified>} />
                             <Route path="applied-campaigns" element={<RequireVerified><AppliedCampaigns /></RequireVerified>} />
                             <Route path="saved-campaigns" element={<RequireVerified><SavedCampaigns /></RequireVerified>} />
+                            <Route path="chat" element={<ChatPage />} />
+                            <Route path="notifications" element={<NotificationsPage />} />
                             <Route path="creator-subscription" element={<CreatorSubscriptionPage />} />
                             <Route path="*" element={<NotFoundPage />} />
                         </Route>
@@ -104,6 +113,8 @@ const App: React.FC = () => {
                             <Route path="analytics" element={<BrandDashBoard />} />
                             <Route path="profile" element={<BrandProfile />} />
                             <Route path="saved-creators" element={<RequireVerified><SavedCreators /></RequireVerified>} />
+                            <Route path="chat" element={<RequireVerified><ChatPage /></RequireVerified>} />
+                            <Route path="notifications" element={<NotificationsPage />} />
                             <Route path="shortlists" element={<BrandShortlists />} />
                             <Route path="shortlists/new_create" element={<ShortlistCreateForm />} />
                             <Route path="shortlists/:shortlistId/edit" element={<ShortlistCreateForm />} />
@@ -112,10 +123,10 @@ const App: React.FC = () => {
                             <Route path="campaigns/new_create" element={<CampaignCreateForm />} />
                             <Route path="campaigns/:campaignId/edit" element={<CampaignCreateForm />} />
                             <Route path="campaigns/:campaignId/recommended-creators" element={<RecommendedCreatorsPage />} />
+                            <Route path="campaigns/:campaignId/applications" element={<CampaignAllApplicationsPage />} />
                             <Route path="campaigns/:campaignId" element={<CampaignApplicationsPage />} />
                             <Route path="brand-subscription" element={<BrandSubscriptionPage />} />
-
-                            {/* <Route path="campaigns/:campaignId/applications" element={<CampaignApplicationsPage />} /> */}
+                            <Route path="discover-creators" element={<DiscoverCreatorsPage brandsidebar={true} />} />
                         </Route>
                     </Route>
                     <Route path="/creator-register" element={<CreatorRegister />} />
@@ -125,6 +136,7 @@ const App: React.FC = () => {
                     <Route path="*" element={<NotFoundPage />} />
 
                 </Routes>
+                </NotificationProvider>
             </AuthProvider>
         </BrowserRouter>
     )

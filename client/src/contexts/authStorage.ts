@@ -35,6 +35,10 @@ export const authStorage = {
     return localStorage.getItem(STORAGE.ACCESS);
   },
 
+  getDrfToken() {
+    return localStorage.getItem(STORAGE.DRF);
+  },
+
   setTokens(access: string, refresh: string, drf: string) {
     localStorage.setItem(STORAGE.ACCESS, access);
     localStorage.setItem(STORAGE.REFRESH, refresh);

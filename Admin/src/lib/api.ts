@@ -14,6 +14,10 @@ function resolveApiBaseUrl() {
 const API_BASE_URL = resolveApiBaseUrl();
 const SESSION_KEY = 'collune_admin_session';
 
+function resolveWebSocketBaseUrl() {
+  return API_BASE_URL.replace(/\/api\/v1$/, '').replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
+}
+
 export interface StoredSession {
   access: string;
   refresh: string;
@@ -34,6 +38,10 @@ export function saveSession(session: StoredSession) {
 
 export function clearSession() {
   localStorage.removeItem(SESSION_KEY);
+}
+
+export function getNotificationsSocketUrl(token: string) {
+  return `${resolveWebSocketBaseUrl()}/ws/notifications/?token=${encodeURIComponent(token)}`;
 }
 
 type ApiError = { error?: string; detail?: string; message?: string };
@@ -236,6 +244,49 @@ export interface AdminManagedUserApi {
     Purpose: string | null;
     assigned_role?: { role_id: string; name: string; is_wildcard: boolean; permissions: string[] };
   } | null;
+}
+
+export interface NotificationActorApi {
+  user_id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
+export interface NotificationApi {
+  notification_id: string;
+  event_type: string;
+  title: string;
+  message: string;
+  data: Record<string, unknown>;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+  actor: NotificationActorApi | null;
+}
+
+export interface NotificationListResponse {
+  notifications: NotificationApi[];
+  unread_count: number;
+  count: number;
+}
+
+export interface NotificationReadPayload {
+  notification_ids?: string[];
+  mark_all?: boolean;
+}
+
+export interface NotificationReadResponse {
+  updated: number;
+  unread_count: number;
+}
+
+export function getNotifications(limit = 20) {
+  return apiRequest<NotificationListResponse>(`/notifications/?limit=${limit}`, {}, true);
+}
+
+export function markNotificationsRead(payload: NotificationReadPayload) {
+  return apiPatch<NotificationReadResponse>('/notifications/read/', payload, true);
 }
 
 export function getStaffUsers() {

@@ -9,8 +9,230 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import BrandProfile, Campaign, CreatorProfile, OtpChannel, OtpVerification, UserRole
+from .models import BrandProfile, Campaign, ChatConversation, ChatMessage, CreatorProfile, Notification, OtpChannel, OtpVerification, UserRole
 from .common.services import send_aisensy_whatsapp_otp
+
+
+class RegistrationPhoneOtpTests(APITestCase):
+    def verified_email(self):
+        OtpVerification.objects.create(channel="EMAIL", target="phone-test@example.com", code="123456", is_verified=True, verified_at=timezone.now(), expires_at=timezone.now() + timedelta(minutes=10))
+
+    def register(self):
+        return self.client.post(reverse("creator_register"), {
+            "user": {"name": "Phone Test", "email": "phone-test@example.com", "phone_no": "+919999944444", "password": "StrongPass123!"},
+            "category": "Travel",
+        }, format="json")
+
+    @patch("api.common.views.send_otp_message")
+    def test_local_phone_otp_then_international_registration(self, send_message):
+        self.verified_email()
+        response = self.client.post(reverse("otp_send"), {"channel": "PHONE", "target": "9999944444"}, format="json")
+        self.assertEqual(response.status_code, 200)
+        otp = OtpVerification.objects.get(channel="PHONE")
+        self.assertEqual(otp.target, "+919999944444")
+        response = self.client.post(reverse("otp_verify"), {"channel": "PHONE", "target": "9999944444", "code": otp.code}, format="json")
+        self.assertEqual(response.status_code, 200)
+        response = self.register()
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertTrue(get_user_model().objects.filter(phone_no="+919999944444").exists())
+
+    def test_already_verified_legacy_phone_remains_valid(self):
+        self.verified_email()
+        OtpVerification.objects.create(channel="PHONE", target="9999944444", code="123456", is_verified=True, verified_at=timezone.now(), expires_at=timezone.now() + timedelta(minutes=10))
+        response = self.register()
+        self.assertEqual(response.status_code, 201, response.data)
+
+    def test_pending_legacy_otp_can_be_verified_with_country_code(self):
+        OtpVerification.objects.create(channel="PHONE", target="9999944444", code="123456", expires_at=timezone.now() + timedelta(minutes=10))
+        response = self.client.post(reverse("otp_verify"), {"channel": "PHONE", "target": "+919999944444", "code": "123456"}, format="json")
+        self.assertEqual(response.status_code, 200)
+
+    def test_unverified_or_different_phone_is_rejected(self):
+        self.verified_email()
+        OtpVerification.objects.create(channel="PHONE", target="9999944444", code="123456", expires_at=timezone.now() + timedelta(minutes=10))
+        OtpVerification.objects.create(channel="PHONE", target="8888844444", code="123456", is_verified=True, expires_at=timezone.now() + timedelta(minutes=10))
+        response = self.register()
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("phone_no", response.data["otp"])
+
+
+class CreatorCampaignCountTests(APITestCase):
+    def setUp(self):
+        brand_user = get_user_model().objects.create_user(username="count-brand", email="count-brand@test.com", role=UserRole.BRAND)
+        creator_user = get_user_model().objects.create_user(username="count-creator", email="count-creator@test.com", role=UserRole.CREATOR)
+        brand = BrandProfile.objects.create(user=brand_user, company_name="Brand")
+        self.creator = CreatorProfile.objects.create(user=creator_user, display_name="Creator")
+        self.campaign = Campaign.objects.create(brand=brand, title="Launch", brief="Brief", status="ACTIVE")
+        self.client.force_authenticate(brand_user)
+
+    def test_card_counts_only_accepted_completed_campaigns(self):
+        from .models import CampaignApplication
+
+        CampaignApplication.objects.create(campaign=self.campaign, creator=self.creator, status="ACCEPTED")
+        response = self.client.get(reverse("creators_list"))
+        self.assertEqual(response.data["creators"][0]["campaigns_completed"], 0)
+        self.campaign.status = "COMPLETED"
+        self.campaign.save()
+        response = self.client.get(reverse("creators_list"))
+        self.assertEqual(response.data["creators"][0]["campaigns_completed"], 1)
+
+
+class CreatorDiscoveryTests(APITestCase):
+    def test_sort_metrics_include_unknown_values_without_fabricated_defaults(self):
+        response = self.client.get(reverse("creators_list"), {"search": "travel-handle"})
+        creator = response.data["creators"][0]
+        for field in ("avg_eng_rate", "last_active_at"):
+            self.assertIsNone(creator[field])
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="travel-handle",
+            email="discover@test.com",
+            name="Travel Creator",
+            phone_no="+919876543210",
+            role=UserRole.CREATOR,
+        )
+        self.creator = CreatorProfile.objects.create(
+            user=self.user, display_name="Travel Creator", category="Travel",
+            location="country: India | state: Maharashtra | city: Pune | postalCode: 411001 | streetAddress: Private street",
+            languages=["Hindi", "Marathi"], bio="Mountain photography", work_with=["Tourism"],
+        )
+        other_user = get_user_model().objects.create_user(username="food-handle", email="food@test.com", role=UserRole.CREATOR)
+        CreatorProfile.objects.create(user=other_user, display_name="Food Creator", category="Food", city="Mumbai", state="Maharashtra", country="India", languages=["English"])
+
+    def test_discovery_exposes_clean_address_and_filter_fields(self):
+        response = self.client.get(reverse("creators_list"), {"search": "travel-handle"})
+        self.assertEqual(response.status_code, 200)
+        creator = response.data["creators"][0]
+        self.assertEqual(creator["location"], "Pune, Maharashtra, India")
+        self.assertEqual(creator["city"], "Pune")
+        self.assertEqual(creator["state"], "Maharashtra")
+        self.assertEqual(creator["country"], "India")
+        self.assertEqual(creator["languages"], ["Hindi", "Marathi"])
+        self.assertNotIn("streetAddress", creator)
+
+    def test_search_matches_location_language_and_keywords(self):
+        for search in ["PUNE", "Marathi", "photography", "Tourism", "travel-handle", "Pune Hindi mountain"]:
+            response = self.client.get(reverse("creators_list"), {"search": search})
+            self.assertEqual([item["username"] for item in response.data["creators"]], ["travel-handle"])
+
+    def test_dedicated_filters_combine(self):
+        filters = {"country": "india", "state": "maharashtra", "city": "pune", "language": "hindi", "category": "travel"}
+        response = self.client.get(reverse("creators_list"), filters)
+        self.assertEqual(len(response.data["creators"]), 1)
+        response = self.client.get(reverse("creators_list"), {**filters, "category": "Food"})
+        self.assertEqual(response.data["creators"], [])
+
+    def test_structured_address_overrides_legacy_values(self):
+        self.creator.city = "Nashik"
+        self.creator.save(update_fields=["city"])
+        response = self.client.get(reverse("creators_list"), {"city": "Nashik"})
+        self.assertEqual(response.data["creators"][0]["location"], "Nashik, Maharashtra, India")
+
+    def test_creator_profile_returns_account_contact_details(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(reverse("creator_profile"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["creator"]["contact_person_name"], "Travel Creator")
+        self.assertEqual(response.data["creator"]["work_email"], "discover@test.com")
+        self.assertEqual(response.data["creator"]["contact_phone"], "+919876543210")
+        self.assertEqual(response.data["creator"]["whatsapp_number"], "+919876543210")
+
+
+class NotificationPaginationTests(APITestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="notification-user", email="notifications@test.com", role=UserRole.CREATOR,
+        )
+        self.client.force_authenticate(self.user)
+        for index in range(12):
+            Notification.objects.create(
+                recipient=self.user,
+                event_type="test.notification",
+                title=f"Notification {index}",
+                message="Test message",
+                is_read=index < 2,
+            )
+
+    def test_notifications_are_paginated_and_can_be_filtered_to_unread(self):
+        response = self.client.get(reverse("notifications_list"), {"page": 1, "page_size": 10})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["notifications"]), 10)
+        self.assertEqual(response.data["count"], 12)
+        self.assertEqual(response.data["page"], 1)
+        self.assertEqual(response.data["total_pages"], 2)
+
+        response = self.client.get(reverse("notifications_list"), {"unread": "true", "page_size": 10})
+        self.assertEqual(len(response.data["notifications"]), 10)
+        self.assertTrue(all(not item["is_read"] for item in response.data["notifications"]))
+        self.assertEqual(response.data["unread_count"], 10)
+
+
+class ChatMessageMutationTests(APITestCase):
+    def setUp(self):
+        self.brand_user = get_user_model().objects.create_user(username="edit-brand", email="edit-brand@test.com", role=UserRole.BRAND)
+        self.creator_user = get_user_model().objects.create_user(username="edit-creator", email="edit-creator@test.com", role=UserRole.CREATOR)
+        self.outsider = get_user_model().objects.create_user(username="outsider", email="outsider@test.com", role=UserRole.BRAND)
+        brand = BrandProfile.objects.create(user=self.brand_user, company_name="Brand")
+        creator = CreatorProfile.objects.create(user=self.creator_user, display_name="Creator")
+        self.conversation = ChatConversation.objects.create(brand=brand, creator=creator)
+        self.message = ChatMessage.objects.create(conversation=self.conversation, sender=self.brand_user, content="Original")
+        self.url = reverse("chat_message_detail", args=[self.conversation.pk, self.message.pk])
+        self.client.force_authenticate(self.brand_user)
+
+    def test_edit_and_delete_persist_and_broadcast(self):
+        with patch("api.chat.views.broadcast_chat_message") as broadcast, patch("api.chat.views.broadcast_chat_inbox_event") as inbox:
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.patch(self.url, {"content": "  Edited text  "}, format="json")
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.data["message"]["content"], "Edited text")
+            self.assertIsNotNone(response.data["message"]["edited_at"])
+            broadcast.assert_called_once_with(self.message, event="chat.message.updated")
+            inbox.assert_called_once_with(self.conversation, self.message, event="chat.message.updated")
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.delete(self.url)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.data["message"]["content"], "")
+            self.assertIsNotNone(response.data["message"]["deleted_at"])
+            self.assertEqual(broadcast.call_count, 2)
+            self.assertEqual(inbox.call_count, 2)
+        self.message.refresh_from_db()
+        self.assertEqual(self.message.content, "")
+        self.client.force_authenticate(self.creator_user)
+        response = self.client.get(reverse("chat_messages", args=[self.conversation.pk]))
+        self.assertEqual(response.data["messages"][0]["content"], "")
+        self.assertIsNotNone(response.data["messages"][0]["deleted_at"])
+        response = self.client.get(reverse("chat_conversations"))
+        self.assertIsNotNone(response.data["conversations"][0]["latest_message"]["deleted_at"])
+
+    def test_only_sender_can_mutate_messages(self):
+        for user, expected_status in [(self.creator_user, 403), (self.outsider, 404), (None, 401)]:
+            self.client.force_authenticate(user)
+            self.assertEqual(self.client.patch(self.url, {"content": "Changed"}, format="json").status_code, expected_status)
+            self.assertEqual(self.client.delete(self.url).status_code, expected_status)
+        self.message.refresh_from_db()
+        self.assertEqual(self.message.content, "Original")
+        self.assertIsNone(self.message.deleted_at)
+
+    def test_invalid_edits_and_deleted_message(self):
+        for payload in [{}, {"content": "  "}, {"content": None}, {"content": ["text"]}]:
+            self.assertEqual(self.client.patch(self.url, payload, format="json").status_code, 400)
+        self.assertEqual(self.client.delete(self.url).status_code, 200)
+        self.assertEqual(self.client.delete(self.url).status_code, 200)
+        self.assertEqual(self.client.patch(self.url, {"content": "Restore"}, format="json").status_code, 400)
+
+    def test_message_must_belong_to_requested_conversation(self):
+        import uuid
+
+        url = reverse("chat_message_detail", args=[self.conversation.pk, uuid.uuid4()])
+        self.assertEqual(self.client.delete(url).status_code, 404)
+
+    def test_creator_can_edit_their_own_message(self):
+        self.message.sender = self.creator_user
+        self.message.save(update_fields=["sender"])
+        self.client.force_authenticate(self.creator_user)
+        self.assertEqual(self.client.patch(self.url, {"content": "Creator edit"}, format="json").status_code, 200)
 
 
 class ColluneAuthTests(APITestCase):
@@ -89,6 +311,122 @@ class ColluneAuthTests(APITestCase):
         self.assertEqual(campaign.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Campaign.objects.count(), 1)
         self.assertEqual(BrandProfile.objects.get().campaigns.count(), 1)
+        brand_user = BrandProfile.objects.get().user
+        self.assertTrue(Notification.objects.filter(recipient=brand_user, event_type="campaign.created").exists())
+
+    def test_creator_application_creates_notifications_for_creator_brand_and_admin(self):
+        admin = get_user_model().objects.create_user(
+            username="admin-notify",
+            email="admin.notify@test.com",
+            password="StrongPass123!",
+            role=UserRole.ADMIN,
+        )
+        brand_user = get_user_model().objects.create_user(
+            username="brand-notify",
+            email="brand.notify@test.com",
+            password="StrongPass123!",
+            role=UserRole.BRAND,
+        )
+        creator_user = get_user_model().objects.create_user(
+            username="creator-notify",
+            email="creator.notify@test.com",
+            password="StrongPass123!",
+            role=UserRole.CREATOR,
+        )
+        brand = BrandProfile.objects.create(user=brand_user, company_name="Notify Brand", industry="Tech")
+        creator = CreatorProfile.objects.create(user=creator_user, display_name="Notify Creator")
+        campaign = Campaign.objects.create(brand=brand, title="Launch", brief="Test brief")
+
+        self.client.force_authenticate(user=creator_user)
+        response = self.client.post(
+            reverse("campaign_applications"),
+            {"campaign_id": str(campaign.campaign_id), "pitch": "Interested"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(Notification.objects.filter(recipient=creator_user, event_type="campaign.applied").exists())
+        self.assertTrue(Notification.objects.filter(recipient=brand_user, event_type="campaign.application.received").exists())
+        self.assertTrue(Notification.objects.filter(recipient=admin, event_type="campaign.application.received").exists())
+
+    def test_notification_list_and_mark_read_api(self):
+        user = get_user_model().objects.create_user(
+            username="notify-list",
+            email="notify.list@test.com",
+            password="StrongPass123!",
+            role=UserRole.CREATOR,
+        )
+        Notification.objects.create(
+            recipient=user,
+            event_type="campaign.saved",
+            title="Saved",
+            message="Saved one campaign.",
+        )
+        notification = Notification.objects.create(
+            recipient=user,
+            event_type="campaign.applied",
+            title="Applied",
+            message="Applied to one campaign.",
+        )
+
+        self.client.force_authenticate(user=user)
+        list_response = self.client.get(reverse("notifications_list"))
+
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(list_response.data["unread_count"], 2)
+        self.assertEqual(len(list_response.data["notifications"]), 2)
+
+        read_response = self.client.patch(
+            reverse("notifications_read"),
+            {"notification_ids": [str(notification.notification_id)]},
+            format="json",
+        )
+
+        self.assertEqual(read_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(read_response.data["updated"], 1)
+        self.assertEqual(read_response.data["unread_count"], 1)
+
+    def test_brand_and_creator_can_create_chat_and_send_message(self):
+        brand_user = get_user_model().objects.create_user(
+            username="chat-brand",
+            email="chat.brand@test.com",
+            password="StrongPass123!",
+            role=UserRole.BRAND,
+        )
+        creator_user = get_user_model().objects.create_user(
+            username="chat-creator",
+            email="chat.creator@test.com",
+            password="StrongPass123!",
+            role=UserRole.CREATOR,
+        )
+        brand = BrandProfile.objects.create(user=brand_user, company_name="Chat Brand", industry="Tech")
+        creator = CreatorProfile.objects.create(user=creator_user, display_name="Chat Creator", category="Lifestyle")
+
+        self.client.force_authenticate(user=brand_user)
+        create_response = self.client.post(reverse("chat_conversations"), {"creator_id": str(creator.creator_id)}, format="json")
+
+        self.assertIn(create_response.status_code, {status.HTTP_200_OK, status.HTTP_201_CREATED})
+        conversation_id = create_response.data["conversation"]["conversation_id"]
+        self.assertTrue(ChatConversation.objects.filter(conversation_id=conversation_id, brand=brand, creator=creator).exists())
+
+        message_response = self.client.post(
+            reverse("chat_messages", args=[conversation_id]),
+            {"content": "Hello creator"},
+            format="json",
+        )
+
+        self.assertEqual(message_response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(ChatMessage.objects.filter(conversation_id=conversation_id, sender=brand_user, content="Hello creator").exists())
+        self.assertTrue(Notification.objects.filter(recipient=creator_user, event_type="chat.message.received").exists())
+
+        self.client.force_authenticate(user=creator_user)
+        list_response = self.client.get(reverse("chat_conversations"))
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(list_response.data["conversations"]), 1)
+
+        messages_response = self.client.get(reverse("chat_messages", args=[conversation_id]))
+        self.assertEqual(messages_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(messages_response.data["messages"]), 1)
 
     def test_brand_logo_carousel_returns_only_id_and_logo(self):
         user = get_user_model().objects.create_user(
@@ -117,6 +455,8 @@ class ColluneAuthTests(APITestCase):
             username="brand-profile-owner",
             email="brand.profile@test.com",
             password="StrongPass123!",
+            name="Aman Sharma",
+            phone_no="+919876543210",
             role=UserRole.BRAND,
         )
         BrandProfile.objects.create(
@@ -155,6 +495,10 @@ class ColluneAuthTests(APITestCase):
         self.assertEqual(brand.company_name, "Acme Global")
         self.assertEqual(brand.industry, "Fintech")
         self.assertEqual(brand.company_size, "51-200")
+        self.assertEqual(patch_response.data["brand"]["contact_person_name"], "Aman Sharma")
+        self.assertEqual(patch_response.data["brand"]["work_email"], "brand.profile@test.com")
+        self.assertEqual(patch_response.data["brand"]["contact_phone"], "+919876543210")
+        self.assertEqual(patch_response.data["brand"]["whatsapp_number"], "+919876543210")
         self.assertFalse(user.is_profile_visible)
 
     def test_public_brand_profile_view_returns_visible_brand(self):
@@ -174,6 +518,8 @@ class ColluneAuthTests(APITestCase):
             company_size="201-500",
             linkedin_url="https://linkedin.com/company/public-brand",
         )
+        Campaign.objects.create(brand=brand, title="Open Campaign", brief="Public brief", status="ACTIVE")
+        Campaign.objects.create(brand=brand, title="Draft Campaign", brief="Private brief", status="DRAFT")
 
         response = self.client.get(reverse("brand_detail", args=[brand.brand_id]))
 
@@ -182,6 +528,7 @@ class ColluneAuthTests(APITestCase):
         self.assertEqual(response.data["brand"]["company_name"], "Public Brand")
         self.assertEqual(response.data["brand"]["industry"], "Retail")
         self.assertTrue(response.data["brand"]["verified"])
+        self.assertEqual({item["title"] for item in response.data["brand"]["campaigns"]}, {"Open Campaign", "Draft Campaign"})
         self.assertNotIn("user", response.data["brand"])
 
     def test_admin_can_create_internal_user_with_role_template_and_permissions(self):

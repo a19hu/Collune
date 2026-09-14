@@ -1,0 +1,153 @@
+from django.conf import settings
+from django.db import transaction
+from django.db.models import Prefetch
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from rest_framework import status
+from rest_framework import serializers
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from ..models import ChatConversation, ChatMessage, UserRole
+from ..notification import create_notification
+from ..permissions import IsBrand, IsCreator
+from .serializers import ChatConversationCreateSerializer, ChatConversationSerializer, ChatMessageSerializer
+from .services import broadcast_chat_inbox_event, broadcast_chat_message
+from ..message_queue.tasks import email_unread_chat_reminder
+
+
+class ChatAccessMixin:
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self, request):
+        queryset = ChatConversation.objects.select_related(
+            "brand",
+            "brand__user",
+            "creator",
+            "creator__user",
+        ).prefetch_related(
+            Prefetch("messages", queryset=ChatMessage.objects.select_related("sender").order_by("-created_at"))
+        )
+        if request.user.role == UserRole.BRAND:
+            return queryset.filter(brand__user=request.user)
+        if request.user.role == UserRole.CREATOR:
+            return queryset.filter(creator__user=request.user)
+        return queryset.none()
+
+    def get_conversation(self, request, conversation_id):
+        return get_object_or_404(self.get_queryset(request), conversation_id=conversation_id)
+
+
+class ChatConversationListCreateView(ChatAccessMixin, APIView):
+    def get(self, request):
+        conversations = self.get_queryset(request).order_by("-updated_at")
+        for conversation in conversations:
+            conversation.latest_message_obj = next(iter(conversation.messages.all()), None)
+        serializer = ChatConversationSerializer(conversations, many=True, context={"request": request})
+        return Response({"conversations": serializer.data})
+
+    def post(self, request):
+        serializer = ChatConversationCreateSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+
+        if request.user.role == UserRole.BRAND:
+            brand = request.user.brand_profile
+            creator = serializer.validated_data["creator"]
+        else:
+            brand = serializer.validated_data["brand"]
+            creator = request.user.creator_profile
+
+        conversation, created = ChatConversation.objects.get_or_create(brand=brand, creator=creator)
+        response_serializer = ChatConversationSerializer(conversation, context={"request": request})
+        return Response({"conversation": response_serializer.data, "created": created}, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+
+class ChatMessageListCreateView(ChatAccessMixin, APIView):
+    def get(self, request, conversation_id):
+        conversation = self.get_conversation(request, conversation_id)
+        messages = conversation.messages.select_related("sender").order_by("created_at")
+        unread_queryset = messages.exclude(sender=request.user).filter(is_read=False)
+        unread_queryset.update(is_read=True, read_at=timezone.now())
+        serializer = ChatMessageSerializer(messages, many=True)
+        return Response({"conversation_id": str(conversation.conversation_id), "messages": serializer.data})
+
+    def post(self, request, conversation_id):
+        conversation = self.get_conversation(request, conversation_id)
+        content = str(request.data.get("content", "")).strip()
+        if not content:
+            return Response({"content": ["This field is required."]}, status=status.HTTP_400_BAD_REQUEST)
+
+        message = ChatMessage.objects.create(
+            conversation=conversation,
+            sender=request.user,
+            content=content,
+        )
+        transaction.on_commit(
+            lambda: email_unread_chat_reminder.apply_async(
+                args=[str(message.message_id)],
+                countdown=settings.CHAT_UNREAD_EMAIL_REMINDER_DELAY_SECONDS,
+            )
+        )
+        conversation.updated_at = timezone.now()
+        conversation.save(update_fields=["updated_at"])
+
+        recipient = conversation.creator.user if request.user.role == UserRole.BRAND else conversation.brand.user
+        create_notification(
+            recipient=recipient,
+            actor=request.user,
+            event_type="chat.message.received",
+            title="New chat message",
+            message=f"{request.user.profile_name} sent you a message.",
+            data={"conversation_id": str(conversation.conversation_id), "message_id": str(message.message_id)},
+        )
+        broadcast_chat_message(message)
+        broadcast_chat_inbox_event(conversation, message)
+        serializer = ChatMessageSerializer(message)
+        return Response({"message": serializer.data}, status=status.HTTP_201_CREATED)
+
+
+class ChatMessageUpdateSerializer(serializers.Serializer):
+    content = serializers.CharField(allow_blank=False, trim_whitespace=True)
+
+
+class ChatMessageDetailView(ChatAccessMixin, APIView):
+    def patch(self, request, conversation_id, message_id):
+        serializer = ChatMessageUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return self.update_message(request, conversation_id, message_id, serializer.validated_data["content"])
+
+    def delete(self, request, conversation_id, message_id):
+        return self.update_message(request, conversation_id, message_id)
+
+    def update_message(self, request, conversation_id, message_id, content=None):
+        conversation = self.get_conversation(request, conversation_id)
+        with transaction.atomic():
+            message = get_object_or_404(
+                ChatMessage.objects.select_for_update(),
+                conversation=conversation, message_id=message_id,
+            )
+            if message.sender_id != request.user.pk:
+                return Response({"detail": "You can only edit or delete your own messages."}, status=status.HTTP_403_FORBIDDEN)
+            if message.deleted_at:
+                if content is not None:
+                    return Response({"detail": "Deleted messages cannot be edited."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": ChatMessageSerializer(message).data})
+            if content is None:
+                message.content = ""
+                message.deleted_at = timezone.now()
+                message.save(update_fields=["content", "deleted_at"])
+            else:
+                message.content = content
+                message.edited_at = timezone.now()
+                message.save(update_fields=["content", "edited_at"])
+            transaction.on_commit(lambda: broadcast_chat_message(message, event="chat.message.updated"))
+            transaction.on_commit(lambda: broadcast_chat_inbox_event(conversation, message, event="chat.message.updated"))
+        return Response({"message": ChatMessageSerializer(message).data})
+
+
+class ChatConversationReadView(ChatAccessMixin, APIView):
+    def patch(self, request, conversation_id):
+        conversation = self.get_conversation(request, conversation_id)
+        updated = conversation.messages.exclude(sender=request.user).filter(is_read=False).update(is_read=True, read_at=timezone.now())
+        return Response({"updated": updated})

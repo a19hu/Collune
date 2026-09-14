@@ -24,6 +24,7 @@ from .services import (
     serialize_admin_creator,
     serialize_admin_shortlist,
 )
+from ..notification import create_notification, notify_admins
 from ..models import (
     AdminRole, ApplicationStatus, BrandShortlist, Campaign, CreatorProfile, User, UserRole, VerificationStatus,
 )
@@ -63,6 +64,20 @@ class VerificationView(APIView):
         profile.user.save(update_fields=update_fields)
         profile.save(update_fields=["updated_at"])
 
+        create_notification(
+            recipient=profile.user,
+            event_type="account.status.updated",
+            title="Account status updated",
+            message="An admin updated your verification or account status.",
+            actor=request.user,
+            data={
+                "profile_type": profile_type,
+                "profile_id": str(profile.pk),
+                "verification_status": profile.user.verification_status,
+                "is_active": profile.user.is_active,
+            },
+        )
+
         if profile_type == "creators":
             return Response({"profile": serialize_admin_creator(profile, request=request)})
         return Response({"profile": serialize_admin_brand(profile, request=request)})
@@ -100,6 +115,21 @@ class AdminUserManagementView(APIView):
         serializer = AdminUserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+        create_notification(
+            recipient=user,
+            event_type="admin.account.created",
+            title="Admin account created",
+            message="Your admin account has been created.",
+            actor=request.user,
+            data={"user_id": str(user.user_id), "role": user.role},
+        )
+        notify_admins(
+            event_type="admin.account.created",
+            title="New admin user created",
+            message=f"{user.profile_name} was added as an admin user.",
+            actor=request.user,
+            data={"user_id": str(user.user_id), "role": user.role},
+        )
         return Response(
             {"user": AdminManagedUserSerializer(user).data},
             status=status.HTTP_201_CREATED,

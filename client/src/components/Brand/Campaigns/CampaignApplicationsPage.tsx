@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
-  AlertCircle,
   ArrowLeft,
   BarChart3,
   CalendarDays,
@@ -22,7 +21,6 @@ import {
   Target,
   Users,
   WalletCards,
-  X,
   type LucideIcon,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -330,7 +328,6 @@ export function CampaignApplicationsPage() {
   const [applications, setApplications] = useState<CampaignApplicationApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showPermissionPopup, setShowPermissionPopup] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -600,7 +597,7 @@ export function CampaignApplicationsPage() {
 
                 <button
                   type="button"
-                  onClick={() => setShowPermissionPopup(true)}
+                  onClick={() => navigate(`/brand/campaigns/${campaign.campaign_id || campaign.id}/applications`)}
                   className="mt-7 h-12 w-full rounded-lg border-2 border-[#4b22ff] bg-white text-base font-black text-[#4b22ff]"
                 >
                   View Applications ({allApplications.length})
@@ -638,36 +635,6 @@ export function CampaignApplicationsPage() {
       ) : null}
       {!campaign && error ? <FeedbackPanel title="Unable to load applications" copy={error} /> : null}
       {!campaign && isLoading ? <FeedbackPanel title="Loading applications" copy="Fetching creator profiles for this campaign." /> : null}
-      {showPermissionPopup ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#111827]/45 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-[0_24px_60px_rgba(17,24,39,0.25)]">
-            <div className="flex items-start justify-between gap-4">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#fff1f1] text-[#d23b3b]">
-                <AlertCircle className="h-6 w-6" />
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowPermissionPopup(false)}
-                className="grid h-9 w-9 place-items-center rounded-full text-[#7d8aa0] transition hover:bg-[#f3f6fa] hover:text-[#1d2430]"
-                aria-label="Close permission popup"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <h3 className="mt-4 text-xl font-black text-[#1d2430]">Permission Required</h3>
-            <p className="mt-3 text-sm font-medium leading-relaxed text-[#6f7d92]">
-              You do not have permission to view all campaign applications. Only recommended creators are available on this page.
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowPermissionPopup(false)}
-              className="mt-6 h-11 w-full rounded-xl bg-[#4b22ff] text-sm font-black text-white"
-            >
-              Okay
-            </button>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

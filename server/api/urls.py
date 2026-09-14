@@ -24,6 +24,7 @@ from .brand.views import (
     BrandProfileViewSet,
     BrandRegisterView,
     BrandSavedCreatorView,
+    BrandCampaignApplicationStatusView,
     BrandCampaignApplicationViewSet,
     CampaignReviewView,
     CampaignsViewSet,
@@ -41,9 +42,13 @@ from .common.views import (
     ProfileView,
     SignoutView,
 )
+from .notification.views import NotificationListView, NotificationReadView
+from .chat.views import ChatConversationListCreateView, ChatConversationReadView, ChatMessageListCreateView, ChatMessageDetailView
 from .creator.views import (
     CampaignApplicationViewSet,
     CreatorProfileView,
+    CreatorPortfolioView,
+    CreatorSocialMediaPricingView,
     CreatorRegisterView,
     FacebookCallbackView,
     FacebookConnectView,
@@ -79,8 +84,20 @@ urlpatterns = [
     path("auth/password-reset/confirm/", PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
     path("auth/me/", ProfileView.as_view(), name="profile"),
 
+    path("notifications/", NotificationListView.as_view(), name="notifications_list"),
+    path("notifications/read/", NotificationReadView.as_view(), name="notifications_read"),
+
+    path("chat/conversations/", ChatConversationListCreateView.as_view(), name="chat_conversations"),
+    path("chat/conversations/<uuid:conversation_id>/messages/", ChatMessageListCreateView.as_view(), name="chat_messages"),
+    path("chat/conversations/<uuid:conversation_id>/messages/<uuid:message_id>/", ChatMessageDetailView.as_view(), name="chat_message_detail"),
+    path("chat/conversations/<uuid:conversation_id>/read/", ChatConversationReadView.as_view(), name="chat_read"),
+
     path("auth/brand/profile/", BrandProfileView.as_view(), name="brand_profile"),
     path("auth/creator/profile/", CreatorProfileView.as_view(), name="creator_profile"),
+    path("auth/creator/portfolio/", CreatorPortfolioView.as_view(), name="creator_portfolio"),
+    path("auth/creator/portfolio/<uuid:portfolio_id>/", CreatorPortfolioView.as_view(), name="creator_portfolio_detail"),
+    path("auth/creator/pricing/", CreatorSocialMediaPricingView.as_view(), name="creator_pricing"),
+    path("auth/creator/pricing/<uuid:pricing_id>/", CreatorSocialMediaPricingView.as_view(), name="creator_pricing_detail"),
 
     path("brands/dashboard/", BrandDetailDashboardView.as_view(), name="brand_dashboard"),
     path("brands/logo-carousel/", BrandLogoCarouselView.as_view(), name="brand_logo_carousel"),
@@ -95,6 +112,11 @@ urlpatterns = [
     path("brands/campaigns/", CampaignsViewSet.as_view(), name="brand_campaigns"),
     path("brands/campaigns/review/", CampaignReviewView.as_view(), name="brand_campaign_review"),
     path("brands/campaigns/<uuid:campaign_id>/", BrandCampaignApplicationViewSet.as_view(), name="brand_campaign_detail"),
+    path(
+        "brands/campaigns/<uuid:campaign_id>/applications/<uuid:application_id>/",
+        BrandCampaignApplicationStatusView.as_view(),
+        name="brand_campaign_application_status",
+    ),
     path("brand-shortlists/", ShortlistViewSet.as_view(), name="brand_shortlists"),
     path("brand-shortlists/<uuid:shortlist_id>/", ShortlistViewSet.as_view(), name="brand_shortlist_detail"),
     path("brand/<uuid:brand_id>/", PublicBrandProfileView.as_view(), name="brand_detail"),

@@ -8,6 +8,7 @@ import {
   Loader2,
   Lock,
   MapPin,
+  MessageCircle,
   ShieldCheck,
   Trash2,
   Twitter,
@@ -23,14 +24,6 @@ import type { CreatorPublicProfileApi, CreatorSocialPlatform } from "../types";
 import { formatUpdatedAt } from "../HtmlComponents/BrandCard";
 import { showProjectToast } from "../HtmlComponents/HtmlRoster";
 import { getLocationDisplayValue } from "./StepsCreatorRegister";
-
-const fallbackPortfolio = [
-  "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=480&q=80",
-  "https://images.unsplash.com/photo-1492724441997-5dc865305da7?auto=format&fit=crop&w=480&q=80",
-  "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=480&q=80",
-  "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=480&q=80",
-  "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=480&q=80",
-];
 
 function XIcon({ className }: { className?: string }) {
   return <span className={className}>X</span>;
@@ -156,6 +149,13 @@ function BrandActions({ creator, isBrand }: { creator: CreatorPublicProfileApi; 
         <Panel className="p-5">
           <h2 className="text-lg font-black text-[#65718a]">For Brands</h2>
           <div className="mt-4 grid gap-3">
+            <Link
+              to={`/brand/chat?creatorId=${creator.creator_id}`}
+              className="flex h-12 items-center justify-center gap-2 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Message Creator
+            </Link>
             <button
               type="button"
               onClick={() => setIsShortlistModalOpen(true)}
@@ -479,17 +479,51 @@ export function PublicCreatorProfile() {
 
           <Panel className="p-5">
             <SectionTitle title="Portfolio" />
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-              {fallbackPortfolio.map((src, index) => (
-                <div key={src} className="relative aspect-[1.18] overflow-hidden rounded-[6px] bg-[#dfe7f2]">
-                  <img src={src} alt="" className="h-full w-full object-cover" />
-                  <span className="absolute bottom-2 left-2 rounded-full bg-black/55 px-2 py-1 text-[10px] font-bold text-white">
-                    {index % 2 ? "391.5K" : "870.5K"}
-                  </span>
-                </div>
-              ))}
-            </div>
+            {profile.portfolio?.length ? (
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                {profile.portfolio.map((item) => (
+                  <a
+                    key={item.id}
+                    href={item.link || item.video_url || item.image_url || undefined}
+                    target={item.link ? "_blank" : undefined}
+                    rel={item.link ? "noreferrer" : undefined}
+                    className="group relative aspect-[1.18] overflow-hidden rounded-[6px] bg-[#dfe7f2]"
+                  >
+                    {item.image_url ? (
+                      <img src={item.image_url} alt={item.title || "Creator portfolio item"} className="h-full w-full object-cover" />
+                    ) : item.video_url ? (
+                      <video src={item.video_url} className="h-full w-full object-cover" muted preload="metadata" />
+                    ) : (
+                      <div className="grid h-full place-items-center p-3 text-center text-xs font-bold text-[#65718a]">{item.title || "Portfolio item"}</div>
+                    )}
+                    {(item.title || item.sub_title) ? (
+                      <span className="absolute inset-x-0 bottom-0 bg-black/55 px-2 py-1.5 text-[10px] font-bold text-white opacity-0 transition group-hover:opacity-100">
+                        {item.title}{item.sub_title ? ` — ${item.sub_title}` : ""}
+                      </span>
+                    ) : null}
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-4 text-sm font-medium text-[#758198]">This creator has not added portfolio work yet.</p>
+            )}
           </Panel>
+
+          {profile.pricing?.length ? (
+            <Panel className="p-5">
+              <SectionTitle title="Social Media Pricing" />
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {profile.pricing.map((item) => (
+                  <div key={item.id} className="rounded-[6px] border border-[#dbe3ee] bg-[#fbfcff] px-4 py-3">
+                    <span className="block text-sm font-bold text-[#526079]">{item.social_media_name || "Social media collaboration"}</span>
+                    <strong className="mt-1 block text-xl font-black text-[#1438c8]">
+                      ₹{Number(item.social_media_pricing || 0).toLocaleString("en-IN")}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+          ) : null}
           </div>
 
           <aside className="grid content-start gap-5">

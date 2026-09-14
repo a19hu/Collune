@@ -3,6 +3,7 @@ import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
+from django.core.validators import FileExtensionValidator
 
 
 class UserRole(models.TextChoices):
@@ -227,6 +228,34 @@ class CreatorProfile(models.Model):
     def __str__(self):
         return self.display_name
 
+class CreatorSocialMediaPricing(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="social_accounts_pricing")
+    is_visible = models.BooleanField(default=False)
+    social_media_name = models.CharField(max_length=100, blank=True, default="")
+    social_media_pricing = models.PositiveIntegerField(default=0)
+
+class CreatorPortfolio(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="portfolio_items")
+    title = models.CharField(max_length=100, blank=True, default="")
+    sub_title = models.CharField(max_length=255, blank=True, default="")
+    link = models.URLField(blank=True, default="")
+    video = models.FileField(
+        upload_to="creators/profiles/portfolio/videos/",
+        blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["mp4", "mov", "avi", "webm"]
+            )
+        ]
+    )
+    image = models.ImageField(
+        upload_to="creators/profiles/portfolio/images/",
+        blank=True,
+        null=True
+    )
 
 class CreatorSocialAccount(models.Model):
     account_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -366,3 +395,62 @@ class BrandSavedCreator(models.Model):
 
     def __str__(self):
         return f"{self.creator.display_name} saved {self.brand.company_name}"
+
+
+class Notification(models.Model):
+    notification_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
+    actor = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="triggered_notifications",
+    )
+    event_type = models.CharField(max_length=80, db_index=True)
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    data = models.JSONField(default=dict, blank=True)
+    is_read = models.BooleanField(default=False, db_index=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.recipient.email}: {self.title}"
+
+
+class ChatConversation(models.Model):
+    conversation_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    brand = models.ForeignKey(BrandProfile, on_delete=models.CASCADE, related_name="chat_conversations")
+    creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="chat_conversations")
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("brand", "creator")
+        ordering = ("-updated_at", "-created_at")
+
+    def __str__(self):
+        return f"{self.brand.company_name} ↔ {self.creator.display_name}"
+
+
+class ChatMessage(models.Model):
+    message_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    conversation = models.ForeignKey(ChatConversation, on_delete=models.CASCADE, related_name="messages")
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="chat_messages")
+    content = models.TextField()
+    edited_at = models.DateTimeField(null=True, blank=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    is_read = models.BooleanField(default=False, db_index=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+    email_reminded_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        ordering = ("created_at",)
+
+    def __str__(self):
+        return f"{self.sender.email}: {self.content[:40]}"

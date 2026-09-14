@@ -19,7 +19,7 @@ class BrandRegisterSerializer(serializers.Serializer):
     website = serializers.URLField(required=False, allow_blank=True)
     company_size = serializers.CharField(max_length=64, required=False, allow_blank=True)
     linkedin_url = serializers.URLField(required=False, allow_blank=True)
-    about_brand = serializers.CharField(required=False, allow_blank=True, min_length=500, max_length=1000)
+    about_brand = serializers.CharField(required=False, allow_blank=True, min_length=100, max_length=1000)
     gst_number = serializers.CharField(max_length=64, required=False, allow_blank=True)
     cin_registration_number = serializers.CharField(max_length=64, required=False, allow_blank=True)
     year_established = serializers.IntegerField(required=False, allow_null=True)
@@ -52,6 +52,10 @@ class BrandDashboardSerializer(serializers.Serializer):
 
 class BrandProfileSerializer(serializers.ModelSerializer):
     user = AuthUserSerializer(read_only=True)
+    contact_person_name = serializers.CharField(source="user.name", read_only=True)
+    work_email = serializers.EmailField(source="user.email", read_only=True)
+    contact_phone = serializers.CharField(source="user.phone_no", read_only=True)
+    whatsapp_number = serializers.CharField(source="user.phone_no", read_only=True)
     logo_url = serializers.SerializerMethodField()
     is_profile_visible = serializers.BooleanField(source="user.is_profile_visible", read_only=True)
     verification_status = serializers.CharField(source="user.verification_status", read_only=True)
@@ -66,6 +70,10 @@ class BrandProfileSerializer(serializers.ModelSerializer):
             "industry",
             "about_brand",
             "website",
+            "contact_person_name",
+            "work_email",
+            "contact_phone",
+            "whatsapp_number",
             "company_size",
             "linkedin_url",
             "gst_number",
@@ -110,6 +118,9 @@ class BrandProfileSerializer(serializers.ModelSerializer):
             obj.industry,
             obj.about_brand,
             obj.website,
+            obj.user.name,
+            obj.user.email,
+            obj.user.phone_no,
             obj.company_size,
             obj.linkedin_url,
             obj.gst_number,
@@ -137,6 +148,7 @@ class CampaignSerializer(serializers.ModelSerializer):
     brand_guidelines_url = serializers.SerializerMethodField()
     cover_image = serializers.SerializerMethodField()
     status_summary = serializers.SerializerMethodField()
+    progress_steps = serializers.SerializerMethodField()
 
     class Meta:
         model = Campaign
@@ -191,6 +203,12 @@ class CampaignSerializer(serializers.ModelSerializer):
         if not obj.cover_image:
             return ""
         return request.build_absolute_uri(obj.cover_image.url) if request else obj.cover_image.url
+
+    def get_status_summary(self, obj):
+        return None
+
+    def get_progress_steps(self, obj):
+        return []
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
@@ -264,4 +282,3 @@ class BrandShortlistSerializer(serializers.ModelSerializer):
         if value not in ShortlistStatus.values:
             raise serializers.ValidationError("Invalid shortlist status.")
         return value
-

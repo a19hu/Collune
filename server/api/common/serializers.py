@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate, get_user_model
 from rest_framework import serializers
 
 from ..models import OtpChannel, UserRole
+from .services import normalize_otp_target, otp_target_variants
 
 User = get_user_model()
 
@@ -65,7 +66,8 @@ class RegisterUserSerializer(serializers.Serializer):
         return value.lower()
 
     def validate_phone_no(self, value):
-        if value and User.objects.filter(phone_no=value).exists():
+        value = normalize_otp_target(OtpChannel.PHONE, value)
+        if value and User.objects.filter(phone_no__in=otp_target_variants(OtpChannel.PHONE, value)).exists():
             raise serializers.ValidationError("This phone number is already registered.")
         return value
 
