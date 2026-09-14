@@ -278,7 +278,7 @@ def _redis_py_url(url):
 
 REDIS_URL = _redis_py_url(env("REDIS_URL", default=""))
 CHAT_UNREAD_EMAIL_REMINDER_DELAY_SECONDS = env.int(
-    "CHAT_UNREAD_EMAIL_REMINDER_DELAY_SECONDS", default=2 * 60,
+    "CHAT_UNREAD_EMAIL_REMINDER_DELAY_SECONDS", default=30 * 60,
 )
 
 if REDIS_URL:
