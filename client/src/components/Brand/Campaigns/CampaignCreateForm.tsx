@@ -50,6 +50,7 @@ const audienceTypes = ["Gen Z", "Millennials", "Working Professionals", "Parents
 const locations = ["India", "United States", "United Kingdom", "Global"];
 const languages = ["English", "Hindi", "Tamil", "Telugu", "Bengali"];
 const contentStyles = ["Educational", "Product Review", "Storytelling", "Tutorial", "UGC"];
+const campaignStatuses = ["ACTIVE", "DRAFT", "PAUSED", "COMPLETED"];
 
 function XIcon({ className }: { className?: string }) {
   return <span className={className}>X</span>;
@@ -89,7 +90,9 @@ function mapCampaignDetailToForm(campaign: BrandCampaignDetailApi): CampaignForm
     start_date: campaign.start_date || "",
     end_date: campaign.end_date || "",
     deadline: campaign.deadline || "",
-    status: "ACTIVE",
+    status: campaign.status === "DRAFT" || campaign.status === "PAUSED" || campaign.status === "COMPLETED"
+      ? campaign.status
+      : "ACTIVE",
   };
 }
 
@@ -448,6 +451,15 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
       </CampaignSection>
 
       <CampaignSection index={6} title="Campaign Review" copy="Review your campaign details before publishing.">
+        <div className="mb-6 max-w-sm">
+          <SelectInput
+            label="Campaign Status"
+            placeholder="Select campaign status"
+            value={form.status}
+            onChange={onFieldChange("status")}
+            options={campaignStatuses}
+          />
+        </div>
         <ReviewCard form={form} review={review} isLoadingReview={isLoadingReview} />
       </CampaignSection>
 

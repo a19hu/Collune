@@ -21,7 +21,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..models import (
-    ApplicationStatus, Campaign, CampaignApplication, CreatorPortfolio, CreatorProfile, CreatorSavedCampaign, CreatorSocialAccount, CreatorSocialMediaPricing, SocialPlatform, UserRole, VerificationStatus,
+    ApplicationStatus, Campaign, CampaignApplication, CampaignStatus, CreatorPortfolio, CreatorProfile, CreatorSavedCampaign, CreatorSocialAccount, CreatorSocialMediaPricing, SocialPlatform, UserRole, VerificationStatus,
 )
 from ..notification import create_notification, notify_admins
 from ..permissions import IsCreator,IsBrand
@@ -255,7 +255,7 @@ class CreatorDashboardView(APIView):
         return score
 
     def get_ranked_campaigns(self, creator):
-        campaigns = Campaign.objects.all().order_by("-created_at")
+        campaigns = Campaign.objects.filter(status=CampaignStatus.ACTIVE).order_by("-created_at")
         return sorted(campaigns, key=lambda campaign: self.get_campaign_score(creator, campaign), reverse=True)
 
     def get_matching_campaigns(self, creator):
@@ -338,7 +338,7 @@ class CampaignsListView(APIView):
         search = (request.query_params.get("search") or "").strip()
         sort = request.query_params.get("sort") or "recent"
 
-        campaigns = Campaign.objects.select_related("brand")
+        campaigns = Campaign.objects.select_related("brand").filter(status=CampaignStatus.ACTIVE)
 
         if search:
             campaigns = campaigns.filter(
@@ -389,6 +389,7 @@ class CreatorCampaignsView(APIView):
 
         campaign = Campaign.objects.select_related("brand").filter(
             campaign_id=campaign_id,
+            status=CampaignStatus.ACTIVE,
         ).first()
         if not campaign:
             return Response({"error": "Campaign not found."}, status=status.HTTP_404_NOT_FOUND)

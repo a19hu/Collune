@@ -528,7 +528,7 @@ class ColluneAuthTests(APITestCase):
         self.assertEqual(response.data["brand"]["company_name"], "Public Brand")
         self.assertEqual(response.data["brand"]["industry"], "Retail")
         self.assertTrue(response.data["brand"]["verified"])
-        self.assertEqual({item["title"] for item in response.data["brand"]["campaigns"]}, {"Open Campaign", "Draft Campaign"})
+        self.assertEqual({item["title"] for item in response.data["brand"]["campaigns"]}, {"Open Campaign"})
         self.assertNotIn("user", response.data["brand"])
 
     def test_admin_can_create_internal_user_with_role_template_and_permissions(self):

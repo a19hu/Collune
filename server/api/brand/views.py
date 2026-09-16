@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 
 from ..models import (
-    ApplicationStatus, BrandProfile, BrandSavedCreator, BrandShortlist, Campaign, CampaignApplication, CreatorProfile, ShortlistStatus, UserRole, VerificationStatus,
+    ApplicationStatus, BrandProfile, BrandSavedCreator, BrandShortlist, Campaign, CampaignApplication, CampaignStatus, CreatorProfile, ShortlistStatus, UserRole, VerificationStatus,
 )
 from ..notification import create_notification, notify_admins
 from ..permissions import IsBrand, IsCreator, IsVerifiedColluneMember
@@ -254,7 +254,7 @@ class CampaignsViewSet(APIView):
             {
                 "id": str(campaign.campaign_id),
                 "name": campaign.title,
-                "status": "Active",
+                "status": campaign.status,
                 "applications_received_count": campaign.applications_received_count,
                 "recommended_creators_count": campaign.recommended_creators_count,
                 "updated_at": campaign.updated_at.isoformat(),
@@ -301,6 +301,10 @@ class CampaignsViewSet(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
+        campaign_status = str(data.get("status", CampaignStatus.ACTIVE)).strip().upper().replace(" ", "_")
+        if campaign_status not in CampaignStatus.values:
+            return Response({"status": ["Invalid campaign status."]}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             campaign = Campaign.objects.create(
                 brand=brand,
@@ -338,6 +342,7 @@ class CampaignsViewSet(APIView):
                     data["deadline"], "%Y-%m-%d"
                 ).date() if data.get("deadline") else None,
                 cover_image=cover_image,
+                status=campaign_status,
             )
 
         except ValueError as e:
@@ -496,7 +501,7 @@ class BrandCampaignApplicationViewSet(APIView):
             "campaign_id": str(campaign.campaign_id),
             "id": str(campaign.campaign_id),
             "name": campaign.title,
-            "status": "Active",
+            "status": campaign.status,
             "title": campaign.title,
             "internal_reference_name": campaign.internal_reference_name,
             "brief": campaign.brief,
@@ -639,6 +644,12 @@ class BrandCampaignApplicationViewSet(APIView):
 
         if deliverable_pricing is not None:
             campaign.deliverable_pricing = deliverable_pricing
+
+        if "status" in data:
+            campaign_status = str(data["status"] or "").strip().upper().replace(" ", "_")
+            if campaign_status not in CampaignStatus.values:
+                return Response({"status": ["Invalid campaign status."]}, status=status.HTTP_400_BAD_REQUEST)
+            campaign.status = campaign_status
 
         if guidelines:
             campaign.brand_guidelines = guidelines
@@ -891,7 +902,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
         if self.request.user.role == UserRole.BRAND:
             return queryset.filter(brand__user=self.request.user)
         if self.request.user.role == UserRole.CREATOR:
-            return queryset.all()
+            return queryset.filter(status=CampaignStatus.ACTIVE)
         return queryset.all()
 
     def perform_create(self, serializer):
@@ -1024,7 +1035,7 @@ class PublicBrandProfileView(APIView):
             user__is_profile_visible=True,
         )
 
-        campaigns = Campaign.objects.filter(brand=brand).order_by("-created_at")
+        campaigns = Campaign.objects.filter(brand=brand, status=CampaignStatus.ACTIVE).order_by("-created_at")
         response = {
             "brand_id": str(brand.brand_id),
             "company_name": brand.company_name,

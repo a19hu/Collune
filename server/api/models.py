@@ -292,7 +292,7 @@ class Campaign(models.Model):
     brand = models.ForeignKey(BrandProfile, on_delete=models.CASCADE, related_name="campaigns")
     title = models.CharField(max_length=255)
     internal_reference_name = models.CharField(max_length=255, blank=True, default="")
-    status = models.CharField(max_length=24, choices=CampaignStatus.choices, default=CampaignStatus.DRAFT)
+    status = models.CharField(max_length=24, choices=CampaignStatus.choices, default=CampaignStatus.ACTIVE)
     brief = models.TextField()
     objective = models.TextField(blank=True, default="")
     deliverables = models.TextField(blank=True, default="")
