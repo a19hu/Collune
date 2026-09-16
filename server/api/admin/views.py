@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Permission
 from rest_framework import status
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -95,6 +96,7 @@ class AdminDashboardView(APIView):
 
 class AdminUserManagementView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUserRole]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_queryset(self):
         return User.objects.filter(role=UserRole.ADMIN).select_related("role_details", "role_details__assigned_role").order_by("-created_at")
@@ -107,9 +109,9 @@ class AdminUserManagementView(APIView):
             user = self.get_object(user_id)
             if not user:
                 return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
-            return Response({"user": AdminManagedUserSerializer(user).data})
+            return Response({"user": AdminManagedUserSerializer(user, context={"request": request}).data})
 
-        return Response({"data": AdminManagedUserSerializer(self.get_queryset(), many=True).data})
+        return Response({"data": AdminManagedUserSerializer(self.get_queryset(), many=True, context={"request": request}).data})
 
     def post(self, request):
         serializer = AdminUserCreateSerializer(data=request.data)
@@ -131,7 +133,7 @@ class AdminUserManagementView(APIView):
             data={"user_id": str(user.user_id), "role": user.role},
         )
         return Response(
-            {"user": AdminManagedUserSerializer(user).data},
+            {"user": AdminManagedUserSerializer(user, context={"request": request}).data},
             status=status.HTTP_201_CREATED,
         )
 
@@ -142,7 +144,7 @@ class AdminUserManagementView(APIView):
         serializer = AdminUserUpdateSerializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        return Response({"user": AdminManagedUserSerializer(user).data})
+        return Response({"user": AdminManagedUserSerializer(user, context={"request": request}).data})
 
     def delete(self, request, user_id):
         user = self.get_object(user_id)

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Upload, X } from 'lucide-react';
 import { StaffUser, Department, UserStatus, Role } from '../../types';
 import { Modal } from '../../components/common/Modal';
 import { useAuth } from '../../context/AuthContext';
@@ -39,7 +40,8 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
   const [department, setDepartment] = useState<Department>('Operations');
   const [roleId, setRoleId] = useState<string>(roles[0]?.id || 'ROLE-OPS-MANAGER');
   const [status, setStatus] = useState<UserStatus>('Active');
-  const [avatarUrl, setAvatarUrl] = useState('');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [removeAvatar, setRemoveAvatar] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -50,7 +52,8 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
       setDepartment(userToEdit.department);
       setRoleId(userToEdit.roleId);
       setStatus(userToEdit.status);
-      setAvatarUrl(userToEdit.avatarUrl || '');
+      setAvatarFile(null);
+      setRemoveAvatar(false);
     } else {
       setName('');
       setEmail('');
@@ -59,7 +62,8 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
       setDepartment('Operations');
       setRoleId(roles[1]?.id || roles[0]?.id || 'ROLE-OPS-MANAGER');
       setStatus('Active');
-      setAvatarUrl('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80');
+      setAvatarFile(null);
+      setRemoveAvatar(false);
     }
   }, [userToEdit, isOpen, roles]);
 
@@ -95,8 +99,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
           roleId,
           roleName,
           status,
-          avatarUrl: avatarUrl || undefined,
-        });
+        }, avatarFile, removeAvatar);
         await logAdminAction('UPDATE', 'Users', `Updated staff member ${name} (${roleName})`, userToEdit.id);
         success('User updated successfully', `${name}'s account details have been saved.`);
       } else {
@@ -109,8 +112,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
           roleId,
           roleName,
           status,
-          avatarUrl: avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-        });
+        }, avatarFile);
         await logAdminAction('CREATE', 'Users', `Created new staff user ${name} with role ${roleName}`, created.id);
         success('Staff user created', `${name} has been added as ${roleName}.`);
       }
@@ -121,6 +123,23 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] || null;
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      error('Invalid image', 'Upload an image file (PNG, JPG, WEBP, etc.).');
+      event.target.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      error('Image too large', 'Avatar images must be 5 MB or smaller.');
+      event.target.value = '';
+      return;
+    }
+    setAvatarFile(file);
+    setRemoveAvatar(false);
   };
 
   return (
@@ -257,18 +276,32 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
             </select>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Avatar Image URL (Optional)
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Staff Profile Image (Optional)
+          </label>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-950/70 transition-colors">
+              <Upload className="w-4 h-4" />
+              {avatarFile ? 'Replace image' : userToEdit?.avatarUrl && !removeAvatar ? 'Replace image' : 'Upload image'}
+              <input type="file" accept="image/*" className="sr-only" onChange={handleAvatarChange} />
             </label>
-            <input
-              type="url"
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-              placeholder="https://..."
-              className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100"
-            />
+            {avatarFile ? <span className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[220px]">{avatarFile.name}</span> : null}
+            {userToEdit?.avatarUrl && !removeAvatar && !avatarFile ? (
+              <span className="inline-flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                Current image set
+                <button type="button" onClick={() => setRemoveAvatar(true)} className="text-rose-600 hover:text-rose-700 font-semibold">Remove</button>
+              </span>
+            ) : null}
+            {removeAvatar ? (
+              <button type="button" onClick={() => setRemoveAvatar(false)} className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700">
+                <X className="w-3.5 h-3.5" /> Keep current image
+              </button>
+            ) : null}
           </div>
+          <p className="mt-1.5 text-[11px] text-slate-400">Optional. PNG, JPG, WEBP, or other image formats up to 5 MB.</p>
         </div>
 
         <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">

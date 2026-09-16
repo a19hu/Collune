@@ -128,12 +128,13 @@ function formatApiError(data: unknown, status: number, path: string): string {
 
 async function apiRequest<T>(path: string, init: RequestInit = {}, authed = false): Promise<T> {
   const session = authed ? getSession() : null;
+  const isFormData = init.body instanceof FormData;
   let res: Response;
   try {
     res = await fetch(`${API_BASE_URL}${path}`, {
       ...init,
       headers: {
-        'Content-Type': 'application/json',
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
         ...(init.headers || {}),
         ...(session ? { Authorization: `Bearer ${session.access}` } : {}),
       },
@@ -166,6 +167,14 @@ function apiPost<T>(path: string, body: unknown, authed = false) {
 
 function apiPatch<T>(path: string, body: unknown, authed = false) {
   return apiRequest<T>(path, { method: 'PATCH', body: JSON.stringify(body) }, authed);
+}
+
+function apiPostForm<T>(path: string, body: FormData, authed = false) {
+  return apiRequest<T>(path, { method: 'POST', body }, authed);
+}
+
+function apiPatchForm<T>(path: string, body: FormData, authed = false) {
+  return apiRequest<T>(path, { method: 'PATCH', body }, authed);
 }
 
 function apiDelete<T>(path: string, authed = false) {
@@ -262,6 +271,7 @@ export interface AdminManagedUserApi {
   is_active: boolean;
   created_at: string;
   last_login_at: string | null;
+  avatarUrl: string;
   userrole: {
     role_name: string;
     permissions: string;
@@ -328,10 +338,20 @@ export interface UpdateStaffUserPayload {
   assigned_role_id?: string;
   assigned_role_name?: string;
   is_active?: boolean;
+  remove_avatar?: boolean;
 }
 
-export function updateStaffUser(userId: string, payload: UpdateStaffUserPayload) {
-  return apiPatch<{ user: AdminManagedUserApi }>(`/admin/users/${userId}/`, payload, true).then((res) => res.user);
+function appendStaffUserFields(body: FormData, payload: Partial<CreateStaffUserPayload & UpdateStaffUserPayload>) {
+  for (const [key, value] of Object.entries(payload)) {
+    if (value !== undefined) body.append(key, String(value));
+  }
+}
+
+export function updateStaffUser(userId: string, payload: UpdateStaffUserPayload, avatar?: File | null) {
+  const body = new FormData();
+  appendStaffUserFields(body, payload);
+  if (avatar) body.append('avatar', avatar, avatar.name);
+  return apiPatchForm<{ user: AdminManagedUserApi }>(`/admin/users/${userId}/`, body, true).then((res) => res.user);
 }
 
 export function deleteStaffUser(userId: string) {
@@ -347,8 +367,11 @@ export interface CreateStaffUserPayload {
   is_active?: boolean;
 }
 
-export function createStaffUser(payload: CreateStaffUserPayload) {
-  return apiPost<{ user: AdminManagedUserApi }>('/admin/users/', payload, true).then((res) => res.user);
+export function createStaffUser(payload: CreateStaffUserPayload, avatar?: File | null) {
+  const body = new FormData();
+  appendStaffUserFields(body, payload);
+  if (avatar) body.append('avatar', avatar, avatar.name);
+  return apiPostForm<{ user: AdminManagedUserApi }>('/admin/users/', body, true).then((res) => res.user);
 }
 
 export interface AdminCreatorSocialApi {

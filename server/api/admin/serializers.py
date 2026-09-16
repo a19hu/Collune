@@ -110,6 +110,17 @@ class AdminRoleWriteSerializer(serializers.ModelSerializer):
 
 class AdminManagedUserSerializer(serializers.ModelSerializer):
     userrole = serializers.SerializerMethodField()
+    avatarUrl = serializers.SerializerMethodField()
+
+    def get_avatarUrl(self, obj):
+        try:
+            profile_image = obj.role_details.profile_image
+        except ObjectDoesNotExist:
+            return ""
+        if not profile_image:
+            return ""
+        request = self.context.get("request")
+        return request.build_absolute_uri(profile_image.url) if request else profile_image.url
 
     def get_userrole(self, obj):
         try:
@@ -143,6 +154,7 @@ class AdminManagedUserSerializer(serializers.ModelSerializer):
             "created_at",
             "last_login_at",
             "userrole",
+            "avatarUrl",
         ]
 
 
@@ -154,6 +166,7 @@ class AdminUserCreateSerializer(serializers.Serializer):
     role = serializers.ChoiceField(choices=UserAdminRole._meta.get_field("role_name").choices, required=False)
     assigned_role_name = serializers.CharField(max_length=120, required=False, allow_blank=True)
     is_active = serializers.BooleanField(required=False, default=True)
+    avatar = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
     def validate_email(self, value):
         value = value.lower()
@@ -186,6 +199,7 @@ class AdminUserCreateSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         email = validated_data["email"]
+        avatar = validated_data.pop("avatar", None)
         assigned_role_name = validated_data.get("assigned_role_name")
         assigned_role = AdminRole.objects.filter(name=assigned_role_name).first() if assigned_role_name else None
 
@@ -209,6 +223,7 @@ class AdminUserCreateSerializer(serializers.Serializer):
             permissions=assigned_role.description if assigned_role else role_details["description"],
             Purpose=assigned_role.description if assigned_role else role_details["purpose"],
             assigned_role=assigned_role,
+            profile_image=avatar,
         )
 
         return user
@@ -222,6 +237,8 @@ class AdminUserUpdateSerializer(serializers.Serializer):
     assigned_role_id = serializers.UUIDField(required=False)
     assigned_role_name = serializers.CharField(max_length=120, required=False)
     is_active = serializers.BooleanField(required=False)
+    avatar = serializers.ImageField(required=False, allow_null=True, write_only=True)
+    remove_avatar = serializers.BooleanField(required=False, default=False, write_only=True)
 
     def validate_email(self, value):
         value = value.lower()
@@ -270,6 +287,9 @@ class AdminUserUpdateSerializer(serializers.Serializer):
 
         explicit_role = validated_data.pop("role", None)
 
+        remove_avatar = validated_data.pop("remove_avatar", False)
+        avatar = validated_data.pop("avatar", None)
+
         for field in ("name", "email", "is_active"):
             if field in validated_data:
                 setattr(instance, field, validated_data[field])
@@ -304,7 +324,12 @@ class AdminUserUpdateSerializer(serializers.Serializer):
             role_details.permissions = assigned_role.description if assigned_role else role_meta["description"]
             role_details.Purpose = assigned_role.description if assigned_role else role_meta["purpose"]
             role_details.assigned_role = assigned_role
-            role_details.save()
+
+        if remove_avatar:
+            role_details.profile_image = None
+        elif avatar is not None:
+            role_details.profile_image = avatar
+        role_details.save()
 
         return instance
 

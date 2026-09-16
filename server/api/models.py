@@ -147,6 +147,7 @@ class UserAdminRole(models.Model):
     assigned_role = models.ForeignKey(
         AdminRole, on_delete=models.SET_NULL, null=True, blank=True, related_name="staff_members"
     )
+    profile_image = models.ImageField(upload_to="staff/avatars/", blank=True, null=True)
 
     def __str__(self):
         return f"{self.user} ({self.role_name})"

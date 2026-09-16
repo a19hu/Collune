@@ -94,11 +94,13 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onRouteChange }) => {
       header: 'Staff Member',
       render: (row) => (
         <div className="flex items-center gap-3">
-          <img
-            src={row.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-            alt={row.name}
-            className="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0"
-          />
+          {row.avatarUrl ? (
+            <img src={row.avatarUrl} alt={row.name} className="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0" />
+          ) : (
+            <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 shrink-0 flex items-center justify-center text-xs font-bold">
+              {row.name.slice(0, 1).toUpperCase()}
+            </div>
+          )}
           <div>
             <div className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
               <span>{row.name}</span>

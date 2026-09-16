@@ -113,11 +113,13 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({ userId, onRouteC
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <img
-              src={user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-              alt={user.name}
-              className="w-16 h-16 rounded-2xl object-cover border-2 border-indigo-500/20 shadow-md shrink-0"
-            />
+            {user.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.name} className="w-16 h-16 rounded-2xl object-cover border-2 border-indigo-500/20 shadow-md shrink-0" />
+            ) : (
+              <div className="w-16 h-16 rounded-2xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-2 border-indigo-500/20 shadow-md shrink-0 flex items-center justify-center text-xl font-bold">
+                {user.name.slice(0, 1).toUpperCase()}
+              </div>
+            )}
             <div>
               <div className="flex items-center gap-2.5 flex-wrap">
                 <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{user.name}</h1>

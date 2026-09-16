@@ -16,6 +16,7 @@ function mapApiUser(apiUser: api.AdminManagedUserApi): StaffUser {
     roleId: assignedRole?.role_id || apiUser.userrole?.role_name || 'UNASSIGNED',
     roleName: assignedRole?.name || apiUser.userrole?.role_name || 'Unassigned',
     status: apiUser.is_active ? 'Active' : 'Inactive',
+    avatarUrl: apiUser.avatarUrl || undefined,
     lastLogin: apiUser.last_login_at || 'Never',
     createdAt: apiUser.created_at,
   };
@@ -42,7 +43,8 @@ export const userService = {
   },
 
   createUser: async (
-    userData: Omit<StaffUser, 'id' | 'createdAt' | 'lastLogin'> & { password: string }
+    userData: Omit<StaffUser, 'id' | 'createdAt' | 'lastLogin'> & { password: string },
+    avatar?: File | null,
   ): Promise<StaffUser> => {
     const created = await api.createStaffUser({
       name: userData.name,
@@ -51,13 +53,13 @@ export const userService = {
       password: userData.password,
       assigned_role_name: userData.roleName,
       is_active: userData.status === 'Active',
-    });
+    }, avatar);
     const newUser = mapApiUser(created);
     usersState = [newUser, ...usersState];
     return newUser;
   },
 
-  updateUser: async (id: string, updates: Partial<StaffUser>): Promise<StaffUser> => {
+  updateUser: async (id: string, updates: Partial<StaffUser>, avatar?: File | null, removeAvatar = false): Promise<StaffUser> => {
     const assignedRoleId = updates.roleId && UUID_PATTERN.test(updates.roleId) ? updates.roleId : undefined;
     const updated = await api.updateStaffUser(id, {
       name: updates.name,
@@ -66,7 +68,8 @@ export const userService = {
       assigned_role_id: assignedRoleId,
       assigned_role_name: assignedRoleId ? undefined : updates.roleName,
       is_active: updates.status ? updates.status === 'Active' : undefined,
-    });
+      remove_avatar: removeAvatar || undefined,
+    }, avatar);
     const mapped = mapApiUser(updated);
     const index = usersState.findIndex((user) => user.id === id);
     if (index >= 0) usersState[index] = mapped;
