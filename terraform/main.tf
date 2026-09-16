@@ -44,6 +44,10 @@ locals {
     DB_PORT                     = "5432"
     GS_BUCKET_NAME              = var.bucket_name
     GS_PROJECT_ID               = var.project_id
+    # Used by Django Channels/presence and by Celery (broker and result
+    # backend). Use a rediss:// URL for managed Redis providers that require
+    # TLS.
+    REDIS_URL = var.redis_url
 
     EMAIL_BACKEND       = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST          = "smtp-relay.brevo.com"
@@ -179,6 +183,63 @@ resource "google_cloud_run_service" "backend" {
       template[0].metadata[0].annotations["run.googleapis.com/client-version"],
       template[0].metadata[0].labels["client.knative.dev/nonce"],
     ]
+  }
+}
+
+# Celery is a long-running worker, so it needs its own Cloud Run service rather
+# than sharing the backend's request-serving process. Cloud Run requires a
+# listening HTTP port; celery-entrypoint.sh starts a minimal internal health
+# server alongside the worker. Keep this service private and pinned to one
+# instance so Cloud Run request autoscaling cannot create duplicate consumers.
+resource "google_cloud_run_service" "celery_worker" {
+  name     = "collune-celery-worker"
+  location = var.region
+  project  = var.project_id
+
+  template {
+    spec {
+      containers {
+        image   = local.backend_image
+        command = ["/app/celery-entrypoint.sh"]
+
+        ports {
+          container_port = 8080
+        }
+
+        dynamic "env" {
+          for_each = local.django_env
+          content {
+            name  = env.key
+            value = env.value
+          }
+        }
+
+        resources {
+          limits = {
+            cpu    = "1000m"
+            memory = "1Gi"
+          }
+        }
+      }
+      service_account_name  = local.cloud_run_service_account_email
+      timeout_seconds       = 300
+      container_concurrency = 1
+    }
+
+    metadata {
+      annotations = {
+        "autoscaling.knative.dev/minScale"      = tostring(var.celery_worker_min_instances)
+        "autoscaling.knative.dev/maxScale"      = tostring(var.celery_worker_max_instances)
+        "run.googleapis.com/cpu-throttling"     = "false"
+        "run.googleapis.com/startup-cpu-boost"  = "true"
+        "run.googleapis.com/cloudsql-instances" = google_sql_database_instance.postgres.connection_name
+      }
+    }
+  }
+
+  traffic {
+    latest_revision = true
+    percent         = 100
   }
 }
 

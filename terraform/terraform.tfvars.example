@@ -6,6 +6,8 @@ instance_name = "your-cloud-sql-instance"
 database_name = "your-database-name"
 db_user = "your-database-user"
 db_password = "change-me"
+# Example: rediss://:password@your-redis-host:6379/0?ssl_cert_reqs=CERT_REQUIRED
+redis_url = "rediss://:password@your-redis-host:6379/0?ssl_cert_reqs=CERT_REQUIRED"
 email_host_user = "smtp-user@example.com"
 email_host_password = "change-me"
 django_superuser_username = "admin"

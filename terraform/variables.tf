@@ -97,6 +97,35 @@ variable "admin_frontend_image_tag" {
   default = "latest"
 }
 
+variable "redis_url" {
+  description = "Redis connection URL used by Django Channels and Celery, for example rediss://:password@host:port/0?ssl_cert_reqs=CERT_REQUIRED."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "celery_worker_min_instances" {
+  description = "Number of Celery worker instances kept warm. A value of 1 is required for continuous task consumption."
+  type        = number
+  default     = 1
+
+  validation {
+    condition     = var.celery_worker_min_instances >= 1
+    error_message = "celery_worker_min_instances must be at least 1."
+  }
+}
+
+variable "celery_worker_max_instances" {
+  description = "Maximum Celery worker instances. Keep this at 1 unless tasks are explicitly safe to consume concurrently."
+  type        = number
+  default     = 1
+
+  validation {
+    condition     = var.celery_worker_max_instances >= var.celery_worker_min_instances
+    error_message = "celery_worker_max_instances must be greater than or equal to celery_worker_min_instances."
+  }
+}
+
 variable "cloud_run_service_account_email" {
   description = "Service account email used by Cloud Run service/job. Empty value means use Compute Engine default service account for the selected project."
   type        = string

@@ -14,7 +14,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-RUN chmod +x entrypoint.sh
+RUN chmod +x entrypoint.sh celery-entrypoint.sh
 
 EXPOSE 8080
 
