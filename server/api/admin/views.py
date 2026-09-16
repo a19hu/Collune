@@ -9,6 +9,7 @@ from ..models import BrandProfile
 from ..permissions import IsAdminUserRole
 from .serializers import (
     AdminCampaignWriteSerializer,
+    AdminBrandWriteSerializer,
     AdminCreatorWriteSerializer,
     AdminManagedUserSerializer,
     AdminRoleSerializer,
@@ -390,4 +391,18 @@ class AdminBrandDetailView(APIView):
         )
         if not brand:
             return Response({"error": "Brand not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"brand": serialize_admin_brand(brand, request=request)})
+
+    def patch(self, request, brand_id):
+        brand = (
+            BrandProfile.objects.select_related("user")
+            .prefetch_related("campaigns")
+            .filter(brand_id=brand_id)
+            .first()
+        )
+        if not brand:
+            return Response({"error": "Brand not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = AdminBrandWriteSerializer(brand, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        brand = serializer.save()
         return Response({"brand": serialize_admin_brand(brand, request=request)})

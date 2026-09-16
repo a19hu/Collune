@@ -13,7 +13,7 @@ import { DataTable, Column, BulkAction } from '../../components/common/DataTable
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { PermissionGuard } from '../../components/permissions/PermissionGuard';
-import { Brand, VerificationStatus } from '../../types';
+import { Brand, VerificationStatus, AccountStatus } from '../../types';
 import { brandService } from '../../services/brandService';
 import { exportService } from '../../services/exportService';
 import { useAuth } from '../../context/AuthContext';
@@ -31,6 +31,7 @@ export const BrandsPage: React.FC<BrandsPageProps> = ({ onRouteChange }) => {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [verifyAction, setVerifyAction] = useState<{ brand: Brand; newStatus: VerificationStatus } | null>(null);
+  const [statusAction, setStatusAction] = useState<{ brand: Brand; newStatus: AccountStatus } | null>(null);
 
   const loadBrands = async () => {
     setIsLoading(true);
@@ -42,6 +43,17 @@ export const BrandsPage: React.FC<BrandsPageProps> = ({ onRouteChange }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleStatusUpdate = async () => {
+    if (!statusAction) return;
+    try {
+      await brandService.updateStatus(statusAction.brand.id, statusAction.newStatus);
+      await logAdminAction(statusAction.newStatus === 'Active' ? 'ACTIVATE' : 'DEACTIVATE', 'Brands', `Changed brand account status to ${statusAction.newStatus} for ${statusAction.brand.name}`, statusAction.brand.id);
+      success('Status Updated', `${statusAction.brand.name} is now ${statusAction.newStatus}.`);
+      setStatusAction(null);
+      loadBrands();
+    } catch (err: any) { error('Failed to update brand status', err.message); }
   };
 
   useEffect(() => {
@@ -157,6 +169,11 @@ export const BrandsPage: React.FC<BrandsPageProps> = ({ onRouteChange }) => {
               </button>
             </PermissionGuard>
           )}
+          {row.accountStatus === 'Active' ? (
+            <PermissionGuard permission="brands.deactivate"><button onClick={() => setStatusAction({ brand: row, newStatus: 'Inactive' })} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg" title="Deactivate Brand"><Ban className="w-4 h-4" /></button></PermissionGuard>
+          ) : (
+            <PermissionGuard permission="brands.activate"><button onClick={() => setStatusAction({ brand: row, newStatus: 'Active' })} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Reactivate Brand"><CheckCircle className="w-4 h-4" /></button></PermissionGuard>
+          )}
         </div>
       ),
     },
@@ -246,6 +263,7 @@ export const BrandsPage: React.FC<BrandsPageProps> = ({ onRouteChange }) => {
         confirmText={verifyAction?.newStatus === 'Verified' ? 'Approve Brand' : 'Reject Application'}
         variant={verifyAction?.newStatus === 'Verified' ? 'primary' : 'danger'}
       />
+      <ConfirmDialog isOpen={!!statusAction} onClose={() => setStatusAction(null)} onConfirm={handleStatusUpdate} title={`${statusAction?.newStatus === 'Active' ? 'Reactivate' : 'Deactivate'} "${statusAction?.brand.name}"?`} description={statusAction?.newStatus === 'Active' ? 'This brand will regain access to its account.' : 'This brand will no longer be able to access its account.'} confirmText={statusAction?.newStatus === 'Active' ? 'Reactivate Brand' : 'Deactivate Brand'} variant={statusAction?.newStatus === 'Active' ? 'primary' : 'warning'} />
     </div>
   );
 };

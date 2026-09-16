@@ -45,8 +45,18 @@ export const brandService = {
     throw new Error('Brand creation is not available in the admin frontend.');
   },
 
-  updateBrand: async (): Promise<Brand> => {
-    throw new Error('Brand editing is not available in the admin frontend.');
+  updateBrand: async (id: string, updates: Partial<Brand>): Promise<Brand> => {
+    const updated = await api.updateAdminBrand(id, {
+      company_name: updates.name,
+      industry: updates.industry,
+      website: updates.website,
+      about_brand: updates.description,
+      email: updates.email,
+      phone_no: updates.phone,
+    });
+    const brand = mapApiBrand(updated);
+    brandsState = brandsState.map((item) => (item.id === id ? brand : item));
+    return brand;
   },
 
   updateVerification: async (id: string, status: VerificationStatus): Promise<Brand> => {

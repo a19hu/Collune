@@ -334,6 +334,50 @@ class AdminUserUpdateSerializer(serializers.Serializer):
         return instance
 
 
+class AdminBrandWriteSerializer(serializers.Serializer):
+    company_name = serializers.CharField(max_length=255, required=False)
+    industry = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    website = serializers.URLField(required=False, allow_blank=True)
+    about_brand = serializers.CharField(required=False, allow_blank=True)
+    headquarters_city = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    headquarters_state = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    headquarters_country = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    email = serializers.EmailField(required=False)
+    phone_no = serializers.CharField(max_length=20, required=False, allow_blank=True)
+
+    def validate_email(self, value):
+        value = value.lower()
+        queryset = User.objects.filter(email__iexact=value).exclude(pk=self.instance.user.pk)
+        if queryset.exists():
+            raise serializers.ValidationError("This email is already registered.")
+        return value
+
+    def validate_phone_no(self, value):
+        normalized = value.strip() if value else ""
+        if normalized and len(re.sub(r"\D", "", normalized)) < 8:
+            raise serializers.ValidationError("Enter a valid phone number or leave this field blank.")
+        queryset = User.objects.filter(phone_no=normalized or None).exclude(pk=self.instance.user.pk)
+        if normalized and queryset.exists():
+            raise serializers.ValidationError("This phone number is already registered.")
+        return normalized
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        email = validated_data.pop("email", None)
+        phone_no = validated_data.pop("phone_no", None)
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+        instance.save()
+
+        if email is not None:
+            instance.user.email = email
+        if phone_no is not None:
+            instance.user.phone_no = phone_no or None
+        if email is not None or phone_no is not None:
+            instance.user.save(update_fields=[field for field, value in (("email", email), ("phone_no", phone_no)) if value is not None])
+        return instance
+
+
 SOCIAL_PLATFORM_FROM_LABEL = {
     "instagram": SocialPlatform.INSTAGRAM,
     "youtube": SocialPlatform.YOUTUBE,

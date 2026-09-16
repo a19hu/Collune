@@ -527,6 +527,22 @@ export function getAdminBrand(brandId: string) {
   return apiRequest<{ brand: AdminBrandApi }>(`/admin/brands/${brandId}/`, {}, true).then((res) => res.brand);
 }
 
+export interface AdminBrandWritePayload {
+  company_name?: string;
+  industry?: string;
+  website?: string;
+  about_brand?: string;
+  headquarters_city?: string;
+  headquarters_state?: string;
+  headquarters_country?: string;
+  email?: string;
+  phone_no?: string;
+}
+
+export function updateAdminBrand(brandId: string, payload: AdminBrandWritePayload) {
+  return apiPatch<{ brand: AdminBrandApi }>(`/admin/brands/${brandId}/`, payload, true).then((res) => res.brand);
+}
+
 export function updateBrandStatus(
   brandId: string,
   payload: { verification_status?: string; account_status?: string }

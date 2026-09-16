@@ -12,6 +12,7 @@ import {
   FileText,
   MapPin,
   ExternalLink,
+  Edit2,
 } from 'lucide-react';
 import { Brand, Campaign, VerificationStatus } from '../../types';
 import { brandService } from '../../services/brandService';
@@ -22,6 +23,7 @@ import { PermissionGuard } from '../../components/permissions/PermissionGuard';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { formatCurrency, formatDate } from '../../utils/formatters';
+import { BrandFormModal } from './BrandFormModal';
 
 interface BrandDetailPageProps {
   brandId: string;
@@ -37,6 +39,7 @@ export const BrandDetailPage: React.FC<BrandDetailPageProps> = ({ brandId, onRou
   const [activeTab, setActiveTab] = useState<'overview' | 'campaigns' | 'compliance'>('overview');
   const [verifyModal, setVerifyModal] = useState<VerificationStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -140,6 +143,15 @@ export const BrandDetailPage: React.FC<BrandDetailPageProps> = ({ brandId, onRou
           </div>
 
           <div className="flex items-center gap-2">
+            <PermissionGuard permission="brands.edit">
+              <button
+                onClick={() => setIsEditOpen(true)}
+                className="px-3.5 py-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-950 rounded-xl border border-indigo-200 dark:border-indigo-800 transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+                <span>Edit Brand</span>
+              </button>
+            </PermissionGuard>
             <PermissionGuard permission="brands.verify">
               {brand.verificationStatus !== 'Verified' && (
                 <button
@@ -371,6 +383,7 @@ export const BrandDetailPage: React.FC<BrandDetailPageProps> = ({ brandId, onRou
         confirmText="Confirm Verification"
         variant="primary"
       />
+      <BrandFormModal isOpen={isEditOpen} brand={brand} onClose={() => setIsEditOpen(false)} onSuccess={loadData} />
     </div>
   );
 };

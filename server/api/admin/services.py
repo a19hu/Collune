@@ -499,25 +499,29 @@ def build_admin_dashboard_stats():
 
 
 def build_admin_user_growth(time_range: str = "30d"):
-    """Cumulative creators/brands signed up as of each bucket, for the growth chart."""
+    """Creators and brands onboarded in each chart bucket."""
     now = timezone.now()
     buckets = []
     if time_range == "7d":
-        buckets = [((now - timedelta(days=i)).strftime("%a"), now - timedelta(days=i)) for i in range(6, -1, -1)]
+        today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        buckets = [((today - timedelta(days=i)).strftime("%a"), today - timedelta(days=i), today - timedelta(days=i - 1)) for i in range(6, -1, -1)]
     elif time_range == "90d":
-        buckets = [((now - relativedelta(months=i)).strftime("%b"), now - relativedelta(months=i)) for i in range(2, -1, -1)]
+        current_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        buckets = [((current_month - relativedelta(months=i)).strftime("%b"), current_month - relativedelta(months=i), current_month - relativedelta(months=i - 1)) for i in range(2, -1, -1)]
     elif time_range == "1y":
-        buckets = [((now - relativedelta(months=i)).strftime("%b"), now - relativedelta(months=i)) for i in range(7, -1, -1)]
+        current_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        buckets = [((current_month - relativedelta(months=i)).strftime("%b"), current_month - relativedelta(months=i), current_month - relativedelta(months=i - 1)) for i in range(11, -1, -1)]
     else:  # 30d
-        buckets = [(f"Week {4 - i}", now - timedelta(weeks=i)) for i in range(3, -1, -1)]
+        period_start = (now - timedelta(days=27)).replace(hour=0, minute=0, second=0, microsecond=0)
+        buckets = [(f"Week {i + 1}", period_start + timedelta(days=i * 7), period_start + timedelta(days=(i + 1) * 7)) for i in range(4)]
 
     return [
         {
             "name": label,
-            "creators": CreatorProfile.objects.filter(created_at__lte=bucket_end).count(),
-            "brands": BrandProfile.objects.filter(created_at__lte=bucket_end).count(),
+            "creators": CreatorProfile.objects.filter(created_at__gte=bucket_start, created_at__lt=bucket_end).count(),
+            "brands": BrandProfile.objects.filter(created_at__gte=bucket_start, created_at__lt=bucket_end).count(),
         }
-        for label, bucket_end in buckets
+        for label, bucket_start, bucket_end in buckets
     ]
 
 

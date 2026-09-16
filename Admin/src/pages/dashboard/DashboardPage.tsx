@@ -49,6 +49,23 @@ function CampaignOverviewTooltip({ active, label, payload }: { active?: boolean;
   );
 }
 
+function PlatformGrowthTooltip({ active, label, payload }: { active?: boolean; label?: string; payload?: Array<{ name?: string; value?: number; color?: string }> }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-[11px] text-white shadow-lg">
+      <div className="mb-2 font-semibold text-slate-100">{label}</div>
+      <div className="space-y-1">
+        {payload.map((item) => (
+          <div key={item.name} className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-2 text-slate-200"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />{item.name}</span>
+            <span className="font-semibold text-white">{Number(item.value) || 0}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface DashboardPageProps {
   onRouteChange: (route: string) => void;
 }
@@ -212,7 +229,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onRouteChange }) =
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} opacity={0.5} />
                 <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
                 <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} tickFormatter={(v) => formatCompactNumber(v)} />
-                <Tooltip content={<CampaignOverviewTooltip />} />
+                <Tooltip content={<PlatformGrowthTooltip />} />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
                 <Line
                   type="monotone"
