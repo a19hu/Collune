@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import { Permission, Role, StaffUser, AuditAction, ModuleName } from '../types';
 import { roleService } from '../services/roleService';
 import { auditLogService } from '../services/auditLogService';
@@ -73,13 +73,49 @@ function mapAdminRoleToRole(adminRole: api.AdminRolePermissionsPayload | null | 
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const storedSession = api.getSession();
-  const storedProfile = storedSession ? readStoredProfile() : null;
+  const hasValidStoredSession = Boolean(storedSession && !api.isAccessTokenExpired(storedSession.access));
+  const storedProfile = hasValidStoredSession ? readStoredProfile() : null;
 
   const [roles, setRoles] = useState<Role[]>(storedProfile ? [storedProfile.role] : []);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!storedSession && !!storedProfile);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(hasValidStoredSession && !!storedProfile);
   const [currentUser, setCurrentUser] = useState<StaffUser>(storedProfile?.user || EMPTY_USER);
   const [currentRole, setCurrentRole] = useState<Role>(storedProfile?.role || UNASSIGNED_ROLE);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  const clearLocalSession = useCallback(() => {
+    setIsAuthenticated(false);
+    setCurrentUser(EMPTY_USER);
+    setCurrentRole(UNASSIGNED_ROLE);
+    setRoles([]);
+    api.clearSession();
+    localStorage.removeItem(SESSION_PROFILE_KEY);
+  }, []);
+
+  useEffect(() => {
+    if (storedSession && !hasValidStoredSession) {
+      clearLocalSession();
+    }
+  }, [clearLocalSession, hasValidStoredSession, storedSession]);
+
+  useLayoutEffect(() => {
+    const handleSessionExpired = () => clearLocalSession();
+    window.addEventListener(api.AUTH_SESSION_EXPIRED_EVENT, handleSessionExpired);
+    return () => window.removeEventListener(api.AUTH_SESSION_EXPIRED_EVENT, handleSessionExpired);
+  }, [clearLocalSession]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const accessToken = api.getSession()?.access;
+    const expiresAt = accessToken ? api.getAccessTokenExpiresAt(accessToken) : null;
+    if (!accessToken || !expiresAt || expiresAt <= Date.now()) {
+      clearLocalSession();
+      return;
+    }
+
+    const timeout = window.setTimeout(clearLocalSession, Math.min(expiresAt - Date.now(), 2_147_483_647));
+    return () => window.clearTimeout(timeout);
+  }, [clearLocalSession, isAuthenticated]);
 
   const refreshRoles = useCallback(async () => {
     try {
@@ -145,13 +181,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 
   const logout = useCallback(() => {
-    setIsAuthenticated(false);
-    setCurrentUser(EMPTY_USER);
-    setCurrentRole(UNASSIGNED_ROLE);
-    api.clearSession();
-    localStorage.removeItem(SESSION_PROFILE_KEY);
+    clearLocalSession();
     api.signout().catch(() => {});
-  }, []);
+  }, [clearLocalSession]);
 
   const logAdminAction = useCallback(
     async (action: AuditAction, module: ModuleName, description: string, targetId?: string) => {

@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   BrowserRouter,
-  HashRouter,
   Routes,
   Route,
   Navigate,
@@ -213,7 +212,7 @@ const AppShell: React.FC = () => {
 
 export default function App() {
   return (
-    <HashRouter>
+    <BrowserRouter>
       <ToastProvider>
         <AuthProvider>
           <NotificationProvider>
@@ -221,6 +220,6 @@ export default function App() {
           </NotificationProvider>
         </AuthProvider>
       </ToastProvider>
-    </HashRouter>
+    </BrowserRouter>
   );
 }

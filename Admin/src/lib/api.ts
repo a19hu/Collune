@@ -13,6 +13,7 @@ function resolveApiBaseUrl() {
 
 const API_BASE_URL = resolveApiBaseUrl();
 const SESSION_KEY = 'collune_admin_session';
+export const AUTH_SESSION_EXPIRED_EVENT = 'collune-admin-session-expired';
 
 function resolveWebSocketBaseUrl() {
   return API_BASE_URL.replace(/\/api\/v1$/, '').replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
@@ -38,6 +39,27 @@ export function saveSession(session: StoredSession) {
 
 export function clearSession() {
   localStorage.removeItem(SESSION_KEY);
+}
+
+export function getAccessTokenExpiresAt(token: string): number | null {
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) return null;
+    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    return typeof decoded.exp === 'number' ? decoded.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+export function isAccessTokenExpired(token: string): boolean {
+  const expiresAt = getAccessTokenExpiresAt(token);
+  return expiresAt === null || Date.now() >= expiresAt;
+}
+
+function expireAuthenticatedSession() {
+  clearSession();
+  window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT));
 }
 
 export function getNotificationsSocketUrl(token: string) {
@@ -126,11 +148,13 @@ async function apiRequest<T>(path: string, init: RequestInit = {}, authed = fals
     try {
       data = JSON.parse(text);
     } catch {
+      if (authed && res.status === 401) expireAuthenticatedSession();
       throw new Error(fallbackErrorMessage(res.status, path));
     }
   }
 
   if (!res.ok) {
+    if (authed && res.status === 401) expireAuthenticatedSession();
     throw new Error(text ? formatApiError(data, res.status, path) : fallbackErrorMessage(res.status, path));
   }
   return data as T;
