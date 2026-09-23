@@ -663,6 +663,7 @@ export type CampaignWorkSubmissionApi = {
   creator_id: string;
   brand_id: string;
   brand_name?: string;
+  creator_name?: string;
   platform: string;
   content_type: string;
   content_title: string;

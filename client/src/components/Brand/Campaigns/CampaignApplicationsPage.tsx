@@ -602,6 +602,13 @@ export function CampaignApplicationsPage() {
                 >
                   View Applications ({allApplications.length})
                 </button>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/brand/campaigns/${campaign.campaign_id || campaign.id}/submitted-work`)}
+                  className="mt-3 h-12 w-full rounded-lg border-2 border-[#4b22ff] bg-white text-base font-black text-[#4b22ff]"
+                >
+                  Submitted Work
+                </button>
               </CampaignPanel>
 
               <CampaignPanel className="p-7">

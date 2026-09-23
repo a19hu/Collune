@@ -546,6 +546,21 @@ export async function createCreatorWorkSubmission(payload: FormData) {
   return data.work_submission;
 }
 
+export async function getBrandCampaignWorkSubmissions(campaignId: string) {
+  const data = await apiRequest<{ work_submissions: CampaignWorkSubmissionApi[] }>(`/brands/campaigns/${campaignId}/submitted-work/`, {}, true);
+  return data.work_submissions;
+}
+
+export async function getBrandWorkSubmissions() {
+  const data = await apiRequest<{ work_submissions: CampaignWorkSubmissionApi[] }>("/brands/submitted-work/", {}, true);
+  return data.work_submissions;
+}
+
+export async function reviewBrandCampaignWorkSubmission(campaignId: string, submissionId: string, action: "APPROVE" | "REQUEST_REVISION" | "REJECT" | "ADD_COMMENT" | "MARK_COMPLETED", brandComment = "") {
+  const data = await apiPatch<{ work_submission: CampaignWorkSubmissionApi }>(`/brands/campaigns/${campaignId}/submitted-work/${submissionId}/`, { action, brand_comment: brandComment }, true);
+  return data.work_submission;
+}
+
 export function saveCreatorCampaign(campaignId: string) {
   return apiPost<{ message: string; saved: boolean }>("/creator/saved-campaigns/", { campaign_id: campaignId }, true);
 }

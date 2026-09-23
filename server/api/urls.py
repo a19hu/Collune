@@ -25,6 +25,7 @@ from .brand.views import (
     BrandRegisterView,
     BrandSavedCreatorView,
     BrandCampaignApplicationStatusView,
+    BrandCampaignWorkSubmissionView,
     BrandCampaignApplicationViewSet,
     CampaignReviewView,
     CampaignsViewSet,
@@ -116,6 +117,9 @@ urlpatterns = [
     path("brands/campaigns/", CampaignsViewSet.as_view(), name="brand_campaigns"),
     path("brands/campaigns/review/", CampaignReviewView.as_view(), name="brand_campaign_review"),
     path("brands/campaigns/<uuid:campaign_id>/", BrandCampaignApplicationViewSet.as_view(), name="brand_campaign_detail"),
+    path("brands/submitted-work/", BrandCampaignWorkSubmissionView.as_view(), name="brand_all_work_submissions"),
+    path("brands/campaigns/<uuid:campaign_id>/submitted-work/", BrandCampaignWorkSubmissionView.as_view(), name="brand_campaign_work_submissions"),
+    path("brands/campaigns/<uuid:campaign_id>/submitted-work/<uuid:submission_id>/", BrandCampaignWorkSubmissionView.as_view(), name="brand_campaign_work_submission_detail"),
     path(
         "brands/campaigns/<uuid:campaign_id>/applications/<uuid:application_id>/",
         BrandCampaignApplicationStatusView.as_view(),

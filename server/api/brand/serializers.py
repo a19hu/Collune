@@ -5,6 +5,7 @@ from ..models import (
     BrandShortlist,
     Campaign,
     CampaignApplication,
+    CampaignWorkSubmission,
     CreatorProfile,
     ShortlistStatus,
 )
@@ -237,6 +238,25 @@ class CampaignApplicationSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["application_id", "creator", "created_at", "updated_at"]
+
+
+class BrandCampaignWorkSubmissionSerializer(serializers.ModelSerializer):
+    campaign_id = serializers.UUIDField(source="campaign.campaign_id", read_only=True)
+    campaign_name = serializers.CharField(source="campaign.title", read_only=True)
+    creator_name = serializers.CharField(source="creator.display_name", read_only=True)
+    creator_id = serializers.UUIDField(source="creator.creator_id", read_only=True)
+    screenshot_url = serializers.FileField(read_only=True)
+    attachment_url = serializers.FileField(read_only=True)
+
+    class Meta:
+        model = CampaignWorkSubmission
+        fields = [
+            "id", "campaign_id", "campaign_name", "creator_id", "creator_name", "platform", "content_type", "content_title",
+            "content_url", "published_date", "description", "creator_remarks", "screenshot_url",
+            "attachment_url", "status", "brand_comment", "submitted_at", "approved_at",
+            "completed_at", "created_at", "updated_at",
+        ]
+        read_only_fields = fields
 
 class BrandShortlistSerializer(serializers.ModelSerializer):
     creator_details = CreatorProfileSerializer(source="creators", many=True, read_only=True)

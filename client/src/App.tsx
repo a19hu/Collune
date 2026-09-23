@@ -19,6 +19,7 @@ import BrandProfile from './components/Brand/BrandProfile.tsx';
 import BrandDashBoard from './components/Brand/BrandDashBoard.tsx';
 import { BrandCampaigns } from './components/Brand/BrandCampaigns.tsx';
 import { CampaignApplicationsPage } from './components/Brand/Campaigns/CampaignApplicationsPage.tsx';
+import { BrandSubmittedWorkPage } from './components/Brand/Campaigns/BrandSubmittedWorkPage.tsx';
 import { CampaignAllApplicationsPage } from './components/Brand/Campaigns/CampaignAllApplicationsPage.tsx';
 import { RecommendedCreatorsPage } from './components/Brand/Campaigns/RecommendedCreatorsPage.tsx';
 import { BrandShortlists } from './components/Brand/BrandShortlists.tsx';
@@ -128,6 +129,8 @@ const App: React.FC = () => {
                             <Route path="campaigns/:campaignId/edit" element={<CampaignCreateForm />} />
                             <Route path="campaigns/:campaignId/recommended-creators" element={<RecommendedCreatorsPage />} />
                             <Route path="campaigns/:campaignId/applications" element={<CampaignAllApplicationsPage />} />
+                            <Route path="campaigns/:campaignId/submitted-work" element={<BrandSubmittedWorkPage />} />
+                            <Route path="submitted-work" element={<BrandSubmittedWorkPage />} />
                             <Route path="campaigns/:campaignId" element={<CampaignApplicationsPage />} />
                             <Route path="brand-subscription" element={<BrandSubscriptionPage />} />
                             <Route path="discover-creators" element={<DiscoverCreatorsPage brandsidebar={true} />} />

@@ -11,13 +11,13 @@ from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 
 from ..models import (
-    ApplicationStatus, BrandProfile, BrandSavedCreator, BrandShortlist, Campaign, CampaignApplication, CampaignStatus, CreatorProfile, ShortlistStatus, UserRole, VerificationStatus,
+    ApplicationStatus, BrandProfile, BrandSavedCreator, BrandShortlist, Campaign, CampaignApplication, CampaignStatus, CampaignWorkSubmission, CampaignWorkSubmissionStatus, CreatorProfile, ShortlistStatus, UserRole, VerificationStatus,
 )
 from ..notification import create_notification, notify_admins
 from ..permissions import IsBrand, IsCreator, IsVerifiedColluneMember
 from ..common.services import auth_response, create_user, parse_payload
 from .serializers import (
-    BrandProfileSerializer, BrandRegisterSerializer, BrandShortlistSerializer, CampaignApplicationSerializer,
+    BrandProfileSerializer, BrandRegisterSerializer, BrandShortlistSerializer, BrandCampaignWorkSubmissionSerializer, CampaignApplicationSerializer,
      CampaignSerializer,
 )
 from decimal import Decimal
@@ -206,6 +206,82 @@ class BrandDetailDashboardView(APIView):
 
         }
         return Response({"brand_dashboard": result})
+
+
+class BrandCampaignWorkSubmissionView(APIView):
+    """Brand review queue for creator work submitted to one of its campaigns."""
+
+    permission_classes = [IsAuthenticated, IsBrand]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get_campaign(self, request, campaign_id):
+        return Campaign.objects.filter(campaign_id=campaign_id, brand=getattr(request.user, "brand_profile", None)).first()
+
+    def get(self, request, campaign_id=None, submission_id=None):
+        brand = getattr(request.user, "brand_profile", None)
+        if not brand:
+            return Response({"error": "No brand profile found."}, status=status.HTTP_404_NOT_FOUND)
+        campaign = self.get_campaign(request, campaign_id) if campaign_id else None
+        if campaign_id and not campaign:
+            return Response({"error": "Campaign not found."}, status=status.HTTP_404_NOT_FOUND)
+        submissions = CampaignWorkSubmission.objects.select_related("campaign", "creator", "creator__user").filter(brand=brand)
+        if campaign:
+            submissions = submissions.filter(campaign=campaign)
+        if submission_id:
+            submission = submissions.filter(id=submission_id).first()
+            if not submission:
+                return Response({"error": "Work submission not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"work_submission": BrandCampaignWorkSubmissionSerializer(submission, context={"request": request}).data})
+        return Response({"work_submissions": BrandCampaignWorkSubmissionSerializer(submissions, many=True, context={"request": request}).data})
+
+    def patch(self, request, campaign_id, submission_id):
+        campaign = self.get_campaign(request, campaign_id)
+        if not campaign:
+            return Response({"error": "Campaign not found."}, status=status.HTTP_404_NOT_FOUND)
+        submission = CampaignWorkSubmission.objects.select_related("creator__user").filter(campaign=campaign, id=submission_id).first()
+        if not submission:
+            return Response({"error": "Work submission not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        action = str(request.data.get("action", "")).upper()
+        comment = str(request.data.get("brand_comment", "")).strip()
+        action_statuses = {
+            "APPROVE": CampaignWorkSubmissionStatus.APPROVED,
+            "REJECT": CampaignWorkSubmissionStatus.REJECTED,
+            "MARK_COMPLETED": CampaignWorkSubmissionStatus.COMPLETED,
+        }
+        if action == "REQUEST_REVISION":
+            if not comment:
+                return Response({"brand_comment": ["A revision comment is required."]}, status=status.HTTP_400_BAD_REQUEST)
+            submission.status = CampaignWorkSubmissionStatus.REVISION_REQUESTED
+            submission.brand_comment = comment
+            title, message = "Revision requested", f"Revision requested for '{campaign.title}': {comment}"
+        elif action == "ADD_COMMENT":
+            if not comment:
+                return Response({"brand_comment": ["A comment is required."]}, status=status.HTTP_400_BAD_REQUEST)
+            submission.brand_comment = comment
+            title, message = "New comment on your submission", f"{campaign.title}: {comment}"
+        elif action in action_statuses:
+            submission.status = action_statuses[action]
+            if comment:
+                submission.brand_comment = comment
+            if action == "APPROVE":
+                submission.approved_at = timezone.now()
+            if action == "MARK_COMPLETED":
+                submission.completed_at = timezone.now()
+            title, message = "Submission updated", f"Your submission for '{campaign.title}' is now {submission.get_status_display()}."
+        else:
+            return Response({"action": ["Choose Approve, Request Revision, Reject, Add Comment, or Mark Completed."]}, status=status.HTTP_400_BAD_REQUEST)
+
+        submission.save()
+        create_notification(
+            recipient=submission.creator.user,
+            event_type="campaign.work_submission.updated",
+            title=title,
+            message=message,
+            actor=request.user,
+            data={"campaign_id": str(campaign.campaign_id), "submission_id": str(submission.id), "status": submission.status},
+        )
+        return Response({"work_submission": BrandCampaignWorkSubmissionSerializer(submission, context={"request": request}).data})
 
 
 class BrandLogoCarouselView(APIView):
