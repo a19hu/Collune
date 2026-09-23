@@ -27,6 +27,7 @@ import { CampaignsPage } from './pages/campaigns/CampaignsPage';
 import { CampaignDetailPage } from './pages/campaigns/CampaignDetailPage';
 import { ShortlistsPage } from './pages/shortlists/ShortlistsPage';
 import { ShortlistDetailPage } from './pages/shortlists/ShortlistDetailPage';
+import { RateCardsPage } from './pages/rate-cards/RateCardsPage';
 // import { ExportsPage } from './pages/exports/ExportsPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
@@ -128,6 +129,16 @@ const AppShell: React.FC = () => {
           element={
             <ProtectedRoute permission="roles.view">
               <RolesPage onRouteChange={(r) => navigate(r)} />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Rate cards */}
+        <Route
+          path="/admin/rate-cards"
+          element={
+            <ProtectedRoute permission="rate_cards.view">
+              <RateCardsPage />
             </ProtectedRoute>
           }
         />

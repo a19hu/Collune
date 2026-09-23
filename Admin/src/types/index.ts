@@ -15,6 +15,11 @@ export type Permission =
   | 'roles.edit'
   | 'roles.delete'
   | 'roles.assign'
+  // Rate cards
+  | 'rate_cards.view'
+  | 'rate_cards.create'
+  | 'rate_cards.edit'
+  | 'rate_cards.delete'
   // Creators
   | 'creators.view'
   | 'creators.create'
@@ -62,6 +67,7 @@ export type ModuleName =
   | 'Dashboard'
   | 'Users'
   | 'Roles'
+  | 'Rate Cards'
   | 'Creators'
   | 'Brands'
   | 'Campaigns'

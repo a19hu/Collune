@@ -37,6 +37,7 @@ class PermissionModule(models.TextChoices):
     DASHBOARD = "Dashboard", "Dashboard"
     USERS = "Users", "Users"
     ROLES = "Roles", "Roles"
+    RATE_CARDS = "Rate Cards", "Rate Cards"
     CREATORS = "Creators", "Creators"
     BRANDS = "Brands", "Brands"
     CAMPAIGNS = "Campaigns", "Campaigns"

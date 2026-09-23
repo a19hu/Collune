@@ -26,6 +26,7 @@ const ROUTE_TITLES: Array<{ pattern: RegExp; label: string }> = [
   { pattern: /^\/admin\/dashboard$/, label: 'Dashboard' },
   { pattern: /^\/admin\/users(?:\/[^/]+)?$/, label: 'Users' },
   { pattern: /^\/admin\/roles$/, label: 'Roles & Permissions' },
+  { pattern: /^\/admin\/rate-cards$/, label: 'Rate Cards' },
   { pattern: /^\/admin\/creators(?:\/[^/]+)?$/, label: 'Creators' },
   { pattern: /^\/admin\/brands(?:\/[^/]+)?$/, label: 'Brands' },
   { pattern: /^\/admin\/campaigns(?:\/[^/]+)?$/, label: 'Campaigns' },

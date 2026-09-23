@@ -169,6 +169,10 @@ function apiPatch<T>(path: string, body: unknown, authed = false) {
   return apiRequest<T>(path, { method: 'PATCH', body: JSON.stringify(body) }, authed);
 }
 
+function apiPut<T>(path: string, body: unknown, authed = false) {
+  return apiRequest<T>(path, { method: 'PUT', body: JSON.stringify(body) }, authed);
+}
+
 function apiPostForm<T>(path: string, body: FormData, authed = false) {
   return apiRequest<T>(path, { method: 'POST', body }, authed);
 }
@@ -260,6 +264,42 @@ export function updateAdminRole(roleId: string, payload: Partial<AdminRoleWriteP
 export function deleteAdminRole(roleId: string, unassignStaff = false) {
   const query = unassignStaff ? '?unassign_staff=true' : '';
   return apiDelete<void>(`/admin/roles/${roleId}/${query}`, true);
+}
+
+export interface AdminRateCardApi {
+  id: string;
+  platform: string;
+  service: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AdminRateCardWritePayload = Pick<
+  AdminRateCardApi,
+  'platform' | 'service' | 'sort_order'
+>;
+
+export function getAdminRateCards() {
+  return apiRequest<{ rate_cards: AdminRateCardApi[] }>('/admin/rate-cards/', {}, true).then(
+    (res) => res.rate_cards
+  );
+}
+
+export function createAdminRateCard(payload: AdminRateCardWritePayload) {
+  return apiPost<{ rate_card: AdminRateCardApi }>('/admin/rate-cards/', payload, true).then(
+    (res) => res.rate_card
+  );
+}
+
+export function updateAdminRateCard(rateCardId: string, payload: AdminRateCardWritePayload) {
+  return apiPut<{ rate_card: AdminRateCardApi }>(`/admin/rate-cards/${rateCardId}/`, payload, true).then(
+    (res) => res.rate_card
+  );
+}
+
+export function deleteAdminRateCard(rateCardId: string) {
+  return apiDelete<void>(`/admin/rate-cards/${rateCardId}/`, true);
 }
 
 export interface AdminManagedUserApi {

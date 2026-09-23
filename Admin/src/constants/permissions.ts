@@ -85,6 +85,32 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     description: 'Assign or reassign roles to staff members',
   },
 
+  // Rate Cards
+  {
+    key: 'rate_cards.view',
+    label: 'View Rate Cards',
+    module: 'Rate Cards',
+    description: 'Browse the creator platform and service rate-card catalog',
+  },
+  {
+    key: 'rate_cards.create',
+    label: 'Create Rate Card',
+    module: 'Rate Cards',
+    description: 'Add platform and service options to the rate-card catalog',
+  },
+  {
+    key: 'rate_cards.edit',
+    label: 'Edit Rate Card',
+    module: 'Rate Cards',
+    description: 'Update rate-card platform, service, and display order',
+  },
+  {
+    key: 'rate_cards.delete',
+    label: 'Delete Rate Card',
+    module: 'Rate Cards',
+    description: 'Remove rate-card options from the catalog',
+  },
+
   // Creators
   {
     key: 'creators.view',
@@ -310,6 +336,7 @@ export const MODULES: ModuleName[] = [
   'Dashboard',
   'Users',
   'Roles',
+  'Rate Cards',
   'Creators',
   'Brands',
   'Campaigns',
@@ -358,6 +385,7 @@ export const DEFAULT_ROLES: Role[] = [
       'dashboard.view',
       'users.view', 'users.create', 'users.edit', 'users.activate', 'users.deactivate', 'users.export',
       'roles.view',
+      'rate_cards.view', 'rate_cards.create', 'rate_cards.edit', 'rate_cards.delete',
       'creators.view', 'creators.create', 'creators.edit', 'creators.verify', 'creators.approve', 'creators.reject', 'creators.activate', 'creators.deactivate', 'creators.export',
       'brands.view', 'brands.create', 'brands.edit', 'brands.verify', 'brands.approve', 'brands.reject', 'brands.activate', 'brands.deactivate', 'brands.export',
       'campaigns.view', 'campaigns.create', 'campaigns.edit', 'campaigns.approve', 'campaigns.pause', 'campaigns.close', 'campaigns.export',

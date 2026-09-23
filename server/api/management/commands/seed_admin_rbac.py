@@ -28,6 +28,11 @@ PERMISSIONS = [
     ("roles.edit", "Edit Role", "Roles", "Modify existing role names, descriptions, and permission matrices"),
     ("roles.delete", "Delete Role", "Roles", "Delete custom roles not currently locked by the system"),
     ("roles.assign", "Assign Roles", "Roles", "Assign or reassign roles to staff members"),
+    # Rate cards
+    ("rate_cards.view", "View Rate Cards", "Rate Cards", "Browse the creator platform and service rate-card catalog"),
+    ("rate_cards.create", "Create Rate Card", "Rate Cards", "Add platform and service options to the rate-card catalog"),
+    ("rate_cards.edit", "Edit Rate Card", "Rate Cards", "Update rate-card platform, service, and display order"),
+    ("rate_cards.delete", "Delete Rate Card", "Rate Cards", "Remove rate-card options from the catalog"),
     # Creators
     ("creators.view", "View Creators", "Creators", "Browse creator profiles, social metrics, and documents"),
     ("creators.create", "Create Creator", "Creators", "Manually register a new creator profile"),
@@ -85,6 +90,7 @@ ROLES = [
             "dashboard.view",
             "users.view", "users.create", "users.edit", "users.activate", "users.deactivate", "users.export",
             "roles.view",
+            "rate_cards.view", "rate_cards.create", "rate_cards.edit", "rate_cards.delete",
             "creators.view", "creators.create", "creators.edit", "creators.verify", "creators.approve",
             "creators.reject", "creators.activate", "creators.deactivate", "creators.export",
             "brands.view", "brands.create", "brands.edit", "brands.verify", "brands.approve", "brands.reject",
