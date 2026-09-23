@@ -656,7 +656,7 @@ class CreatorSocialMediaPricingView(APIView):
         creator = self.get_creator(request)
         if not creator:
             return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
-        queryset = creator.social_accounts_pricing.all().order_by("social_media_name")
+        queryset = creator.social_accounts_pricing.all().order_by("platform", "service")
         if pricing_id:
             try:
                 pricing = queryset.get(id=pricing_id)
@@ -1026,12 +1026,16 @@ class CreatorListViewSet(APIView):
             creator = (
                 CreatorProfile.objects.select_related("user")
                 .prefetch_related("social_accounts", "portfolio_items", "social_accounts_pricing")
-                .get(
-                    creator_id=creator_id,
-                    user__is_profile_visible=True,
-                )
+                .get(creator_id=creator_id)
             )
         except CreatorProfile.DoesNotExist:
+            return Response(
+                {"error": "Creator profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        is_owner = request.user.is_authenticated and request.user.pk == creator.user_id
+        if not creator.user.is_profile_visible and not is_owner:
             return Response(
                 {"error": "Creator profile not found."},
                 status=status.HTTP_404_NOT_FOUND,

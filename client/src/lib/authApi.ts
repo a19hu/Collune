@@ -23,6 +23,7 @@ import type {
   CreatorPortfolioApi,
   CreatorSocialMediaPricingApi,
   CreatorProfileApi,
+  RateCardApi,
   CreatorRegisterPayload,
   CreatorRegisterResponse,
   CreatorSavedCampaignsResponse,
@@ -360,6 +361,11 @@ export async function deleteCreatorPortfolio(id: string) {
 export async function getCreatorPricing() {
   const data = await apiRequest<{ pricing: CreatorSocialMediaPricingApi[] }>("/auth/creator/pricing/", {}, true);
   return data.pricing;
+}
+
+export async function getCreatorRateCards() {
+  const data = await apiRequest<{ rate_cards: RateCardApi[] }>("/creator/rate-cards/", {}, true);
+  return data.rate_cards;
 }
 
 export async function createCreatorPricing(payload: Omit<CreatorSocialMediaPricingApi, "id">) {

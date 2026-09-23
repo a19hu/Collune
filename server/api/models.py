@@ -75,6 +75,10 @@ class OtpChannel(models.TextChoices):
     EMAIL = "EMAIL", "Email"
     PHONE = "PHONE", "Phone"
 
+class PricingType(models.TextChoices):
+    FIXED_PRICE = "FIXED_PRICE", "Fixed Price"
+    STARTING_FROM = "STARTING_FROM", "Starting From"
+    NEGOTIABLE = "NEGOTIABLE", "Negotiable"
 
 class User(AbstractUser):
     user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_column="id")
@@ -233,8 +237,17 @@ class CreatorSocialMediaPricing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="social_accounts_pricing")
     is_visible = models.BooleanField(default=False)
-    social_media_name = models.CharField(max_length=100, blank=True, default="")
-    social_media_pricing = models.PositiveIntegerField(default=0)
+    price = models.PositiveIntegerField(default=0)
+    platform = models.CharField(max_length=32)
+    service = models.CharField(max_length=150)
+    pricing_type = models.CharField(max_length=50,choices=PricingType.choices)
+    notes = models.CharField(max_length=30)
+
+
+# Re-exported so existing imports from ``api.models`` continue to work while
+# the feature's model remains owned by the feature-control module.
+from .feature_control.models import RateCards
+
 
 class CreatorPortfolio(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

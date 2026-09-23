@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group
 
-from .models import User
+from .models import RateCards, User
 
 
 @admin.register(User)
@@ -52,6 +52,15 @@ class UserAdmin(BaseUserAdmin):
         ),
     )
     readonly_fields = ("created_at", "last_login_at", "last_login")
+
+
+@admin.register(RateCards)
+class RateCardsAdmin(admin.ModelAdmin):
+    list_display = ("platform", "service", "sort_order", "updated_at")
+    list_filter = ("platform",)
+    search_fields = ("service",)
+    ordering = ("platform", "sort_order", "service")
+    list_editable = ("sort_order",)
 
 
 try:

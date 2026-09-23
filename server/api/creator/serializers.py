@@ -133,7 +133,7 @@ class CreatorPortfolioSerializer(serializers.ModelSerializer):
 class CreatorSocialMediaPricingSerializer(serializers.ModelSerializer):
     class Meta:
         model = CreatorSocialMediaPricing
-        fields = ["id", "social_media_name", "social_media_pricing", "is_visible"]
+        fields = ["id", "platform", "service", "price", "pricing_type", "notes", "is_visible"]
         read_only_fields = ["id"]
 
 class CreatorProfileSerializer(serializers.ModelSerializer):

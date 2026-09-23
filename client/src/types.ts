@@ -641,9 +641,19 @@ export type CreatorPortfolioApi = {
 
 export type CreatorSocialMediaPricingApi = {
   id: string;
-  social_media_name: string;
-  social_media_pricing: number;
+  platform: string;
+  service: string;
+  price: number;
+  pricing_type: "FIXED_PRICE" | "STARTING_FROM" | "NEGOTIABLE";
+  notes: string;
   is_visible: boolean;
+};
+
+export type RateCardApi = {
+  id: string;
+  platform: string;
+  service: string;
+  sort_order: number;
 };
 
 export type BrandRegisterPayload = {

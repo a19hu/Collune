@@ -43,6 +43,7 @@ from .common.views import (
     SignoutView,
 )
 from .notification.views import NotificationListView, NotificationReadView
+from .feature_control.views import CreatorRateCardsView, RateCardsView
 from .chat.views import ChatConversationListCreateView, ChatConversationReadView, ChatMessageListCreateView, ChatMessageDetailView
 from .creator.views import (
     CampaignApplicationViewSet,
@@ -152,6 +153,9 @@ urlpatterns = [
     path("admin/roles/", AdminRoleListView.as_view(), name="admin_roles_table"),
     path("admin/roles/<uuid:role_id>/", AdminRoleDetailView.as_view(), name="admin_role_detail"),
     path("admin/dashboard/", AdminDashboardView.as_view(), name="admin_dashboard"),
+    path("admin/rate-cards/", RateCardsView.as_view(), name="admin_rate_cards"),
+    path("admin/rate-cards/<uuid:rate_card_id>/", RateCardsView.as_view(), name="admin_rate_card_detail"),
+    path("creator/rate-cards/", CreatorRateCardsView.as_view(), name="creator_rate_cards"),
 
    
    

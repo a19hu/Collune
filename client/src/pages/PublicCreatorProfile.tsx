@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import {
   BadgeCheck,
   BarChart3,
@@ -13,49 +13,78 @@ import {
   Trash2,
   Twitter,
   UserRound,
-} from "lucide-react";
-import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
+} from 'lucide-react';
+import { Facebook, Instagram, Linkedin, Youtube } from 'lucide-react';
 
-
-import { useAuth } from "../contexts/AuthContext";
-import { getBrandSavedCreators, getCreatorPublicProfile, removeBrandSavedCreator, saveBrandCreator } from "../lib/authApi";
-import { AddCreatorToShortlistModal } from "../components/Brand/Shortlists/AddCreatorToShortlistModal";
-import type { CreatorPublicProfileApi, CreatorSocialPlatform } from "../types";
-import { formatUpdatedAt } from "../HtmlComponents/BrandCard";
-import { showProjectToast } from "../HtmlComponents/HtmlRoster";
-import { getLocationDisplayValue } from "./StepsCreatorRegister";
+import { useAuth } from '../contexts/AuthContext';
+import {
+  getBrandSavedCreators,
+  getCreatorPublicProfile,
+  removeBrandSavedCreator,
+  saveBrandCreator,
+} from '../lib/authApi';
+import { AddCreatorToShortlistModal } from '../components/Brand/Shortlists/AddCreatorToShortlistModal';
+import type { CreatorPublicProfileApi, CreatorSocialPlatform } from '../types';
+import { formatUpdatedAt } from '../HtmlComponents/BrandCard';
+import { showProjectToast } from '../HtmlComponents/HtmlRoster';
+import { getLocationDisplayValue } from './StepsCreatorRegister';
 
 function XIcon({ className }: { className?: string }) {
   return <span className={className}>X</span>;
 }
 
 const socialTiles = [
-  { label: "Instagram", color: "bg-[#f77737]", icon: Instagram },
-  { label: "LinkedIn", color: "bg-[#0a66c2]", icon: Linkedin },
-  { label: "X (Twitter)", color: "bg-[#111827]", icon: XIcon },
-  { label: "YouTube", color: "bg-[#ff0000]", icon: Youtube },
-  { label: "Facebook", color: "bg-[#1877f2]", icon: Facebook },
+  { label: 'Instagram', color: 'bg-[#f77737]', icon: Instagram },
+  { label: 'LinkedIn', color: 'bg-[#0a66c2]', icon: Linkedin },
+  { label: 'X (Twitter)', color: 'bg-[#111827]', icon: XIcon },
+  { label: 'YouTube', color: 'bg-[#ff0000]', icon: Youtube },
+  { label: 'Facebook', color: 'bg-[#1877f2]', icon: Facebook },
 ];
 
-const platformMeta: Record<CreatorSocialPlatform, { label: string; color: string; Icon: typeof Instagram }> = {
-  INSTAGRAM: { label: "Instagram", color: "bg-[#f4a5ff]", Icon: Instagram },
-  YOUTUBE: { label: "Youtube", color: "bg-[#ff624f]", Icon: Youtube },
-  X: { label: "X / Twitter", color: "bg-[#344055]", Icon: Twitter },
-  FACEBOOK: { label: "Facebook", color: "bg-[#4f7cff]", Icon: Globe2 },
+const platformMeta: Record<
+  CreatorSocialPlatform,
+  { label: string; color: string; Icon: typeof Instagram }
+> = {
+  INSTAGRAM: { label: 'Instagram', color: 'bg-[#f4a5ff]', Icon: Instagram },
+  YOUTUBE: { label: 'Youtube', color: 'bg-[#ff624f]', Icon: Youtube },
+  X: { label: 'X / Twitter', color: 'bg-[#344055]', Icon: Twitter },
+  FACEBOOK: { label: 'Facebook', color: 'bg-[#4f7cff]', Icon: Globe2 },
 };
 
 function compactNumber(value: number) {
-  if (!Number.isFinite(value)) return "0";
-  if (value >= 1000000) return `${(value / 1000000).toFixed(value % 1000000 === 0 ? 0 : 1)}M`;
-  if (value >= 1000) return `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}K`;
+  if (!Number.isFinite(value)) return '0';
+  if (value >= 1000000)
+    return `${(value / 1000000).toFixed(value % 1000000 === 0 ? 0 : 1)}M`;
+  if (value >= 1000)
+    return `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}K`;
   return String(value);
 }
 
-function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-[8px] border border-[#dce4f0] bg-white ${className}`}>{children}</section>;
+function Panel({
+  children,
+  className = '',
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      className={`rounded-[8px] border border-[#dce4f0] bg-white ${className}`}
+    >
+      {children}
+    </section>
+  );
 }
 
-function SectionTitle({ icon, title, right }: { icon?: ReactNode; title: string; right?: ReactNode }) {
+function SectionTitle({
+  icon,
+  title,
+  right,
+}: {
+  icon?: ReactNode;
+  title: string;
+  right?: ReactNode;
+}) {
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-2 text-[13px] font-bold text-[#65718a]">
@@ -70,16 +99,30 @@ function SectionTitle({ icon, title, right }: { icon?: ReactNode; title: string;
 function MetricTile({ value, label }: { value: string; label: string }) {
   return (
     <div className="grid min-h-[82px] place-items-center rounded-[6px] bg-[#eef4ff] px-3 text-center">
-      <strong className="text-[24px] font-black leading-none text-[#1438c8]">{value}</strong>
-      <span className="mt-1 text-[11px] font-semibold text-[#6c7790]">{label}</span>
+      <strong className="text-[24px] font-black leading-none text-[#1438c8]">
+        {value}
+      </strong>
+      <span className="mt-1 text-[11px] font-semibold text-[#6c7790]">
+        {label}
+      </span>
     </div>
   );
 }
 
-function LockedMetricTile({ value, label, unlocked }: { value: string; label: string; unlocked: boolean }) {
+function LockedMetricTile({
+  value,
+  label,
+  unlocked,
+}: {
+  value: string;
+  label: string;
+  unlocked: boolean;
+}) {
   return (
     <div className="relative grid min-h-[82px] place-items-center overflow-hidden rounded-[6px] bg-[#eef4ff] px-3 text-center">
-      <strong className={`text-[24px] font-black leading-none text-[#1438c8] ${unlocked ? "" : "blur-[5px]"}`}>
+      <strong
+        className={`text-[24px] font-black leading-none text-[#1438c8] ${unlocked ? '' : 'blur-[5px]'}`}
+      >
         {value}
       </strong>
       <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-[#6c7790]">
@@ -90,7 +133,13 @@ function LockedMetricTile({ value, label, unlocked }: { value: string; label: st
   );
 }
 
-function BrandActions({ creator, isBrand }: { creator: CreatorPublicProfileApi; isBrand: boolean }) {
+function BrandActions({
+  creator,
+  isBrand,
+}: {
+  creator: CreatorPublicProfileApi;
+  isBrand: boolean;
+}) {
   const [isShortlistModalOpen, setIsShortlistModalOpen] = useState(false);
   const [isCheckingSaved, setIsCheckingSaved] = useState(false);
   const [isTogglingSaved, setIsTogglingSaved] = useState(false);
@@ -105,11 +154,18 @@ function BrandActions({ creator, isBrand }: { creator: CreatorPublicProfileApi; 
     getBrandSavedCreators()
       .then((data) => {
         if (!mounted) return;
-        setIsSavedCreator(data.creators.some((item) => item.creator.id === creator.creator_id));
+        setIsSavedCreator(
+          data.creators.some((item) => item.creator.id === creator.creator_id)
+        );
       })
       .catch((err) => {
         if (!mounted) return;
-        showProjectToast("error",err instanceof Error ? err.message : "Unable to check saved creator status.");
+        showProjectToast(
+          'error',
+          err instanceof Error
+            ? err.message
+            : 'Unable to check saved creator status.'
+        );
       })
       .finally(() => {
         if (mounted) setIsCheckingSaved(false);
@@ -129,15 +185,26 @@ function BrandActions({ creator, isBrand }: { creator: CreatorPublicProfileApi; 
       if (isSavedCreator) {
         await removeBrandSavedCreator(creator.creator_id);
         setIsSavedCreator(false);
-        showProjectToast("info", "Creator removed", "The creator has been removed from your saved list.");
+        showProjectToast(
+          'info',
+          'Creator removed',
+          'The creator has been removed from your saved list.'
+        );
       } else {
         await saveBrandCreator(creator.creator_id);
         setIsSavedCreator(true);
-        showProjectToast("success", "Creator saved", "The creator has been added to your saved list.");
+        showProjectToast(
+          'success',
+          'Creator saved',
+          'The creator has been added to your saved list.'
+        );
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : `Unable to ${isSavedCreator ? "remove" : "save"} creator.`;
-      showProjectToast("error", "Save action failed", message);
+      const message =
+        err instanceof Error
+          ? err.message
+          : `Unable to ${isSavedCreator ? 'remove' : 'save'} creator.`;
+      showProjectToast('error', 'Save action failed', message);
     } finally {
       setIsTogglingSaved(false);
     }
@@ -166,10 +233,20 @@ function BrandActions({ creator, isBrand }: { creator: CreatorPublicProfileApi; 
             <button
               type="button"
               onClick={handleToggleSavedCreator}
-              disabled={isTogglingSaved || isCheckingSaved || !creator.creator_id}
-              className={`flex h-12 items-center justify-center gap-2 rounded-[6px] text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${isSavedCreator ? "border border-[#c9d7ff] bg-[#eef3ff] text-[#1438c8]" : "bg-[#1438c8] text-white"}`}
+              disabled={
+                isTogglingSaved || isCheckingSaved || !creator.creator_id
+              }
+              className={`flex h-12 items-center justify-center gap-2 rounded-[6px] text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${isSavedCreator ? 'border border-[#c9d7ff] bg-[#eef3ff] text-[#1438c8]' : 'bg-[#1438c8] text-white'}`}
             >
-              {isCheckingSaved ? "Checking..." : isTogglingSaved ? (isSavedCreator ? "Removing..." : "Saving...") : isSavedCreator ? "Saved" : "Save Creator"}
+              {isCheckingSaved
+                ? 'Checking...'
+                : isTogglingSaved
+                  ? isSavedCreator
+                    ? 'Removing...'
+                    : 'Saving...'
+                  : isSavedCreator
+                    ? 'Saved'
+                    : 'Save Creator'}
             </button>
           </div>
         </Panel>
@@ -187,20 +264,28 @@ function BrandActions({ creator, isBrand }: { creator: CreatorPublicProfileApi; 
       <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#dce5ff] text-[#7386ff]">
         <Lock className="h-7 w-7" />
       </span>
-      <h2 className="mt-4 text-sm font-black text-[#25304a]">Want full access?</h2>
+      <h2 className="mt-4 text-sm font-black text-[#25304a]">
+        Want full access?
+      </h2>
       <p className="mx-auto mt-2 max-w-[230px] text-[13px] font-semibold leading-tight text-[#64728c]">
-        Login as a brand to unlock detailed audience insights, performance analytics and collaboration options.
+        Login as a brand to unlock detailed audience insights, performance
+        analytics and collaboration options.
       </p>
-      <Link to="/login" className="mx-auto mt-4 grid h-11 max-w-[190px] place-items-center rounded-[6px] bg-[#1438c8] text-sm font-black text-white">
+      <Link
+        to="/login"
+        className="mx-auto mt-4 grid h-11 max-w-[190px] place-items-center rounded-[6px] bg-[#1438c8] text-sm font-black text-white"
+      >
         Login as a Brand
       </Link>
       <p className="mt-3 text-[12px] font-semibold text-[#64728c]">
-        Don't have an account? <Link to="/brand-register" className="font-black text-[#7386ff]">Sign up</Link>
+        Don't have an account?{' '}
+        <Link to="/brand-register" className="font-black text-[#7386ff]">
+          Sign up
+        </Link>
       </p>
     </Panel>
   );
 }
-
 
 function VerifiedCard() {
   return (
@@ -208,25 +293,39 @@ function VerifiedCard() {
       <span className="grid h-14 w-14 place-items-center rounded-full bg-[#dce5ff] text-[#7386ff]">
         <ShieldCheck className="h-8 w-8" />
       </span>
-      <h2 className="text-lg font-black leading-tight text-[#65718a]">Profile Verified by Collune</h2>
+      <h2 className="text-lg font-black leading-tight text-[#65718a]">
+        Profile Verified by Collune
+      </h2>
     </Panel>
   );
 }
 
-function BrandLoginPromptModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function BrandLoginPromptModal({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-[#0f172a]/55 px-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-[#0f172a]/55 px-4"
+      onClick={onClose}
+    >
       <div
         className="w-full max-w-[420px] rounded-[10px] bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.22)]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-xl font-black text-[#25304a]">Login Required</h2>
+            <h2 className="text-xl font-black text-[#25304a]">
+              Login Required
+            </h2>
             <p className="mt-2 text-sm font-semibold leading-relaxed text-[#64728c]">
-              Please login as a brand to add creators to a shortlist or save them for later.
+              Please login as a brand to add creators to a shortlist or save
+              them for later.
             </p>
           </div>
           <button
@@ -240,10 +339,16 @@ function BrandLoginPromptModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
         </div>
 
         <div className="mt-6 grid gap-3">
-          <Link to="/login" className="grid h-12 place-items-center rounded-[6px] bg-[#1438c8] text-sm font-black text-white">
+          <Link
+            to="/login"
+            className="grid h-12 place-items-center rounded-[6px] bg-[#1438c8] text-sm font-black text-white"
+          >
             Login as a Brand
           </Link>
-          <Link to="/brand-register" className="grid h-12 place-items-center rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]">
+          <Link
+            to="/brand-register"
+            className="grid h-12 place-items-center rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]"
+          >
             Create Brand Account
           </Link>
         </div>
@@ -257,11 +362,11 @@ export function PublicCreatorProfile() {
   const { currentUser } = useAuth();
   const [profile, setProfile] = useState<CreatorPublicProfileApi | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [isBrandLoginPromptOpen, setIsBrandLoginPromptOpen] = useState(false);
-  const isBrand = currentUser?.role === "Brand";
+  const isBrand = currentUser?.role === 'Brand';
 
- useEffect(() => {
+  useEffect(() => {
     let isMounted = true;
 
     getCreatorPublicProfile(creatorId)
@@ -269,7 +374,10 @@ export function PublicCreatorProfile() {
         if (isMounted) setProfile(data);
       })
       .catch((error) => {
-        if (isMounted) setError(error instanceof Error ? error.message : "Could not load creators.");
+        if (isMounted)
+          setError(
+            error instanceof Error ? error.message : 'Could not load creators.'
+          );
       })
       .finally(() => {
         if (isMounted) setIsLoading(false);
@@ -284,10 +392,17 @@ export function PublicCreatorProfile() {
     const engagementRate = profile?.avg_eng_rate || 0;
     return {
       totalFollowers: compactNumber(audience),
-      engagementRate: engagementRate ? `${engagementRate}%` : "0%",
-      reach: compactNumber(profile?.total_view_count || Math.max(Math.round(audience * 0.5), audience ? 1200 : 0)),
-      comments: compactNumber(Math.max(Math.round(audience * 0.1), audience ? 250 : 0)),
-      shares: compactNumber(Math.max(Math.round(audience * 0.06), audience ? 140 : 0)),
+      engagementRate: engagementRate ? `${engagementRate}%` : '0%',
+      reach: compactNumber(
+        profile?.total_view_count ||
+          Math.max(Math.round(audience * 0.5), audience ? 1200 : 0)
+      ),
+      comments: compactNumber(
+        Math.max(Math.round(audience * 0.1), audience ? 250 : 0)
+      ),
+      shares: compactNumber(
+        Math.max(Math.round(audience * 0.06), audience ? 140 : 0)
+      ),
     };
   }, [profile]);
 
@@ -302,21 +417,41 @@ export function PublicCreatorProfile() {
       }));
     }
     return [
-      { platform: "INSTAGRAM" as CreatorSocialPlatform, followers: Math.round((profile?.total_followers || 0) * 0.5), view_count: 0, engagement_rate: 0 },
-      { platform: "YOUTUBE" as CreatorSocialPlatform, followers: Math.round((profile?.total_followers || 0) * 0.3), view_count: 0, engagement_rate: 0 },
-      { platform: "FACEBOOK" as CreatorSocialPlatform, followers: Math.round((profile?.total_followers || 0) * 0.2), view_count: 0, engagement_rate: 0 },
-      { platform: "X" as CreatorSocialPlatform, followers: Math.round((profile?.total_followers || 0) * 0.12), view_count: 0, engagement_rate: 0 },
+      {
+        platform: 'INSTAGRAM' as CreatorSocialPlatform,
+        followers: Math.round((profile?.total_followers || 0) * 0.5),
+        view_count: 0,
+        engagement_rate: 0,
+      },
+      {
+        platform: 'YOUTUBE' as CreatorSocialPlatform,
+        followers: Math.round((profile?.total_followers || 0) * 0.3),
+        view_count: 0,
+        engagement_rate: 0,
+      },
+      {
+        platform: 'FACEBOOK' as CreatorSocialPlatform,
+        followers: Math.round((profile?.total_followers || 0) * 0.2),
+        view_count: 0,
+        engagement_rate: 0,
+      },
+      {
+        platform: 'X' as CreatorSocialPlatform,
+        followers: Math.round((profile?.total_followers || 0) * 0.12),
+        view_count: 0,
+        engagement_rate: 0,
+      },
     ];
   }, [profile]);
 
   const locationDisplay = useMemo(() => {
-    const rawLocation = profile?.location || "";
-    return rawLocation ? getLocationDisplayValue(rawLocation) : "";
+    const rawLocation = profile?.location || '';
+    return rawLocation ? getLocationDisplayValue(rawLocation) : '';
   }, [profile?.location]);
 
   const languageDisplay = useMemo(() => {
-    if (!profile?.languages?.length) return "";
-    return profile.languages.join(", ");
+    if (!profile?.languages?.length) return '';
+    return profile.languages.join(', ');
   }, [profile?.languages]);
 
   if (isLoading) {
@@ -331,7 +466,7 @@ export function PublicCreatorProfile() {
     return (
       <main className="min-h-[70vh] bg-[#f4f7fb] px-6 py-16">
         <Panel className="mx-auto max-w-[760px] p-6 text-sm font-semibold text-[#b42318]">
-          {error || "Creator profile not found."}
+          {error || 'Creator profile not found.'}
         </Panel>
       </main>
     );
@@ -341,189 +476,321 @@ export function PublicCreatorProfile() {
     <main className="min-h-screen bg-[#f4f7fb] px-4 pb-10 pt-28 text-[#25304a] sm:px-6">
       <div className="mx-auto max-w-[1200px]">
         <div className="mb-4 text-[13px] font-black text-[#65718a]">
-          <Link to="/" className="hover:text-[#1438c8]">Home</Link>
+          <Link to="/" className="hover:text-[#1438c8]">
+            Home
+          </Link>
           <span> &gt; </span>
-          <Link to="/discover-creators" className="hover:text-[#1438c8]">Discover Creators</Link>
+          <Link to="/discover-creators" className="hover:text-[#1438c8]">
+            Discover Creators
+          </Link>
           <span> &gt; {profile?.display_name}</span>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
           <div className="grid gap-5">
-        <Panel className="overflow-hidden p-5 sm:p-7">
-          <div className="grid justify-items-center gap-6 text-center lg:grid-cols-[250px_1fr] lg:items-center lg:justify-items-stretch lg:text-left">
-            <div className="relative h-[210px] w-[210px] overflow-hidden rounded-full bg-[#f3e4d4]">
-              {profile?.profile_image ? (
-                <img src={profile.profile_image} alt={profile.display_name} className="h-full w-full object-cover" />
-              ) : (
-                <div className="grid h-full w-full place-items-center text-[#1438c8]">
-                  <UserRound className="h-24 w-24" />
+            <Panel className="overflow-hidden p-5 sm:p-7">
+              <div className="grid justify-items-center gap-6 text-center lg:grid-cols-[250px_1fr] lg:items-center lg:justify-items-stretch lg:text-left">
+                <div className="relative h-[210px] w-[210px] overflow-hidden rounded-full bg-[#f3e4d4]">
+                  {profile?.profile_image ? (
+                    <img
+                      src={profile.profile_image}
+                      alt={profile.display_name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="grid h-full w-full place-items-center text-[#1438c8]">
+                      <UserRound className="h-24 w-24" />
+                    </div>
+                  )}
+                  <span className="absolute bottom-5 right-6 grid h-11 w-11 place-items-center rounded-full bg-[#7486ff] text-white ring-4 ring-white">
+                    <Check className="h-6 w-6" />
+                  </span>
                 </div>
-              )}
-              <span className="absolute bottom-5 right-6 grid h-11 w-11 place-items-center rounded-full bg-[#7486ff] text-white ring-4 ring-white">
-                <Check className="h-6 w-6" />
-              </span>
-            </div>
 
-            <div className="pt-3">
-              <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-start">
-                <h1 className="text-[28px] font-black leading-tight text-[#1438c8]">{profile?.display_name}</h1>
-                <BadgeCheck className="h-5 w-5 fill-[#6f85ff] text-white" />
-              </div>
-              <p className="mt-1 text-[13px] font-semibold text-[#6b7891]">
-                {profile.category || "Creator"}
-              </p>
-              <p className="mt-2 flex items-center justify-center gap-1 text-[12px] font-medium text-[#7b8597] lg:justify-start">
-                <MapPin className="h-3.5 w-3.5" />
-                <span>{locationDisplay || "Location not added"}</span>
-              </p>
-              <p className="mt-1 flex items-center justify-center gap-1 text-[12px] font-medium text-[#7b8597] lg:justify-start">
-                <Globe2 className="h-3.5 w-3.5" />
-                <span>{languageDisplay || "Language not added"}</span>
-              </p>
-              <p className="mt-4 max-w-[560px] text-[13px] font-medium leading-relaxed text-[#526079] lg:max-w-none">
-                {profile?.bio || "This creator has not added a profile bio yet."}
-              </p>
-              <div className="mt-5 flex flex-wrap justify-center gap-3 lg:justify-start">
-                <div className="flex flex-wrap justify-center gap-4 lg:justify-start" aria-label="Social platforms">
-              {socialTiles.map((tile) => {
-                const Icon = tile.icon;
-                return (
-                  <span key={tile.color} className={`grid h-9 w-9 place-items-center rounded-[13px] ${tile.color} text-white transition hover:scale-105`}>
-                    <Icon className="text-lg font-black leading-none"  />
+                <div className="pt-3">
+                  <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-start">
+                    <h1 className="text-[28px] font-black leading-tight text-[#1438c8]">
+                      {profile?.display_name}
+                    </h1>
+                    <BadgeCheck className="h-5 w-5 fill-[#6f85ff] text-white" />
+                  </div>
+                  <p className="mt-1 text-[13px] font-semibold text-[#6b7891]">
+                    {profile.category || 'Creator'}
+                  </p>
+                  <p className="mt-2 flex items-center justify-center gap-1 text-[12px] font-medium text-[#7b8597] lg:justify-start">
+                    <MapPin className="h-3.5 w-3.5" />
+                    <span>{locationDisplay || 'Location not added'}</span>
+                  </p>
+                  <p className="mt-1 flex items-center justify-center gap-1 text-[12px] font-medium text-[#7b8597] lg:justify-start">
+                    <Globe2 className="h-3.5 w-3.5" />
+                    <span>{languageDisplay || 'Language not added'}</span>
+                  </p>
+                  <p className="mt-4 max-w-[560px] text-[13px] font-medium leading-relaxed text-[#526079] lg:max-w-none">
+                    {profile?.bio ||
+                      'This creator has not added a profile bio yet.'}
+                  </p>
+                  <div className="mt-5 flex flex-wrap justify-center gap-3 lg:justify-start">
+                    <div
+                      className="flex flex-wrap justify-center gap-4 lg:justify-start"
+                      aria-label="Social platforms"
+                    >
+                      {socialTiles.map((tile) => {
+                        const Icon = tile.icon;
+                        return (
+                          <span
+                            key={tile.color}
+                            className={`grid h-9 w-9 place-items-center rounded-[13px] ${tile.color} text-white transition hover:scale-105`}
+                          >
+                            <Icon className="text-lg font-black leading-none" />
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="mt-5 w-full max-w-[210px] rounded-[6px] border border-[#d8e0ec] bg-white px-4 py-2 text-center lg:ml-auto">
+                    <strong className="block text-[24px] font-black leading-none text-[#1438c8]">
+                      {(profile?.total_followers || 0).toLocaleString()}
+                    </strong>
+                    <span className="text-[11px] font-semibold text-[#6c7790]">
+                      Followers across Platforms
                     </span>
-                );
-              })}
-            </div>
+                  </div>
+                </div>
               </div>
-              <div className="mt-5 w-full max-w-[210px] rounded-[6px] border border-[#d8e0ec] bg-white px-4 py-2 text-center lg:ml-auto">
-                <strong className="block text-[24px] font-black leading-none text-[#1438c8]">{(profile?.total_followers || 0).toLocaleString()}</strong>
-                <span className="text-[11px] font-semibold text-[#6c7790]">Followers across Platforms</span>
-              </div>
-            </div>
-          </div>
-        </Panel>
+            </Panel>
 
-          <Panel className="p-5">
-            <SectionTitle icon={<UserRound className="h-4 w-4 text-[#7386ff]" />} title={`About ${profile?.display_name || "Creator"}`} />
-            <p className="mt-4 text-[13px] font-medium leading-relaxed text-[#536179]">
-              {profile?.about || "Profile bio has not been added yet."}
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {/* {chips.map((chip) => (
+            <Panel className="p-5">
+              <SectionTitle
+                icon={<UserRound className="h-4 w-4 text-[#7386ff]" />}
+                title={`About ${profile?.display_name || 'Creator'}`}
+              />
+              <p className="mt-4 text-[13px] font-medium leading-relaxed text-[#536179]">
+                {profile?.about || 'Profile bio has not been added yet.'}
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {/* {chips.map((chip) => (
                 <span key={chip} className="rounded-full bg-[#e9edff] px-3 py-1 text-[11px] font-bold text-[#1438c8]">
                   {chip}
                 </span>
               ))} */}
-            </div>
-          </Panel>
-
-          <Panel className="p-5">
-            <SectionTitle
-              icon={<BarChart3 className="h-4 w-4 text-[#7386ff]" />}
-              title="Audience Snapshot"
-              right={isBrand ? <span className="text-[11px] font-semibold text-[#7b8597]">{formatUpdatedAt(profile?.updated_at)}</span> : null}
-            />
-            <div className={`mt-4 grid gap-3 sm:grid-cols-2 ${isBrand ? "lg:grid-cols-6" : "lg:grid-cols-4"}`}>
-              <MetricTile value={(profile?.total_followers || 0).toLocaleString()} label="Total Followers" />
-              {isBrand ? (
-                <>
-                  <MetricTile value={profileStats.engagementRate} label="Avg. Eng. rate" />
-                  <MetricTile value={profileStats.reach} label="Avg. Reach" />
-                  <MetricTile value={profileStats.reach} label="Avg. Reach" />
-                  <MetricTile value={profileStats.comments} label="Avg. Comments" />
-                  <MetricTile value={profileStats.shares} label="Avg. Shares" />
-                </>
-              ) : (
-                <>
-                  <LockedMetricTile value={profileStats.engagementRate} label="Avg. Engagement rate" unlocked={false} />
-                  <LockedMetricTile value="72%" label="Audience from India" unlocked={false} />
-                  <MetricTile value={profile?.languages?.length ? profile.languages.map((language) => language.slice(0, 2)).join("/") : "En/Hn"} label="Top Languages" />
-                </>
-              )}
-            </div>
-          </Panel>
-
-          <Panel className="p-5">
-            <SectionTitle title="Platforms" />
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {visiblePlatforms.map((account) => {
-                const meta = platformMeta[account.platform] || platformMeta.INSTAGRAM;
-                const Icon = meta.Icon;
-                const followers = account.followers || Math.round((profile.total_followers || 0) / Math.max(visiblePlatforms.length, 1));
-                const isYouTube = account.platform === "YOUTUBE";
-                return (
-                  <div key={account.platform} className="rounded-[6px] border border-[#dbe3ee] bg-white p-4">
-                    <div className="flex items-center gap-2">
-                      <span className={`grid h-7 w-7 place-items-center rounded-[4px] ${meta.color} text-white`}>
-                        <Icon className="h-4 w-4" />
-                      </span>
-                      <span className="text-[12px] font-bold text-[#526079]">{meta.label}</span>
-                    </div>
-                    <div className="mt-5 grid grid-cols-2 gap-2">
-                      <div>
-                        <strong className="block text-[15px] font-black text-[#1438c8]">{compactNumber(followers)}</strong>
-                        <span className="text-[10px] font-semibold text-[#758198]">{isYouTube ? "Subscribers" : "Followers"}</span>
-                      </div>
-                      <div>
-                        <strong className="block text-[15px] font-black text-[#1438c8]">
-                          <span className={isBrand ? "" : "blur-[5px]"}>{isYouTube ? compactNumber(account.view_count || 0) : `${account.engagement_rate || profile?.avg_eng_rate || 0}%`}</span>
-                        </strong>
-                        <span className="text-[10px] font-semibold text-[#758198]">{isYouTube ? "Views" : "Eng. Rate"}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Panel>
-
-          <Panel className="p-5">
-            <SectionTitle title="Portfolio" />
-            {profile.portfolio?.length ? (
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                {profile.portfolio.map((item) => (
-                  <a
-                    key={item.id}
-                    href={item.link || item.video_url || item.image_url || undefined}
-                    target={item.link ? "_blank" : undefined}
-                    rel={item.link ? "noreferrer" : undefined}
-                    className="group relative aspect-[1.18] overflow-hidden rounded-[6px] bg-[#dfe7f2]"
-                  >
-                    {item.image_url ? (
-                      <img src={item.image_url} alt={item.title || "Creator portfolio item"} className="h-full w-full object-cover" />
-                    ) : item.video_url ? (
-                      <video src={item.video_url} className="h-full w-full object-cover" muted preload="metadata" />
-                    ) : (
-                      <div className="grid h-full place-items-center p-3 text-center text-xs font-bold text-[#65718a]">{item.title || "Portfolio item"}</div>
-                    )}
-                    {(item.title || item.sub_title) ? (
-                      <span className="absolute inset-x-0 bottom-0 bg-black/55 px-2 py-1.5 text-[10px] font-bold text-white opacity-0 transition group-hover:opacity-100">
-                        {item.title}{item.sub_title ? ` — ${item.sub_title}` : ""}
-                      </span>
-                    ) : null}
-                  </a>
-                ))}
-              </div>
-            ) : (
-              <p className="mt-4 text-sm font-medium text-[#758198]">This creator has not added portfolio work yet.</p>
-            )}
-          </Panel>
-
-          {profile.pricing?.length ? (
-            <Panel className="p-5">
-              <SectionTitle title="Social Media Pricing" />
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {profile.pricing.map((item) => (
-                  <div key={item.id} className="rounded-[6px] border border-[#dbe3ee] bg-[#fbfcff] px-4 py-3">
-                    <span className="block text-sm font-bold text-[#526079]">{item.social_media_name || "Social media collaboration"}</span>
-                    <strong className="mt-1 block text-xl font-black text-[#1438c8]">
-                      ₹{Number(item.social_media_pricing || 0).toLocaleString("en-IN")}
-                    </strong>
-                  </div>
-                ))}
               </div>
             </Panel>
-          ) : null}
+
+            <Panel className="p-5">
+              <SectionTitle
+                icon={<BarChart3 className="h-4 w-4 text-[#7386ff]" />}
+                title="Audience Snapshot"
+                right={
+                  isBrand ? (
+                    <span className="text-[11px] font-semibold text-[#7b8597]">
+                      {formatUpdatedAt(profile?.updated_at)}
+                    </span>
+                  ) : null
+                }
+              />
+              <div
+                className={`mt-4 grid gap-3 sm:grid-cols-2 ${isBrand ? 'lg:grid-cols-6' : 'lg:grid-cols-4'}`}
+              >
+                <MetricTile
+                  value={(profile?.total_followers || 0).toLocaleString()}
+                  label="Total Followers"
+                />
+                {isBrand ? (
+                  <>
+                    <MetricTile
+                      value={profileStats.engagementRate}
+                      label="Avg. Eng. rate"
+                    />
+                    <MetricTile value={profileStats.reach} label="Avg. Reach" />
+                    <MetricTile value={profileStats.reach} label="Avg. Reach" />
+                    <MetricTile
+                      value={profileStats.comments}
+                      label="Avg. Comments"
+                    />
+                    <MetricTile
+                      value={profileStats.shares}
+                      label="Avg. Shares"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <LockedMetricTile
+                      value={profileStats.engagementRate}
+                      label="Avg. Engagement rate"
+                      unlocked={false}
+                    />
+                    <LockedMetricTile
+                      value="72%"
+                      label="Audience from India"
+                      unlocked={false}
+                    />
+                    <MetricTile
+                      value={
+                        profile?.languages?.length
+                          ? profile.languages
+                              .map((language) => language.slice(0, 2))
+                              .join('/')
+                          : 'En/Hn'
+                      }
+                      label="Top Languages"
+                    />
+                  </>
+                )}
+              </div>
+            </Panel>
+
+            <Panel className="p-5">
+              <SectionTitle title="Platforms" />
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {visiblePlatforms.map((account) => {
+                  const meta =
+                    platformMeta[account.platform] || platformMeta.INSTAGRAM;
+                  const Icon = meta.Icon;
+                  const followers =
+                    account.followers ||
+                    Math.round(
+                      (profile.total_followers || 0) /
+                        Math.max(visiblePlatforms.length, 1)
+                    );
+                  const isYouTube = account.platform === 'YOUTUBE';
+                  return (
+                    <div
+                      key={account.platform}
+                      className="rounded-[6px] border border-[#dbe3ee] bg-white p-4"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`grid h-7 w-7 place-items-center rounded-[4px] ${meta.color} text-white`}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <span className="text-[12px] font-bold text-[#526079]">
+                          {meta.label}
+                        </span>
+                      </div>
+                      <div className="mt-5 grid grid-cols-2 gap-2">
+                        <div>
+                          <strong className="block text-[15px] font-black text-[#1438c8]">
+                            {compactNumber(followers)}
+                          </strong>
+                          <span className="text-[10px] font-semibold text-[#758198]">
+                            {isYouTube ? 'Subscribers' : 'Followers'}
+                          </span>
+                        </div>
+                        <div>
+                          <strong className="block text-[15px] font-black text-[#1438c8]">
+                            <span className={isBrand ? '' : 'blur-[5px]'}>
+                              {isYouTube
+                                ? compactNumber(account.view_count || 0)
+                                : `${account.engagement_rate || profile?.avg_eng_rate || 0}%`}
+                            </span>
+                          </strong>
+                          <span className="text-[10px] font-semibold text-[#758198]">
+                            {isYouTube ? 'Views' : 'Eng. Rate'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Panel>
+
+            <Panel className="p-5">
+              <SectionTitle title="Portfolio" />
+              {profile.portfolio?.length ? (
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                  {profile.portfolio.map((item) => (
+                    <a
+                      key={item.id}
+                      href={
+                        item.link ||
+                        item.video_url ||
+                        item.image_url ||
+                        undefined
+                      }
+                      target={item.link ? '_blank' : undefined}
+                      rel={item.link ? 'noreferrer' : undefined}
+                      className="group relative aspect-[1.18] overflow-hidden rounded-[6px] bg-[#dfe7f2]"
+                    >
+                      {item.image_url ? (
+                        <img
+                          src={item.image_url}
+                          alt={item.title || 'Creator portfolio item'}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : item.video_url ? (
+                        <video
+                          src={item.video_url}
+                          className="h-full w-full object-cover"
+                          muted
+                          preload="metadata"
+                        />
+                      ) : (
+                        <div className="grid h-full place-items-center p-3 text-center text-xs font-bold text-[#65718a]">
+                          {item.title || 'Portfolio item'}
+                        </div>
+                      )}
+                      {item.title || item.sub_title ? (
+                        <span className="absolute inset-x-0 bottom-0 bg-black/55 px-2 py-1.5 text-[10px] font-bold text-white opacity-0 transition group-hover:opacity-100">
+                          {item.title}
+                          {item.sub_title ? ` — ${item.sub_title}` : ''}
+                        </span>
+                      ) : null}
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-4 text-sm font-medium text-[#758198]">
+                  This creator has not added portfolio work yet.
+                </p>
+              )}
+            </Panel>
+
+            {profile.pricing?.length ? (
+              <Panel className="p-5">
+                <SectionTitle title="Social Media Pricing" />
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {profile.pricing.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-[6px] border border-[#dbe3ee] bg-[#fbfcff] px-4 py-3"
+                    >
+                      <span className="block text-sm font-bold text-[#526079]">
+                        {item.service || 'Social media collaboration'}
+                      </span>
+                      <strong className="mt-1 block text-xl font-black text-[#1438c8]">
+                        {item.pricing_type === 'NEGOTIABLE'
+                          ? 'Negotiable'
+                          : `₹${Number(item.price || 0).toLocaleString('en-IN')}`}
+                      </strong>
+                      <dl className="mt-3 grid gap-1 text-xs">
+                        <div className="flex items-center justify-between gap-3">
+                          <dt className="font-semibold text-[#758198]">Type</dt>
+                          <dd className="font-bold text-[#526079]">
+                            {item.pricing_type === 'FIXED_PRICE'
+                              ? 'Fixed price'
+                              : item.pricing_type === 'STARTING_FROM'
+                                ? 'Starting from'
+                                : 'Negotiable'}
+                          </dd>
+                        </div>
+                        {item.notes ? (
+                          <div className="flex items-start justify-between gap-3">
+                            <dt className="font-semibold text-[#758198]">
+                              Notes
+                            </dt>
+                            <dd className="text-right font-medium text-[#526079]">
+                              {item.notes}
+                            </dd>
+                          </div>
+                        ) : null}
+                      </dl>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+            ) : null}
           </div>
 
           <aside className="grid content-start gap-5">
@@ -563,7 +830,10 @@ export function PublicCreatorProfile() {
           </aside>
         </div>
       </div>
-      <BrandLoginPromptModal isOpen={isBrandLoginPromptOpen} onClose={() => setIsBrandLoginPromptOpen(false)} />
+      <BrandLoginPromptModal
+        isOpen={isBrandLoginPromptOpen}
+        onClose={() => setIsBrandLoginPromptOpen(false)}
+      />
     </main>
   );
 }

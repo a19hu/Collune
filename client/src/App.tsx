@@ -14,7 +14,7 @@ import LoginPage from './pages/LoginPage.tsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
 import { SideBarLayout } from './components/layout/SideBarLayout.tsx';
 import CreatorDashBoard from './components/Creator/CreatorDashBoard.tsx';
-import CreatorProfile from './components/Creator/CreatorProfile.tsx';
+import CreatorProfile from './components/Creator/creatorProfile/CreatorProfile.tsx';
 import BrandProfile from './components/Brand/BrandProfile.tsx';
 import BrandDashBoard from './components/Brand/BrandDashBoard.tsx';
 import { BrandCampaigns } from './components/Brand/BrandCampaigns.tsx';
