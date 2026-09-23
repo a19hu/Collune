@@ -247,6 +247,19 @@ export const SideBarLayout = () => {
         ),
       },
       {
+        matches: () => pathname === "/creator/submitted-work",
+        render: () => (
+          <DashboardTopBar
+            title="Submitted Work"
+            status={isVerified ? "verified-creator" : "under-review"}
+            currentUser={currentUser}
+            logout={logout}
+            profilePath={profilePath}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+          />
+        ),
+      },
+      {
         matches: () => pathname === "/creator/chat",
         render: () => (
           <DashboardTopBar

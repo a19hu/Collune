@@ -55,6 +55,15 @@ class ApplicationStatus(models.TextChoices):
     ACCEPTED = "ACCEPTED", "Accepted"
     REJECTED = "REJECTED", "Rejected"
 
+
+class CampaignWorkSubmissionStatus(models.TextChoices):
+    SUBMITTED = "SUBMITTED", "Submitted"
+    UNDER_REVIEW = "UNDER_REVIEW", "Under review"
+    REVISION_REQUESTED = "REVISION_REQUESTED", "Revision requested"
+    APPROVED = "APPROVED", "Approved"
+    COMPLETED = "COMPLETED", "Completed"
+    REJECTED = "REJECTED", "Rejected"
+
 class ShortlistStatus(models.TextChoices):
     DRAFT = "DRAFT", "Draft"
     SUBMITTED = "SUBMITTED", "Submitted"
@@ -358,6 +367,41 @@ class CampaignApplication(models.Model):
 
     def __str__(self):
         return f"{self.creator.display_name} -> {self.campaign.title}"
+
+
+class CampaignWorkSubmission(models.Model):
+    """A creator's submitted deliverable for a campaign."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="work_submissions")
+    creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="work_submissions")
+    brand = models.ForeignKey(BrandProfile, on_delete=models.CASCADE, related_name="work_submissions")
+    platform = models.CharField(max_length=32)
+    content_type = models.CharField(max_length=150)
+    content_title = models.CharField(max_length=255, blank=True, default="")
+    content_url = models.URLField(max_length=2048)
+    published_date = models.DateField(null=True, blank=True)
+    description = models.TextField(blank=True, default="")
+    creator_remarks = models.TextField(blank=True, default="")
+    screenshot_url = models.FileField(upload_to="Creator/Campain/work-delivery", blank=True, null=True)
+    attachment_url = models.FileField(upload_to="Creator/Campain/work-delivery/attachments", blank=True, null=True)
+    status = models.CharField(
+        max_length=24,
+        choices=CampaignWorkSubmissionStatus.choices,
+        default=CampaignWorkSubmissionStatus.UNDER_REVIEW,
+    )
+    brand_comment = models.TextField(blank=True, default="")
+    submitted_at = models.DateTimeField(default=timezone.now)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "campaign_work_submissions"
+
+    def __str__(self):
+        return f"{self.creator.display_name} — {self.campaign.title}"
 
 
 class CreatorSavedCampaign(models.Model):

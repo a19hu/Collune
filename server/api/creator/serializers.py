@@ -6,6 +6,8 @@ from ..models import (
     CreatorPortfolio,
     CreatorSocialMediaPricing,
     CreatorSocialAccount,
+    Campaign,
+    CampaignWorkSubmission,
     OtpChannel,
     OtpVerification,
     SocialPlatform,
@@ -19,6 +21,55 @@ class CreatorSocialAccountInputSerializer(serializers.Serializer):
     url = serializers.URLField(required=False, allow_blank=True)
     followers = serializers.IntegerField(min_value=0, required=False)
     is_connected = serializers.BooleanField(required=False)
+
+
+class CampaignWorkSubmissionSerializer(serializers.ModelSerializer):
+    """Creator-facing representation of a campaign deliverable submission."""
+
+    campaign_id = serializers.PrimaryKeyRelatedField(source="campaign", queryset=Campaign.objects.all())
+    campaign_name = serializers.CharField(source="campaign.title", read_only=True)
+    creator_id = serializers.UUIDField(source="creator.creator_id", read_only=True)
+    brand_id = serializers.UUIDField(source="brand.brand_id", read_only=True)
+    brand_name = serializers.CharField(source="brand.company_name", read_only=True)
+
+    class Meta:
+        model = CampaignWorkSubmission
+        fields = [
+            "id",
+            "campaign_id",
+            "campaign_name",
+            "creator_id",
+            "brand_id",
+            "brand_name",
+            "platform",
+            "content_type",
+            "content_title",
+            "content_url",
+            "published_date",
+            "description",
+            "creator_remarks",
+            "screenshot_url",
+            "attachment_url",
+            "status",
+            "brand_comment",
+            "submitted_at",
+            "approved_at",
+            "completed_at",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "creator_id",
+            "brand_id",
+            "status",
+            "brand_comment",
+            "submitted_at",
+            "approved_at",
+            "completed_at",
+            "created_at",
+            "updated_at",
+        ]
 
 class CreatorRegisterSerializer(serializers.Serializer):
     user = RegisterUserSerializer()

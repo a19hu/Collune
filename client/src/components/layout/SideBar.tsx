@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BadgeCheck, Bell, ChevronDown, CircleHelp, FileText, Home, LogOut, MessageCircle, ShoppingBag, Sparkles, Star, UserRound, Users, X } from "lucide-react";
+import { BadgeCheck, Bell, ChevronDown, CircleHelp, Database, FileText, Home, LogOut, MessageCircle, ShoppingBag, Sparkles, Star, UserRound, Users, X } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import logo from "../../assets/Logo.svg";
 import { useAuth } from "../../contexts/AuthContext";
@@ -14,6 +14,7 @@ const navByMode = {
     { label: "Profile", to: "/creator/profile", icon: UserRound },
     { label: "Campaign Marketplace", to: "/creator/marketplace", icon: ShoppingBag, lockedWhenUnverified: true },
     { label: "Applied Campaigns", to: "/creator/applied-campaigns", icon: BadgeCheck, lockedWhenUnverified: true },
+    { label: "Submitted Work", to: "/creator/submitted-work", icon: Database, lockedWhenUnverified: true },
     { label: "Saved Campaigns", to: "/creator/saved-campaigns", icon: Star, lockedWhenUnverified: true },
     { label: "Messages", to: "/creator/chat", icon: MessageCircle },
     { label: "Notifications", to: "/creator/notifications", icon: Bell },

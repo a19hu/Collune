@@ -47,6 +47,7 @@ from .feature_control.views import CreatorRateCardsView, RateCardsView
 from .chat.views import ChatConversationListCreateView, ChatConversationReadView, ChatMessageListCreateView, ChatMessageDetailView
 from .creator.views import (
     CampaignApplicationViewSet,
+    CampaignWorkSubmissionView,
     CreatorProfileView,
     CreatorPortfolioView,
     CreatorSocialMediaPricingView,
@@ -107,6 +108,8 @@ urlpatterns = [
     path("creator/campaignds/<uuid:campaign_id>/", CreatorCampaignsView.as_view(), name="creator_campaigns_profile"),
     path("creator/applied-campaigns/", CreatorAppliedCampaignsView.as_view(), name="creator_applied_campaigns"),
     path("creator/saved-campaigns/", CreatorSavedCampaignView.as_view(), name="creator_saved_campaigns"),
+    path("creator/work-submissions/", CampaignWorkSubmissionView.as_view(), name="creator_work_submissions"),
+    path("creator/work-submissions/<uuid:submission_id>/", CampaignWorkSubmissionView.as_view(), name="creator_work_submission_detail"),
     path("campaign-applications/", CampaignApplicationViewSet.as_view(), name="campaign_applications"),
 
 

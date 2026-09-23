@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowRight, Calendar, CheckCircle2, Loader2, Trash2 } from "lucide-react";
+import { AlertCircle, ArrowRight, Calendar, CheckCircle2, Loader2, Trash2, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -70,6 +70,15 @@ function AppliedCampaignCard({
         >
           View Campaign <ArrowRight className="h-4 w-4" />
         </button>
+        {application.application_status === "ACCEPTED" ? (
+          <button
+            type="button"
+            onClick={() => navigate(`/creator/submitted-work/add?campaignId=${campaign.id}`)}
+            className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#5168ff] px-4 text-sm font-black text-[#3048ff] hover:bg-[#eef2ff]"
+          >
+            <Upload className="h-4 w-4" /> Add submitted work
+          </button>
+        ) : (
         <button
           type="button"
           onClick={() => onRemove(application)}
@@ -79,6 +88,7 @@ function AppliedCampaignCard({
           {isRemoving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
           Remove
         </button>
+        )}
       </div>
     </Panel>
   );
@@ -171,7 +181,7 @@ export function AppliedCampaigns() {
           key={application.application_id}
           application={application}
           onRemove={removeApplication}
-          isRemoving={removingId === application.application_id}
+          isRemoving={removingId === application.application_id }
         />
       ))}
     </div>

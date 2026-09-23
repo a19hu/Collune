@@ -22,6 +22,7 @@ import type {
   CreatorPublicProfileApi,
   CreatorPortfolioApi,
   CreatorSocialMediaPricingApi,
+  CampaignWorkSubmissionApi,
   CreatorProfileApi,
   RateCardApi,
   CreatorRegisterPayload,
@@ -533,6 +534,16 @@ export function updateCampaignApplicationStatus(
 
 export function getCreatorAppliedCampaigns() {
   return apiRequest<CreatorAppliedCampaignsResponse>("/creator/applied-campaigns/", {}, true);
+}
+
+export async function getCreatorWorkSubmissions() {
+  const data = await apiRequest<{ work_submissions: CampaignWorkSubmissionApi[] }>("/creator/work-submissions/", {}, true);
+  return data.work_submissions;
+}
+
+export async function createCreatorWorkSubmission(payload: FormData) {
+  const data = await apiPostForm<{ work_submission: CampaignWorkSubmissionApi }>("/creator/work-submissions/", payload, true);
+  return data.work_submission;
 }
 
 export function saveCreatorCampaign(campaignId: string) {

@@ -656,6 +656,31 @@ export type RateCardApi = {
   sort_order: number;
 };
 
+export type CampaignWorkSubmissionApi = {
+  id: string;
+  campaign_id: string;
+  campaign_name?: string;
+  creator_id: string;
+  brand_id: string;
+  brand_name?: string;
+  platform: string;
+  content_type: string;
+  content_title: string;
+  content_url: string;
+  published_date: string | null;
+  description: string;
+  creator_remarks: string;
+  screenshot_url: string | null;
+  attachment_url: string | null;
+  status: "SUBMITTED" | "UNDER_REVIEW" | "REVISION_REQUESTED" | "APPROVED" | "COMPLETED" | "REJECTED";
+  brand_comment: string;
+  submitted_at: string;
+  approved_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type BrandRegisterPayload = {
   user: RegisterUserPayload;
   company_name: string;

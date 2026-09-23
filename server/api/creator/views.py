@@ -21,12 +21,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..models import (
-    ApplicationStatus, Campaign, CampaignApplication, CampaignStatus, CreatorPortfolio, CreatorProfile, CreatorSavedCampaign, CreatorSocialAccount, CreatorSocialMediaPricing, SocialPlatform, UserRole, VerificationStatus,
+    ApplicationStatus, Campaign, CampaignApplication, CampaignStatus, CampaignWorkSubmission,
+    CampaignWorkSubmissionStatus, CreatorPortfolio, CreatorProfile, CreatorSavedCampaign,
+    CreatorSocialAccount, CreatorSocialMediaPricing, SocialPlatform, UserRole, VerificationStatus,
 )
 from ..notification import create_notification, notify_admins
 from ..permissions import IsCreator,IsBrand
 from ..common.services import auth_response, create_user, parse_payload
-from .serializers import CreatorPortfolioSerializer, CreatorProfileSerializer, CreatorRegisterSerializer, CreatorSocialMediaPricingSerializer
+from .serializers import CampaignWorkSubmissionSerializer, CreatorPortfolioSerializer, CreatorProfileSerializer, CreatorRegisterSerializer, CreatorSocialMediaPricingSerializer
 from ..common.presence import get_last_seen, is_online
 from .services import fetch_youtube_analytics, fetch_youtube_videos, sync_youtube_account
 
@@ -204,6 +206,7 @@ class CreatorRegisterView(APIView):
     
 class CreatorDashboardView(APIView):
     permission_classes = [IsAuthenticated, IsCreator]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     chart_period_days = {
         "7d": 7,
@@ -694,6 +697,81 @@ class CreatorSocialMediaPricingView(APIView):
         if not deleted:
             return Response({"error": "Pricing item not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CampaignWorkSubmissionView(APIView):
+    """Creator endpoints for submitted campaign work.
+
+    A creator can edit a submission only after the brand has requested a
+    revision. Saving a revision sends it back for review.
+    """
+
+    permission_classes = [IsAuthenticated, IsCreator]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get_creator(self, request):
+        return getattr(request.user, "creator_profile", None)
+
+    def get(self, request, submission_id=None):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+
+        submissions = CampaignWorkSubmission.objects.select_related("campaign", "brand").filter(creator=creator)
+        if submission_id:
+            submission = submissions.filter(id=submission_id).first()
+            if not submission:
+                return Response({"error": "Work submission not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"work_submission": CampaignWorkSubmissionSerializer(submission).data})
+
+        return Response({"work_submissions": CampaignWorkSubmissionSerializer(submissions, many=True).data})
+
+    def post(self, request):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = CampaignWorkSubmissionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        campaign = serializer.validated_data["campaign"]
+        is_accepted = CampaignApplication.objects.filter(
+            campaign=campaign,
+            creator=creator,
+            status=ApplicationStatus.ACCEPTED,
+        ).exists()
+        if not is_accepted:
+            return Response(
+                {"error": "You can submit work only for campaigns where you have been accepted."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        submission = serializer.save(creator=creator, brand=campaign.brand)
+        return Response(
+            {"work_submission": CampaignWorkSubmissionSerializer(submission).data},
+            status=status.HTTP_201_CREATED,
+        )
+
+    def put(self, request, submission_id):
+        creator = self.get_creator(request)
+        if not creator:
+            return Response({"error": "No creator profile found."}, status=status.HTTP_404_NOT_FOUND)
+
+        submission = CampaignWorkSubmission.objects.filter(id=submission_id, creator=creator).first()
+        if not submission:
+            return Response({"error": "Work submission not found."}, status=status.HTTP_404_NOT_FOUND)
+        if submission.status != CampaignWorkSubmissionStatus.REVISION_REQUESTED:
+            return Response(
+                {"error": "Only submissions marked Revision Requested can be updated."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = CampaignWorkSubmissionSerializer(submission, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        updated = serializer.save(
+            brand=serializer.validated_data["campaign"].brand,
+            status=CampaignWorkSubmissionStatus.UNDER_REVIEW,
+            submitted_at=timezone.now(),
+        )
+        return Response({"work_submission": CampaignWorkSubmissionSerializer(updated).data})
 
 
 class CampaignApplicationViewSet(APIView):

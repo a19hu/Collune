@@ -42,6 +42,8 @@ import TermsConditions from './pages/TermsConditions.tsx';
 import BrandServicesTerms from './pages/BrandServicesTerms.tsx';
 import CreativeServicesTerms from './pages/CreativeServicesTerms.tsx';
 import { ProjectToastContainer } from './HtmlComponents/HtmlRoster.tsx';
+import { SubmittedWork } from './components/Creator/CampaignMarketplace/SubmittedWork.tsx';
+import { AddSubmittedWork } from './components/Creator/CampaignMarketplace/AddSubmittedWork.tsx';
 
 function getDashboardPath(role: UserAccount["role"]) {
     return role === "Brand" ? "/brand" : role === "Creator" ? "/creator" : "/";
@@ -100,6 +102,8 @@ const App: React.FC = () => {
                             <Route path="marketplace/:campaignId" element={<RequireVerified><CampaignMarketplaceDetail /></RequireVerified>} />
                             <Route path="marketplace" element={<RequireVerified><CampaignMarketplaceList /></RequireVerified>} />
                             <Route path="applied-campaigns" element={<RequireVerified><AppliedCampaigns /></RequireVerified>} />
+                            <Route path="submitted-work" element={<RequireVerified><SubmittedWork /></RequireVerified>} />
+                            <Route path="submitted-work/add" element={<RequireVerified><AddSubmittedWork /></RequireVerified>} />
                             <Route path="saved-campaigns" element={<RequireVerified><SavedCampaigns /></RequireVerified>} />
                             <Route path="chat" element={<ChatPage />} />
                             <Route path="notifications" element={<NotificationsPage />} />
