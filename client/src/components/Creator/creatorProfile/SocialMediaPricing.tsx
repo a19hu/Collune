@@ -111,15 +111,10 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
 
   return (
     <Card className="p-5 w-full min-w-0" id="pricing">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-3 my-3">
           <h2 className="text-xl font-black text-[#172554]">
             Social media pricing
           </h2>
-          <p className="mt-1 text-sm font-semibold text-[#63708a]">
-            Toggle visibility to control which rates are shown publicly.
-          </p>
-        </div>
         <div className="flex items-center gap-2">
           <span className="rounded-full bg-[#eaf0ff] px-3 py-1 text-xs font-black text-[#173ca8]">
             {pricing.filter((item) => item.is_visible).length} public

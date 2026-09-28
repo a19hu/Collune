@@ -2,7 +2,6 @@
 from pathlib import Path
 from datetime import timedelta
 import os
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from corsheaders.defaults import default_headers
 import environ
 
@@ -256,41 +255,8 @@ X_OAUTH_SCOPES = env(
     default="tweet.read users.read follows.read offline.access",
 )
 
-def _redis_py_url(url):
-    """Normalize TLS query values accepted by redis-py/channels-redis.
-
-    Celery/Kombu documents values such as ``CERT_REQUIRED`` while redis-py
-    expects ``required``.  Keeping this conversion here protects the channel
-    layer and synchronous presence client when an older process environment
-    still supplies Celery's spelling.
-    """
-    if not url:
-        return url
-
-    parts = urlsplit(url)
-    query = dict(parse_qsl(parts.query, keep_blank_values=True))
-    cert_reqs = query.get("ssl_cert_reqs")
-    if cert_reqs and cert_reqs.upper().startswith("CERT_"):
-        query["ssl_cert_reqs"] = cert_reqs[5:].lower()
-        return urlunsplit(parts._replace(query=urlencode(query)))
-    return url
-
-
-REDIS_URL = _redis_py_url(env("REDIS_URL", default=""))
-CHAT_UNREAD_EMAIL_REMINDER_DELAY_SECONDS = env.int(
-    "CHAT_UNREAD_EMAIL_REMINDER_DELAY_SECONDS", default=30 * 60,
-)
-
-if REDIS_URL:
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {"hosts": [REDIS_URL]},
-        }
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     }
-else:
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels.layers.InMemoryChannelLayer",
-        }
-    }
+}

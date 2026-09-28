@@ -52,7 +52,7 @@ const Navbar = () => {
 
   const navItems = [
     {
-      label: "Creators",
+      label: currentUser?.role === "Creator" ? "Discover"  :"Creators",
       items:
         currentUser?.role === "Creator" ?
          [

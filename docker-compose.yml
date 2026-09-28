@@ -20,26 +20,6 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
 
-  celery_worker:
-    build: 
-      context: ./server
-      dockerfile: Dockerfile
-    command: celery -A api.message_queue worker -l info
-    depends_on:
-      - db
-      - server
-    networks:
-      - app_network
-    volumes:
-      - ./server:/app
-    env_file:
-      - ./server/.env
-    environment:
-      - POSTGRES_HOST=db
-      - POSTGRES_DB=data
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-
   db:
     image: postgres:13
     volumes:

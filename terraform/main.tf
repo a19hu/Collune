@@ -44,20 +44,15 @@ locals {
     DB_PORT                     = "5432"
     GS_BUCKET_NAME              = var.bucket_name
     GS_PROJECT_ID               = var.project_id
-    # Used by Django Channels/presence and by Celery (broker and result
-    # backend). Use a rediss:// URL for managed Redis providers that require
-    # TLS.
-    REDIS_URL = var.redis_url
-
-    EMAIL_BACKEND       = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST          = "smtp-relay.brevo.com"
-    EMAIL_PORT          = "587"
-    EMAIL_USE_TLS       = "True"
-    EMAIL_HOST_USER     = var.email_host_user
-    EMAIL_HOST_PASSWORD = var.email_host_password
-    DEFAULT_FROM_EMAIL  = "noreply@collune.com"
-    BREVO_API_KEY       = var.brevo_api_key
-    AISENSY_API_KEY     = var.aisensy_api_key
+    EMAIL_BACKEND               = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST                  = "smtp-relay.brevo.com"
+    EMAIL_PORT                  = "587"
+    EMAIL_USE_TLS               = "True"
+    EMAIL_HOST_USER             = var.email_host_user
+    EMAIL_HOST_PASSWORD         = var.email_host_password
+    DEFAULT_FROM_EMAIL          = "noreply@collune.com"
+    BREVO_API_KEY               = var.brevo_api_key
+    AISENSY_API_KEY             = var.aisensy_api_key
 
     DJANGO_SUPERUSER_USERNAME = var.django_superuser_username
     DJANGO_SUPERUSER_EMAIL    = var.django_superuser_email
@@ -65,25 +60,25 @@ locals {
 
     META_APP_ID            = var.meta_app_id
     META_APP_SECRET        = var.meta_app_secret
-    INSTAGRAM_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/instagram/callback"
+    INSTAGRAM_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/instagram/callback/"
     FRONTEND_URL           = "https://collune.com"
     CORS_ALLOWED_ORIGINS   = join(",", local.frontend_public_origins)
     CSRF_TRUSTED_ORIGINS   = join(",", local.frontend_public_origins)
 
     GOOGLE_CLIENT_SECRET = var.google_client_secret
-    YOUTUBE_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/youtube/callback"
+    YOUTUBE_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/youtube/callback/"
     GOOGLE_CLIENT_ID     = var.google_client_id
     YOUTUBE_OAUTH_SCOPES = "openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly"
 
     X_CLIENT_ID     = var.x_client_id
     X_CLIENT_SECRET = var.x_client_secret
-    X_REDIRECT_URI  = "${local.backend_public_url}/api/v1/auth/x/callback"
+    X_REDIRECT_URI  = "${local.backend_public_url}/api/v1/auth/x/callback/"
     X_OAUTH_SCOPES  = "tweet.read users.read follows.read offline.access"
     X_BEARER_TOKEN  = var.x_bearer_token
 
     FACEBOOK_APP_ID       = var.facebook_app_id
     FACEBOOK_APP_SECRET   = var.facebook_app_secret
-    FACEBOOK_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/facebook/callback"
+    FACEBOOK_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/facebook/callback/"
   }
 }
 
@@ -183,63 +178,6 @@ resource "google_cloud_run_service" "backend" {
       template[0].metadata[0].annotations["run.googleapis.com/client-version"],
       template[0].metadata[0].labels["client.knative.dev/nonce"],
     ]
-  }
-}
-
-# Celery is a long-running worker, so it needs its own Cloud Run service rather
-# than sharing the backend's request-serving process. Cloud Run requires a
-# listening HTTP port; celery-entrypoint.sh starts a minimal internal health
-# server alongside the worker. Keep this service private and pinned to one
-# instance so Cloud Run request autoscaling cannot create duplicate consumers.
-resource "google_cloud_run_service" "celery_worker" {
-  name     = "collune-celery-worker"
-  location = var.region
-  project  = var.project_id
-
-  template {
-    spec {
-      containers {
-        image   = local.backend_image
-        command = ["/app/celery-entrypoint.sh"]
-
-        ports {
-          container_port = 8080
-        }
-
-        dynamic "env" {
-          for_each = local.django_env
-          content {
-            name  = env.key
-            value = env.value
-          }
-        }
-
-        resources {
-          limits = {
-            cpu    = "1000m"
-            memory = "1Gi"
-          }
-        }
-      }
-      service_account_name  = local.cloud_run_service_account_email
-      timeout_seconds       = 300
-      container_concurrency = 1
-    }
-
-    metadata {
-      annotations = {
-        "autoscaling.knative.dev/minScale"      = tostring(var.celery_worker_min_instances)
-        "autoscaling.knative.dev/maxScale"      = tostring(var.celery_worker_max_instances)
-        "run.googleapis.com/cpu-throttling"     = "false"
-        "run.googleapis.com/startup-cpu-boost"  = "true"
-        "run.googleapis.com/cloudsql-instances" = google_sql_database_instance.postgres.connection_name
-      }
-    }
-  }
-
-  traffic {
-    latest_revision = true
-    percent         = 100
   }
 }
 
