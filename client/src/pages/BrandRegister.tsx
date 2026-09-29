@@ -223,8 +223,8 @@ function BrandRegisterSteps({
         </div>
         <div className="mt-12 grid gap-6">
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Full Name" icon={<User className="h-5 w-5" />} value={form.name} onChange={onFieldChange("name")} placeholder="John Smith" required />
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Work Email" icon={<Mail className="h-5 w-5" />} value={form.email} onChange={onFieldChange("email")} placeholder="john@company.com" type="email" required />
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="WhatsApp Number" icon={<Phone className="h-5 w-5" />} value={form.phone_no} onChange={onFieldChange("phone_no")} placeholder="99999 44444" pattern="[0-9]{10}" type="tel" required maxLength={10} minLength={10} />
+          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Work Email" icon={<Mail className="h-5 w-5" />} value={form.email} onChange={onFieldChange("email")} placeholder="john@collune.com" type="email" required />
+          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="WhatsApp Number" icon={<Phone className="h-5 w-5" />} value={form.phone_no} onChange={onFieldChange("phone_no")} placeholder="99999XXXXX" pattern="[0-9]{10}" type="tel" required maxLength={10} minLength={10} />
           <HtmlInput
             labelClass={labelClass}
             inputClass={inputClass}

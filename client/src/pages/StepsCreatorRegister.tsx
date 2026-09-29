@@ -340,9 +340,9 @@ export const StepsCreatorRegister=({
       <>
         <RegisterStepHeader title="Create your account" copy="Let's get started with a few details." />
         <div className="mt-8 grid gap-4">
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Full Name" icon={<User className="h-5 w-5" />} value={form.name} onChange={onFieldChange("name")} placeholder="Aakrit Gupta" required><FieldError message={fieldErrors.name} /></HtmlInput>
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Email Address" icon={<Mail className="h-5 w-5" />} value={form.email} onChange={onFieldChange("email")} placeholder="aakrit.gupta@gmail.com" type="email" required><FieldError message={fieldErrors.email} /></HtmlInput>
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="WhatsApp Number" icon={<Phone className="h-5 w-5" />} value={form.phone_no} onChange={onFieldChange("phone_no")} placeholder="99999 44444" pattern="[0-9]{10}" type="tel" required maxLength={10} minLength={10}><FieldError message={fieldErrors.phone_no} /></HtmlInput>
+          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Full Name" icon={<User className="h-5 w-5" />} value={form.name} onChange={onFieldChange("name")} placeholder="Collune User" required><FieldError message={fieldErrors.name} /></HtmlInput>
+          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Email Address" icon={<Mail className="h-5 w-5" />} value={form.email} onChange={onFieldChange("email")} placeholder="colluneuser@gmail.com" type="email" required><FieldError message={fieldErrors.email} /></HtmlInput>
+          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="WhatsApp Number" icon={<Phone className="h-5 w-5" />} value={form.phone_no} onChange={onFieldChange("phone_no")} placeholder="99999XXXXX" pattern="[0-9]{10}" type="tel" required maxLength={10} minLength={10}><FieldError message={fieldErrors.phone_no} /></HtmlInput>
           <HtmlInput
             labelClass={labelClass}
             inputClass={inputClass}
