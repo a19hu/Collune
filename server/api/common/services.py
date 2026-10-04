@@ -304,7 +304,7 @@ def send_aisensy_whatsapp_otp(target, code, user_name=None):
         raise
 
 
-def send_aisensy_chat_reminder(target, recipient_name, sender_name, chat_url):
+def send_aisensy_chat_reminder(target, recipient_name, sender_name, chat_path):
     """Send the approved unread-chat template; never include message content."""
     api_key = get_env("AISENSY_API_KEY")
     campaign_name = getattr(settings, "AISENSY_CHAT_REMINDER_CAMPAIGN_NAME", "chat_reminder")
@@ -318,8 +318,9 @@ def send_aisensy_chat_reminder(target, recipient_name, sender_name, chat_url):
         "campaignName": campaign_name,
         "destination": target,
         "userName": recipient_name or "Collune",
-        # The approved template must use: recipient name, sender name, and a URL.
-        "templateParams": [recipient_name or "there", sender_name or "Someone", chat_url],
+        # The body has exactly two variables: {{1}} recipient name and
+        # {{2}} sender name. The button's dynamic URL is a separate {{3}}.
+        "templateParams": [recipient_name or "there", sender_name or "Someone"],
         "source": getattr(settings, "AISENSY_CHAT_REMINDER_SOURCE", "Collune chat"),
         "media": {},
         "buttons": [
@@ -327,7 +328,9 @@ def send_aisensy_chat_reminder(target, recipient_name, sender_name, chat_url):
                 "type": "button",
                 "sub_type": "url",
                 "index": 0,
-                "parameters": [{"type": "text", "text": str(chat_url)}],
+                # AiSensy appends this to the static prefix configured in the
+                # template button: https://collune.com/{{3}}
+                "parameters": [{"type": "text", "text": chat_path}],
             }
         ],
         "carouselCards": [],

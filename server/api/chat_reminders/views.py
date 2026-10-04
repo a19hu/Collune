@@ -56,7 +56,8 @@ class UnreadChatReminderTaskView(APIView):
         sender_name = message.sender.profile_name or "Someone"
         recipient_name = recipient.profile_name or "there"
         role_path = "creator" if recipient.role == UserRole.CREATOR else "brand"
-        chat_url = f"{settings.FRONTEND_URL.rstrip('/')}/{role_path}/chat?conversationId={message.conversation_id}"
+        chat_path = f"{role_path}/chat?conversationId={message.conversation_id}"
+        chat_url = f"{settings.FRONTEND_URL.rstrip('/')}/{chat_path}"
 
         if not message.reminder_email_sent_at and recipient.email:
             safe_sender = escape(sender_name)
@@ -119,7 +120,7 @@ class UnreadChatReminderTaskView(APIView):
             and recipient.phone_no
             and settings.AISENSY_CHAT_REMINDER_CAMPAIGN_NAME
         ):
-            send_aisensy_chat_reminder(recipient.phone_no, recipient_name, sender_name, chat_url)
+            send_aisensy_chat_reminder(recipient.phone_no, recipient_name, sender_name, chat_path)
             message.reminder_whatsapp_sent_at = timezone.now()
 
         message.save(update_fields=["reminder_email_sent_at", "reminder_whatsapp_sent_at"])

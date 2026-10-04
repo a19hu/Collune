@@ -6,9 +6,14 @@ from django.urls import reverse
 
 from api.models import BrandProfile, ChatConversation, ChatMessage, CreatorProfile, UserRole
 from api.chat_reminders.services import schedule_unread_message_reminder
+from api.common.services import send_aisensy_chat_reminder
 
 
-@override_settings(CLOUD_TASKS_HANDLER_SECRET="test-task-secret", FRONTEND_URL="https://collune.com")
+@override_settings(
+    CLOUD_TASKS_HANDLER_SECRET="test-task-secret",
+    FRONTEND_URL="https://collune.com",
+    AISENSY_CHAT_REMINDER_CAMPAIGN_NAME="",
+)
 class UnreadChatReminderTaskTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
@@ -101,3 +106,24 @@ class ChatReminderSchedulingTests(TestCase):
         self.assertEqual(task.http_request.oidc_token.service_account_email, "chat-reminder-tasks@collune-test.iam.gserviceaccount.com")
         self.assertEqual(task.http_request.headers["X-Collune-Task-Secret"], "test-task-secret")
         self.assertEqual(task.http_request.body, b'{"message_id": "a0f4cbde-4051-4882-bc72-9f296ec3d3b0"}')
+
+
+@override_settings(AISENSY_CHAT_REMINDER_CAMPAIGN_NAME="collune_unread_message_reminder")
+class AiSensyChatReminderTests(TestCase):
+    @patch("api.common.services.requests.post")
+    def test_payload_matches_the_two_parameter_static_cta_template(self, post):
+        with patch(
+            "api.common.services.get_env",
+            side_effect=lambda name, fallback=None: "test-api-key" if name == "AISENSY_API_KEY" else fallback,
+        ):
+            send_aisensy_chat_reminder(
+                "+919876543210",
+                "Aman",
+                "Brand User",
+                "creator/chat?conversationId=example-id",
+            )
+
+        payload = post.call_args.kwargs["json"]
+        self.assertEqual(payload["campaignName"], "collune_unread_message_reminder")
+        self.assertEqual(payload["templateParams"], ["Aman", "Brand User"])
+        self.assertEqual(payload["buttons"][0]["parameters"][0]["text"], "creator/chat?conversationId=example-id")
