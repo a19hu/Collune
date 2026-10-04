@@ -127,6 +127,18 @@ variable "aisensy_api_key" {
   sensitive = true
 }
 
+variable "aisensy_chat_reminder_campaign_name" {
+  description = "Approved AiSensy template campaign for unread chat reminders."
+  type        = string
+  default     = ""
+}
+
+variable "cloud_tasks_handler_secret" {
+  description = "Shared secret required by the private Cloud Tasks reminder endpoint."
+  type        = string
+  sensitive   = true
+}
+
 variable "django_superuser_username" {
   type    = string
   default = ""

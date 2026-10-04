@@ -7,6 +7,7 @@ from html import escape
 
 import requests
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -297,6 +298,55 @@ def send_aisensy_whatsapp_otp(target, code, user_name=None):
         body = error.response.text[:500] if error.response is not None else ""
         logger.error(
             "AiSensy WhatsApp API rejected OTP send. status=%s body=%s",
+            getattr(error.response, "status_code", "unknown"),
+            body,
+        )
+        raise
+
+
+def send_aisensy_chat_reminder(target, recipient_name, sender_name, chat_url):
+    """Send the approved unread-chat template; never include message content."""
+    api_key = get_env("AISENSY_API_KEY")
+    campaign_name = getattr(settings, "AISENSY_CHAT_REMINDER_CAMPAIGN_NAME", "chat_reminder")
+    if not api_key:
+        raise RuntimeError("AISENSY_API_KEY is not configured.")
+    if not campaign_name:
+        raise RuntimeError("AISENSY_CHAT_REMINDER_CAMPAIGN_NAME is not configured.")
+
+    payload = {
+        "apiKey": api_key,
+        "campaignName": campaign_name,
+        "destination": target,
+        "userName": recipient_name or "Collune",
+        # The approved template must use: recipient name, sender name, and a URL.
+        "templateParams": [recipient_name or "there", sender_name or "Someone", chat_url],
+        "source": getattr(settings, "AISENSY_CHAT_REMINDER_SOURCE", "Collune chat"),
+        "media": {},
+        "buttons": [
+            {
+                "type": "button",
+                "sub_type": "url",
+                "index": 0,
+                "parameters": [{"type": "text", "text": str(chat_url)}],
+            }
+        ],
+        "carouselCards": [],
+        "location": {},
+        "attributes": {},
+        "paramsFallbackValue": {"FirstName": recipient_name or "user"},
+    }
+    response = requests.post(
+        get_env("AISENSY_API_URL", "https://backend.aisensy.com/campaign/t1/api/v2"),
+        json=payload,
+        headers={"Content-Type": "application/json"},
+        timeout=20,
+    )
+    try:
+        response.raise_for_status()
+    except requests.HTTPError as error:
+        body = error.response.text[:500] if error.response is not None else ""
+        logger.error(
+            "AiSensy WhatsApp API rejected chat reminder. status=%s body=%s",
             getattr(error.response, "status_code", "unknown"),
             body,
         )

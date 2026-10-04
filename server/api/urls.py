@@ -46,6 +46,7 @@ from .common.views import (
 from .notification.views import NotificationListView, NotificationReadView
 from .feature_control.views import CreatorRateCardsView, RateCardsView
 from .chat.views import ChatConversationListCreateView, ChatConversationReadView, ChatMessageListCreateView, ChatMessageDetailView
+from .chat_reminders.views import UnreadChatReminderTaskView
 from .creator.views import (
     CampaignApplicationViewSet,
     CampaignWorkSubmissionView,
@@ -94,6 +95,7 @@ urlpatterns = [
     path("chat/conversations/<uuid:conversation_id>/messages/", ChatMessageListCreateView.as_view(), name="chat_messages"),
     path("chat/conversations/<uuid:conversation_id>/messages/<uuid:message_id>/", ChatMessageDetailView.as_view(), name="chat_message_detail"),
     path("chat/conversations/<uuid:conversation_id>/read/", ChatConversationReadView.as_view(), name="chat_read"),
+    path("tasks/chat/unread-reminder/", UnreadChatReminderTaskView.as_view(), name="chat_unread_reminder_task"),
 
     path("auth/brand/profile/", BrandProfileView.as_view(), name="brand_profile"),
     path("auth/creator/profile/", CreatorProfileView.as_view(), name="creator_profile"),

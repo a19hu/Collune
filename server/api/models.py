@@ -505,6 +505,8 @@ class ChatMessage(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
     is_read = models.BooleanField(default=False, db_index=True)
     read_at = models.DateTimeField(null=True, blank=True)
+    reminder_email_sent_at = models.DateTimeField(null=True, blank=True)
+    reminder_whatsapp_sent_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now, db_index=True)
 
     class Meta:

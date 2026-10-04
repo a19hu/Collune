@@ -34,6 +34,7 @@ python-dotenv
 django-environ
 django-storages
 google-cloud-storage
+google-cloud-tasks
 gunicorn
 whitenoise==6.9.0
 websockets

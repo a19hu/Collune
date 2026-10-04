@@ -170,8 +170,6 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
     "https://collune.com",
     "https://admin.collune.com",
     "https://www.collune.com"
@@ -209,6 +207,20 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
 FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:3000")
 MOBILE_APP_URL = env("MOBILE_APP_URL", default="collune://")
+
+# Delayed chat reminders are intentionally opt-in. Keeping this disabled locally
+# means normal chat development does not require Google Cloud credentials.
+CLOUD_TASKS_ENABLED = env.bool("CLOUD_TASKS_ENABLED", default=False)
+CLOUD_TASKS_PROJECT_ID = env("CLOUD_TASKS_PROJECT_ID", default=GS_PROJECT_ID or "")
+CLOUD_TASKS_LOCATION = env("CLOUD_TASKS_LOCATION", default="asia-south1")
+CLOUD_TASKS_CHAT_REMINDER_QUEUE = env("CLOUD_TASKS_CHAT_REMINDER_QUEUE", default="chat-reminders")
+CLOUD_TASKS_CHAT_REMINDER_URL = env("CLOUD_TASKS_CHAT_REMINDER_URL", default="")
+CLOUD_TASKS_INVOKER_SERVICE_ACCOUNT = env("CLOUD_TASKS_INVOKER_SERVICE_ACCOUNT", default="")
+CLOUD_TASKS_HANDLER_SECRET = env("CLOUD_TASKS_HANDLER_SECRET", default="")
+CHAT_UNREAD_REMINDER_DELAY_SECONDS = env.int("CHAT_UNREAD_REMINDER_DELAY_SECONDS", default=30 * 60)
+AISENSY_CHAT_REMINDER_CAMPAIGN_NAME = env("AISENSY_CHAT_REMINDER_CAMPAIGN_NAME", default="chat_reminder")
+AISENSY_CHAT_REMINDER_SOURCE = env("AISENSY_CHAT_REMINDER_SOURCE", default="Collune chat")
+
 META_APP_ID = env("META_APP_ID", default="")
 META_APP_SECRET = env("META_APP_SECRET", default="")
 INSTAGRAM_CLIENT_ID = env("INSTAGRAM_CLIENT_ID", default=META_APP_ID)

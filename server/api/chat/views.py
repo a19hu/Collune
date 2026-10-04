@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from ..models import ChatConversation, ChatMessage, UserRole
 from ..notification import create_notification
 from ..permissions import IsBrand, IsCreator
+from ..chat_reminders.services import schedule_unread_message_reminder
 from .serializers import ChatConversationCreateSerializer, ChatConversationSerializer, ChatMessageSerializer
 from .services import broadcast_chat_inbox_event, broadcast_chat_message
 
@@ -95,6 +96,7 @@ class ChatMessageListCreateView(ChatAccessMixin, APIView):
         )
         broadcast_chat_message(message)
         broadcast_chat_inbox_event(conversation, message)
+        transaction.on_commit(lambda: schedule_unread_message_reminder(message.message_id))
         serializer = ChatMessageSerializer(message)
         return Response({"message": serializer.data}, status=status.HTTP_201_CREATED)
 

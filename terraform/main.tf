@@ -37,22 +37,23 @@ locals {
     VITE_API_BASE_URL = local.backend_public_url
   }
   django_env = {
-    DB_NAME                     = var.database_name
-    DB_USER                     = var.db_user
-    DB_PASSWORD                 = var.db_password
-    DB_INSTANCE_CONNECTION_NAME = google_sql_database_instance.postgres.connection_name
-    DB_PORT                     = "5432"
-    GS_BUCKET_NAME              = var.bucket_name
-    GS_PROJECT_ID               = var.project_id
-    EMAIL_BACKEND               = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST                  = "smtp-relay.brevo.com"
-    EMAIL_PORT                  = "587"
-    EMAIL_USE_TLS               = "True"
-    EMAIL_HOST_USER             = var.email_host_user
-    EMAIL_HOST_PASSWORD         = var.email_host_password
-    DEFAULT_FROM_EMAIL          = "noreply@collune.com"
-    BREVO_API_KEY               = var.brevo_api_key
-    AISENSY_API_KEY             = var.aisensy_api_key
+    DB_NAME                             = var.database_name
+    DB_USER                             = var.db_user
+    DB_PASSWORD                         = var.db_password
+    DB_INSTANCE_CONNECTION_NAME         = google_sql_database_instance.postgres.connection_name
+    DB_PORT                             = "5432"
+    GS_BUCKET_NAME                      = var.bucket_name
+    GS_PROJECT_ID                       = var.project_id
+    EMAIL_BACKEND                       = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST                          = "smtp-relay.brevo.com"
+    EMAIL_PORT                          = "587"
+    EMAIL_USE_TLS                       = "True"
+    EMAIL_HOST_USER                     = var.email_host_user
+    EMAIL_HOST_PASSWORD                 = var.email_host_password
+    DEFAULT_FROM_EMAIL                  = "noreply@collune.com"
+    BREVO_API_KEY                       = var.brevo_api_key
+    AISENSY_API_KEY                     = var.aisensy_api_key
+    AISENSY_CHAT_REMINDER_CAMPAIGN_NAME = var.aisensy_chat_reminder_campaign_name
 
     DJANGO_SUPERUSER_USERNAME = var.django_superuser_username
     DJANGO_SUPERUSER_EMAIL    = var.django_superuser_email
@@ -64,6 +65,15 @@ locals {
     FRONTEND_URL           = "https://collune.com"
     CORS_ALLOWED_ORIGINS   = join(",", local.frontend_public_origins)
     CSRF_TRUSTED_ORIGINS   = join(",", local.frontend_public_origins)
+
+    CLOUD_TASKS_ENABLED                 = "True"
+    CLOUD_TASKS_PROJECT_ID              = var.project_id
+    CLOUD_TASKS_LOCATION                = var.region
+    CLOUD_TASKS_CHAT_REMINDER_QUEUE     = google_cloud_tasks_queue.chat_reminders.name
+    CLOUD_TASKS_CHAT_REMINDER_URL       = "${local.backend_public_url}/api/v1/tasks/chat/unread-reminder/"
+    CLOUD_TASKS_INVOKER_SERVICE_ACCOUNT = google_service_account.chat_reminder_invoker.email
+    CLOUD_TASKS_HANDLER_SECRET          = var.cloud_tasks_handler_secret
+    CHAT_UNREAD_REMINDER_DELAY_SECONDS  = "1800"
 
     GOOGLE_CLIENT_SECRET = var.google_client_secret
     YOUTUBE_REDIRECT_URI = "${local.backend_public_url}/api/v1/auth/youtube/callback/"
@@ -106,6 +116,11 @@ resource "google_project_service" "storage_api" {
 resource "google_project_service" "service_networking_api" {
   project = var.project_id
   service = "servicenetworking.googleapis.com"
+}
+
+resource "google_project_service" "cloud_tasks_api" {
+  project = var.project_id
+  service = "cloudtasks.googleapis.com"
 }
 
 
@@ -312,6 +327,63 @@ resource "google_project_iam_member" "storage_admin" {
   project = var.project_id
   role    = "roles/storage.admin"
   member  = "serviceAccount:${local.cloud_run_service_account_email}"
+}
+
+# Cloud Tasks invokes a private endpoint on the backend after the delay.
+resource "google_service_account" "chat_reminder_invoker" {
+  project      = var.project_id
+  account_id   = "chat-reminder-tasks"
+  display_name = "Collune chat reminder Cloud Tasks invoker"
+}
+
+resource "google_cloud_tasks_queue" "chat_reminders" {
+  project  = var.project_id
+  location = var.region
+  name     = "chat-reminders"
+
+  rate_limits {
+    max_dispatches_per_second = 10
+    max_concurrent_dispatches = 20
+  }
+
+  retry_config {
+    max_attempts       = 5
+    min_backoff        = "10s"
+    max_backoff        = "300s"
+    max_doublings      = 4
+    max_retry_duration = "1800s"
+  }
+
+  depends_on = [google_project_service.cloud_tasks_api]
+}
+
+resource "google_project_iam_member" "chat_reminder_enqueuer" {
+  project = var.project_id
+  role    = "roles/cloudtasks.enqueuer"
+  member  = "serviceAccount:${local.cloud_run_service_account_email}"
+}
+
+resource "google_service_account_iam_member" "chat_reminder_enqueuer_can_act_as_invoker" {
+  service_account_id = google_service_account.chat_reminder_invoker.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${local.cloud_run_service_account_email}"
+}
+
+# Cloud Tasks needs this permission to mint the OIDC token attached to tasks.
+resource "google_service_account_iam_member" "cloud_tasks_can_mint_invoker_token" {
+  service_account_id = google_service_account.chat_reminder_invoker.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-cloudtasks.iam.gserviceaccount.com"
+
+  depends_on = [google_project_service.cloud_tasks_api]
+}
+
+resource "google_cloud_run_service_iam_member" "chat_reminder_can_invoke_backend" {
+  location = google_cloud_run_service.backend.location
+  project  = google_cloud_run_service.backend.project
+  service  = google_cloud_run_service.backend.name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_service_account.chat_reminder_invoker.email}"
 }
 
 # Cloud Run Job for Database Migrations
