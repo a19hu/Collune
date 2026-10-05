@@ -34,7 +34,6 @@ const BrandDashBoard = () => {
     async function loadDashboard() {
       try {
         const result = await getBrandDashboard();
-        console.log("result", result);
         if (!mounted) return;
         setBrand(result)
       } catch (error) {

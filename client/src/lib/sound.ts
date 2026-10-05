@@ -121,8 +121,8 @@ export function showDesktopNotification(title: string, options?: NotificationOpt
 
   try {
     return new Notification(title, {
-      badge: '/favicon.svg',
-      icon: '/favicon.svg',
+      badge: '/favicon.ico',
+      icon: '/favicon.ico',
       ...options,
     });
   } catch (error) {

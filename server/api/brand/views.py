@@ -133,7 +133,6 @@ class BrandDetailDashboardView(APIView):
         today = timezone.localdate()
         active_campaigns = (
             Campaign.objects.filter(brand=brand)
-            .filter(Q(end_date__isnull=True) | Q(end_date__gte=today))
             .annotate(
                 applications_received_count=Count("applications", distinct=True),
                 recommended_creators_count=Count(

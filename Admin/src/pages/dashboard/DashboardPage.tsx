@@ -166,7 +166,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onRouteChange }) =
             <span className="text-amber-500 text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded">-2.3%</span>
           </div>
           <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            {stats ? stats.activeCampaigns : '326'}
+            {stats ? stats.activeCampaigns : ''}
           </p>
           <div className="mt-2 flex items-center gap-1">
             <div className="h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -187,7 +187,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onRouteChange }) =
             </span>
           </div>
           <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            {stats ? stats.internalStaffUsers : '38'}
+            {stats ? stats.internalStaffUsers : ''}
           </p>
           <div className="mt-2 flex items-center gap-1">
             <div className="h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">

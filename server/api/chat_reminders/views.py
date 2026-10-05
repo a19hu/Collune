@@ -78,7 +78,7 @@ class UnreadChatReminderTaskView(APIView):
             <tr>
               <td style="padding:26px 40px; background:#1438a8;">
                 <a href="https://collune.com" style="color:#ffffff; text-decoration:none; display:inline-block; font-size:24px; font-weight:700; letter-spacing:-0.5px;">
-                  <img src="https://collune.com/favicon.svg" width="28" height="28" alt="" style="display:inline-block; vertical-align:middle; margin-right:9px; border:0;" />
+                  <img src="https://collune.com/favicon.ico" width="28" height="28" alt="" style="display:inline-block; vertical-align:middle; margin-right:9px; border:0;" />
                   <span style="vertical-align:middle;">Collune</span>
                 </a>
               </td>

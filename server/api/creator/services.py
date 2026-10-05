@@ -11,6 +11,21 @@ YOUTUBE_VIDEOS_URL = "https://www.googleapis.com/youtube/v3/videos"
 YOUTUBE_ANALYTICS_REPORTS_URL = "https://youtubeanalytics.googleapis.com/v2/reports"
 
 
+def calculate_engagement_rate(content, followers):
+    """Return average per-post engagement as a percentage of the audience."""
+    followers = int(followers or 0)
+    if followers <= 0 or not content:
+        return 0.0
+
+    interactions = sum(
+        int(item.get("like_count") or 0)
+        + int(item.get("comment_count") or 0)
+        + int(item.get("share_count") or 0)
+        for item in content
+    )
+    return round((interactions / (followers * len(content))) * 100, 2)
+
+
 def parse_youtube_duration_seconds(duration):
     if not duration or not duration.startswith("PT"):
         return 0
@@ -234,6 +249,7 @@ def sync_youtube_account(account):
     account.handle = snippet.get("title", account.handle)
     account.url = f"https://www.youtube.com/channel/{account.social_id}" if account.social_id else account.url
     account.followers = subscribers
+    account.engagement_rate = calculate_engagement_rate(youtube_videos, subscribers)
     account.media_count = videos
     account.view_count = views
     account.video_count = videos

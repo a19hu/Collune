@@ -30,7 +30,7 @@ from ..permissions import IsCreator,IsBrand
 from ..common.services import auth_response, create_user, parse_payload
 from .serializers import CampaignWorkSubmissionSerializer, CreatorPortfolioSerializer, CreatorProfileSerializer, CreatorRegisterSerializer, CreatorSocialMediaPricingSerializer
 from ..common.presence import get_last_seen, is_online
-from .services import fetch_youtube_analytics, fetch_youtube_videos, sync_youtube_account
+from .services import calculate_engagement_rate, fetch_youtube_analytics, fetch_youtube_videos, sync_youtube_account
 
 User = get_user_model()
 INSTAGRAM_AUTH_URL = "https://www.instagram.com/oauth/authorize"
@@ -124,6 +124,18 @@ def creator_discovery_address(creator):
     if not address["location"] and not legacy_parts:
         address["location"] = creator.location.strip()
     return address
+
+
+def average_engagement_rate(accounts):
+    """Weight each platform's engagement rate by its follower count."""
+    accounts = [account for account in accounts if account.followers > 0]
+    total_followers = sum(account.followers for account in accounts)
+    if not total_followers:
+        return 0
+    return round(
+        sum(account.engagement_rate * account.followers for account in accounts) / total_followers,
+        2,
+    )
 
 
 def resolve_oauth_client(request):
@@ -502,11 +514,7 @@ class CreatorProfileView(APIView):
             "is_profile_visible": creator.user.is_profile_visible,
             "total_followers": total_followers,
             "platform_data": platforms,
-            "avg_eng_rate": (
-                        round(total_engagement / len(platforms), 2)
-                        if platforms
-                        else 0
-                    ),
+            "avg_eng_rate": average_engagement_rate(creator.social_accounts.all()),
             "total_view_count": total_views,
             "total_media_count": total_media,
             "work_with":creator.work_with,
@@ -1179,11 +1187,7 @@ class CreatorListViewSet(APIView):
         if is_brand:
             response.update(
                 {
-                    "avg_eng_rate": (
-                        round(total_engagement / len(platforms), 2)
-                        if platforms
-                        else 0
-                    ),
+                    "avg_eng_rate": average_engagement_rate(creator.social_accounts.all()),
                     "total_view_count": total_views,
                     "total_media_count": total_media,
                 }
@@ -1235,7 +1239,7 @@ class CreatorListViewSet(APIView):
             item["gender"] = creator.gender
             item["campaigns_completed"] = creator.completed_campaign_count
             accounts = list(creator.social_accounts.all())
-            item["avg_eng_rate"] = round(sum(account.engagement_rate for account in accounts) / len(accounts), 2) if accounts else None
+            item["avg_eng_rate"] = average_engagement_rate(accounts) if accounts else None
             item["is_online"] = is_online(creator.user_id)
             item["last_active_at"] = get_last_seen(creator.user_id) or (creator.user.last_login.isoformat() if creator.user.last_login else None)
 
@@ -1673,6 +1677,7 @@ class YouTubeCallbackView(APIView):
                 "handle": title,
                 "url": f"https://www.youtube.com/channel/{channel_id}" if channel_id else "",
                 "followers": subscribers,
+                "engagement_rate": calculate_engagement_rate(youtube_videos, subscribers),
                 "media_count": videos,
                 "view_count": views,
                 "video_count": videos,

@@ -99,12 +99,12 @@ export function formatLocationParts(parts: AddressParts) {
 export function getLocationDisplayValue(location: string) {
   const parts = parseLocationParts(location);
   return [
-    parts.streetAddress,
-    parts.city,
+    // parts.streetAddress,
+    // parts.city,
     parts.district,
     parts.state,
     parts.country,
-    parts.postalCode ? `PIN ${parts.postalCode}` : "",
+    // parts.postalCode ? `PIN ${parts.postalCode}` : "",
   ]
     .filter(Boolean)
     .join(", ");
