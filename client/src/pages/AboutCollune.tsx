@@ -62,7 +62,7 @@ export default function AboutCollune() {
             <div className="mt-6 grid gap-4 text-sm font-semibold text-[#53627a]">
               <span className="flex items-center gap-3"><MapPin className="h-4 w-4 text-[#173ca8]" /> Jaipur, Rajasthan, India</span>
               <span className="flex items-center gap-3"><Mail className="h-4 w-4 text-[#173ca8]" /> thecollune@gmail.com</span>
-              <span className="flex items-center gap-3"><Globe2 className="h-4 w-4 text-[#173ca8]" /> www.collune.com | www.thecollune.com</span>
+              <span className="flex items-center gap-3"><Globe2 className="h-4 w-4 text-[#173ca8]" /> www.collune.com </span>
             </div>
           </aside>
         </div>
@@ -137,7 +137,7 @@ export default function AboutCollune() {
           <h2 className="text-2xl font-black tracking-normal text-[#101828]">Contact Information</h2>
           <div className="mt-6 grid gap-4 text-[15px] font-semibold text-[#53627a]">
             <p>Email: thecollune@gmail.com</p>
-            <p>Website: www.collune.com | www.thecollune.com</p>
+            <p>Website: www.collune.com </p>
             <p>Location: Jaipur, Rajasthan, India</p>
             <p>Operating Entity: AIM Information Technology</p>
           </div>

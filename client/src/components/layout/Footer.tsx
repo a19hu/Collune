@@ -21,7 +21,7 @@ const socialTiles = [
   { label: "X (Twitter)", href: "https://x.com/thecollune", iconSrc: xIcon },
   { label: "YouTube", href: "https://www.youtube.com/@thecollune", iconSrc: youtubeIcon },
   { label: "Facebook", href: "https://www.facebook.com/thecollune", iconSrc: facebookIcon },
-  { label: "Reddit", href: "https://www.reddit.com/@thecollune", iconSrc: redditIcon },
+  // { label: "Reddit", href: "https://www.reddit.com/@thecollune", iconSrc: redditIcon },
 ];
 
 const Footer = () => {
