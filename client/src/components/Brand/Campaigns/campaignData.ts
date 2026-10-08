@@ -100,7 +100,7 @@ export function mapCampaignApiToCard(campaign: CampaignApi): CampaignCardItem {
     recommended: campaign.status_summary?.recommended_creators ?? 0,
     updatedAt: formatUpdatedAt(campaign.updated_at),
     updatedRank: getUpdatedRank(campaign.updated_at),
-    budget: campaign.budget_range || (Number(campaign.total_budget) ? `$${Number(campaign.total_budget).toLocaleString()}` : "Budget not set"),
+    budget: campaign.budget_range || (Number(campaign.total_budget) ? `₹${Number(campaign.total_budget).toLocaleString()}` : "Budget not set"),
     objective: campaign.objective || campaign.brief || "Campaign objective not set.",
     deliverables: campaign.deliverables || "Deliverables not set.",
     requirements: campaign.brand_requirements || campaign.additional_preferences || "Requirements not set.",

@@ -168,6 +168,7 @@ export const SideBarLayout = () => {
   const { mode, pathname } = useDashboardState();
   const navigate = useNavigate();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const isBrand = mode === "brand";
   const profilePath = isBrand ? "/brand/profile" : "/creator/profile";
   const isVerified = currentUser.verification_status === "VERIFIED"
@@ -519,9 +520,11 @@ export const SideBarLayout = () => {
         mode={mode}
         isMobileOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapsed={() => setIsSidebarCollapsed((collapsed) => !collapsed)}
       />
 
-      <div className="lg:pl-[270px]">
+      <div className={`transition-[padding] duration-300 ${isSidebarCollapsed ? "lg:pl-[76px]" : "lg:pl-[270px]"}`}>
         <main className="min-h-[calc(100vh-98px)] bg-white px-4 py-0 sm:px-6 lg:px-8">
           <div className="min-h-screen bg-white pt-5 sm:pt-8">
             {isBrand ? <TopComponentsBrand /> : <TopComponentsCreator />}

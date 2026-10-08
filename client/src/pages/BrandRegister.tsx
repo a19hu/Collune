@@ -89,7 +89,7 @@ const initialVerification: VerificationState = {
 };
 
 const industryOptions = ["Technology", "Consumer Brand", "Finance", "Education"];
-const companySizeOptions = ["1-2", "2-10", "10-50", "50+"];
+const employeesSizeOptions = ["1-2", "2-10", "10-50", "50+"];
 
 type BrandFieldChangeEvent = ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
 
@@ -284,8 +284,8 @@ function BrandRegisterSteps({
           <BrandSelect labelClass={labelClass} inputClass={inputClass} label="Industry" icon={<BriefcaseBusiness className="h-5 w-5" />} placeholder="Select industry" value={form.industry} onChange={onFieldChange("industry")} required>
             {industryOptions.map((industry) => <option key={industry}>{industry}</option>)}
           </BrandSelect>
-          <BrandSelect labelClass={labelClass} inputClass={inputClass} label="Company Size" icon={<Users className="h-5 w-5" />} placeholder="Select size" value={form.company_size} onChange={onFieldChange("company_size")} required>
-            {companySizeOptions.map((size) => <option key={size}>{size}</option>)}
+          <BrandSelect labelClass={labelClass} inputClass={inputClass} label="Employees Size" icon={<Users className="h-5 w-5" />} placeholder="Select size" value={form.company_size} onChange={onFieldChange("company_size")} required>
+            {employeesSizeOptions.map((size) => <option key={size}>{size}</option>)}
           </BrandSelect>
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Year Established" icon={<Shield className="h-5 w-5" />} value={form.year_established} onChange={onFieldChange("year_established")} placeholder="2020" type="number" max={new Date().getFullYear()} />
           <TextAreaField

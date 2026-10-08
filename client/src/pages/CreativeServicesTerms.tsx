@@ -94,8 +94,7 @@ function Section({
           <Icon className="h-6 w-6" />
         </span>
         <div>
-          <p className="text-sm font-black text-[#173ca8]">{number}</p>
-          <h2 className="mt-1 text-2xl font-black tracking-normal text-[#101828]">{title}</h2>
+          <h2 className="mt-1 text-2xl font-black tracking-normal text-[#101828]">{number}.{title}</h2>
         </div>
       </div>
       <div className="mt-6">{children}</div>

@@ -833,7 +833,7 @@ export function CreatorProfile() {
                       showProjectToast(
                         'info',
                         'Contact support to update this detail',
-                        'Email thecollune@gmail.com to change your contact information.',
+                        'Email thecollune@gmail.com to change your contact information.'
                       )
                     }
                     className="min-h-11 rounded-md border border-[#d7deea] bg-[#f8faff] px-3 py-2.5 text-left text-sm font-semibold text-[#25304a] transition-colors hover:bg-[#eef3ff] focus:outline-none focus:ring-2 focus:ring-[#2447bd] focus:ring-offset-2"

@@ -416,11 +416,11 @@ export default function BrandProfile() {
                   placeholder="https://www.yourbrand.com"
                 />
                 <SelectField
-                  label="Company Size"
+                  label="Employees Size"
                   value={form.company_size}
                   onChange={(value) => updateField("company_size", value)}
                   options={companySizeOptions}
-                  placeholder="Select company size"
+                  placeholder="Select employees size"
                 />
               </div>
               <div className="mt-5">

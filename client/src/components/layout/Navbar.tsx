@@ -1,23 +1,38 @@
-import { useEffect, useRef, useState } from "react";
-import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
-import logo from "../../assets/Logo.svg";
+import { useEffect, useRef, useState } from 'react';
+import { ArrowRight, ChevronDown, Menu, X } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import logo from '../../assets/Logo.svg';
 
-export function ColluneLogo({ to = "/" }: { to?: string }) {
+export function ColluneLogo({ to = '/' }: { to?: string }) {
   return (
-    <Link to={to} aria-label="Collune home" className="flex min-w-0 items-center gap-2 px-3 py-2  ">
-      <img src={logo} alt="Collune" className="h-[42px] w-[132px] sm:h-[48px] sm:w-[150px] lg:h-[53px] lg:w-[167px]" />
+    <Link
+      to={to}
+      aria-label="Collune home"
+      className="flex min-w-0 items-center gap-2 px-3 py-2  "
+    >
+      <img
+        src={logo}
+        alt="Collune"
+        className="h-[42px] w-[132px] sm:h-[48px] sm:w-[150px] lg:h-[53px] lg:w-[167px]"
+      />
     </Link>
   );
 }
 
-
 const Navbar = () => {
   const location = useLocation();
   const { currentUser, isAuthLoading, logout } = useAuth();
-  const dashboardPath = currentUser?.role === "Brand" ? "/brand" : currentUser?.role === "Creator" ? "/creator" : "/";
-  const userInitial = currentUser?.name?.trim().charAt(0).toUpperCase() || currentUser?.email?.trim().charAt(0).toUpperCase() || "U";
+  const dashboardPath =
+    currentUser?.role === 'Brand'
+      ? '/brand'
+      : currentUser?.role === 'Creator'
+        ? '/creator'
+        : '/';
+  const userInitial =
+    currentUser?.name?.trim().charAt(0).toUpperCase() ||
+    currentUser?.email?.trim().charAt(0).toUpperCase() ||
+    'U';
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
@@ -35,34 +50,34 @@ const Navbar = () => {
     }
 
     function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         setIsUserMenuOpen(false);
         setIsMobileMenuOpen(false);
       }
     }
 
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleEscape);
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleEscape);
 
     return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleEscape);
     };
   }, []);
 
   const navItems = [
     {
-      label: currentUser?.role === "Creator" ? "Discover"  :"Creators",
+      label: currentUser?.role === 'Creator' ? 'Discover' : 'Creators',
       items:
-        currentUser?.role === "Creator" ?
-         [
-          { label: "Discover Campaigns", href: "/creator/marketplace" },
-          { label: "Featured Campaigns", href: "/#featured-campaigns" },
-        ] :
-         [
-          { label: "Discover Creators", href: "/discover-creators" },
-          { label: "Featured Creators", href: "/#featured-creators" },
-        ]
+        currentUser?.role === 'Creator'
+          ? [
+              { label: 'Discover Campaigns', href: '/creator/marketplace' },
+              { label: 'Featured Campaigns', href: '/#featured-campaigns' },
+            ]
+          : [
+              { label: 'Discover Creators', href: '/discover-creators' },
+              { label: 'Featured Creators', href: '/#featured-creators' },
+            ],
     },
     // {
     //   label: "Brands",
@@ -70,7 +85,7 @@ const Navbar = () => {
     //     { label: "Success Stories", href: "/success-stories" },
     //   ],
     // },
-    { label: "How it Works", href: "/#how-it-works" },
+    { label: 'How it Works', href: '/#how-it-works' },
     // {
     //   label: "Resources",
     //   items: [
@@ -78,35 +93,46 @@ const Navbar = () => {
     //     { label: "FAQs", href: "/faqs" },
     //   ],
     // },
-    { label: "About", href: "/about-collune" },
+    { label: 'About', href: '/about-collune' },
   ];
 
   return (
     <header className="fixed left-1/2 top-4 z-50 w-[calc(100%-32px)] max-w-7xl -translate-x-1/2 md:top-5">
-      <div className="flex items-center justify-between gap-3 rounded-[28px] border border-[#d8e3ff] bg-gradient-to-r from-[#eef4ff]/95 via-[#f8fbff]/95 to-[#e8f0ff]/95 px-4 py-3 shadow-[0_18px_40px_rgba(45,66,140,0.12)] backdrop-blur-xl sm:px-5 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-4 lg:rounded-full lg:border-transparent lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none lg:backdrop-blur-0">
+      <div className="flex items-center justify-between gap-6 rounded-[28px] border border-[#d8e3ff] bg-gradient-to-r from-[#eef4ff]/95 via-[#f8fbff]/95 to-[#e8f0ff]/95 px-4 py-3 shadow-[0_18px_40px_rgba(45,66,140,0.12)] backdrop-blur-xl sm:px-5 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-4 lg:rounded-full lg:border-transparent lg:bg-transparent lg:px-5 lg:py-1 lg:shadow-none lg:backdrop-blur-0">
         <ColluneLogo to={'/#top'} />
 
         <nav className="hidden items-center gap-8 rounded-full border border-[#dce5fb] bg-white/85 px-11 py-1 shadow-[0_16px_34px_rgba(69,96,170,0.1)] backdrop-blur-xl lg:flex">
           {navItems.map((item) =>
             item.items ? (
               <div className="group relative py-2" key={item.label}>
-                <button type="button" className="inline-flex items-center gap-1 text-[13px] font-extrabold text-[#34466d] transition hover:text-[#214bc0]">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 text-[13px] font-extrabold text-[#34466d] transition hover:text-[#214bc0]"
+                >
                   {item.label}
                   <ChevronDown className="h-3.5 w-3.5 transition group-hover:rotate-180" />
                 </button>
                 <div className="invisible absolute left-1/2 top-full w-52 -translate-x-1/2 rounded-2xl border border-[#dce5fb] bg-white p-2 opacity-0 shadow-[0_18px_40px_rgba(45,66,140,0.14)] transition group-hover:visible group-hover:opacity-100">
                   {item.items.map((subItem) => (
-                    <Link key={subItem.label} to={subItem.href} className="block rounded-xl px-4 py-3 text-sm font-black text-[#34466d] transition hover:bg-[#eef3ff] hover:text-[#214bc0]">
+                    <Link
+                      key={subItem.label}
+                      to={subItem.href}
+                      className="block rounded-xl px-4 py-3 text-sm font-black text-[#34466d] transition hover:bg-[#eef3ff] hover:text-[#214bc0]"
+                    >
                       {subItem.label}
                     </Link>
                   ))}
                 </div>
               </div>
             ) : (
-              <Link key={item.label} to={item.href} className="inline-flex items-center gap-1 text-[13px] font-extrabold text-[#34466d] transition hover:text-[#214bc0]">
+              <Link
+                key={item.label}
+                to={item.href}
+                className="inline-flex items-center gap-1 text-[13px] font-extrabold text-[#34466d] transition hover:text-[#214bc0]"
+              >
                 {item.label}
               </Link>
-            ),
+            )
           )}
         </nav>
 
@@ -125,11 +151,15 @@ const Navbar = () => {
                 <span className="grid h-10 w-10 place-items-center rounded-full bg-[#1438c8] text-white">
                   {userInitial}
                 </span>
-                <span className="hidden max-w-[150px] truncate sm:inline">{currentUser.name}</span>
-                <ChevronDown className={`h-3.5 w-3.5 transition ${isUserMenuOpen ? "rotate-180" : ""}`} />
+                <span className="hidden max-w-[150px] truncate sm:inline">
+                  {currentUser.name}
+                </span>
+                <ChevronDown
+                  className={`h-3.5 w-3.5 transition ${isUserMenuOpen ? 'rotate-180' : ''}`}
+                />
               </button>
               <div
-                className={`${isUserMenuOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-1 opacity-0"} absolute right-0 top-12 w-56 rounded-2xl border border-[#dce5fb] bg-white p-2 shadow-[0_18px_40px_rgba(45,66,140,0.14)] transition`}
+                className={`${isUserMenuOpen ? 'visible translate-y-0 opacity-100' : 'invisible -translate-y-1 opacity-0'} absolute right-0 top-12 w-56 rounded-2xl border border-[#dce5fb] bg-white p-2 shadow-[0_18px_40px_rgba(45,66,140,0.14)] transition`}
               >
                 <Link
                   to={dashboardPath}
@@ -154,16 +184,27 @@ const Navbar = () => {
               type="button"
               onClick={() => setIsMobileMenuOpen((current) => !current)}
               className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#dce5fb] bg-white/80 text-[#2449bd] shadow-sm backdrop-blur transition hover:bg-white lg:hidden"
-              aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-label={
+                isMobileMenuOpen
+                  ? 'Close navigation menu'
+                  : 'Open navigation menu'
+              }
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-navigation"
             >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </button>
           </div>
         ) : (
           <div className="flex shrink-0 items-center justify-end gap-2 lg:justify-self-end">
-            <Link to="/login" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-[#dce5fb] bg-white/85 px-4 text-sm font-black text-[#2b55c7] shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:bg-white sm:px-5">
+            <Link
+              to="/login"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-[#dce5fb] bg-white/85 px-4 text-sm font-black text-[#2b55c7] shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:bg-white sm:px-5"
+            >
               Log In
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -171,11 +212,19 @@ const Navbar = () => {
               type="button"
               onClick={() => setIsMobileMenuOpen((current) => !current)}
               className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#dce5fb] bg-white/80 text-[#2449bd] shadow-sm backdrop-blur transition hover:bg-white lg:hidden"
-              aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-label={
+                isMobileMenuOpen
+                  ? 'Close navigation menu'
+                  : 'Open navigation menu'
+              }
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-navigation"
             >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </button>
           </div>
         )}
@@ -183,13 +232,18 @@ const Navbar = () => {
 
       <div
         id="mobile-navigation"
-        className={`${isMobileMenuOpen ? "pointer-events-auto visible translate-y-0 opacity-100" : "pointer-events-none invisible -translate-y-2 opacity-0"} absolute left-0 right-0 top-full z-50 mt-3 rounded-[28px] border border-[#d8e3ff] bg-gradient-to-b from-[#fdfefe]/98 via-[#f7faff]/98 to-[#edf3ff]/98 p-4 shadow-[0_18px_40px_rgba(45,66,140,0.14)] backdrop-blur-xl transition duration-200 lg:hidden`}
+        className={`${isMobileMenuOpen ? 'pointer-events-auto visible translate-y-0 opacity-100' : 'pointer-events-none invisible -translate-y-2 opacity-0'} absolute left-0 right-0 top-full z-50 mt-3 rounded-[28px] border border-[#d8e3ff] bg-gradient-to-b from-[#fdfefe]/98 via-[#f7faff]/98 to-[#edf3ff]/98 p-4 shadow-[0_18px_40px_rgba(45,66,140,0.14)] backdrop-blur-xl transition duration-200 lg:hidden`}
       >
         <nav className="flex flex-col gap-2" aria-label="Mobile navigation">
           {navItems.map((item) =>
             item.items ? (
-              <div key={item.label} className="rounded-2xl border border-[#e8eefc] bg-[#f8faff] px-4 py-3">
-                <p className="text-sm font-black text-[#17327c]">{item.label}</p>
+              <div
+                key={item.label}
+                className="rounded-2xl border border-[#e8eefc] bg-[#f8faff] px-4 py-3"
+              >
+                <p className="text-sm font-black text-[#17327c]">
+                  {item.label}
+                </p>
                 <div className="mt-2 flex flex-col gap-1">
                   {item.items.map((subItem) => (
                     <Link
@@ -212,7 +266,7 @@ const Navbar = () => {
               >
                 {item.label}
               </Link>
-            ),
+            )
           )}
 
           {currentUser ? (

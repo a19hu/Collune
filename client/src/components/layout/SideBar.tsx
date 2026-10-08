@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BadgeCheck, Bell, ChevronDown, CircleHelp, Database, FileText, Home, LogOut, MessageCircle, ShoppingBag, Sparkles, Star, UserRound, Users, X } from "lucide-react";
+import { BadgeCheck, Bell, ChevronDown, CircleHelp, Database, FileText, Home, LogOut, MessageCircle, PanelLeftClose, PanelLeftOpen, ShoppingBag, Sparkles, Star, UserRound, Users, X } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import logo from "../../assets/Logo.svg";
 import { useAuth } from "../../contexts/AuthContext";
@@ -39,9 +39,11 @@ type SideBarProps = {
   mode?: SidebarMode;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
+  isCollapsed?: boolean;
+  onToggleCollapsed?: () => void;
 };
 
-export function SideBar({ isVerified = false, mode = "creator", isMobileOpen = false, onCloseMobile }: SideBarProps) {
+export function SideBar({ isVerified = false, mode = "creator", isMobileOpen = false, onCloseMobile, isCollapsed = false, onToggleCollapsed }: SideBarProps) {
   const navItems = navByMode[mode];
   const { currentUser, logout } = useAuth();
   const [brandProfile, setBrandProfile] = useState<BrandProfileApi | null>(null);
@@ -97,18 +99,21 @@ export function SideBar({ isVerified = false, mode = "creator", isMobileOpen = f
       />
       <aside
         data-tour="sidebar"
-        className={`fixed inset-y-0 left-0 z-40 flex w-[270px] flex-col border-r border-[#eef1f6] bg-[#f5f7ff] transition-transform duration-300 lg:z-30 lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-[270px] flex-col border-r border-[#eef1f6] bg-[#f5f7ff] transition-[width,transform] duration-300 lg:z-30 lg:translate-x-0 ${
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:flex`}
+        } ${isCollapsed ? "lg:w-[76px]" : "lg:w-[270px]"} lg:flex`}
       >
-        <div className="flex items-center justify-between px-6 pb-6 pt-6 lg:px-16">
-          <Link to="/" onClick={onCloseMobile}>
-            <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />
+        <div className={`flex items-center pb-6 pt-6 ${isCollapsed ? "justify-center px-3" : "justify-between px-6 lg:px-16"}`}>
+          <Link to="/" onClick={onCloseMobile} className={isCollapsed ? "hidden lg:block" : "block"} aria-label="Collune home">
+            {isCollapsed ? <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#4b22ff] text-sm font-black text-white">C</span> : <img src={logo} alt="Collune" className="h-[53px] w-[167px]" />}
           </Link>
+          <button type="button" onClick={onToggleCollapsed} className={`hidden h-8 w-8 place-items-center rounded-md text-[#657084] transition hover:bg-white hover:text-[#2d30ff] lg:grid ${isCollapsed ? "absolute right-1 top-2" : ""}`} aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"} title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
+            {isCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          </button>
         </div>
 
         {isBrand ? (
-          <div ref={brandMenuRef} data-tour="brand-account-switcher" className="relative px-4 pb-5">
+          <div ref={brandMenuRef} data-tour="brand-account-switcher" className={`relative px-4 pb-5 ${isCollapsed ? "lg:px-3" : ""}`}>
             <button
               type="button"
               onClick={() => setIsBrandMenuOpen((open) => !open)}
@@ -121,8 +126,8 @@ export function SideBar({ isVerified = false, mode = "creator", isMobileOpen = f
                   {brandInitials}
                 </span>
               )}
-              <span className="min-w-0 flex-1 truncate text-sm font-black text-black">{brandName}</span>
-              <ChevronDown className={`h-5 w-5 text-[#657084] transition ${isBrandMenuOpen ? "rotate-180" : ""}`} />
+              <span className={`min-w-0 flex-1 truncate text-sm font-black text-black ${isCollapsed ? "lg:hidden" : ""}`}>{brandName}</span>
+              <ChevronDown className={`h-5 w-5 text-[#657084] transition ${isBrandMenuOpen ? "rotate-180" : ""} ${isCollapsed ? "lg:hidden" : ""}`} />
             </button>
 
             {isBrandMenuOpen ? (
@@ -144,7 +149,8 @@ export function SideBar({ isVerified = false, mode = "creator", isMobileOpen = f
           </div>
         ) : null}
 
-        <nav data-tour="sidebar-nav" className="grid gap-2 px-4">
+        <nav data-tour="sidebar-nav" className="min-h-0 flex-1 overflow-y-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="grid gap-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const locked = !isVerified && item.lockedWhenUnverified;
@@ -154,12 +160,12 @@ export function SideBar({ isVerified = false, mode = "creator", isMobileOpen = f
                 <button
                   key={item.label}
                   type="button"
-                  className="flex h-[46px] cursor-not-allowed items-center gap-3 rounded-lg px-4 text-left text-[15px] font-semibold text-[#9aa3b2] opacity-70"
+                  className={`flex h-[46px] cursor-not-allowed items-center gap-3 rounded-lg px-4 text-left text-[15px] font-semibold text-[#9aa3b2] opacity-70 ${isCollapsed ? "lg:justify-center lg:px-0" : ""}`}
                   title="Available after verification"
                 >
                   <Icon className="h-5 w-5" />
-                  <span className="flex-1">{item.label}</span>
-                  <CircleHelp className="h-4 w-4 text-[#7c8798]" />
+                  <span className={`flex-1 ${isCollapsed ? "lg:hidden" : ""}`}>{item.label}</span>
+                  <CircleHelp className={`h-4 w-4 text-[#7c8798] ${isCollapsed ? "lg:hidden" : ""}`} />
                 </button>
               );
             }
@@ -171,7 +177,7 @@ export function SideBar({ isVerified = false, mode = "creator", isMobileOpen = f
                 end={item.to === `/${mode}`}
                 onClick={onCloseMobile}
                 className={({ isActive }) =>
-                  `flex h-[46px] items-center gap-3 rounded-lg px-4 text-[15px] font-semibold transition ${
+                  `flex h-[46px] items-center gap-3 rounded-lg px-4 text-[15px] font-semibold transition ${isCollapsed ? "lg:justify-center lg:px-0" : ""} ${
                     isActive
                       ? "bg-[#dfe7ff] text-[#2d30ff]"
                       : "text-[#657084] hover:bg-white hover:text-[#2d30ff]"
@@ -179,13 +185,14 @@ export function SideBar({ isVerified = false, mode = "creator", isMobileOpen = f
                 }
               >
                 <Icon className="h-5 w-5" />
-                <span className="flex-1">{item.label}</span>
+                <span className={`flex-1 ${isCollapsed ? "lg:hidden" : ""}`}>{item.label}</span>
               </NavLink>
             );
           })}
+          </div>
         </nav>
 
-        <div data-tour="support-card" className="mt-auto p-4">
+        <div data-tour="support-card" className={`mt-auto shrink-0 p-4 ${isCollapsed ? "lg:hidden" : ""}`}>
           <div className="rounded-xl bg-white p-4 shadow-sm">
             <div className="flex items-start gap-3">
               <CircleHelp className="mt-1 h-4 w-4 text-[#64738e]" />

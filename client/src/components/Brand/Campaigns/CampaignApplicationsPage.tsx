@@ -108,9 +108,9 @@ function getDaysUntil(value?: string | null) {
 }
 
 function formatBudget(campaign: BrandCampaignDetailApi) {
-  if (campaign.budget_range) return campaign.budget_range;
+  if (campaign.budget_range) return  `${campaign.budget_range.toLocaleString()}`;
   const total = Number(campaign.total_budget);
-  return total ? `$${total.toLocaleString()}` : "Budget not set";
+  return total ? `₹${total.toLocaleString()}` : "Budget not set";
 }
 
 function formatTimeline(campaign: BrandCampaignDetailApi) {

@@ -221,7 +221,7 @@ function BrandActions({
               className="flex h-12 items-center justify-center gap-2 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]"
             >
               <MessageCircle className="h-4 w-4" />
-              Message Creator
+              Connect with Creator
             </Link>
             <button
               type="button"

@@ -101,7 +101,9 @@ export function TextArea({
         maxLength={500}
         className="h-[132px] w-full resize-none rounded-lg border border-[#dce5f2] bg-white px-4 py-3 text-sm font-medium text-[#1c2333] outline-none placeholder:text-[#a8b4c5] focus:border-[#4b22ff] focus:ring-4 focus:ring-[#4b22ff]/10"
       />
-      <span className="mt-1 block text-right text-xs font-medium text-[#8a98ad]">0/500</span>
+      <span className="mt-1 block text-right text-xs font-medium text-[#8a98ad]">
+        {(value ?? "").length}/500
+      </span>
     </label>
   );
 }
