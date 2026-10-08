@@ -246,6 +246,7 @@ export function CreatorProfile() {
   const [activeSection, setActiveSection] = useState('profile');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
   const [connectingPlatform, setConnectingPlatform] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -324,6 +325,31 @@ export function CreatorProfile() {
 
   function updateField<K extends keyof EditForm>(key: K, value: EditForm[K]) {
     setForm((current) => (current ? { ...current, [key]: value } : current));
+  }
+
+  async function toggleProfileVisibility() {
+    if (!form || isUpdatingVisibility) return;
+
+    const previousVisibility = form.is_profile_visible;
+    const nextVisibility = !previousVisibility;
+    setForm((current) => current ? { ...current, is_profile_visible: nextVisibility } : current);
+    setIsUpdatingVisibility(true);
+
+    const body = new FormData();
+    body.append('is_profile_visible', String(nextVisibility));
+
+    try {
+      const updated = await updateCreatorProfile(body);
+      setProfile(updated);
+      setForm((current) => current ? { ...current, is_profile_visible: updated.is_profile_visible } : current);
+      showProjectToast('success', 'Profile visibility updated', nextVisibility ? 'Your creator profile is now visible.' : 'Your creator profile is now hidden.');
+    } catch (err) {
+      setForm((current) => current ? { ...current, is_profile_visible: previousVisibility } : current);
+      const message = err instanceof Error ? err.message : 'Unable to update profile visibility.';
+      showProjectToast('error', 'Visibility update failed', message);
+    } finally {
+      setIsUpdatingVisibility(false);
+    }
   }
 
   function goToSection(section: string) {
@@ -501,29 +527,16 @@ export function CreatorProfile() {
                 <div className="rounded-[8px] bg-white/10 p-1">
                   <button
                     type="button"
-                    onClick={() =>
-                      updateField(
-                        'is_profile_visible',
-                        !form.is_profile_visible
-                      )
-                    }
-                    className={`h-10 rounded-[6px] px-4 text-sm font-black ${form.is_profile_visible ? 'bg-[#ddfbea] text-[#067647]' : 'bg-[#fee4e2] text-[#b42318]'}`}
+                    onClick={() => void toggleProfileVisibility()}
+                    disabled={isUpdatingVisibility}
+                    className={`inline-flex h-10 items-center justify-center rounded-[6px] px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-70 ${form.is_profile_visible ? 'bg-[#ddfbea] text-[#067647]' : 'bg-[#fee4e2] text-[#b42318]'}`}
                   >
-                    {form.is_profile_visible
+                    {isUpdatingVisibility
+                      ? 'Updating...'
+                      : form.is_profile_visible
                       ? 'Profile Visible'
                       : 'Profile Hidden'}
                   </button>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <a
-                    href={publicProfileUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="grid h-9 w-9 place-items-center rounded-[6px] border border-[#d7deea] text-[#173ca8]"
-                    aria-label="Open public profile"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
                 </div>
               </div>
             </div>

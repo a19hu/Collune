@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 import logo from '../../assets/Logo.svg';
+import smallLogo from '../../assets/IMG_9054.PNG';
 import { useAuth } from '../../contexts/AuthContext';
 import { getBrandMe } from '../../lib/authApi';
 import type { BrandProfileApi } from '../../types';
@@ -181,12 +182,12 @@ export function SideBar({
             <button
               type="button"
               onClick={onToggleCollapsed}
-              className="group relative hidden h-10 w-10 place-items-center overflow-hidden rounded-lg bg-[#4b22ff] text-sm font-black text-white transition hover:bg-[#3e1ed8] lg:grid"
+              className="group relative hidden h-10 w-10 place-items-center overflow-hidden rounded-lg text-sm font-black text-white transition hover:text-[#2d30ff] lg:grid"
               aria-label="Expand sidebar"
               title="Expand sidebar"
             >
-              <span className="transition group-hover:scale-0 group-hover:opacity-0">C</span>
-              <PanelLeftOpen className="absolute h-5 w-5 scale-75 opacity-0 transition group-hover:scale-100 group-hover:opacity-100" />
+               <img src={smallLogo} alt="Collune" className="group-hover:opacity-0" />
+              <PanelLeftOpen className="absolute h-5 w-5 scale-75 text-black opacity-0 transition group-hover:scale-100 group-hover:opacity-100 " />
             </button>
           ) : (
             <Link to="/" onClick={onCloseMobile} className="block" aria-label="Collune home">

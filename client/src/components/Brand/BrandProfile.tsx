@@ -285,6 +285,7 @@ export default function BrandProfile() {
   const [form, setForm] = useState<BrandProfileForm | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
   const [logoPreview, setLogoPreview] = useState('');
 
   useEffect(() => {
@@ -375,6 +376,31 @@ export default function BrandProfile() {
       }
     }
     updateField(key, file);
+  }
+
+  async function toggleProfileVisibility() {
+    if (!form || isUpdatingVisibility) return;
+
+    const previousVisibility = form.is_profile_visible;
+    const nextVisibility = !previousVisibility;
+    setForm((current) => current ? { ...current, is_profile_visible: nextVisibility } : current);
+    setIsUpdatingVisibility(true);
+
+    const body = new FormData();
+    body.append('is_profile_visible', String(nextVisibility));
+
+    try {
+      const updated = await updateBrandProfile(body);
+      setProfile(updated);
+      setForm((current) => current ? { ...current, is_profile_visible: updated.is_profile_visible } : current);
+      showProjectToast('success', 'Profile visibility updated', nextVisibility ? 'Your brand profile is now visible.' : 'Your brand profile is now hidden.');
+    } catch (err) {
+      setForm((current) => current ? { ...current, is_profile_visible: previousVisibility } : current);
+      const message = err instanceof Error ? err.message : 'Unable to update profile visibility.';
+      showProjectToast('error', 'Visibility update failed', message);
+    } finally {
+      setIsUpdatingVisibility(false);
+    }
   }
 
   async function saveProfile() {
@@ -492,12 +518,13 @@ export default function BrandProfile() {
               <div className="flex items-end xl:justify-end">
                 <button
                   type="button"
-                  onClick={() =>
-                    updateField('is_profile_visible', !form.is_profile_visible)
-                  }
-                  className={`inline-flex h-12 w-full items-center justify-center gap-2 rounded-[8px] px-4 text-sm font-black xl:w-auto ${form.is_profile_visible ? 'bg-[#ddfbea] text-[#067647]' : 'bg-[#fee4e2] text-[#b42318]'}`}
+                  onClick={() => void toggleProfileVisibility()}
+                  disabled={isUpdatingVisibility}
+                  className={`inline-flex h-12 w-full items-center justify-center gap-2 rounded-[8px] px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-70 xl:w-auto ${form.is_profile_visible ? 'bg-[#ddfbea] text-[#067647]' : 'bg-[#fee4e2] text-[#b42318]'}`}
                 >
-                  {form.is_profile_visible ? (
+                  {isUpdatingVisibility ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : form.is_profile_visible ? (
                     <Eye className="h-4 w-4" />
                   ) : (
                     <EyeOff className="h-4 w-4" />

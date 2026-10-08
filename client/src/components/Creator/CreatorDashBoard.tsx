@@ -13,7 +13,7 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { applyToCampaign, getCreatorDashboard, saveCreatorCampaign } from "../../lib/authApi";
 import type { CreatorDashboardApi } from "../../types";
@@ -117,6 +117,15 @@ function CampaignCard({
   const image = campaign.cover_image || fallbackCampaignImage;
   const deadline = formatCampaignDeadline(campaign.deadline);
   const openCampaign = () => navigate(`/creator/marketplace/${campaign.id}`);
+  const objective = campaign.objective || 'Campaign objective not provided.';
+  const objectiveRef = useRef<HTMLParagraphElement | null>(null);
+  const [isObjectiveTruncated, setIsObjectiveTruncated] = useState(false);
+
+  useEffect(() => {
+    const description = objectiveRef.current;
+    if (!description) return;
+    setIsObjectiveTruncated(description.scrollHeight > description.clientHeight);
+  }, [objective]);
 
   return (
     <Panel className="overflow-hidden">
@@ -148,8 +157,19 @@ function CampaignCard({
           <h3 className="text-xl font-black text-[#1d203a]">{campaign.title}</h3>
         </button>
         <p className="mt-2 text-sm font-black uppercase tracking-wide text-[#1f22ff]">Recommended match</p>
-        <p className="mt-4 min-h-[48px] text-[15px] font-medium leading-snug text-[#6f7889]">{campaign.objective || "Campaign objective not provided."}</p>
-        <span className="mt-4 inline-flex rounded-full bg-[#8b74ff] px-4 py-2 text-xs font-black text-white">{campaign.looking_for || "Creators"}</span>
+        <p ref={objectiveRef} className="mt-4 min-h-[54px] line-clamp-3 text-[15px] font-medium leading-snug text-[#6f7889]">
+          {objective}
+        </p>
+        {isObjectiveTruncated ? (
+          <button
+            type="button"
+            onClick={openCampaign}
+            className="mt-1 text-sm font-black text-[#2f31e7] hover:underline"
+          >
+            See more
+          </button>
+        ) : null}
+        {/* <span className="mt-4 inline-flex rounded-full bg-[#8b74ff] px-4 py-2 text-xs font-black text-white">{campaign.looking_for || "Creators"}</span> */}
         <div className="mt-5 flex items-end justify-between gap-4">
           <p className="text-sm font-medium text-[#6f7889]">Deadline: {deadline}</p>
           <button

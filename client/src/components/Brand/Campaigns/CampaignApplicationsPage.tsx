@@ -458,8 +458,6 @@ export function CampaignApplicationsPage() {
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-4 w-4" />Created on {formatDate(campaign.created_at)}</span>
                   <span>•</span>
                   <span className="inline-flex items-center gap-1.5"><Clock3 className="h-4 w-4" />{getRelativeUpdated(campaign.updated_at)}</span>
-                  <span>•</span>
-                  <span>Campaign ID: {campaign.campaign_id || campaign.id}</span>
                 </div>
               </div>
             </div>
@@ -478,7 +476,6 @@ export function CampaignApplicationsPage() {
               <CampaignPanel className="p-7">
                 <SectionTitle
                   title="Campaign Overview"
-                  copy="A summary of your campaign brief and requirements."
                 />
                 <div className="grid gap-5">
                   {overviewRows.map((row) => (
@@ -528,7 +525,7 @@ export function CampaignApplicationsPage() {
               </section>
 
               <CampaignPanel className="p-7">
-                <SectionTitle title="Campaign Progress" copy="See where your campaign stands in the overall process." />
+                <SectionTitle title="Campaign Progress" />
                 <div className="flex flex-wrap justify-between gap-5">
                   {progressSteps.map(({ title, detail, icon, accent }) => (
                     <ProgressStep key={title} title={title} detail={detail} icon={icon} accent={accent} />
@@ -537,7 +534,7 @@ export function CampaignApplicationsPage() {
               </CampaignPanel>
 
               <CampaignPanel className="p-7">
-                <SectionTitle title="Activity Feed" copy="Latest updates and activity on your campaign." />
+                <SectionTitle title="Activity Feed" />
                 <div className="grid gap-5">
                   {activityItems.map(({ title, time, icon, accent }) => (
                     <ActivityItem key={`${title}-${time}`} title={title} time={time} icon={icon} accent={accent} />
@@ -551,7 +548,6 @@ export function CampaignApplicationsPage() {
                 <div className="mb-7 flex items-start justify-between gap-4">
                   <div>
                     <h2 className="text-[22px] font-black tracking-normal text-[#1d2430]">Campaign Status</h2>
-                    <p className="mt-6 text-base font-medium text-[#7d8aa0]">Track the progress of your campaign.</p>
                   </div>
                   <StatusBadge status={campaign.status} />
                 </div>
@@ -585,7 +581,7 @@ export function CampaignApplicationsPage() {
               </CampaignPanel>
 
               <CampaignPanel className="p-7">
-                <SectionTitle title="Creator Categories Being Matched" copy="Categories that Collune is focusing on for this campaign." />
+                <SectionTitle title="Creator Categories Being Matched" />
                 {matchingFocus.length ? (
                   <div className="grid gap-3 sm:grid-cols-2">
                     {matchingFocus.map((item) => (
