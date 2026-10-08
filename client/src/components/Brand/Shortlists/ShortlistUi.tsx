@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
-import { Instagram, MoreVertical, Plus, Youtube, type LucideIcon } from "lucide-react";
+import { MoreVertical, Plus, type LucideIcon } from "lucide-react";
 
 import type { ShortlistCreator, ShortlistItem, ShortlistStatus } from "./shortlistData";
+import { SocialPlatformIcon } from "../../Shared/SocialPlatformIcon";
 
 const statusClasses: Record<ShortlistStatus, string> = {
   Draft: "bg-[#dce9ff] text-[#2f6df6]",
@@ -137,8 +138,8 @@ export function EditableInfoPanel({
 
 export function PlatformIcon({ platform }: { key?: string; platform: ShortlistCreator["platform"] }) {
   return (
-    <span className={`grid h-8 w-8 place-items-center rounded-lg ${platformClasses[platform]}`}>
-      {platform.toLocaleLowerCase() === "instagram" ? <Instagram className="h-4 w-4" /> : platform.toLocaleLowerCase() === "youtube" ? <Youtube className="h-4 w-4" /> : <span className="text-sm font-black">in</span>}
+    <span className={`grid h-8 w-8 place-items-center rounded-lg `}>
+      <SocialPlatformIcon platform={platform} className="h-8 w-8" />
     </span>
   );
 }

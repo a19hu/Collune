@@ -8,8 +8,6 @@ import {
   Check,
   ExternalLink,
   Globe2,
-  Instagram,
-  Linkedin,
   Loader2,
   MapPin,
   MessageCircle,
@@ -18,6 +16,7 @@ import {
 
 import { getPublicBrandProfile } from '../lib/authApi';
 import type { BrandProfileApi, PublicBrandCampaignApi } from '../types';
+import { SocialPlatformIcon } from '../components/Shared/SocialPlatformIcon';
 
 type Tab = 'profile' | 'campaigns';
 
@@ -141,8 +140,8 @@ export default function PublicBrandProfile() {
   const socialLinks = useMemo(
     () =>
       [
-        ['LinkedIn', brand?.linkedin_url, Linkedin],
-        ['Instagram', brand?.instagram_url, Instagram],
+        ['LinkedIn', brand?.linkedin_url, 'LINKEDIN'],
+        ['Instagram', brand?.instagram_url, 'INSTAGRAM'],
       ] as const,
     [brand]
   );
@@ -221,7 +220,7 @@ export default function PublicBrandProfile() {
                   <div className="mt-5 flex flex-wrap justify-center gap-3 lg:justify-start">
                     {socialLinks
                       .filter(([, url]) => Boolean(url))
-                      .map(([label, url, Icon]) => (
+                      .map(([label, url, platform]) => (
                         <a
                           key={label}
                           href={url || undefined}
@@ -230,7 +229,7 @@ export default function PublicBrandProfile() {
                           aria-label={label}
                           className="grid h-9 w-9 place-items-center rounded-[13px] bg-[#1438c8] text-white transition hover:scale-105"
                         >
-                          <Icon className="h-4 w-4" />
+                          <SocialPlatformIcon platform={platform} className="h-4 w-4" />
                         </a>
                       ))}
                     {brand.website ? (

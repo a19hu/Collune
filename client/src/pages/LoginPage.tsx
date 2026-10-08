@@ -44,7 +44,7 @@ export const LoginPage = () => {
       showProjectToast("success", "Login successful", `Welcome back${user.name ? `, ${user.name}` : ""}.`);
       navigate("/");
     } catch (error) {
-      const message = "Something went wrong. Please check your credentials and try again.";
+      const message = "Please check your credentials.";
       showProjectToast("error", "Login failed", message);
     } finally {
       setIsSubmitting(false);

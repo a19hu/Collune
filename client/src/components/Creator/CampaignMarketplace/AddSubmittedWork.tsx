@@ -8,6 +8,7 @@ import {
   getCreatorRateCards,
 } from '../../../lib/authApi';
 import { showProjectToast } from '../../../HtmlComponents/HtmlRoster';
+import { DOCUMENT_SIZE_LABEL, MAX_DOCUMENT_SIZE_BYTES, validateFileSize } from '../../../lib/fileUpload';
 import type { CreatorAppliedCampaignApi, RateCardApi } from '../../../types';
 
 type SubmissionForm = {
@@ -46,6 +47,15 @@ export function AddSubmittedWork() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [loadError, setLoadError] = useState('');
+
+  const selectFile = (field: 'screenshot' | 'attachment', file: File | null, input: HTMLInputElement) => {
+    if (file && validateFileSize(file, MAX_DOCUMENT_SIZE_BYTES, DOCUMENT_SIZE_LABEL)) {
+      input.value = '';
+      showProjectToast('error', 'File too large', `Submitted-work files must be ${DOCUMENT_SIZE_LABEL} or smaller.`);
+      return;
+    }
+    setForm((current) => ({ ...current, [field]: file }));
+  };
 
   useEffect(() => {
     let active = true;
@@ -371,19 +381,14 @@ export function AddSubmittedWork() {
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="cursor-pointer rounded-md border border-dashed border-[#b8c7e2] p-4 text-sm font-black text-[#3048ff]">
               <span className="flex items-center gap-2">
-                <Upload className="h-4 w-4" /> Screenshot / Proof{' '}
+                <Upload className="h-4 w-4" /> Screenshot / Proof (max 5MB){' '}
                 <span className="font-medium text-[#65758f]">(optional)</span>
               </span>
               <input
                 type="file"
                 accept="image/*,.pdf"
                 className="hidden"
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    screenshot: event.target.files?.[0] || null,
-                  }))
-                }
+                onChange={(event) => selectFile('screenshot', event.target.files?.[0] || null, event.currentTarget)}
               />
               <span className="mt-2 block truncate text-xs font-medium text-[#65758f]">
                 {form.screenshot?.name || 'Upload an image or PDF'}
@@ -391,18 +396,13 @@ export function AddSubmittedWork() {
             </label>
             <label className="cursor-pointer rounded-md border border-dashed border-[#b8c7e2] p-4 text-sm font-black text-[#3048ff]">
               <span className="flex items-center gap-2">
-                <Upload className="h-4 w-4" /> Additional File{' '}
+                <Upload className="h-4 w-4" /> Additional File (max 5MB){' '}
                 <span className="font-medium text-[#65758f]">(optional)</span>
               </span>
               <input
                 type="file"
                 className="hidden"
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    attachment: event.target.files?.[0] || null,
-                  }))
-                }
+                onChange={(event) => selectFile('attachment', event.target.files?.[0] || null, event.currentTarget)}
               />
               <span className="mt-2 block truncate text-xs font-medium text-[#65758f]">
                 {form.attachment?.name || 'Upload a supporting file'}

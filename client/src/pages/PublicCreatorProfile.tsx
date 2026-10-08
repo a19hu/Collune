@@ -11,10 +11,8 @@ import {
   MessageCircle,
   ShieldCheck,
   Trash2,
-  Twitter,
   UserRound,
 } from 'lucide-react';
-import { Facebook, Instagram, Linkedin, Youtube } from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -28,27 +26,24 @@ import type { CreatorPublicProfileApi, CreatorSocialPlatform } from '../types';
 import { formatUpdatedAt } from '../HtmlComponents/BrandCard';
 import { showProjectToast } from '../HtmlComponents/HtmlRoster';
 import { getLocationDisplayValue } from './StepsCreatorRegister';
-
-function XIcon({ className }: { className?: string }) {
-  return <span className={className}>X</span>;
-}
+import { SocialPlatformIcon } from '../components/Shared/SocialPlatformIcon';
 
 const socialTiles = [
-  { label: 'Instagram', color: 'bg-[#f77737]', icon: Instagram },
-  { label: 'LinkedIn', color: 'bg-[#0a66c2]', icon: Linkedin },
-  { label: 'X (Twitter)', color: 'bg-[#111827]', icon: XIcon },
-  { label: 'YouTube', color: 'bg-[#ff0000]', icon: Youtube },
-  { label: 'Facebook', color: 'bg-[#1877f2]', icon: Facebook },
+  { label: 'Instagram', platform: 'INSTAGRAM', color: 'bg-[#f77737]' },
+  { label: 'LinkedIn', platform: 'LINKEDIN', color: 'bg-[#0a66c2]' },
+  { label: 'X (Twitter)', platform: 'X', color: 'bg-[#111827]' },
+  { label: 'YouTube', platform: 'YOUTUBE', color: 'bg-[#ff0000]' },
+  { label: 'Facebook', platform: 'FACEBOOK', color: 'bg-[#1877f2]' },
 ];
 
 const platformMeta: Record<
   CreatorSocialPlatform,
-  { label: string; color: string; Icon: typeof Instagram }
+  { label: string; color: string }
 > = {
-  INSTAGRAM: { label: 'Instagram', color: 'bg-[#f4a5ff]', Icon: Instagram },
-  YOUTUBE: { label: 'Youtube', color: 'bg-[#ff624f]', Icon: Youtube },
-  X: { label: 'X / Twitter', color: 'bg-[#344055]', Icon: Twitter },
-  FACEBOOK: { label: 'Facebook', color: 'bg-[#4f7cff]', Icon: Globe2 },
+  INSTAGRAM: { label: 'Instagram', color: 'bg-[#f4a5ff]' },
+  YOUTUBE: { label: 'Youtube', color: 'bg-[#ff624f]' },
+  X: { label: 'X / Twitter', color: 'bg-[#344055]' },
+  FACEBOOK: { label: 'Facebook', color: 'bg-[#4f7cff]' },
 };
 
 function compactNumber(value: number) {
@@ -535,13 +530,12 @@ export function PublicCreatorProfile() {
                       aria-label="Social platforms"
                     >
                       {socialTiles.map((tile) => {
-                        const Icon = tile.icon;
                         return (
                           <span
                             key={tile.color}
                             className={`grid h-9 w-9 place-items-center rounded-[13px] ${tile.color} text-white transition hover:scale-105`}
                           >
-                            <Icon className="text-lg font-black leading-none" />
+                            <SocialPlatformIcon platform={tile.platform} className="h-5 w-5" />
                           </span>
                         );
                       })}
@@ -645,7 +639,6 @@ export function PublicCreatorProfile() {
                 {visiblePlatforms.map((account) => {
                   const meta =
                     platformMeta[account.platform] || platformMeta.INSTAGRAM;
-                  const Icon = meta.Icon;
                   const followers =
                     account.followers ||
                     Math.round(
@@ -662,7 +655,7 @@ export function PublicCreatorProfile() {
                         <span
                           className={`grid h-7 w-7 place-items-center rounded-[4px] ${meta.color} text-white`}
                         >
-                          <Icon className="h-4 w-4" />
+                          <SocialPlatformIcon platform={account.platform} className="h-4 w-4" />
                         </span>
                         <span className="text-[12px] font-bold text-[#526079]">
                           {meta.label}

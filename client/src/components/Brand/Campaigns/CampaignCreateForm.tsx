@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
-import { Boxes, Eye, Facebook, Instagram, Linkedin, Megaphone, Star, Youtube } from "lucide-react";
+import { Boxes, Eye, Megaphone, Star } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { CampaignPanel, CampaignSection, SelectInput, TextArea, TextInput, UploadBox } from "./CampaignUi";
@@ -8,6 +8,8 @@ import { createCampaign, getBrandCampaignDetail, reviewCampaign, updateBrandCamp
 import type { BrandCampaignDetailApi, CampaignPayload, CampaignReviewResponse } from "../../../types";
 import { RegisterError } from "../../../HtmlComponents/RegisterFormParts";
 import { showProjectToast } from "../../../HtmlComponents/HtmlRoster";
+import { DOCUMENT_SIZE_LABEL, IMAGE_SIZE_LABEL, MAX_DOCUMENT_SIZE_BYTES, MAX_IMAGE_SIZE_BYTES, validateFileSize } from "../../../lib/fileUpload";
+import { SocialPlatformIcon } from "../../Shared/SocialPlatformIcon";
 
 type CampaignFormState = Omit<CampaignPayload, "minimum_followers" | "deliverable_pricing" | "platforms"> & {
   minimum_followers: string;
@@ -52,16 +54,12 @@ const languages = ["English", "Hindi", "Tamil", "Telugu", "Bengali"];
 const contentStyles = ["Educational", "Product Review", "Storytelling", "Tutorial", "UGC"];
 const campaignStatuses = ["ACTIVE", "DRAFT", "PAUSED", "COMPLETED"];
 
-function XIcon({ className }: { className?: string }) {
-  return <span className={className}>X</span>;
-}
-
 const socialTiles = [
-  { label: "Instagram", value: "INSTAGRAM", color: "bg-[#f77737]", icon: Instagram },
-  { label: "LinkedIn", value: "LINKEDIN", color: "bg-[#0a66c2]", icon: Linkedin },
-  { label: "X (Twitter)", value: "X", color: "bg-[#111827]", icon: XIcon },
-  { label: "YouTube", value: "YOUTUBE", color: "bg-[#ff0000]", icon: Youtube },
-  { label: "Facebook", value: "FACEBOOK", color: "bg-[#1877f2]", icon: Facebook },
+  { label: "Instagram", value: "INSTAGRAM", color: "bg-[#f77737]" },
+  { label: "LinkedIn", value: "LINKEDIN", color: "bg-[#0a66c2]" },
+  { label: "X (Twitter)", value: "X", color: "bg-[#111827]" },
+  { label: "YouTube", value: "YOUTUBE", color: "bg-[#ff0000]" },
+  { label: "Facebook", value: "FACEBOOK", color: "bg-[#1877f2]" },
 ];
 
 function mapCampaignDetailToForm(campaign: BrandCampaignDetailApi): CampaignFormState {
@@ -108,7 +106,6 @@ export function PlatformSelector({
       {platforms.map((platform) => {
         const isSelected = selected.includes(platform.value);
         const tile = socialTiles.find((item) => item.value === platform.value) || socialTiles[0];
-        const Icon = tile.icon;
         return (
           <button
             key={platform.value}
@@ -117,8 +114,8 @@ export function PlatformSelector({
             className={`flex h-14 items-center justify-between rounded-lg border px-4 text-left ${isSelected ? "border-[#4b22ff] bg-[#f8f5ff] ring-2 ring-[#4b22ff]/10" : "border-[#dce5f2] bg-white"}`}
           >
             <span className="inline-flex items-center gap-3 text-sm font-black text-[#334054]">
-              <span className={`grid h-8 w-8 place-items-center rounded-[10px] ${tile.color} text-white`}>
-                <Icon className="h-4 w-4" />
+              <span className={`grid h-8 w-8 place-items-center rounded-[10px] text-white`}>
+                <SocialPlatformIcon platform={tile.value} className="h-6 w-6" />
               </span>
               {tile.label}
             </span>
@@ -325,6 +322,15 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
       event.target.value = "";
       return;
     }
+    if (file) {
+      const sizeError = validateFileSize(file, MAX_DOCUMENT_SIZE_BYTES, DOCUMENT_SIZE_LABEL);
+      if (sizeError) {
+        setBrandGuidelines(null);
+        setError(`Brand guidelines ${sizeError.toLowerCase()}`);
+        event.target.value = "";
+        return;
+      }
+    }
     setBrandGuidelines(file);
   };
 
@@ -336,6 +342,15 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
       setError("Cover image must be a PNG or JPG file.");
       event.target.value = "";
       return;
+    }
+    if (file) {
+      const sizeError = validateFileSize(file, MAX_IMAGE_SIZE_BYTES, IMAGE_SIZE_LABEL);
+      if (sizeError) {
+        setCoverImage(null);
+        setError(`Cover image ${sizeError.toLowerCase()}`);
+        event.target.value = "";
+        return;
+      }
     }
     setCoverImage(file);
   };
@@ -404,14 +419,14 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
             label="Cover Image (PNG or JPG)"
             accept="image/png,image/jpeg"
             fileName={coverImage?.name}
-            helpText="Upload a campaign cover in PNG or JPG format."
+            helpText="PNG or JPG, maximum 5MB."
             onChange={onCoverImageChange}
           />
           <UploadBox
             label="Brand Guidelines (PDF only)"
             accept="application/pdf"
             fileName={brandGuidelines?.name}
-            helpText="Only PDF files are accepted."
+            helpText="PDF only, maximum 5MB."
             onChange={onBrandGuidelinesChange}
           />
           <div className="grid gap-3 sm:grid-cols-2">

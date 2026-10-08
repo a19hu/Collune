@@ -42,6 +42,7 @@ import {
   parseLocationParts,
 } from '../../../pages/StepsCreatorRegister';
 import { showProjectToast } from '../../../HtmlComponents/HtmlRoster';
+import { IMAGE_SIZE_LABEL, MAX_IMAGE_SIZE_BYTES, validateFileSize } from '../../../lib/fileUpload';
 import { SocialMediaPricing } from './SocialMediaPricing';
 import { CreatorPortfolio } from './CreatorPortfolio';
 
@@ -691,7 +692,7 @@ export function CreatorProfile() {
                     </select>
                   </label>
                   <label className="grid gap-2 text-sm font-bold">
-                    Profile image
+                    Profile image (max 5MB)
                     <span className="inline-flex h-11 items-center rounded-[6px] border border-[#d7deea] bg-white px-3 text-sm font-semibold text-[#173ca8]">
                       <Upload className="mr-2 h-4 w-4" />
                       {form.profile_image
@@ -701,12 +702,15 @@ export function CreatorProfile() {
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={(event) =>
-                          updateField(
-                            'profile_image',
-                            event.target.files?.[0] || null
-                          )
-                        }
+                        onChange={(event) => {
+                          const file = event.target.files?.[0] || null;
+                          if (file && validateFileSize(file, MAX_IMAGE_SIZE_BYTES, IMAGE_SIZE_LABEL)) {
+                            event.target.value = '';
+                            showProjectToast('error', 'Image too large', `Profile image must be ${IMAGE_SIZE_LABEL} or smaller.`);
+                            return;
+                          }
+                          updateField('profile_image', file);
+                        }}
                       />
                     </span>
                   </label>

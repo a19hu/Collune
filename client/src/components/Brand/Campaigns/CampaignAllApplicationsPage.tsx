@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, ExternalLink, Instagram, Linkedin, Loader2, Play, X } from "lucide-react";
+import { ArrowLeft, Check, ExternalLink, Loader2, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import creatorOne from "../../../assets/collune/creator-1.png";
@@ -9,6 +9,7 @@ import { showProjectToast } from "../../../HtmlComponents/HtmlRoster";
 import { getBrandCampaignDetail, updateCampaignApplicationStatus } from "../../../lib/authApi";
 import type { BrandCampaignDetailApi, CampaignApplicationApi, CreatorProfileApi } from "../../../types";
 import { CampaignPanel } from "./CampaignUi";
+import { SocialPlatformIcon } from "../../Shared/SocialPlatformIcon";
 
 const fallbackImages = [creatorOne, creatorTwo, creatorThree];
 
@@ -61,9 +62,7 @@ function formatDate(value?: string | null) {
 }
 
 function PlatformIcon({ platform }: { platform: string }) {
-  if (platform === "LinkedIn") return <Linkedin className="h-4 w-4" />;
-  if (platform === "YouTube") return <Play className="h-4 w-4 fill-current" />;
-  return <Instagram className="h-4 w-4" />;
+  return <SocialPlatformIcon platform={platform} className="h-4 w-4" />;
 }
 
 function ApplicationRow({

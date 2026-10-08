@@ -12,18 +12,16 @@ import {
   ExternalLink,
   FileText,
   ArrowRight,
-  Instagram,
   Linkedin,
   Megaphone,
   MoreHorizontal,
-  Play,
   Star,
   Target,
   Users,
   WalletCards,
   type LucideIcon,
 } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import creatorOne from "../../../assets/collune/creator-1.png";
 import creatorTwo from "../../../assets/collune/creator-2.png";
@@ -34,6 +32,7 @@ import {
 import type { BrandCampaignDetailApi, BrandRecommendedCreatorApi, CampaignApplicationApi, CreatorProfileApi } from "../../../types";
 import { AddCreatorToShortlistModal } from "../Shortlists/AddCreatorToShortlistModal";
 import { CampaignPanel } from "./CampaignUi";
+import { SocialPlatformIcon } from "../../Shared/SocialPlatformIcon";
 
 const fallbackImages = [creatorOne, creatorTwo, creatorThree];
 
@@ -131,9 +130,7 @@ function getEngagement(creator?: CreatorProfileApi) {
 }
 
 function PlatformIcon({ platform }: { platform: string }) {
-  if (platform === "LinkedIn") return <Linkedin className="h-4 w-4" />;
-  if (platform === "YouTube") return <Play className="h-4 w-4 fill-current" />;
-  return <Instagram className="h-4 w-4" />;
+  return <SocialPlatformIcon platform={platform} className="h-8 w-8" />;
 }
 
 function StatusBadge({ status }: { status?: string }) {
@@ -237,25 +234,25 @@ function ActivityItem({ title, time, icon: Icon, accent }: { key?: string; title
 function ApplicationProfileCard({
   application,
   index,
-  onOpenProfile,
 }: {
   key?: string;
   application: CampaignApplicationApi;
   index: number;
-  onOpenProfile: (creatorId: string) => void;
 }) {
   const creator = application.creator_detail;
+  const creatorId = creator?.creator_id || application.creator;
   const platform = getPrimaryPlatform(creator);
-  const platformClass = platformClasses[platform] || "bg-[#4b22ff] text-white";
   const image = creator?.profile_image_url || fallbackImages[index % fallbackImages.length];
 
   return (
     <CampaignPanel className="w-[220px] shrink-0 overflow-hidden">
-      <div className="relative aspect-[1/1] bg-[#eef2f7]">
+      <Link to={`/creators/${creatorId}`} className="block transition hover:bg-[#f8faff]">
+        <div className="relative aspect-square bg-[#eef2f7]">
           <img src={image} alt={creator?.display_name || "Creator"} className="h-full w-full object-cover" />
-          <span className={`absolute left-4 top-4 grid h-9 w-9 place-items-center rounded-lg ${platformClass}`}>
+          <span className="absolute left-4 top-4 grid h-9 w-9 place-items-center rounded-lg  p-1 shadow-sm">
             <PlatformIcon platform={platform} />
           </span>
+        </div>
 
         <div className="p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -263,37 +260,10 @@ function ApplicationProfileCard({
               <h2 className="text-xl font-black leading-tight text-[#1d2430]">
                 {creator?.display_name || creator?.user?.name || "Creator"}
               </h2>
-              <p className="mt-2 text-sm font-semibold text-[#7d8aa0]">
-                {creator?.category || "Creator"} • {creator?.location || "Location not set"}
-              </p>
             </div>
           </div>
-
-          <div className="mt-5 gap-4 flex-row flex-2">
-            <CreatorStat value={formatFollowers(creator?.audience_size)} label="Followers" />
-            <CreatorStat value={getEngagement(creator)} label="Eng. Rate" />
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            {creator?.portfolio_url ? (
-              <button
-                type="button"
-                onClick={() => window.open(creator.portfolio_url, "_blank", "noopener,noreferrer")}
-                className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#4b22ff] px-4 text-sm font-black text-white"
-              >
-                Portfolio <ExternalLink className="h-4 w-4" />
-              </button>
-            ) : null}
-            <button
-              type="button"
-              onClick={() => onOpenProfile(creator?.creator_id || application.creator)}
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-4 text-sm font-black text-[#303948]"
-            >
-              View Profile <ExternalLink className="h-4 w-4" />
-            </button>
-          </div>
         </div>
-      </div>
+      </Link>
     </CampaignPanel>
   );
 }
@@ -518,8 +488,12 @@ export function CampaignApplicationsPage() {
                           {row.value.length ? row.value.map((platform) => {
                             const normalized = normalizePlatform(platform);
                             return (
-                              <span key={platform} className={`grid h-7 min-w-7 place-items-center rounded-md px-2 text-xs font-black ${platformClasses[normalized] || "bg-[#eef2ff] text-[#4b22ff]"}`}>
-                                {normalized === "Instagram" ? "IG" : normalized === "YouTube" ? "YT" : normalized === "LinkedIn" ? "in" : normalized}
+                              <span
+                                key={platform}
+                                title={normalized}
+                                className={`grid place-items-center rounded-md p-1 text-[#4b22ff]"}`}
+                              >
+                                <SocialPlatformIcon platform={normalized} className="h-8 w-8" />
                               </span>
                             );
                           }) : "Platforms not set"}
@@ -533,7 +507,7 @@ export function CampaignApplicationsPage() {
               <section>
                 <SectionTitle 
                 title="Recommended Creators"
-                  copy="Creators recommended by Collune based on your requirements." />
+                  />
                 {error ? (
                   <FeedbackPanel title="Unable to load applications" copy={error} />
                 ) : isLoading ? (
@@ -545,7 +519,6 @@ export function CampaignApplicationsPage() {
                         key={application.application_id}
                         application={application}
                         index={index}
-                        onOpenProfile={(creatorId) => navigate(`/creators/${creatorId}`)}
                       />
                     ))}
                   </div>

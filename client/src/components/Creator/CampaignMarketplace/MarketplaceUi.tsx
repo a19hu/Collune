@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
-  Instagram,
   Loader2,
   MessageCircle,
   MoreHorizontal,
@@ -18,6 +17,7 @@ import {
 } from "lucide-react";
 
 import type { MarketplaceCampaign } from "./marketplaceData";
+import { SocialPlatformIcon } from "../../Shared/SocialPlatformIcon";
 
 export function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
@@ -227,7 +227,7 @@ export function DetailSection({ title, children }: { title: string; children: Re
 export function DeliverableCard({ item }: { key?: string; item: MarketplaceCampaign["deliverables"][number] }) {
   return (
     <div className="grid min-h-[124px] place-items-center rounded-md bg-[#f7f8fb] p-5 text-center">
-      {item.icon === "instagram" ? <Instagram className="h-10 w-10 text-[#ef4770]" /> : <MessageCircle className="h-10 w-10 text-[#5168ff]" />}
+      {item.icon === "instagram" ? <SocialPlatformIcon platform="INSTAGRAM" className="h-10 w-10" /> : <MessageCircle className="h-10 w-10 text-[#5168ff]" />}
       <div>
         <strong className="block text-base font-black text-[#1d2430]">{item.title}</strong>
         <span className="text-sm font-medium text-[#65758f]">{item.detail}</span>
@@ -263,7 +263,7 @@ export function OverviewCard({ campaign }: { campaign: MarketplaceCampaign }) {
   const rows = [
     { icon: Star, label: campaign.status, sub: "Status", color: "bg-[#cbf8df] text-[#00a875]" },
     { icon: Calendar, label: "Applications Close", sub: campaign.deadline, color: "bg-[#eef2ff] text-[#5168ff]" },
-    { icon: Instagram, label: "Platform", sub: campaign.platform, color: "bg-[#eef2ff] text-[#5168ff]" },
+    { icon: () => <SocialPlatformIcon platform={campaign.platform} className="h-5 w-5" />, label: "Platform", sub: campaign.platform, color: "bg-[#eef2ff] text-[#5168ff]" },
     { icon: Clock, label: "Posted On", sub: campaign.postedOn, color: "bg-[#eef2ff] text-[#5168ff]" },
   ];
 
