@@ -21,6 +21,7 @@ import {
 import { CreatorRegisterForm, CreatorSocialPlatform, SocialAccountForm, VerificationState } from "../types";
 import { parseLocationParts, StepsCreatorRegister } from "./StepsCreatorRegister";
 import { formButton, normalizePhoneNumber } from "../lib/function";
+import { capitalizeFirstLetter } from "../lib/nameFormat";
 import { showProjectToast } from "../HtmlComponents/HtmlRoster";
 
 const totalSteps = 6;
@@ -101,7 +102,8 @@ const CreatorRegister = () => {
   const onFieldChange = (field: keyof CreatorRegisterForm) => (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => {
-    setForm((current) => ({ ...current, [field]: event.target.value }));
+    const value = field === "name" ? capitalizeFirstLetter(event.target.value) : event.target.value;
+    setForm((current) => ({ ...current, [field]: value }));
     if (field === "phone_no") setVerification((current) => ({ ...current, phoneVerified: false, phoneOtpSent: false }));
     if (field === "email") setVerification((current) => ({ ...current, emailVerified: false, emailOtpSent: false }));
     setFieldErrors((current) => { const next = { ...current }; delete next[field]; return next; });

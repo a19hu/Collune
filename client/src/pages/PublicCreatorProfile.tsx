@@ -533,9 +533,9 @@ export function PublicCreatorProfile() {
                         return (
                           <span
                             key={tile.color}
-                            className={`grid h-9 w-9 place-items-center rounded-[13px] ${tile.color} text-white transition hover:scale-105`}
+                            className={`grid place-items-center rounded-[13px] text-white transition hover:scale-105`}
                           >
-                            <SocialPlatformIcon platform={tile.platform} className="h-5 w-5" />
+                            <SocialPlatformIcon platform={tile.platform} className="h-8 w-8" />
                           </span>
                         );
                       })}
@@ -653,9 +653,9 @@ export function PublicCreatorProfile() {
                     >
                       <div className="flex items-center gap-2">
                         <span
-                          className={`grid h-7 w-7 place-items-center rounded-[4px] ${meta.color} text-white`}
+                          className={`grid h-7 w-7 place-items-center rounded-[4px] text-white`}
                         >
-                          <SocialPlatformIcon platform={account.platform} className="h-4 w-4" />
+                          <SocialPlatformIcon platform={account.platform} className="h-6 w-6" />
                         </span>
                         <span className="text-[12px] font-bold text-[#526079]">
                           {meta.label}

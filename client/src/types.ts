@@ -256,6 +256,10 @@ export type CreatorCampaignListItemApi = {
   brand_id?: string;
   brand_name: string;
   brand_logo: string | null;
+  total_budget?: string;
+  budget_range?: string;
+  compensation_type?: string;
+  deliverable_pricing?: Record<string, string>;
   applied?: boolean;
   saved?: boolean;
 };

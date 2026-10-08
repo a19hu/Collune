@@ -30,6 +30,7 @@ import {
   MAX_IMAGE_SIZE_BYTES,
   validateFileSize,
 } from '../../lib/fileUpload';
+import { capitalizeFirstLetter } from '../../lib/nameFormat';
 
 type BrandProfileForm = {
   company_name: string;
@@ -325,7 +326,10 @@ export default function BrandProfile() {
     key: K,
     value: BrandProfileForm[K]
   ) {
-    setForm((current) => (current ? { ...current, [key]: value } : current));
+    const formattedValue = key === 'company_name' && typeof value === 'string'
+      ? capitalizeFirstLetter(value)
+      : value;
+    setForm((current) => (current ? { ...current, [key]: formattedValue } : current));
   }
 
   function onLogoChange(event: ChangeEvent<HTMLInputElement>) {
@@ -450,8 +454,8 @@ export default function BrandProfile() {
   }
 
   return (
-    <div className="grid gap-6">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_380px]">
+    <div className="">
+      <div className="  xl:grid-cols-[minmax(0,1.4fr)_380px]">
         <Card className="overflow-hidden">
           <div className="border-b border-[#dfe7fb] bg-gradient-to-r from-[#eef4ff] via-[#f8fbff] to-[#e9f0ff] px-6 py-6 sm:px-8">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -507,6 +511,33 @@ export default function BrandProfile() {
           </div>
 
           <div className="grid gap-6 px-6 py-6 sm:px-8">
+             <div className="grid gap-6">
+          <Card className="p-6">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#6b7892]">
+              Profile Health
+            </p>
+            <div className="mt-4 flex items-center justify-between gap-4">
+              <div>
+                <strong className="block text-[42px] font-black leading-none text-[#173ca8]">
+                  {profile.profile_completion ?? 0}%
+                </strong>
+                <p className="mt-2 text-sm font-medium text-[#62708a]">
+                  Completion score based on your main brand details.
+                </p>
+              </div>
+              <span className="grid h-14 w-14 place-items-center rounded-full bg-[#eef3ff] text-[#3659d7]">
+                <Sparkles className="h-7 w-7" />
+              </span>
+            </div>
+            <div className="mt-5 h-3 overflow-hidden rounded-full bg-[#e8eefc]">
+              <div
+                className="h-full rounded-full bg-[#3659d7]"
+                style={{ width: `${profile.profile_completion ?? 0}%` }}
+              />
+            </div>
+          </Card>
+          
+        </div>
             <SectionCard title="Brand Basics">
               <div className="grid gap-5 lg:grid-cols-2">
                 <TextField
@@ -720,207 +751,24 @@ export default function BrandProfile() {
               </div>
             </SectionCard>
           </div>
-          <button
-            type="button"
-            onClick={saveProfile}
-            disabled={isSaving}
-            className="inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 self-stretch rounded-[8px] bg-[#173fb5] px-5 text-sm font-black text-white transition hover:bg-[#11349b] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto sm:self-auto"
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </button>
+          <div className="flex justify-end p-4">
+            <button
+              type="button"
+              onClick={saveProfile}
+              disabled={isSaving}
+              className="inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-[8px] bg-[#173fb5] px-5 text-sm font-black text-white transition hover:bg-[#11349b] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+            >
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
         </Card>
 
-        <div className="grid gap-6">
-          <Card className="p-6">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#6b7892]">
-              Profile Health
-            </p>
-            <div className="mt-4 flex items-center justify-between gap-4">
-              <div>
-                <strong className="block text-[42px] font-black leading-none text-[#173ca8]">
-                  {profile.profile_completion ?? 0}%
-                </strong>
-                <p className="mt-2 text-sm font-medium text-[#62708a]">
-                  Completion score based on your main brand details.
-                </p>
-              </div>
-              <span className="grid h-14 w-14 place-items-center rounded-full bg-[#eef3ff] text-[#3659d7]">
-                <Sparkles className="h-7 w-7" />
-              </span>
-            </div>
-            <div className="mt-5 h-3 overflow-hidden rounded-full bg-[#e8eefc]">
-              <div
-                className="h-full rounded-full bg-[#3659d7]"
-                style={{ width: `${profile.profile_completion ?? 0}%` }}
-              />
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#6b7892]">
-              Quick Snapshot
-            </p>
-            <div className="mt-5 grid gap-4">
-              <div className="flex items-start gap-3 rounded-[10px] bg-[#f8faff] p-4">
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-[#eef3ff] text-[#3659d7]">
-                  <Building2 className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-xs font-black uppercase tracking-wide text-[#7b879e]">
-                    Industry
-                  </p>
-                  <p className="mt-1 text-sm font-bold text-[#1d203a]">
-                    {form.industry || 'Not selected yet'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 rounded-[10px] bg-[#f8faff] p-4">
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-[#eef3ff] text-[#3659d7]">
-                  <MapPin className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-xs font-black uppercase tracking-wide text-[#7b879e]">
-                    Headquarters
-                  </p>
-                  <p className="mt-1 text-sm font-bold text-[#1d203a]">
-                    {[
-                      form.headquarters_city,
-                      form.headquarters_state,
-                      form.headquarters_country,
-                    ]
-                      .filter(Boolean)
-                      .join(', ') || 'Add your headquarters'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 rounded-[10px] bg-[#f8faff] p-4">
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-[#eef3ff] text-[#3659d7]">
-                  <CalendarDays className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-xs font-black uppercase tracking-wide text-[#7b879e]">
-                    Last Updated
-                  </p>
-                  <p className="mt-1 text-sm font-bold text-[#1d203a]">
-                    {formatDate(profile.updated_at)}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 rounded-[10px] bg-[#f8faff] p-4">
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-[#eef3ff] text-[#3659d7]">
-                  {form.is_profile_visible ? (
-                    <Eye className="h-5 w-5" />
-                  ) : (
-                    <EyeOff className="h-5 w-5" />
-                  )}
-                </span>
-                <div>
-                  <p className="text-xs font-black uppercase tracking-wide text-[#7b879e]">
-                    Visibility
-                  </p>
-                  <p className="mt-1 text-sm font-bold text-[#1d203a]">
-                    {form.is_profile_visible
-                      ? 'Visible to creators and visitors'
-                      : 'Hidden from public discovery'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#6b7892]">
-              External Links
-            </p>
-            <div className="mt-4 grid gap-3">
-              <a
-                href={normalizeUrl(form.website) || '#'}
-                target="_blank"
-                rel="noreferrer"
-                className={`flex items-center justify-between rounded-[10px] border px-4 py-3 text-sm font-black ${form.website ? 'border-[#dce4f0] text-[#173ca8] hover:bg-[#f8faff]' : 'border-[#eef2fb] text-[#98a2b3]'}`}
-              >
-                <span className="inline-flex items-center gap-2">
-                  <Globe2 className="h-4 w-4" /> Website
-                </span>
-                <span>{form.website ? 'Open' : 'Add link'}</span>
-              </a>
-              <a
-                href={normalizeUrl(form.linkedin_url) || '#'}
-                target="_blank"
-                rel="noreferrer"
-                className={`flex items-center justify-between rounded-[10px] border px-4 py-3 text-sm font-black ${form.linkedin_url ? 'border-[#dce4f0] text-[#173ca8] hover:bg-[#f8faff]' : 'border-[#eef2fb] text-[#98a2b3]'}`}
-              >
-                <span className="inline-flex items-center gap-2">
-                  <Linkedin className="h-4 w-4" /> LinkedIn
-                </span>
-                <span>{form.linkedin_url ? 'Open' : 'Add link'}</span>
-              </a>
-              <a
-                href={normalizeUrl(form.instagram_url) || '#'}
-                target="_blank"
-                rel="noreferrer"
-                className={`flex items-center justify-between rounded-[10px] border px-4 py-3 text-sm font-black ${form.instagram_url ? 'border-[#dce4f0] text-[#173ca8] hover:bg-[#f8faff]' : 'border-[#eef2fb] text-[#98a2b3]'}`}
-              >
-                <span className="inline-flex items-center gap-2">
-                  <Instagram className="h-4 w-4" /> Instagram
-                </span>
-                <span>{form.instagram_url ? 'Open' : 'Add link'}</span>
-              </a>
-              <a
-                href={normalizeUrl(form.facebook_url) || '#'}
-                target="_blank"
-                rel="noreferrer"
-                className={`flex items-center justify-between rounded-[10px] border px-4 py-3 text-sm font-black ${form.facebook_url ? 'border-[#dce4f0] text-[#173ca8] hover:bg-[#f8faff]' : 'border-[#eef2fb] text-[#98a2b3]'}`}
-              >
-                <span className="inline-flex items-center gap-2">
-                  <Facebook className="h-4 w-4" /> Facebook
-                </span>
-                <span>{form.facebook_url ? 'Open' : 'Add link'}</span>
-              </a>
-              <a
-                href={normalizeUrl(form.youtube_url) || '#'}
-                target="_blank"
-                rel="noreferrer"
-                className={`flex items-center justify-between rounded-[10px] border px-4 py-3 text-sm font-black ${form.youtube_url ? 'border-[#dce4f0] text-[#173ca8] hover:bg-[#f8faff]' : 'border-[#eef2fb] text-[#98a2b3]'}`}
-              >
-                <span className="inline-flex items-center gap-2">
-                  <Youtube className="h-4 w-4" /> YouTube
-                </span>
-                <span>{form.youtube_url ? 'Open' : 'Add link'}</span>
-              </a>
-              <a
-                href={normalizeUrl(form.x_url) || '#'}
-                target="_blank"
-                rel="noreferrer"
-                className={`flex items-center justify-between rounded-[10px] border px-4 py-3 text-sm font-black ${form.x_url ? 'border-[#dce4f0] text-[#173ca8] hover:bg-[#f8faff]' : 'border-[#eef2fb] text-[#98a2b3]'}`}
-              >
-                <span className="inline-flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" /> X / Twitter
-                </span>
-                <span>{form.x_url ? 'Open' : 'Add link'}</span>
-              </a>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#6b7892]">
-              Creator Readiness
-            </p>
-            <p className="mt-3 text-sm font-medium leading-relaxed text-[#62708a]">
-              Complete your company details, keep your logo current, and leave
-              your profile visible so creators can trust your brand faster.
-            </p>
-            <div className="mt-4 flex items-center gap-2 rounded-[8px] bg-[#eef3ff] px-4 py-3 text-sm font-semibold text-[#2647be]">
-              <BadgeCheck className="h-4 w-4" />
-              Verified brands usually convert better with a polished profile.
-            </div>
-          </Card>
-        </div>
+       
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import type { BrandShortlistPayload, BrandShortlistStatusApi, CreatorListItemApi
 import { CampaignPanel, CampaignSection, SelectInput, TextArea, TextInput } from "../Campaigns/CampaignUi";
 import { PlatformSelector } from "../Campaigns/CampaignCreateForm";
 import { showProjectToast } from "../../../HtmlComponents/HtmlRoster";
+import { capitalizeFirstLetter } from "../../../lib/nameFormat";
 
 type ShortlistFormState = {
   title: string;
@@ -128,7 +129,8 @@ export function ShortlistCreateForm() {
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     setError("");
-    setForm((current) => ({ ...current, [field]: event.target.value }));
+    const value = field === "title" ? capitalizeFirstLetter(event.target.value) : event.target.value;
+    setForm((current) => ({ ...current, [field]: value }));
   };
 
   const togglePlatform = (platform: string) => {

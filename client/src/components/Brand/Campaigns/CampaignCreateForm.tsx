@@ -10,6 +10,7 @@ import { RegisterError } from "../../../HtmlComponents/RegisterFormParts";
 import { showProjectToast } from "../../../HtmlComponents/HtmlRoster";
 import { DOCUMENT_SIZE_LABEL, IMAGE_SIZE_LABEL, MAX_DOCUMENT_SIZE_BYTES, MAX_IMAGE_SIZE_BYTES, validateFileSize } from "../../../lib/fileUpload";
 import { SocialPlatformIcon } from "../../Shared/SocialPlatformIcon";
+import { capitalizeFirstLetter } from "../../../lib/nameFormat";
 
 type CampaignFormState = Omit<CampaignPayload, "minimum_followers" | "deliverable_pricing" | "platforms"> & {
   minimum_followers: string;
@@ -294,7 +295,8 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     setError("");
-    setForm((current) => ({ ...current, [field]: event.target.value }));
+    const value = field === "title" ? capitalizeFirstLetter(event.target.value) : event.target.value;
+    setForm((current) => ({ ...current, [field]: value }));
   };
 
   const togglePlatform = (platform: string) => {

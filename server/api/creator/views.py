@@ -384,6 +384,10 @@ class CampaignsListView(APIView):
                 "posted_at": campaign.created_at.isoformat(),
                 "brand_name": campaign.brand.company_name,
                 "brand_logo": request.build_absolute_uri(campaign.brand.logo.url) if campaign.brand.logo else None,
+                "total_budget": str(campaign.total_budget),
+                "budget_range": campaign.budget_range,
+                "compensation_type": campaign.compensation_type,
+                "deliverable_pricing": campaign.deliverable_pricing,
                 "applied": CampaignApplication.objects.filter(campaign=campaign, creator=request.user.creator_profile).exists(),
                 "saved": CreatorSavedCampaign.objects.filter(campaign=campaign, creator=request.user.creator_profile).exists(),
             }
@@ -440,6 +444,10 @@ class CreatorCampaignsView(APIView):
             "brand_name": campaign.brand.company_name,
             "brand_type": campaign.brand.industry,
             "brand_logo": request.build_absolute_uri(campaign.brand.logo.url) if campaign.brand.logo else None,
+            "total_budget": str(campaign.total_budget),
+            "budget_range": campaign.budget_range,
+            "compensation_type": campaign.compensation_type,
+            "deliverable_pricing": campaign.deliverable_pricing,
             "creator_requirements": {
                 "looking_for": campaign.category or campaign.brand_requirements,
                 "audience": campaign.audience_type,

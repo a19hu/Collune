@@ -34,6 +34,7 @@ import { authStorage } from "../contexts/authStorage";
 import { showProjectToast } from "../HtmlComponents/HtmlRoster";
 import { checkEmailAvailability, registerBrandFormData, sendOtp, sendWhatsAppOtp, verifyOtp, verifyWhatsAppOtp } from "../lib/authApi";
 import { normalizePhoneNumber } from "../lib/function";
+import { capitalizeFirstLetter } from "../lib/nameFormat";
 import type { BrandRegisterForm, VerificationState } from "../types";
 import { inputClass, labelClass } from "./StepsCreatorRegister";
 
@@ -387,7 +388,8 @@ const BrandRegister = () => {
 
   const onFieldChange = (field: keyof BrandRegisterForm) => (event: BrandFieldChangeEvent) => {
     if (submitError) setSubmitError("");
-    setForm((current) => ({ ...current, [field]: event.target.value }));
+    const value = field === "company_name" ? capitalizeFirstLetter(event.target.value) : event.target.value;
+    setForm((current) => ({ ...current, [field]: value }));
     if (field === "phone_no") setVerification((current) => ({ ...current, phoneVerified: false, phoneOtpSent: false }));
     if (field === "email") setVerification((current) => ({ ...current, emailVerified: false, emailOtpSent: false }));
   };

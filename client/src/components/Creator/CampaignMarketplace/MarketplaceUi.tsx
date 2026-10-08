@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
+  WalletCards,
   Loader2,
   MessageCircle,
   MoreHorizontal,
@@ -264,6 +265,8 @@ export function OverviewCard({ campaign }: { campaign: MarketplaceCampaign }) {
     { icon: Star, label: campaign.status, sub: "Status", color: "bg-[#cbf8df] text-[#00a875]" },
     { icon: Calendar, label: "Applications Close", sub: campaign.deadline, color: "bg-[#eef2ff] text-[#5168ff]" },
     { icon: () => <SocialPlatformIcon platform={campaign.platform} className="h-5 w-5" />, label: "Platform", sub: campaign.platform, color: "bg-[#eef2ff] text-[#5168ff]" },
+    { icon: WalletCards, label: "Campaign Budget", sub: campaign.budget, color: "bg-[#ecfdf3] text-[#067647]" },
+    { icon: BriefcaseBusiness, label: "Compensation", sub: campaign.compensationType, color: "bg-[#fff7e6] text-[#b54708]" },
     { icon: Clock, label: "Posted On", sub: campaign.postedOn, color: "bg-[#eef2ff] text-[#5168ff]" },
   ];
 

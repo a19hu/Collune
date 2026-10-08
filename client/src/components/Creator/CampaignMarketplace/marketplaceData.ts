@@ -23,6 +23,8 @@ export type MarketplaceCampaign = {
   applicationsCloseLabel: string;
   postedOn: string;
   platform: string;
+  budget: string;
+  compensationType: string;
   timeline: Array<{ title: string; date: string }>;
   requirements: Array<{ label: string; value: string; icon: LucideIcon }>;
   creativeDirection: string[];
@@ -76,6 +78,8 @@ export function mapCampaignToMarketplace(campaign: CampaignApi): MarketplaceCamp
     applicationsCloseLabel,
     postedOn: formatDate(campaign.created_at) || "Recently",
     platform,
+    budget: formatBudget(campaign.total_budget, campaign.budget_range),
+    compensationType: campaign.compensation_type || "Not specified",
     timeline: [
       { title: "Applications Close", date: deadline },
       { title: "Creators Selected", date: formatDate(campaign.start_date) || "After review" },
@@ -132,6 +136,8 @@ export function mapCreatorCampaignToMarketplace(campaign: CreatorCampaignListIte
     applicationsCloseLabel: deadline === "Deadline not set" ? "Applications open" : `Apply before ${deadline}`,
     postedOn: formatDate(campaign.posted_at) || "Recently",
     platform: "Instagram",
+    budget: formatBudget(campaign.total_budget, campaign.budget_range),
+    compensationType: campaign.compensation_type || "Not specified",
     timeline: [
       { title: "Applications Close", date: deadline },
       { title: "Creators Selected", date: "After review" },
@@ -183,6 +189,8 @@ export function mapCreatorCampaignDetailToMarketplace(campaign: CreatorCampaignD
     applicationsCloseLabel: deadline === "Deadline not set" ? "Applications open" : `Apply before ${deadline}`,
     postedOn: formatDate(campaign.posted_at) || "Recently",
     platform,
+    budget: formatBudget(campaign.total_budget, campaign.budget_range),
+    compensationType: campaign.compensation_type || "Not specified",
     timeline: [
       { title: "Applications Close", date: deadline },
       { title: "Creators Selected", date: formatDate(campaign.start_date) || "After review" },
@@ -255,6 +263,12 @@ function formatDate(value?: string | null) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
   return new Intl.DateTimeFormat("en", { day: "numeric", month: "long", year: "numeric" }).format(date);
+}
+
+function formatBudget(totalBudget?: string | number | null, budgetRange?: string) {
+  const amount = Number(totalBudget);
+  if (Number.isFinite(amount) && amount > 0) return `₹${amount.toLocaleString("en-IN")}`;
+  return budgetRange || "Budget not disclosed";
 }
 
 function formatPostedAt(value: string) {
