@@ -364,8 +364,11 @@ export type BrandCampaignListItemApi = {
   id: string;
   name: string;
   status: string;
+  objective: string;
+  cover_image: string;
   applications_received_count: number;
   recommended_creators_count: number;
+  creators_count?: number;
   updated_at: string;
 };
 export type BrandCampaignListResponse = {

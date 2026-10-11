@@ -156,7 +156,6 @@ function CampaignCard({
         <button type="button" onClick={openCampaign} className="block text-left">
           <h3 className="text-xl font-black text-[#1d203a]">{campaign.title}</h3>
         </button>
-        <p className="mt-2 text-sm font-black uppercase tracking-wide text-[#1f22ff]">Recommended match</p>
         <p ref={objectiveRef} className="mt-4 min-h-[54px] line-clamp-3 text-[15px] font-medium leading-snug text-[#6f7889]">
           {objective}
         </p>
@@ -169,7 +168,6 @@ function CampaignCard({
             See more
           </button>
         ) : null}
-        {/* <span className="mt-4 inline-flex rounded-full bg-[#8b74ff] px-4 py-2 text-xs font-black text-white">{campaign.looking_for || "Creators"}</span> */}
         <div className="mt-5 flex items-end justify-between gap-4">
           <p className="text-sm font-medium text-[#6f7889]">Deadline: {deadline}</p>
           <button

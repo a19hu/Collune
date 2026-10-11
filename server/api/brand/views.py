@@ -185,12 +185,18 @@ class BrandDetailDashboardView(APIView):
                 {
                     "id": str(campaign.campaign_id),
                     "name": campaign.title,
+                    "objective": campaign.objective,
                     "status": self._campaign_status(campaign, today),
+                    "cover_image": (
+                        request.build_absolute_uri(campaign.cover_image.url)
+                        if campaign.cover_image
+                        else None
+                    ),
                     "applications_received_count": campaign.applications_received_count,
                     "recommended_creators_count": campaign.recommended_creators_count,
                     "updated_at": campaign.updated_at.isoformat(),
                 }
-                for campaign in active_campaigns[:4]
+                for campaign in active_campaigns[:3]
             ],
             "active_shortlists": [
                 {
@@ -200,7 +206,7 @@ class BrandDetailDashboardView(APIView):
                     "creators_count": shortlist.creators_count,
                     "updated_at": shortlist.updated_at.isoformat(),
                 }
-                for shortlist in active_shortlists[:4]
+                for shortlist in active_shortlists[:3]
             ],
 
         }
@@ -330,9 +336,15 @@ class CampaignsViewSet(APIView):
                 "id": str(campaign.campaign_id),
                 "name": campaign.title,
                 "status": campaign.status,
+                "objective": campaign.objective,
                 "applications_received_count": campaign.applications_received_count,
                 "recommended_creators_count": campaign.recommended_creators_count,
                 "updated_at": campaign.updated_at.isoformat(),
+                "cover_image": (
+                    request.build_absolute_uri(campaign.cover_image.url)
+                    if campaign.cover_image
+                    else None
+                ),
             }
             for campaign in campaign_page
         ]
@@ -444,6 +456,12 @@ class CampaignsViewSet(APIView):
         return Response(
             {
                 "message": "Campaign created successfully.",
+                "campaign_id": str(campaign.campaign_id),
+                "cover_image": (
+                    request.build_absolute_uri(campaign.cover_image.url)
+                    if campaign.cover_image
+                    else None
+                ),
             },
             status=status.HTTP_201_CREATED,
         )
@@ -743,7 +761,13 @@ class BrandCampaignApplicationViewSet(APIView):
         )
 
         return Response({
-            "message": "Campaign updated successfully."
+            "message": "Campaign updated successfully.",
+            "campaign_id": str(campaign.campaign_id),
+            "cover_image": (
+                request.build_absolute_uri(campaign.cover_image.url)
+                if campaign.cover_image
+                else None
+            ),
         })
 
     def delete(self, request, campaign_id):

@@ -113,6 +113,7 @@ const BrandDashBoard = () => {
             :
             brand?.active_campaigns?.map((campaign, index) => (
                 <BrandCard
+                  brand={brand.brand}
                   item={campaign}
                   index={index}
                   onEdit={(item) => navigate(`/brand/campaigns/${item.id}/edit`)}

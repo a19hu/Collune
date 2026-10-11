@@ -217,6 +217,7 @@ class AdminRoleDetailView(APIView):
 
 class CampaignTableView(APIView):
     permission_classes = [IsAuthenticated,IsAdminUserRole]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get(self,request):
         campaigns = (
@@ -239,6 +240,7 @@ class CampaignTableView(APIView):
 
 class AdminCampaignDetailView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUserRole]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_object(self, campaign_id):
         return (

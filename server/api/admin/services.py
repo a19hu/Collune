@@ -283,6 +283,10 @@ def serialize_admin_campaign(campaign, request=None):
     if campaign.brand.logo:
         brand_logo = request.build_absolute_uri(campaign.brand.logo.url) if request else campaign.brand.logo.url
 
+    cover_image = ""
+    if campaign.cover_image:
+        cover_image = request.build_absolute_uri(campaign.cover_image.url) if request else campaign.cover_image.url
+
     return {
         "id": str(campaign.campaign_id),
         "campaignCode": f"CMP-{str(campaign.campaign_id)[:8].upper()}",
@@ -290,6 +294,7 @@ def serialize_admin_campaign(campaign, request=None):
         "brandId": str(campaign.brand.brand_id),
         "brandName": campaign.brand.company_name,
         "brandLogo": brand_logo,
+        "coverImage": cover_image,
         "category": campaign.category,
         "description": campaign.brief,
         "objective": campaign.objective,

@@ -65,11 +65,11 @@ class RegisterUserSerializer(serializers.Serializer):
             raise serializers.ValidationError("This email is already registered.")
         return value.lower()
 
-    def validate_phone_no(self, value):
-        value = normalize_otp_target(OtpChannel.PHONE, value)
-        if value and User.objects.filter(phone_no__in=otp_target_variants(OtpChannel.PHONE, value)).exists():
-            raise serializers.ValidationError("This phone number is already registered.")
-        return value
+    # def validate_phone_no(self, value):
+    #     value = normalize_otp_target(OtpChannel.PHONE, value)
+    #     if value and User.objects.filter(phone_no__in=otp_target_variants(OtpChannel.PHONE, value)).exists():
+    #         raise serializers.ValidationError("This phone number is already registered.")
+    #     return value
 
 class OtpSendSerializer(serializers.Serializer):
     channel = serializers.ChoiceField(choices=OtpChannel.choices)

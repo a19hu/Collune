@@ -65,7 +65,6 @@ export function CreatorCard({
       </div>
       <div className="px-4 py-3">
         <h3 className="inline text-lg font-black text-[#314064]">{creator.display_name}</h3>
-        {username ? <p className="ml-1 inline text-xs font-extrabold text-[#7b8aaa]">@{username}</p> : null}
         <strong className="mt-1 block text-xs font-black text-[#3158ca]">{creator.category}</strong>
       </div>
       {isPrivate ? (

@@ -178,9 +178,9 @@ class AdminUserCreateSerializer(serializers.Serializer):
         normalized = value.strip() if value else ""
         if normalized and len(re.sub(r"\D", "", normalized)) < 8:
             raise serializers.ValidationError("Enter a valid phone number or leave this field blank.")
-        if normalized and User.objects.filter(phone_no=normalized).exists():
-            raise serializers.ValidationError("This phone number is already registered.")
-        return normalized
+        # if normalized and User.objects.filter(phone_no=normalized).exists():
+        #     raise serializers.ValidationError("This phone number is already registered.")
+        # return normalized
 
     def validate_role(self, value):
         if value not in get_internal_admin_roles():
@@ -258,9 +258,9 @@ class AdminUserUpdateSerializer(serializers.Serializer):
         user = self.instance
         if user:
             queryset = queryset.exclude(pk=user.pk)
-        if normalized and queryset.exists():
-            raise serializers.ValidationError("This phone number is already registered.")
-        return normalized
+        # if normalized and queryset.exists():
+        #     raise serializers.ValidationError("This phone number is already registered.")
+        # return normalized
 
     def validate_role(self, value):
         if value not in get_internal_admin_roles():
@@ -356,10 +356,10 @@ class AdminBrandWriteSerializer(serializers.Serializer):
         normalized = value.strip() if value else ""
         if normalized and len(re.sub(r"\D", "", normalized)) < 8:
             raise serializers.ValidationError("Enter a valid phone number or leave this field blank.")
-        queryset = User.objects.filter(phone_no=normalized or None).exclude(pk=self.instance.user.pk)
-        if normalized and queryset.exists():
-            raise serializers.ValidationError("This phone number is already registered.")
-        return normalized
+        # queryset = User.objects.filter(phone_no=normalized or None).exclude(pk=self.instance.user.pk)
+        # if normalized and queryset.exists():
+        #     raise serializers.ValidationError("This phone number is already registered.")
+        # return normalized
 
     @transaction.atomic
     def update(self, instance, validated_data):
@@ -519,6 +519,7 @@ class AdminCreatorWriteSerializer(serializers.Serializer):
 class AdminCampaignWriteSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=255)
     brand_id = serializers.UUIDField()
+    cover_image = serializers.ImageField(required=False, allow_null=True)
     category = serializers.CharField(max_length=120, required=False, allow_blank=True)
     description = serializers.CharField(required=False, allow_blank=True)
     objective = serializers.CharField(required=False, allow_blank=True)
@@ -542,6 +543,7 @@ class AdminCampaignWriteSerializer(serializers.Serializer):
         "start_date": "start_date",
         "end_date": "end_date",
         "status": "status",
+        "cover_image": "cover_image",
     }
 
     def validate_brand_id(self, value):

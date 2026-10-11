@@ -1,3 +1,4 @@
+from base64 import b64decode
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -5,12 +6,96 @@ from django.contrib.auth.models import Permission
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
+from django.test import override_settings
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from .models import BrandProfile, Campaign, ChatConversation, ChatMessage, CreatorProfile, Notification, OtpChannel, OtpVerification, UserRole
 from .common.services import send_aisensy_whatsapp_otp
+
+
+@override_settings(MEDIA_ROOT="/tmp/collune-test-media")
+class CampaignCoverImageUploadTests(APITestCase):
+    PNG_BYTES = b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ"
+        "/pLvAAAAAElFTkSuQmCC"
+    )
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="cover-image-brand",
+            email="cover-image-brand@example.com",
+            password="StrongPass123!",
+            role=UserRole.BRAND,
+        )
+        self.brand = BrandProfile.objects.create(user=self.user, company_name="Cover Image Brand")
+        self.client.force_authenticate(self.user)
+
+    def upload(self, name):
+        return SimpleUploadedFile(name, self.PNG_BYTES, content_type="image/png")
+
+    def test_create_and_edit_campaign_persist_cover_image(self):
+        create_response = self.client.post(
+            reverse("brand_campaigns"),
+            {
+                "title": "Cover Image Campaign",
+                "brief": "Campaign brief",
+                "cover_image": self.upload("initial-cover.png"),
+            },
+            format="multipart",
+        )
+
+        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED, create_response.data)
+        campaign = Campaign.objects.get(campaign_id=create_response.data["campaign_id"])
+        self.assertIn("initial-cover", campaign.cover_image.name)
+        self.assertIn("initial-cover", create_response.data["cover_image"])
+
+        update_response = self.client.patch(
+            reverse("brand_campaign_detail", args=[campaign.campaign_id]),
+            {"cover_image": self.upload("replacement-cover.png")},
+            format="multipart",
+        )
+
+        self.assertEqual(update_response.status_code, status.HTTP_200_OK, update_response.data)
+        campaign.refresh_from_db()
+        self.assertIn("replacement-cover", campaign.cover_image.name)
+        self.assertIn("replacement-cover", update_response.data["cover_image"])
+
+    def test_admin_create_and_edit_campaign_persist_cover_image(self):
+        admin = get_user_model().objects.create_user(
+            username="cover-image-admin",
+            email="cover-image-admin@example.com",
+            password="StrongPass123!",
+            role=UserRole.ADMIN,
+        )
+        self.client.force_authenticate(admin)
+
+        create_response = self.client.post(
+            reverse("admin_campaigns_table"),
+            {
+                "title": "Admin Cover Image Campaign",
+                "brand_id": str(self.brand.brand_id),
+                "cover_image": self.upload("admin-initial-cover.png"),
+            },
+            format="multipart",
+        )
+
+        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED, create_response.data)
+        campaign = Campaign.objects.get(campaign_id=create_response.data["campaign"]["id"])
+        self.assertIn("admin-initial-cover", campaign.cover_image.name)
+        self.assertIn("admin-initial-cover", create_response.data["campaign"]["coverImage"])
+
+        update_response = self.client.patch(
+            reverse("admin_campaign_detail", args=[campaign.campaign_id]),
+            {"cover_image": self.upload("admin-replacement-cover.png")},
+            format="multipart",
+        )
+
+        self.assertEqual(update_response.status_code, status.HTTP_200_OK, update_response.data)
+        campaign.refresh_from_db()
+        self.assertIn("admin-replacement-cover", campaign.cover_image.name)
+        self.assertIn("admin-replacement-cover", update_response.data["campaign"]["coverImage"])
 
 
 class RegistrationPhoneOtpTests(APITestCase):

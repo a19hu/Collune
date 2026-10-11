@@ -94,7 +94,7 @@ class User(AbstractUser):
     user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_column="id")
     name = models.CharField(max_length=255, blank=True, default="")
     email = models.EmailField(unique=True)
-    phone_no = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    phone_no = models.CharField(max_length=13, null=True, blank=True)
     role = models.CharField(max_length=32, choices=UserRole.choices, default=UserRole.CREATOR)
     verification_status = models.CharField(
         max_length=24,
