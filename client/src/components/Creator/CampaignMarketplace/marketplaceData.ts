@@ -9,6 +9,7 @@ export type MarketplaceCampaign = {
   brandName: string;
   brandType: string;
   brandLogoUrl: string;
+  coverImage?: string | null;
   brandInitials: string;
   brandIcon: LucideIcon;
   brandIconClassName: string;
@@ -64,6 +65,7 @@ export function mapCampaignToMarketplace(campaign: CampaignApi): MarketplaceCamp
     brandName,
     brandType: campaign.brand_detail?.industry || brand.type,
     brandLogoUrl: campaign.brand_detail?.logo_url || "",
+    coverImage: campaign.cover_image,
     brandInitials: getInitials(brandName),
     brandIcon: brand.icon,
     brandIconClassName: brand.className,
@@ -118,6 +120,7 @@ export function mapCreatorCampaignToMarketplace(campaign: CreatorCampaignListIte
     brandName,
     brandType: brand.type,
     brandLogoUrl: campaign.brand_logo || "",
+    coverImage: campaign.cover_image,
     brandInitials: getInitials(brandName),
     brandIcon: brand.icon,
     brandIconClassName: brand.className,

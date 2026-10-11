@@ -101,7 +101,6 @@ export const BrandCard = ({
 
           {/* Floating brand and options */}
           <div className="absolute inset-x-4 top-4 flex items-start justify-between gap-3">
-            
             <Link
               to={`/brands/${brand?.brand_id}`}
               className="inline-flex max-w-[75%] items-center gap-2 rounded-xl border bg-white/95 px-3 py-2 shadow-sm backdrop-blur-md"
@@ -145,7 +144,7 @@ export const BrandCard = ({
                         }}
                         className="block w-full px-4 py-2.5 text-left font-medium text-[#374151] hover:bg-[#f5f7fb]"
                       >
-                        {shortlist ? "Open shortlist" : "Edit"}
+                        {shortlist ? 'Open shortlist' : 'Edit'}
                       </button>
                     ) : null}
 
@@ -277,6 +276,84 @@ export function Panel({
     >
       {children}
     </section>
+  );
+}
+
+/** Shared campaign shell for creator-facing campaign lists. */
+export function CreatorCampaignCard({
+  title,
+  objective,
+  coverImage,
+  brand,
+  status,
+  meta,
+  onOpen,
+  actions,
+}: {
+  title: string;
+  objective?: string;
+  coverImage?: string | null;
+  brand: CampaignBrand;
+  status: string;
+  meta?: string;
+  onOpen: () => void;
+  actions?: ReactNode;
+}) {
+  return (
+    <Panel className="group min-w-0 overflow-hidden rounded-2xl border border-[#e4e9f2] p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(24,39,75,0.10)]">
+      <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-indigo-100 via-blue-50 to-violet-100">
+        <button type="button" onClick={onOpen} className="absolute inset-0 h-full w-full text-left">
+        {coverImage ? (
+          <img
+            src={coverImage}
+            alt=""
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : null}
+        <span className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/20" />
+        </button>
+        {brand.brand_id ? <Link to={`/brands/${brand.brand_id}`} className="absolute left-4 top-4 inline-flex max-w-[75%] items-center gap-2 rounded-xl border bg-white/95 px-3 py-2 shadow-sm backdrop-blur-md transition hover:bg-white">
+          {brand.logo_url ? (
+            <img
+              src={brand.logo_url}
+              alt=""
+              className="h-7 w-7 rounded-md object-contain"
+            />
+          ) : null}
+          <span className="truncate text-sm font-semibold text-[#263246]">
+            {brand.company_name}
+          </span>
+        </Link> : <span className="absolute left-4 top-4 inline-flex max-w-[75%] items-center gap-2 rounded-xl border bg-white/95 px-3 py-2 shadow-sm backdrop-blur-md"><span className="truncate text-sm font-semibold text-[#263246]">{brand.company_name}</span></span>}
+        <span className="absolute bottom-4 left-4 inline-flex rounded-lg bg-white/95 px-3 py-1.5 text-xs font-black text-[#3048ff]">
+          {status}
+        </span>
+      </div>
+      <div className="flex min-h-[190px] flex-col p-5">
+        <button type="button" onClick={onOpen} className="text-left">
+          <h3 className="line-clamp-2 text-lg font-bold text-[#182230]">
+            {title}
+          </h3>
+        </button>
+        <p className="mt-2 line-clamp-3 text-sm leading-5 text-[#667085]">
+          {objective || 'Campaign details will be available shortly.'}
+        </p>
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-[#edf0f5] pt-4">
+          <span className="text-xs text-[#98a2b3]">
+            {meta || 'View details'}
+          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            {actions}
+            <button
+              type="button"
+              onClick={onOpen}
+              className="inline-flex items-center gap-1 text-sm font-semibold text-[#5635f5]"
+            >
+              View <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </Panel>
   );
 }
 

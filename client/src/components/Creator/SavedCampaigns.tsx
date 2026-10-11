@@ -2,7 +2,7 @@ import { AlertCircle, ArrowRight, Bookmark, Calendar, Loader2, MessageCircle, Tr
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { Panel } from "../../HtmlComponents/BrandCard";
+import { CreatorCampaignCard, Panel } from "../../HtmlComponents/BrandCard";
 import { getCreatorSavedCampaigns, removeSavedCampaign } from "../../lib/authApi";
 import type { CreatorSavedCampaignApi } from "../../types";
 import { showProjectToast } from "../../HtmlComponents/HtmlRoster";
@@ -28,6 +28,18 @@ function SavedCampaignCard({
   const campaign = savedCampaign.campaign;
 
   return (
+    <>
+    <CreatorCampaignCard
+      title={campaign.title}
+      objective={campaign.objective}
+      coverImage={campaign.cover_image}
+      brand={{ brand_id: campaign.brand_id, company_name: campaign.brand_name, logo_url: campaign.brand_logo || null }}
+      status="Saved"
+      meta={`Deadline: ${formatDate(campaign.deadline)}`}
+      onOpen={() => navigate(`/creator/marketplace/${campaign.id}`)}
+      actions={<><button type="button" onClick={() => navigate(`/creator/chat?brandId=${campaign.brand_id}`)} className="rounded-lg border px-3 py-2 text-xs font-bold text-[#3556b8]">Chat</button><button type="button" onClick={() => onRemove(savedCampaign)} disabled={isRemoving} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-600 disabled:opacity-60">{isRemoving ? "Removing..." : "Remove"}</button></>}
+    />
+    {/*
     <Panel className="min-h-[240px] p-6">
       <div className="flex items-start justify-between gap-5">
         <div className="min-w-0">
@@ -81,7 +93,8 @@ function SavedCampaignCard({
           Remove
         </button>
       </div>
-    </Panel>
+    </Panel>*/}
+    </>
   );
 }
 

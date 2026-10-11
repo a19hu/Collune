@@ -279,6 +279,9 @@ class CreatorDashboardView(APIView):
         return [
             {
                 "id": str(campaign.campaign_id),
+                "brand_id": str(campaign.brand.brand_id),
+                "brand_name": campaign.brand.company_name,
+                "brand_logo": self.request.build_absolute_uri(campaign.brand.logo.url) if campaign.brand.logo else None,
                 "title": campaign.title,
                 "objective": campaign.objective,
                 "cover_image": campaign_cover_image_url(self.request, campaign),
@@ -380,6 +383,7 @@ class CampaignsListView(APIView):
                 "brand_id": str(campaign.brand.brand_id),
                 "title": campaign.title,
                 "objective": campaign.objective,
+                "cover_image": campaign_cover_image_url(request, campaign),
                 "deadline": campaign.deadline.isoformat() if campaign.deadline else None,
                 "posted_at": campaign.created_at.isoformat(),
                 "brand_name": campaign.brand.company_name,

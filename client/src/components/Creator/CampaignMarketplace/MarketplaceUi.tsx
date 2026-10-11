@@ -19,6 +19,7 @@ import {
 
 import type { MarketplaceCampaign } from "./marketplaceData";
 import { SocialPlatformIcon } from "../../Shared/SocialPlatformIcon";
+import { CreatorCampaignCard } from "../../../HtmlComponents/BrandCard";
 
 export function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
@@ -113,9 +114,24 @@ export function CampaignActionCard({
   const navigate = useNavigate();
   const handleClick = () => navigate(`/creator/marketplace/${campaign.id}`);
   const applyLabel = campaign.applied ? "Applied" : isApplying ? "Applying..." : "Apply";
-  const saveLabel = campaign.saved ? "Saved" : isSaving ? "Saving..." : "Save";
+  const saveLabel = campaign.saved ? "Unsave" : isSaving ? "Saving..." : "Save";
 
   return (
+    <>
+    <CreatorCampaignCard
+      title={campaign.title}
+      objective={campaign.description}
+      coverImage={campaign.coverImage}
+      brand={{ brand_id: campaign.brandId || "", company_name: campaign.brandName, logo_url: campaign.brandLogoUrl || null }}
+      status={campaign.applied ? "Applied" : "Open applications"}
+      meta={`Apply before ${campaign.deadlineShort}`}
+      onOpen={handleClick}
+      actions={<>
+        <button type="button" disabled={isSaving} onClick={() => onSave(campaign)} className="rounded-lg border px-3 py-2 text-xs font-bold text-[#3048ff] disabled:opacity-60">{saveLabel}</button>
+        <button type="button" disabled={campaign.applied || isApplying} onClick={() => onApply(campaign)} className="rounded-lg bg-[#3048ff] px-3 py-2 text-xs font-bold text-white disabled:opacity-60">{applyLabel}</button>
+      </>}
+    />
+    {/*
     <Panel className="relative min-h-[306px] p-6">
       <div className="flex items-start justify-between gap-4">
         <button type="button" onClick={handleClick} className="flex min-w-0 items-center gap-4 text-left">
@@ -186,7 +202,8 @@ export function CampaignActionCard({
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
-    </Panel>
+    </Panel>*/}
+    </>
   );
 }
 

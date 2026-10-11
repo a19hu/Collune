@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { AlertCircle, Loader2, Search } from "lucide-react";
 
-import { applyToCampaign, getCreatorCampaigns, saveCreatorCampaign } from "@/src/lib/authApi";
+import { applyToCampaign, getCreatorCampaigns, removeSavedCampaign, saveCreatorCampaign } from "@/src/lib/authApi";
 import type { CreatorCampaignListParams } from "@/src/types";
 import { CampaignActionCard, Panel } from "./MarketplaceUi";
 import { mapCreatorCampaignToMarketplace, type MarketplaceCampaign } from "./marketplaceData";
@@ -116,12 +116,18 @@ export function CampaignMarketplaceList() {
   };
 
   const onSave = async (campaign: MarketplaceCampaign) => {
-    if (campaign.saved || savingId) return;
+    if (savingId) return;
     setSavingId(campaign.id);
     try {
-      await saveCreatorCampaign(campaign.id);
-      updateCampaign(campaign.id, { saved: true });
-      showProjectToast("success", "Campaign saved", "The campaign has been added to your saved list.");
+      if (campaign.saved) {
+        await removeSavedCampaign(campaign.id);
+        updateCampaign(campaign.id, { saved: false });
+        showProjectToast("info", "Campaign removed", "The campaign has been removed from your saved list.");
+      } else {
+        await saveCreatorCampaign(campaign.id);
+        updateCampaign(campaign.id, { saved: true });
+        showProjectToast("success", "Campaign saved", "The campaign has been added to your saved list.");
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unable to save this campaign.";
       setError(message);

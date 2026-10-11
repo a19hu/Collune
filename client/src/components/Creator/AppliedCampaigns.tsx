@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { getCreatorAppliedCampaigns, removeCampaignApplication } from "../../lib/authApi";
 import type { CreatorAppliedCampaignApi } from "../../types";
-import { Panel } from "../../HtmlComponents/BrandCard";
+import { CreatorCampaignCard, Panel } from "../../HtmlComponents/BrandCard";
 
 function formatDate(value?: string | null) {
   if (!value) return "Not set";
@@ -35,6 +35,18 @@ function AppliedCampaignCard({
   const campaign = application.campaign;
 
   return (
+    <>
+    <CreatorCampaignCard
+      title={campaign.title}
+      objective={campaign.objective}
+      coverImage={campaign.cover_image}
+      brand={{ brand_id: campaign.brand_id, company_name: campaign.brand_name, logo_url: campaign.brand_logo || null }}
+      status={statusLabel(application.application_status)}
+      meta={`Deadline: ${formatDate(campaign.deadline)}`}
+      onOpen={() => navigate(`/creator/marketplace/${campaign.id}`)}
+      actions={application.application_status === "ACCEPTED" ? <button type="button" onClick={() => navigate(`/creator/submitted-work/add?campaignId=${campaign.id}`)} className="rounded-lg border border-[#5168ff] px-3 py-2 text-xs font-bold text-[#3048ff]"><Upload className="mr-1 inline h-3 w-3" />Submit work</button> : <button type="button" onClick={() => onRemove(application)} disabled={isRemoving} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-600 disabled:opacity-60">{isRemoving ? "Removing..." : "Remove"}</button>}
+    />
+    {/*
     <Panel className="min-h-[240px] p-6">
       <div className="flex items-start justify-between gap-5">
         <div className="min-w-0">
@@ -90,7 +102,8 @@ function AppliedCampaignCard({
         </button>
         )}
       </div>
-    </Panel>
+    </Panel>*/}
+    </>
   );
 }
 

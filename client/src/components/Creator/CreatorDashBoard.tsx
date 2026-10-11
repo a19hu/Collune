@@ -15,9 +15,9 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { applyToCampaign, getCreatorDashboard, saveCreatorCampaign } from "../../lib/authApi";
+import { applyToCampaign, getCreatorDashboard, removeSavedCampaign, saveCreatorCampaign } from "../../lib/authApi";
 import type { CreatorDashboardApi } from "../../types";
-import { Panel } from "@/src/HtmlComponents/BrandCard";
+import { CreatorCampaignCard, Panel } from "@/src/HtmlComponents/BrandCard";
 import { showProjectToast } from "../../HtmlComponents/HtmlRoster";
 import { UnderReviewDashboard } from "./UnderReviewDashboard";
 
@@ -128,6 +128,18 @@ function CampaignCard({
   }, [objective]);
 
   return (
+    <>
+    <CreatorCampaignCard
+      title={campaign.title}
+      objective={objective}
+      coverImage={campaign.cover_image}
+      brand={{ brand_id: campaign.brand_id, company_name: campaign.brand_name, logo_url: campaign.brand_logo }}
+      status={campaign.applied ? "Applied" : "Recommended"}
+      meta={`Deadline: ${deadline}`}
+      onOpen={openCampaign}
+      actions={<><button type="button" onClick={() => onSave(campaign)} disabled={isSaving} className="rounded-lg border px-3 py-2 text-xs font-bold text-[#3048ff] disabled:opacity-60">{campaign.saved ? "Unsave" : isSaving ? "Saving..." : "Save"}</button><button type="button" onClick={() => onApply(campaign)} disabled={campaign.applied || isApplying} className="rounded-lg bg-[#2f31e7] px-3 py-2 text-xs font-bold text-white disabled:opacity-60">{campaign.applied ? "Applied" : isApplying ? "Applying..." : "Apply"}</button></>}
+    />
+    {/*
     <Panel className="overflow-hidden">
       <div
         role="button"
@@ -180,7 +192,8 @@ function CampaignCard({
           </button>
         </div>
       </div>
-    </Panel>
+    </Panel>*/}
+    </>
   );
 }
 
@@ -229,12 +242,18 @@ function VerifiedDashboard({
   };
 
   const onSaveRecommended = async (campaign: RecommendedCampaign) => {
-    if (campaign.saved || savingId) return;
+    if (savingId) return;
     setSavingId(campaign.id);
     try {
-      await saveCreatorCampaign(campaign.id);
-      updateRecommendedCampaign(campaign.id, { saved: true });
-      showProjectToast("success", "Campaign saved", "The campaign has been added to your saved list.");
+      if (campaign.saved) {
+        await removeSavedCampaign(campaign.id);
+        updateRecommendedCampaign(campaign.id, { saved: false });
+        showProjectToast("info", "Campaign removed", "The campaign has been removed from your saved list.");
+      } else {
+        await saveCreatorCampaign(campaign.id);
+        updateRecommendedCampaign(campaign.id, { saved: true });
+        showProjectToast("success", "Campaign saved", "The campaign has been added to your saved list.");
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unable to save this campaign.";
       showProjectToast("error", "Save failed", message);

@@ -251,6 +251,7 @@ export type CreatorCampaignListItemApi = {
   id: string;
   title: string;
   objective: string;
+  cover_image?: string | null;
   deadline: string | null;
   posted_at: string;
   brand_id?: string;
@@ -793,6 +794,9 @@ export type CreatorDashboardApi = {
   campaign_applications?: number;
   campaigns?: Array<{
     id: string;
+    brand_id: string;
+    brand_name: string;
+    brand_logo: string | null;
     title: string;
     objective: string;
     cover_image: string;
