@@ -326,6 +326,11 @@ class CampaignsViewSet(APIView):
             )
             .order_by("-updated_at")
         )
+        brand_data = {
+            "brand_id": str(brand.brand_id),
+            "company_name": brand.company_name,
+            "logo_url": request.build_absolute_uri(brand.logo.url) if brand.logo else None,
+        }
 
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(campaigns, request, view=self)
@@ -345,6 +350,7 @@ class CampaignsViewSet(APIView):
                     if campaign.cover_image
                     else None
                 ),
+                "brand": brand_data,
             }
             for campaign in campaign_page
         ]

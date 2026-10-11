@@ -1,8 +1,8 @@
 import { Info, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { NewShortlistCard, ShortlistCard } from "./ShortlistUi";
 import { shortlistStatusOptions, type ShortlistItem, type ShortlistStatus } from "./shortlistData";
+import { BrandCard, type BrandCardItem, type CampaignBrand } from "@/src/HtmlComponents/BrandCard";
 
 type SortKey = "recent" | "name" | "creators";
 
@@ -20,6 +20,17 @@ function sortShortlists(items: ShortlistItem[], sort: SortKey) {
   });
 }
 
+function shortlistToBrandCardItem(shortlist: ShortlistItem): BrandCardItem {
+  return {
+    id: shortlist.id,
+    name: shortlist.title,
+    status: shortlist.status,
+    objective: shortlist.purpose || shortlist.notes || "A curated list of creators for this brand.",
+    cover_image: shortlist.creators[0]?.image || null,
+    creators_count: shortlist.creators.length,
+  };
+}
+
 export function getVisibleShortlists(items: ShortlistItem[], tab: "All Shortlists" | ShortlistStatus, sort: SortKey) {
   const filtered = tab === "All Shortlists" ? items : items.filter((item) => item.status === tab);
   return sortShortlists(filtered, sort);
@@ -33,6 +44,7 @@ export function ShortlistList({
   onSortChange,
   onCreate,
   onOpen,
+  brand,
 }: {
   shortlists: ShortlistItem[];
   activeTab: "All Shortlists" | ShortlistStatus;
@@ -41,6 +53,7 @@ export function ShortlistList({
   onSortChange: (sort: SortKey) => void;
   onCreate: () => void;
   onOpen: (item: ShortlistItem) => void;
+  brand?: CampaignBrand;
 }) {
   const visibleShortlists = getVisibleShortlists(shortlists, activeTab, sort);
 
@@ -77,7 +90,14 @@ export function ShortlistList({
       <div className="grid gap-6 xl:grid-cols-3">
         {/* <NewShortlistCard onCreate={onCreate} /> */}
         {visibleShortlists.map((shortlist) => (
-          <ShortlistCard key={shortlist.id} item={shortlist} onOpen={onOpen} />
+          <BrandCard
+            key={shortlist.id}
+            item={shortlistToBrandCardItem(shortlist)}
+            index={0}
+            shortlist
+            brand={brand}
+            onEdit={() => onOpen(shortlist)}
+          />
         ))}
         {visibleShortlists.length === 0 ? (
           <div className="grid min-h-[296px] place-items-center rounded-xl border border-[#dfe5ee] bg-white p-8 text-center xl:col-span-2">

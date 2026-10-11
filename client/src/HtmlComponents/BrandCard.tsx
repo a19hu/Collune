@@ -1,12 +1,17 @@
 import { ArrowRight, MoreVertical, Star, Users } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BrandCampaignListItemApi, BrandProfileApi } from '../types';
+export type CampaignBrand = {
+  brand_id: string;
+  company_name: string;
+  logo_url: string | null;
+};
 export type BrandCardItem = {
   id: string;
   name: string;
   status: string;
-  cover_image: string;
+  cover_image?: string | null;
+  objective?: string;
   applications_received_count?: number;
   recommended_creators_count?: number;
   creators_count?: number;
@@ -42,13 +47,13 @@ export const BrandCard = ({
   onDelete,
   brand,
 }: {
-  item: BrandCampaignListItemApi;
+  item: BrandCardItem;
   index: number;
   shortlist?: boolean;
   listvisible?: boolean;
   onEdit?: (item: BrandCardItem) => void;
   onDelete?: (item: BrandCardItem) => void;
-  brand?: BrandProfileApi;
+  brand?: CampaignBrand;
 }) => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -114,7 +119,7 @@ export const BrandCard = ({
               </span>
             </Link>
 
-            {!shortlist && (
+            {(!shortlist || onEdit || onDelete) && (
               <div ref={menuRef} className="relative z-20">
                 <button
                   type="button"
@@ -131,27 +136,31 @@ export const BrandCard = ({
 
                 {isMenuOpen && (
                   <div className="absolute right-0 top-12 z-30 w-36 overflow-hidden rounded-xl border border-[#e5eaf2] bg-white py-1 text-sm shadow-xl">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        onEdit?.(item);
-                      }}
-                      className="block w-full px-4 py-2.5 text-left font-medium text-[#374151] hover:bg-[#f5f7fb]"
-                    >
-                      Edit
-                    </button>
+                    {onEdit ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          onEdit(item);
+                        }}
+                        className="block w-full px-4 py-2.5 text-left font-medium text-[#374151] hover:bg-[#f5f7fb]"
+                      >
+                        {shortlist ? "Open shortlist" : "Edit"}
+                      </button>
+                    ) : null}
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        onDelete?.(item);
-                      }}
-                      className="block w-full px-4 py-2.5 text-left font-medium text-red-600 hover:bg-red-50"
-                    >
-                      Delete
-                    </button>
+                    {onDelete ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          onDelete(item);
+                        }}
+                        className="block w-full px-4 py-2.5 text-left font-medium text-red-600 hover:bg-red-50"
+                      >
+                        Delete
+                      </button>
+                    ) : null}
                   </div>
                 )}
               </div>
@@ -167,13 +176,13 @@ export const BrandCard = ({
           <h3 className="line-clamp-2 text-[17px] font-bold leading-snug tracking-tight text-[#182230]">
             {item.name}
           </h3>
-          {!shortlist && objective && (
+          {objective && (
             <div className="mt-2 mb-2">
               <p className="line-clamp-3 text-[13px] leading-[21px] text-[#667085]">
                 {displayedObjective}
               </p>
 
-              {isLongObjective && (
+              {isLongObjective && !shortlist && (
                 <button
                   type="button"
                   onClick={() => navigate(`/brand/campaigns/${item.id}`)}

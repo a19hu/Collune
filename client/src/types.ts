@@ -366,6 +366,11 @@ export type BrandCampaignListItemApi = {
   status: string;
   objective: string;
   cover_image: string;
+  brand: {
+    brand_id: string;
+    company_name: string;
+    logo_url: string | null;
+  };
   applications_received_count: number;
   recommended_creators_count: number;
   creators_count?: number;

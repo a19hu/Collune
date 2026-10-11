@@ -62,6 +62,11 @@ class CampaignCoverImageUploadTests(APITestCase):
         self.assertIn("replacement-cover", campaign.cover_image.name)
         self.assertIn("replacement-cover", update_response.data["cover_image"])
 
+        list_response = self.client.get(reverse("brand_campaigns"))
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK, list_response.data)
+        self.assertEqual(list_response.data["campaigns"][0]["brand"]["brand_id"], str(self.brand.brand_id))
+        self.assertEqual(list_response.data["campaigns"][0]["brand"]["company_name"], self.brand.company_name)
+
     def test_admin_create_and_edit_campaign_persist_cover_image(self):
         admin = get_user_model().objects.create_user(
             username="cover-image-admin",

@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import {
   getBrandShortlist,
+  getBrandDashboard,
   getBrandShortlists,
   getCreatorsList,
   updateBrandShortlist,
@@ -17,6 +18,7 @@ import {
   type ShortlistItem,
   type ShortlistStatus,
 } from "./Shortlists/shortlistData";
+import type { BrandProfileApi } from "../../types";
 
 type SortKey = "recent" | "name" | "creators";
 const pageSize = 6;
@@ -36,6 +38,13 @@ export function BrandShortlists() {
   const [isOrderReversed, setIsOrderReversed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [brand, setBrand] = useState<BrandProfileApi | null>(null);
+
+  useEffect(() => {
+    getBrandDashboard()
+      .then((dashboard) => setBrand(dashboard.brand || null))
+      .catch(() => setBrand(null));
+  }, []);
 
   const loadShortlists = async () => {
     setIsLoading(true);
@@ -220,6 +229,7 @@ export function BrandShortlists() {
             }}
             onCreate={() => navigate("/brand/shortlists/new_create")}
             onOpen={openShortlist}
+            brand={brand || undefined}
           />
           {!isLoading && shortlists.length > 0 ? <Pagination page={page} totalPages={totalPages} onPageChange={setPage} /> : null}
         </>

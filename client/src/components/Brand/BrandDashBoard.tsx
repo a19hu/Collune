@@ -138,9 +138,27 @@ const BrandDashBoard = () => {
               </Panel>
             </>
             :
-            brand?.active_shortlists?.map((shortlist, index) => (
-                <BrandCard item={shortlist} index={index} shortlist={true} />
-            ))}
+            brand?.active_shortlists?.map((shortlist, index) => {
+              const shortlistCard = {
+                id: "shortlist_id" in shortlist ? shortlist.shortlist_id : shortlist.id,
+                name: "title" in shortlist ? shortlist.title : shortlist.name,
+                status: shortlist.status,
+                objective: "purpose" in shortlist ? shortlist.purpose : "A curated list of creators for this brand.",
+                creators_count: "creators" in shortlist ? shortlist.creators.length : shortlist.creators_count,
+                updated_at: "updated_at" in shortlist ? shortlist.updated_at : undefined,
+              };
+
+              return (
+                <BrandCard
+                  key={shortlistCard.id}
+                  item={shortlistCard}
+                  index={index}
+                  shortlist
+                  brand={brand.brand}
+                  onEdit={(item) => navigate(`/brand/shortlists/${item.id}`)}
+                />
+              );
+            })}
         </div>
       </section>
       <DeleteCampaignModal

@@ -103,9 +103,11 @@ export const BrandCampaigns = () => {
         ) : null}
         {pageCampaigns.map((item,index) => (
          <BrandCard
+          key={item.id}
           item={item}
           index={index}
           listvisible={true}
+          brand={item.brand}
           onEdit={(campaign) => navigate(`/brand/campaigns/${campaign.id}/edit`)}
           onDelete={setDeleteTarget}
          />
