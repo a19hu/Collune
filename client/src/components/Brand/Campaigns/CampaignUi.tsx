@@ -23,7 +23,7 @@ export function CampaignSection({
   return (
     <CampaignPanel className="p-6">
       <div className="flex items-start gap-4">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#4b22ff] text-sm font-black text-white">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-primary text-sm font-black text-white">
           {index}
         </span>
         <div className="min-w-0 flex-1">
@@ -71,7 +71,7 @@ export function TextInput({
           onChange={onChange}
           type={type}
           placeholder={placeholder}
-          className={`h-11 w-full rounded-lg border border-[#dce5f2] bg-white ${prefix ? "pl-9" : "px-4"} text-sm font-medium text-[#1c2333] outline-none placeholder:text-[#a8b4c5] focus:border-[#4b22ff] focus:ring-4 focus:ring-[#4b22ff]/10`}
+          className={`h-11 w-full rounded-lg border border-[#dce5f2] bg-white ${prefix ? "pl-9" : "px-4"} text-sm font-medium text-[#1c2333] outline-none placeholder:text-[#a8b4c5] focus:border-brand-primary focus:ring-4 focus:ring-[#4b22ff]/10`}
         />
       </span>
     </label>
@@ -99,7 +99,7 @@ export function TextArea({
         onChange={onChange}
         placeholder={placeholder}
         maxLength={500}
-        className="h-[132px] w-full resize-none rounded-lg border border-[#dce5f2] bg-white px-4 py-3 text-sm font-medium text-[#1c2333] outline-none placeholder:text-[#a8b4c5] focus:border-[#4b22ff] focus:ring-4 focus:ring-[#4b22ff]/10"
+        className="h-[132px] w-full resize-none rounded-lg border border-[#dce5f2] bg-white px-4 py-3 text-sm font-medium text-[#1c2333] outline-none placeholder:text-[#a8b4c5] focus:border-brand-primary focus:ring-4 focus:ring-[#4b22ff]/10"
       />
       <span className="mt-1 block text-right text-xs font-medium text-[#8a98ad]">
         {(value ?? "").length}/500
@@ -159,7 +159,7 @@ export function UploadBox({
       <FieldLabel>{label}</FieldLabel>
       <span className="grid h-[132px] place-items-center rounded-lg border border-dashed border-[#b8c8de] text-center">
         <span className="text-sm font-semibold text-[#8a98ad]">
-          <UploadCloud className="mx-auto mb-3 h-7 w-7 text-[#4b22ff]" />
+          <UploadCloud className="mx-auto mb-3 h-7 w-7 text-brand-primary" />
           {fileName || "Upload or drag & drop file"}
           {helpText ? <span className="mt-2 block text-xs font-medium text-[#9aa6b7]">{helpText}</span> : null}
         </span>

@@ -119,7 +119,7 @@ function Card({
 }) {
   return (
     <section
-      className={`rounded-[10px] border border-[#dce4f0] bg-white ${className}`}
+      className={`rounded-[10px] border border-border-default bg-white ${className}`}
     >
       {children}
     </section>
@@ -155,7 +155,7 @@ function TextField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-12 rounded-[8px] border border-[#d7deea] bg-white px-4 text-sm font-semibold text-[#25304a] outline-none transition focus:border-[#3659d7] focus:ring-4 focus:ring-[#3659d7]/10"
+        className="h-12 rounded-[8px] border border-border-default bg-white px-4 text-sm font-semibold text-ink-strong outline-none transition focus:border-brand-primary focus:ring-4 focus:ring-[#3659d7]/10"
       />
     </label>
   );
@@ -189,7 +189,7 @@ function TextAreaField({
         onChange={(event) => onChange(event.target.value)}
         rows={rows}
         placeholder={placeholder}
-        className="min-h-[140px] rounded-[8px] border border-[#d7deea] bg-white px-4 py-3 text-sm font-semibold text-[#25304a] outline-none transition focus:border-[#3659d7] focus:ring-4 focus:ring-[#3659d7]/10"
+        className="min-h-[140px] rounded-[8px] border border-border-default bg-white px-4 py-3 text-sm font-semibold text-ink-strong outline-none transition focus:border-brand-primary focus:ring-4 focus:ring-[#3659d7]/10"
       />
       {helper ? (
         <span className="text-xs font-medium text-[#7b879e]">{helper}</span>
@@ -217,7 +217,7 @@ function SelectField({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-12 rounded-[8px] border border-[#d7deea] bg-white px-4 text-sm font-semibold text-[#25304a] outline-none transition focus:border-[#3659d7] focus:ring-4 focus:ring-[#3659d7]/10"
+        className="h-12 rounded-[8px] border border-border-default bg-white px-4 text-sm font-semibold text-ink-strong outline-none transition focus:border-brand-primary focus:ring-4 focus:ring-[#3659d7]/10"
       >
         <option value="">{placeholder}</option>
         {options.map((option) => (
@@ -244,7 +244,7 @@ function FileUploadField({
   return (
     <label className="grid gap-2">
       <Label>{label}</Label>
-      <div className="relative flex min-h-[112px] items-center justify-center rounded-[10px] border-2 border-dashed border-[#d7deea] bg-[#f9fbff] px-5 text-center">
+      <div className="relative flex min-h-[112px] items-center justify-center rounded-[10px] border-2 border-dashed border-border-default bg-[#f9fbff] px-5 text-center">
         <input
           type="file"
           onChange={onChange}
@@ -273,7 +273,7 @@ function SectionCard({
   return (
     <div className="rounded-[12px] border border-[#e3e9f7] bg-[#fbfcff] p-5 sm:p-6">
       <div className="mb-5">
-        <p className="text-sm font-black text-[#173ca8]">{title}</p>
+        <p className="text-sm font-black text-brand-primary">{title}</p>
       </div>
       {children}
     </div>
@@ -460,7 +460,7 @@ export default function BrandProfile() {
     return (
       <div className="grid gap-6">
         <Card className="p-6">
-          <div className="flex items-center gap-3 text-[#3659d7]">
+          <div className="flex items-center gap-3 text-brand-primary">
             <Loader2 className="h-5 w-5 animate-spin" />
             <span className="text-sm font-black">Loading brand profile...</span>
           </div>
@@ -472,7 +472,7 @@ export default function BrandProfile() {
   if (!profile || !form) {
     return (
       <Card className="p-6">
-        <p className="text-sm font-semibold text-[#b42318]">
+        <p className="text-sm font-semibold text-feedback-danger">
           {'Brand profile is not available.'}
         </p>
       </Card>
@@ -500,13 +500,13 @@ export default function BrandProfile() {
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-[#ddfbea] px-3 py-1 text-xs font-black text-[#067647]">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-[#ddfbea] px-3 py-1 text-xs font-black text-feedback-success">
                     <ShieldCheck className="h-3.5 w-3.5" />
                     {profile.verification_status === 'VERIFIED'
                       ? 'Verified Brand'
                       : 'Under Review'}
                   </div>
-                  <h2 className="mt-3 break-words text-[28px] font-black leading-tight text-[#173ca8]">
+                  <h2 className="mt-3 break-words text-[28px] font-black leading-tight text-brand-primary">
                     {form.company_name || 'Your brand profile'}
                   </h2>
                   <p className="mt-2 max-w-[540px] text-sm font-medium leading-relaxed text-[#62708a]">
@@ -520,7 +520,7 @@ export default function BrandProfile() {
                   type="button"
                   onClick={() => void toggleProfileVisibility()}
                   disabled={isUpdatingVisibility}
-                  className={`inline-flex h-12 w-full items-center justify-center gap-2 rounded-[8px] px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-70 xl:w-auto ${form.is_profile_visible ? 'bg-[#ddfbea] text-[#067647]' : 'bg-[#fee4e2] text-[#b42318]'}`}
+                  className={`inline-flex h-12 w-full items-center justify-center gap-2 rounded-[8px] px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-70 xl:w-auto ${form.is_profile_visible ? 'bg-[#ddfbea] text-feedback-success' : 'bg-[#fee4e2] text-feedback-danger'}`}
                 >
                   {isUpdatingVisibility ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -545,20 +545,20 @@ export default function BrandProfile() {
             </p>
             <div className="mt-4 flex items-center justify-between gap-4">
               <div>
-                <strong className="block text-[42px] font-black leading-none text-[#173ca8]">
+                <strong className="block text-[42px] font-black leading-none text-brand-primary">
                   {profile.profile_completion ?? 0}%
                 </strong>
                 <p className="mt-2 text-sm font-medium text-[#62708a]">
                   Completion score based on your main brand details.
                 </p>
               </div>
-              <span className="grid h-14 w-14 place-items-center rounded-full bg-[#eef3ff] text-[#3659d7]">
+              <span className="grid h-14 w-14 place-items-center rounded-full bg-brand-accent-soft text-brand-primary">
                 <Sparkles className="h-7 w-7" />
               </span>
             </div>
             <div className="mt-5 h-3 overflow-hidden rounded-full bg-[#e8eefc]">
               <div
-                className="h-full rounded-full bg-[#3659d7]"
+                className="h-full rounded-full bg-brand-primary"
                 style={{ width: `${profile.profile_completion ?? 0}%` }}
               />
             </div>
@@ -616,7 +616,7 @@ export default function BrandProfile() {
                 ].map(([label, value]) => (
                   <div key={label} className="grid gap-2">
                     <Label>{label}</Label>
-                    <p className="min-h-12 rounded-[8px] border border-[#d7deea] bg-[#f8faff] px-4 py-3 text-sm font-semibold text-[#25304a]">
+                    <p className="min-h-12 rounded-[8px] border border-border-default bg-surface-page px-4 py-3 text-sm font-semibold text-ink-strong">
                       {value || 'Not provided'}
                     </p>
                   </div>
@@ -727,7 +727,7 @@ export default function BrandProfile() {
               <div className="grid gap-5 xl:grid-cols-2">
                 <label className="grid gap-2 xl:col-span-2">
                   <Label>Brand Logo</Label>
-                  <div className="relative flex min-h-[136px] items-center justify-center rounded-[10px] border-2 border-dashed border-[#d7deea] bg-[#f9fbff] px-6 text-center">
+                  <div className="relative flex min-h-[136px] items-center justify-center rounded-[10px] border-2 border-dashed border-border-default bg-[#f9fbff] px-6 text-center">
                     <input
                       type="file"
                       accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"

@@ -117,7 +117,7 @@ const Navbar = () => {
                     <Link
                       key={subItem.label}
                       to={subItem.href}
-                      className="block rounded-xl px-4 py-3 text-sm font-black text-[#34466d] transition hover:bg-[#eef3ff] hover:text-[#214bc0]"
+                      className="block rounded-xl px-4 py-3 text-sm font-black text-[#34466d] transition hover:bg-brand-accent-soft hover:text-[#214bc0]"
                     >
                       {subItem.label}
                     </Link>
@@ -148,7 +148,7 @@ const Navbar = () => {
                 aria-haspopup="menu"
                 aria-expanded={isUserMenuOpen}
               >
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-[#1438c8] text-white">
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-primary text-white">
                   {userInitial}
                 </span>
                 <span className="hidden max-w-[150px] truncate sm:inline">
@@ -164,7 +164,7 @@ const Navbar = () => {
                 <Link
                   to={dashboardPath}
                   onClick={() => setIsUserMenuOpen(false)}
-                  className="block rounded-xl px-4 py-3 text-sm font-black text-[#34466d] transition hover:bg-[#eef3ff] hover:text-[#214bc0]"
+                  className="block rounded-xl px-4 py-3 text-sm font-black text-[#34466d] transition hover:bg-brand-accent-soft hover:text-[#214bc0]"
                 >
                   Dashboard
                 </Link>
@@ -174,7 +174,7 @@ const Navbar = () => {
                     setIsUserMenuOpen(false);
                     void logout();
                   }}
-                  className="block w-full rounded-xl px-4 py-3 text-left text-sm font-black text-[#b42318] transition hover:bg-[#fff0f0]"
+                  className="block w-full rounded-xl px-4 py-3 text-left text-sm font-black text-feedback-danger transition hover:bg-[#fff0f0]"
                 >
                   Sign out
                 </button>
@@ -239,7 +239,7 @@ const Navbar = () => {
             item.items ? (
               <div
                 key={item.label}
-                className="rounded-2xl border border-[#e8eefc] bg-[#f8faff] px-4 py-3"
+                className="rounded-2xl border border-[#e8eefc] bg-surface-page px-4 py-3"
               >
                 <p className="text-sm font-black text-[#17327c]">
                   {item.label}
@@ -250,7 +250,7 @@ const Navbar = () => {
                       key={subItem.label}
                       to={subItem.href}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="rounded-xl px-3 py-2 text-sm font-semibold text-[#34466d] transition hover:bg-[#eef3ff] hover:text-[#214bc0]"
+                      className="rounded-xl px-3 py-2 text-sm font-semibold text-[#34466d] transition hover:bg-brand-accent-soft hover:text-[#214bc0]"
                     >
                       {subItem.label}
                     </Link>
@@ -262,7 +262,7 @@ const Navbar = () => {
                 key={item.label}
                 to={item.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="rounded-2xl border border-[#e8eefc] px-4 py-3 text-sm font-black text-[#17327c] transition hover:bg-[#eef3ff] hover:text-[#214bc0]"
+                className="rounded-2xl border border-[#e8eefc] px-4 py-3 text-sm font-black text-[#17327c] transition hover:bg-brand-accent-soft hover:text-[#214bc0]"
               >
                 {item.label}
               </Link>
@@ -274,7 +274,7 @@ const Navbar = () => {
               <Link
                 to={dashboardPath}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="rounded-2xl bg-[#1438c8] px-4 py-3 text-center text-sm font-black text-white transition hover:bg-[#102fa8]"
+                className="rounded-2xl bg-brand-primary px-4 py-3 text-center text-sm font-black text-white transition hover:bg-[#102fa8]"
               >
                 Go to Dashboard
               </Link>
@@ -284,7 +284,7 @@ const Navbar = () => {
                   setIsMobileMenuOpen(false);
                   void logout();
                 }}
-                className="rounded-2xl border border-[#ffd8d5] px-4 py-3 text-sm font-black text-[#b42318] transition hover:bg-[#fff0f0]"
+                className="rounded-2xl border border-[#ffd8d5] px-4 py-3 text-sm font-black text-feedback-danger transition hover:bg-[#fff0f0]"
               >
                 Sign out
               </button>
@@ -293,7 +293,7 @@ const Navbar = () => {
             <Link
               to="/login"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="mt-2 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1438c8] px-4 py-3 text-sm font-black text-white transition hover:bg-[#102fa8]"
+              className="mt-2 inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-primary px-4 py-3 text-sm font-black text-white transition hover:bg-[#102fa8]"
             >
               Log In
               <ArrowRight className="h-4 w-4" />

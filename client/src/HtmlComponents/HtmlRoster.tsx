@@ -64,13 +64,13 @@ const iconMap = {
 function getButtonClasses(action: RosterAction, isActive: boolean) {
   if (action.destructive) {
     return isActive
-      ? 'border-[#f3b7b7] bg-[#fff1f1] text-[#b42318] shadow-[0_14px_24px_rgba(180,35,24,0.10)]'
-      : 'border-[#f6d2d2] bg-white text-[#b42318] hover:bg-[#fff5f5]';
+      ? 'border-[#f3b7b7] bg-[#fff1f1] text-feedback-danger shadow-[0_14px_24px_rgba(180,35,24,0.10)]'
+      : 'border-[#f6d2d2] bg-white text-feedback-danger hover:bg-[#fff5f5]';
   }
 
   return isActive
-    ? 'border-[#bfd0ff] bg-[linear-gradient(180deg,#eff4ff_0%,#e0ebff_100%)] text-[#1438c8] shadow-[0_16px_28px_rgba(20,56,200,0.14)]'
-    : 'border-[#d8e2fb] bg-white text-[#2447bd] hover:border-[#bfd0ff] hover:bg-[#f7faff]';
+    ? 'border-[#bfd0ff] bg-[linear-gradient(180deg,#eff4ff_0%,#e0ebff_100%)] text-brand-primary shadow-[0_16px_28px_rgba(20,56,200,0.14)]'
+    : 'border-[#d8e2fb] bg-white text-brand-primary hover:border-[#bfd0ff] hover:bg-[#f7faff]';
 }
 
 type ProjectToastType = 'success' | 'error' | 'info';
@@ -83,19 +83,19 @@ const toastThemeMap: Record<ProjectToastType, {
 }> = {
   success: {
     icon: CheckCircle2,
-    iconWrap: 'bg-[#e9f8ef] text-[#067647]',
+    iconWrap: 'bg-[#e9f8ef] text-feedback-success',
     title: 'Success',
     card: 'border-[#cfead9] bg-[linear-gradient(180deg,#f4fff8_0%,#ffffff_100%)]',
   },
   error: {
     icon: TriangleAlert,
-    iconWrap: 'bg-[#fff0f0] text-[#b42318]',
+    iconWrap: 'bg-[#fff0f0] text-feedback-danger',
     title: 'Something went wrong',
     card: 'border-[#f1c9c9] bg-[linear-gradient(180deg,#fff7f7_0%,#ffffff_100%)]',
   },
   info: {
     icon: Info,
-    iconWrap: 'bg-[#edf3ff] text-[#2447bd]',
+    iconWrap: 'bg-[#edf3ff] text-brand-primary',
     title: 'Heads up',
     card: 'border-[#d5e1ff] bg-[linear-gradient(180deg,#f6f9ff_0%,#ffffff_100%)]',
   },
@@ -168,7 +168,7 @@ export const HtmlRoster = ({
     <section className="overflow-hidden rounded-[22px] border border-[#d9e3fb] bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_36%)] shadow-[0_18px_44px_rgba(41,64,132,0.08)]">
       <div className="flex flex-col gap-4 border-b border-[#e5ecfb] px-5 py-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#eaf1ff] px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-[#3659d7]">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#eaf1ff] px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-brand-primary">
             <Users className="h-3.5 w-3.5" />
             Creator Roster
           </div>
@@ -197,7 +197,7 @@ export const HtmlRoster = ({
               disabled={action.disabled}
               className={`group rounded-[18px] border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-55 ${getButtonClasses(action, isActive)}`}
             >
-              <span className={`grid h-11 w-11 place-items-center rounded-[14px] ${action.destructive ? 'bg-[#fff1f1] text-[#b42318]' : 'bg-[#e9f1ff] text-[#2447bd]'}`}>
+              <span className={`grid h-11 w-11 place-items-center rounded-[14px] ${action.destructive ? 'bg-[#fff1f1] text-feedback-danger' : 'bg-[#e9f1ff] text-brand-primary'}`}>
                 <Icon className="h-5 w-5" />
               </span>
               <div className="mt-4">

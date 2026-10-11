@@ -26,19 +26,19 @@ function RecommendedCreatorCard({
     <CampaignPanel className="overflow-hidden">
       <div className="relative aspect-[1.05/1] bg-[#eef2f7]">
         <img src={image} alt={creator.name || "Creator"} className="h-full w-full object-cover" />
-        <span className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-[#4b22ff] px-3 py-1 text-[11px] font-black text-white">
+        <span className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-brand-primary px-3 py-1 text-[11px] font-black text-white">
           <Star className="h-3.5 w-3.5" />
           Collune Pick
         </span>
       </div>
       <div className="p-5">
-        <h2 className="truncate text-lg font-black text-[#1d2430]">{creator.name || creator.username || "Creator"}</h2>
+        <h2 className="truncate text-lg font-black text-ink-strong">{creator.name || creator.username || "Creator"}</h2>
         <p className="mt-1 truncate text-sm font-semibold text-[#7d8aa0]">@{creator.username || "creator"}</p>
         <p className="mt-3 truncate text-sm font-medium text-[#97a3b7]">{creator.email}</p>
         <button
           type="button"
           onClick={() => onOpenProfile(creator.creator_id)}
-          className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-4 text-sm font-black text-[#303948]"
+          className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-border-default bg-white px-4 text-sm font-black text-[#303948]"
         >
           View Profile <ExternalLink className="h-4 w-4" />
         </button>
@@ -95,17 +95,17 @@ export function RecommendedCreatorsPage() {
           <button
             type="button"
             onClick={() => navigate(`/brand/campaigns/${campaignId}`)}
-            className="inline-flex items-center gap-2 text-sm font-black text-[#4b22ff]"
+            className="inline-flex items-center gap-2 text-sm font-black text-brand-primary"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Campaign
           </button>
-          <h1 className="mt-4 text-[30px] font-black text-[#1d2430]">Recommended Creators</h1>
+          <h1 className="mt-4 text-[30px] font-black text-ink-strong">Recommended Creators</h1>
           <p className="mt-2 text-sm font-medium text-[#7d8aa0]">
             Collune-recommended creator profiles for {campaign?.title || campaign?.name || "this campaign"}.
           </p>
         </div>
-        <span className="inline-flex h-11 items-center rounded-full bg-[#f0eaff] px-5 text-sm font-black text-[#4b22ff]">
+        <span className="inline-flex h-11 items-center rounded-full bg-[#f0eaff] px-5 text-sm font-black text-brand-primary">
           {recommendedCreators.length} creators
         </span>
       </div>
@@ -113,7 +113,7 @@ export function RecommendedCreatorsPage() {
       {error ? (
         <CampaignPanel className="p-8 text-center text-sm font-black text-[#d23b3b]">{error}</CampaignPanel>
       ) : isLoading ? (
-        <CampaignPanel className="p-8 text-center text-sm font-black text-[#63728a]">Loading recommended creators...</CampaignPanel>
+        <CampaignPanel className="p-8 text-center text-sm font-black text-ink-muted">Loading recommended creators...</CampaignPanel>
       ) : recommendedCreators.length ? (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {recommendedCreators.map((creator, index) => (
@@ -126,7 +126,7 @@ export function RecommendedCreatorsPage() {
           ))}
         </div>
       ) : (
-        <CampaignPanel className="p-8 text-center text-sm font-black text-[#63728a]">
+        <CampaignPanel className="p-8 text-center text-sm font-black text-ink-muted">
           No recommended creators available for this campaign yet.
         </CampaignPanel>
       )}

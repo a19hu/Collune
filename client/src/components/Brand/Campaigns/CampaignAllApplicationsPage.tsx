@@ -14,7 +14,7 @@ import { SocialPlatformIcon } from "../../Shared/SocialPlatformIcon";
 const fallbackImages = [creatorOne, creatorTwo, creatorThree];
 
 const statusClasses: Record<CampaignApplicationApi["status"], string> = {
-  APPLIED: "bg-[#eaf0ff] text-[#173ca8]",
+  APPLIED: "bg-[#eaf0ff] text-brand-primary",
   ACCEPTED: "bg-[#e8f8ef] text-[#12a563]",
   REJECTED: "bg-[#ffe9e9] text-[#d23b3b]",
 };
@@ -80,7 +80,7 @@ function ApplicationRow({
 }) {
   const creator = application.creator_detail;
   const platform = getPrimaryPlatform(creator);
-  const platformClass = platformClasses[platform] || "bg-[#4b22ff] text-white";
+  const platformClass = platformClasses[platform] || "bg-brand-primary text-white";
   const image = creator?.profile_image_url || fallbackImages[index % fallbackImages.length];
 
   return (
@@ -94,7 +94,7 @@ function ApplicationRow({
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-3">
-          <h3 className="truncate text-base font-black text-[#1d2430]">
+          <h3 className="truncate text-base font-black text-ink-strong">
             {creator?.display_name || creator?.user?.name || "Creator"}
           </h3>
           <span className={`inline-flex h-6 items-center rounded-md px-2 text-xs font-black ${statusClasses[application.status]}`}>
@@ -133,7 +133,7 @@ function ApplicationRow({
         <button
           type="button"
           onClick={() => onOpenProfile(creator?.creator_id || application.creator)}
-          className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-4 text-sm font-black text-[#303948]"
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-border-default bg-white px-4 text-sm font-black text-[#303948]"
         >
           View Profile <ExternalLink className="h-4 w-4" />
         </button>
@@ -219,17 +219,17 @@ export function CampaignAllApplicationsPage() {
           <button
             type="button"
             onClick={() => navigate(`/brand/campaigns/${campaignId}`)}
-            className="inline-flex items-center gap-2 text-sm font-black text-[#4b22ff]"
+            className="inline-flex items-center gap-2 text-sm font-black text-brand-primary"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Campaign
           </button>
-          <h1 className="mt-4 text-[30px] font-black text-[#1d2430]">All Applications</h1>
+          <h1 className="mt-4 text-[30px] font-black text-ink-strong">All Applications</h1>
           <p className="mt-2 text-sm font-medium text-[#7d8aa0]">
             Every creator who applied to {campaign?.title || campaign?.name || "this campaign"}.
           </p>
         </div>
-        <span className="inline-flex h-11 items-center rounded-full bg-[#f0eaff] px-5 text-sm font-black text-[#4b22ff]">
+        <span className="inline-flex h-11 items-center rounded-full bg-[#f0eaff] px-5 text-sm font-black text-brand-primary">
           {applications.length} applications
         </span>
       </div>
@@ -241,7 +241,7 @@ export function CampaignAllApplicationsPage() {
             type="button"
             onClick={() => setStatusFilter(filter.value)}
             className={`h-10 rounded-lg px-4 text-sm font-black transition ${
-              statusFilter === filter.value ? "bg-[#4b22ff] text-white" : "border border-[#dfe7f2] bg-white text-[#303948]"
+              statusFilter === filter.value ? "bg-brand-primary text-white" : "border border-border-default bg-white text-[#303948]"
             }`}
           >
             {filter.label}
@@ -252,7 +252,7 @@ export function CampaignAllApplicationsPage() {
       {error ? (
         <CampaignPanel className="p-8 text-center text-sm font-black text-[#d23b3b]">{error}</CampaignPanel>
       ) : isLoading ? (
-        <CampaignPanel className="p-8 text-center text-sm font-black text-[#63728a]">Loading applications...</CampaignPanel>
+        <CampaignPanel className="p-8 text-center text-sm font-black text-ink-muted">Loading applications...</CampaignPanel>
       ) : filteredApplications.length ? (
         <div className="grid gap-4">
           {filteredApplications.map((application, index) => (
@@ -267,7 +267,7 @@ export function CampaignAllApplicationsPage() {
           ))}
         </div>
       ) : (
-        <CampaignPanel className="p-8 text-center text-sm font-black text-[#63728a]">No applications match this filter.</CampaignPanel>
+        <CampaignPanel className="p-8 text-center text-sm font-black text-ink-muted">No applications match this filter.</CampaignPanel>
       )}
     </div>
   );

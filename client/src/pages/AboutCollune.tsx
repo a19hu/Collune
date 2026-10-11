@@ -29,26 +29,26 @@ const socialLinks = [
 
 function InfoCard({ title, copy, icon: Icon }: { title: string; copy: string; icon: typeof ShieldCheck }) {
   return (
-    <section className="rounded-xl border border-[#dfe7f2] bg-white p-6">
-      <span className="grid h-12 w-12 place-items-center rounded-lg bg-[#eef3ff] text-[#173ca8]">
+    <section className="rounded-xl border border-border-default bg-white p-6">
+      <span className="grid h-12 w-12 place-items-center rounded-lg bg-brand-accent-soft text-brand-primary">
         <Icon className="h-6 w-6" />
       </span>
-      <h2 className="mt-5 text-xl font-black tracking-normal text-[#1d2430]">{title}</h2>
-      <p className="mt-3 text-[15px] font-medium leading-7 text-[#65758f]">{copy}</p>
+      <h2 className="mt-5 text-xl font-black tracking-normal text-ink-strong">{title}</h2>
+      <p className="mt-3 text-[15px] font-medium leading-7 text-ink-muted">{copy}</p>
     </section>
   );
 }
 
 export default function AboutCollune() {
   return (
-    <main className="bg-white pt-32 text-[#1d2430]">
+    <main className="bg-white pt-32 text-ink-strong">
       <section className="mx-auto max-w-7xl px-6 pb-16 md:px-10">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_390px] lg:items-end">
           <div>
-            <span className="inline-flex h-10 items-center rounded-lg bg-[#eef3ff] px-4 text-sm font-black text-[#173ca8]">
+            <span className="inline-flex h-10 items-center rounded-lg bg-brand-accent-soft px-4 text-sm font-black text-brand-primary">
               About Collune
             </span>
-            <h1 className="mt-6 max-w-4xl text-[40px] font-black leading-tight tracking-normal text-[#101828] md:text-[58px]">
+            <h1 className="mt-6 max-w-4xl text-[40px] font-black leading-tight tracking-normal text-ink-strong md:text-[58px]">
               A regulated creator-brand collaboration platform built on trust.
             </h1>
             <p className="mt-6 max-w-3xl text-lg font-medium leading-8 text-[#5f6f89]">
@@ -56,13 +56,13 @@ export default function AboutCollune() {
             </p>
           </div>
 
-          <aside className="rounded-xl border border-[#dfe7f2] bg-[#f7f9fc] p-6">
-            <h2 className="text-lg font-black text-[#1d2430]">Operating Entity</h2>
-            <p className="mt-2 text-sm font-semibold text-[#65758f]">AIM Information Technology</p>
+          <aside className="rounded-xl border border-border-default bg-[#f7f9fc] p-6">
+            <h2 className="text-lg font-black text-ink-strong">Operating Entity</h2>
+            <p className="mt-2 text-sm font-semibold text-ink-muted">AIM Information Technology</p>
             <div className="mt-6 grid gap-4 text-sm font-semibold text-[#53627a]">
-              <span className="flex items-center gap-3"><MapPin className="h-4 w-4 text-[#173ca8]" /> Jaipur, Rajasthan, India</span>
-              <span className="flex items-center gap-3"><Mail className="h-4 w-4 text-[#173ca8]" /> thecollune@gmail.com</span>
-              <span className="flex items-center gap-3"><Globe2 className="h-4 w-4 text-[#173ca8]" /> www.collune.com </span>
+              <span className="flex items-center gap-3"><MapPin className="h-4 w-4 text-brand-primary" /> Jaipur, Rajasthan, India</span>
+              <span className="flex items-center gap-3"><Mail className="h-4 w-4 text-brand-primary" /> thecollune@gmail.com</span>
+              <span className="flex items-center gap-3"><Globe2 className="h-4 w-4 text-brand-primary" /> www.collune.com </span>
             </div>
           </aside>
         </div>
@@ -90,13 +90,13 @@ export default function AboutCollune() {
 
       <section className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:px-10 lg:grid-cols-[0.9fr_1.1fr]">
         <div>
-          <h2 className="text-3xl font-black tracking-normal text-[#101828]">Our Services</h2>
-          <p className="mt-4 text-base font-medium leading-7 text-[#65758f]">
+          <h2 className="text-3xl font-black tracking-normal text-ink-strong">Our Services</h2>
+          <p className="mt-4 text-base font-medium leading-7 text-ink-muted">
             Collune removes operational friction for institutional partners and creators through verified workflows, compliance-aware campaign management, and transparent settlement systems.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
             {sectors.map((sector) => (
-              <span key={sector} className="rounded-lg bg-[#eef3ff] px-3 py-2 text-sm font-black text-[#173ca8]">{sector}</span>
+              <span key={sector} className="rounded-lg bg-brand-accent-soft px-3 py-2 text-sm font-black text-brand-primary">{sector}</span>
             ))}
           </div>
         </div>
@@ -133,8 +133,8 @@ export default function AboutCollune() {
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-8 px-6 py-16 md:px-10 lg:grid-cols-[1fr_1fr]">
-        <div className="rounded-xl border border-[#dfe7f2] bg-white p-7">
-          <h2 className="text-2xl font-black tracking-normal text-[#101828]">Contact Information</h2>
+        <div className="rounded-xl border border-border-default bg-white p-7">
+          <h2 className="text-2xl font-black tracking-normal text-ink-strong">Contact Information</h2>
           <div className="mt-6 grid gap-4 text-[15px] font-semibold text-[#53627a]">
             <p>Email: thecollune@gmail.com</p>
             <p>Website: www.collune.com </p>
@@ -142,12 +142,12 @@ export default function AboutCollune() {
             <p>Operating Entity: AIM Information Technology</p>
           </div>
         </div>
-        <div className="rounded-xl border border-[#dfe7f2] bg-[#f7f9fc] p-7">
-          <h2 className="text-2xl font-black tracking-normal text-[#101828]">Social Media</h2>
+        <div className="rounded-xl border border-border-default bg-[#f7f9fc] p-7">
+          <h2 className="text-2xl font-black tracking-normal text-ink-strong">Social Media</h2>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             {socialLinks.map(([label, handle]) => (
               <div key={label} className="rounded-lg bg-white px-4 py-3 text-sm font-semibold text-[#53627a]">
-                <span className="font-black text-[#173ca8]">{label}:</span> {handle}
+                <span className="font-black text-brand-primary">{label}:</span> {handle}
               </div>
             ))}
           </div>

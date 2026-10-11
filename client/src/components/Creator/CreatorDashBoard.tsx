@@ -91,8 +91,8 @@ function MetricCard({ item }: { item: (typeof metricCards)[number]; key?: string
       <span className={`grid h-11 w-11 place-items-center rounded-full ${item.color}`}>
         <Icon className="h-5 w-5" />
       </span>
-      <p className="mt-5 text-sm font-medium text-[#6f7889]">{item.label}</p>
-      <strong className="mt-3 block text-[42px] font-black leading-none text-[#1d203a]">{item.value}</strong>
+      <p className="mt-5 text-sm font-medium text-ink-muted">{item.label}</p>
+      <strong className="mt-3 block text-[42px] font-black leading-none text-ink-strong">{item.value}</strong>
     </Panel>
   );
 }
@@ -137,7 +137,7 @@ function CampaignCard({
       status={campaign.applied ? "Applied" : "Recommended"}
       meta={`Deadline: ${deadline}`}
       onOpen={openCampaign}
-      actions={<><button type="button" onClick={() => onSave(campaign)} disabled={isSaving} className="rounded-lg border px-3 py-2 text-xs font-bold text-[#3048ff] disabled:opacity-60">{campaign.saved ? "Unsave" : isSaving ? "Saving..." : "Save"}</button><button type="button" onClick={() => onApply(campaign)} disabled={campaign.applied || isApplying} className="rounded-lg bg-[#2f31e7] px-3 py-2 text-xs font-bold text-white disabled:opacity-60">{campaign.applied ? "Applied" : isApplying ? "Applying..." : "Apply"}</button></>}
+      actions={<><button type="button" onClick={() => onSave(campaign)} disabled={isSaving} className="rounded-lg border px-3 py-2 text-xs font-bold text-brand-primary disabled:opacity-60">{campaign.saved ? "Unsave" : isSaving ? "Saving..." : "Save"}</button><button type="button" onClick={() => onApply(campaign)} disabled={campaign.applied || isApplying} className="rounded-lg bg-brand-primary px-3 py-2 text-xs font-bold text-white disabled:opacity-60">{campaign.applied ? "Applied" : isApplying ? "Applying..." : "Apply"}</button></>}
     />
     {/*
     <Panel className="overflow-hidden">
@@ -151,7 +151,7 @@ function CampaignCard({
         className="relative h-48 cursor-pointer"
       >
         <img src={image} alt="" className="h-full w-full object-cover" />
-        {index < 2 ? <span className="absolute left-4 top-4 rounded-full bg-[#2f31e7] px-4 py-2 text-xs font-black text-white">New</span> : null}
+        {index < 2 ? <span className="absolute left-4 top-4 rounded-full bg-brand-primary px-4 py-2 text-xs font-black text-white">New</span> : null}
         <button
           type="button"
           disabled={campaign.saved || isSaving}
@@ -166,27 +166,27 @@ function CampaignCard({
       </div>
       <div className="p-6">
         <button type="button" onClick={openCampaign} className="block text-left">
-          <h3 className="text-xl font-black text-[#1d203a]">{campaign.title}</h3>
+          <h3 className="text-xl font-black text-ink-strong">{campaign.title}</h3>
         </button>
-        <p ref={objectiveRef} className="mt-4 min-h-[54px] line-clamp-3 text-[15px] font-medium leading-snug text-[#6f7889]">
+        <p ref={objectiveRef} className="mt-4 min-h-[54px] line-clamp-3 text-[15px] font-medium leading-snug text-ink-muted">
           {objective}
         </p>
         {isObjectiveTruncated ? (
           <button
             type="button"
             onClick={openCampaign}
-            className="mt-1 text-sm font-black text-[#2f31e7] hover:underline"
+            className="mt-1 text-sm font-black text-brand-primary hover:underline"
           >
             See more
           </button>
         ) : null}
         <div className="mt-5 flex items-end justify-between gap-4">
-          <p className="text-sm font-medium text-[#6f7889]">Deadline: {deadline}</p>
+          <p className="text-sm font-medium text-ink-muted">Deadline: {deadline}</p>
           <button
             type="button"
             onClick={() => onApply(campaign)}
             disabled={campaign.applied || isApplying}
-            className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#2f31e7] px-4 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex h-9 items-center gap-2 rounded-lg bg-brand-primary px-4 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-70"
           >
             {campaign.applied ? "Applied" : isApplying ? "Applying..." : "Apply"} {!campaign.applied && !isApplying ? <ArrowRight className="h-4 w-4" /> : null}
           </button>
@@ -270,7 +270,7 @@ function VerifiedDashboard({
 
       <section>
         <div className="mb-7 flex items-center justify-between">
-          <h2 className="text-[26px] font-black text-[#1d203a]">Campaign Marketplace</h2>
+          <h2 className="text-[26px] font-black text-ink-strong">Campaign Marketplace</h2>
           <button type="button" onClick={() => navigate("/creator/marketplace")} className="inline-flex items-center gap-2 text-sm font-black text-[#1f22ff]">
             View all campaigns <ArrowRight className="h-4 w-4" />
           </button>
@@ -293,8 +293,8 @@ function VerifiedDashboard({
           </>
         ) : (
           <Panel className="p-8 text-center">
-            <h3 className="text-lg font-black text-[#1d203a]">No matching campaigns yet</h3>
-            <p className="mx-auto mt-2 max-w-md text-sm font-medium text-[#6f7889]">
+            <h3 className="text-lg font-black text-ink-strong">No matching campaigns yet</h3>
+            <p className="mx-auto mt-2 max-w-md text-sm font-medium text-ink-muted">
               We will show recommended campaigns here when active campaigns match your profile.
             </p>
           </Panel>
@@ -305,11 +305,11 @@ function VerifiedDashboard({
 
         <Panel className="p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-black text-[#1d203a]">Opportunity Pipeline</h2>
+            <h2 className="text-xl font-black text-ink-strong">Opportunity Pipeline</h2>
             <select
               value={chartPeriod}
               onChange={(event) => onChartPeriodChange(event.target.value)}
-              className="rounded-lg border border-[#dfe4ed] bg-white px-4 py-2 text-sm font-medium text-[#6f7889]"
+              className="rounded-lg border border-[#dfe4ed] bg-white px-4 py-2 text-sm font-medium text-ink-muted"
             >
               {chartPeriods.map((period) => (
                 <option key={period.value} value={period.value}>{period.label}</option>
@@ -338,7 +338,7 @@ function VerifiedDashboard({
         </Panel>
 
         <Panel className="p-6">
-          <h2 className="text-xl font-black text-[#1d203a]">Quick Actions</h2>
+          <h2 className="text-xl font-black text-ink-strong">Quick Actions</h2>
           <div className="mt-7 grid gap-6">
             {quickActions.map((item) => {
               const Icon = item.icon;
@@ -348,10 +348,10 @@ function VerifiedDashboard({
                     <Icon className="h-5 w-5" />
                   </span>
                   <span className="flex-1">
-                    <strong className="block text-sm font-black text-[#1d203a]">{item.title}</strong>
-                    <span className="text-xs text-[#6f7889]">{item.copy}</span>
+                    <strong className="block text-sm font-black text-ink-strong">{item.title}</strong>
+                    <span className="text-xs text-ink-muted">{item.copy}</span>
                   </span>
-                  <ArrowRight className="h-4 w-4 text-[#6f7889]" />
+                  <ArrowRight className="h-4 w-4 text-ink-muted" />
                 </button>
               );
             })}
@@ -390,11 +390,11 @@ const CreatorDashBoard = () => {
   }, [chartPeriod]);
 
   if (isLoadingDashboard) {
-    return <Panel className="p-8 text-sm font-black text-[#6f7889]">Loading dashboard...</Panel>;
+    return <Panel className="p-8 text-sm font-black text-ink-muted">Loading dashboard...</Panel>;
   }
 
   if (dashboardError) {
-    return <Panel className="p-8 text-sm font-black text-[#b42318]">{dashboardError}</Panel>;
+    return <Panel className="p-8 text-sm font-black text-feedback-danger">{dashboardError}</Panel>;
   }
 
   return isVerified ? (

@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 
 
 export const inputClass =
-  "h-[52px] w-full rounded-xl border border-[#d8e2fb] bg-white px-12 text-[15px] font-semibold text-[#173ca8] outline-none transition placeholder:text-[#9aa7bf] focus:border-[#6d7eff] focus:ring-4 focus:ring-[#6d7eff]/10";
+  "h-[52px] w-full rounded-xl border border-[#d8e2fb] bg-white px-12 text-[15px] font-semibold text-brand-primary outline-none transition placeholder:text-[#9aa7bf] focus:border-[#6d7eff] focus:ring-4 focus:ring-[#6d7eff]/10";
 export const labelClass = "mb-2 block text-xs font-semibold text-[#6e7d99]";
 
 const languageOptions = ["Hindi", "English", "Punjabi", "Tamil", "Telugu", "Bengali", "Marathi", "Gujarati", "Kannada", "Malayalam"];
@@ -135,7 +135,7 @@ function AddressField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-12 w-full rounded-xl border border-[#d8e2fb] bg-white px-4 text-sm font-semibold text-[#173ca8] outline-none transition placeholder:text-[#9aa7bf] focus:border-[#6d7eff] focus:ring-4 focus:ring-[#6d7eff]/10"
+        className="h-12 w-full rounded-xl border border-[#d8e2fb] bg-white px-4 text-sm font-semibold text-brand-primary outline-none transition placeholder:text-[#9aa7bf] focus:border-[#6d7eff] focus:ring-4 focus:ring-[#6d7eff]/10"
       />
     </label>
   );
@@ -156,7 +156,7 @@ export function AddressComposer({
 
   return (
     <section className="block">
-      <span className="mb-2 block text-xs font-semibold text-[#202337]">Location Details</span>
+      <span className="mb-2 block text-xs font-semibold text-ink-strong">Location Details</span>
       <div className="rounded-2xl border border-[#d8e2fb] bg-[#f7f9ff] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
         <div className="mt-3 h-[228px] overflow-y-auto pr-1">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -196,7 +196,7 @@ function SocialCard({
     <article className="grid gap-4 rounded-xl border border-[#e0e0e0] bg-white p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center">
       <span>{icon}</span>
       <div className="min-w-0 flex-1">
-        <h3 className="text-sm font-black text-[#202337]">{title}</h3>
+        <h3 className="text-sm font-black text-ink-strong">{title}</h3>
         <p className="mt-1 text-xs font-semibold text-[#707b91]">
           {isSelected ? "Selected for OAuth after setup." : "Connect with OAuth after setup is complete."}
         </p>
@@ -205,7 +205,7 @@ function SocialCard({
         type="button"
         disabled={isConnecting}
         onClick={onConnect}
-        className={`h-10 rounded-lg px-5 text-sm font-black text-white disabled:opacity-60 ${isSelected ? "bg-[#04b981]" : "bg-[#2447bd]"}`}
+        className={`h-10 rounded-lg px-5 text-sm font-black text-white disabled:opacity-60 ${isSelected ? "bg-[#04b981]" : "bg-brand-primary"}`}
       >
         {isConnecting ? "Opening..." : isSelected ? "Selected" : "Connect"}
       </button>
@@ -229,15 +229,15 @@ function PreferenceTile({
 }) {
   return (
     <button type="button" onClick={onClick} className={`relative min-h-[132px] rounded-lg border p-4 text-center transition ${active
-      ? "border-[#796cff] bg-[#eef3ff]"
+      ? "border-[#796cff] bg-brand-accent-soft"
       : "border-[#dfe4ed] bg-white"
       }`}
     >
-      <span className={`absolute left-3 top-3 grid h-4 w-4 place-items-center rounded-[3px] border ${active ? "border-[#2f31e7] bg-[#2f31e7]" : "border-[#cbd4df] bg-white"}`}>
+      <span className={`absolute left-3 top-3 grid h-4 w-4 place-items-center rounded-[3px] border ${active ? "border-brand-primary bg-brand-primary" : "border-[#cbd4df] bg-white"}`}>
         {active ? <Check className="h-3 w-3 text-white" /> : null}
       </span>
       <span className="mx-auto mt-5 grid h-8 place-items-center text-[#776bff]">{icon}</span>
-      <strong className="mt-3 block text-sm font-black text-[#202337]">{title}</strong>
+      <strong className="mt-3 block text-sm font-black text-ink-strong">{title}</strong>
       <span className="mt-2 block text-[11px] font-medium leading-snug text-[#707b91]">{copy}</span>
     </button>
   );
@@ -265,8 +265,8 @@ function ReviewRow({
         {icon}
       </span>
       <div className="min-w-0">
-        <p className="text-sm font-medium text-[#65758f]">{label}</p>
-        <p className="mt-1 break-words text-base font-black text-[#202337]">{value || "Not provided"}</p>
+        <p className="text-sm font-medium text-ink-muted">{label}</p>
+        <p className="mt-1 break-words text-base font-black text-ink-strong">{value || "Not provided"}</p>
       </div>
     </div>
   );
@@ -354,7 +354,7 @@ export const StepsCreatorRegister=({
             type={showPassword ? "text" : "password"}
             minLength={8}
             trailing={
-              <button type="button" onClick={onTogglePassword} className="grid h-8 w-8 place-items-center rounded-md text-[#71809a] hover:bg-[#eef3ff]" aria-label={showPassword ? "Hide password" : "Show password"}>
+              <button type="button" onClick={onTogglePassword} className="grid h-8 w-8 place-items-center rounded-md text-[#71809a] hover:bg-brand-accent-soft" aria-label={showPassword ? "Hide password" : "Show password"}>
                 {!showPassword ? <EyeClosed className="h-5 w-5" /> :<Eye className="h-5 w-5" />}
               </button>
             }
@@ -363,7 +363,7 @@ export const StepsCreatorRegister=({
             <FieldError message={fieldErrors.password} />
           </HtmlInput>
         </div>
-        <label className="mt-6 flex items-center gap-3 text-sm font-medium text-[#65758f]">
+        <label className="mt-6 flex items-center gap-3 text-sm font-medium text-ink-muted">
           <input type="checkbox" checked={form.acceptedTerms} onChange={onTermsChange} className="h-4 w-4 rounded border-[#9aa7ba]" required />
           I agree to the <Link className="text-[#6f80ff]" to="/creative-services-terms">Terms of Service</Link> & <Link className="text-[#6f80ff]" to="/privacy-policy">Privacy Policy</Link>
         </label>
@@ -433,10 +433,10 @@ export const StepsCreatorRegister=({
         <RegisterStepHeader title="Tell us about yourself" copy="Help brands understand your audience and content." />
         <div className="mt-8 grid gap-5">
           <label className="block">
-            <span className="mb-2 block text-xs font-semibold text-[#202337]">Creator Category</span>
+            <span className="mb-2 block text-xs font-semibold text-ink-strong">Creator Category</span>
             <span className="relative block">
               <Grid2X2 className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#707b91]" />
-              <select value={form.category} onChange={onFieldChange("category")} className="h-12 w-full appearance-none rounded-xl border border-[#e0e0e0] bg-white px-10 text-sm font-medium text-[#202337] outline-none">
+              <select value={form.category} onChange={onFieldChange("category")} className="h-12 w-full appearance-none rounded-xl border border-[#e0e0e0] bg-white px-10 text-sm font-medium text-ink-strong outline-none">
                 {categoryOptions.map((category) => <option key={category} value={category}>{category || "Select creator category"}</option>)}
               </select>
               <ChevronDown className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#707b91]" />
@@ -446,10 +446,10 @@ export const StepsCreatorRegister=({
           <AddressComposer location={form.location} onChange={onLocationChange} />
           <FieldError message={fieldErrors.location} />
           <label className="block">
-            <span className="mb-2 block text-xs font-semibold text-[#202337]">Gender</span>
+            <span className="mb-2 block text-xs font-semibold text-ink-strong">Gender</span>
             <span className="relative block">
               <User className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#707b91]" />
-              <select value={form.gender} onChange={onFieldChange("gender")} className="h-12 w-full appearance-none rounded-xl border border-[#e0e0e0] bg-white px-10 text-sm font-medium text-[#202337] outline-none">
+              <select value={form.gender} onChange={onFieldChange("gender")} className="h-12 w-full appearance-none rounded-xl border border-[#e0e0e0] bg-white px-10 text-sm font-medium text-ink-strong outline-none">
                 {genderOptions.map((gender) => <option key={gender} value={gender}>{gender || "Select gender"}</option>)}
               </select>
               <ChevronDown className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#707b91]" />
@@ -457,9 +457,9 @@ export const StepsCreatorRegister=({
           </label>
           <FieldError message={fieldErrors.gender} />
           <label className="block">
-            <span className="mb-2 block text-xs font-semibold text-[#202337]">Short Bio</span>
+            <span className="mb-2 block text-xs font-semibold text-ink-strong">Short Bio</span>
             <textarea
-              className="h-36 w-full resize-none rounded-xl border border-[#e0e0e0] bg-white p-4 text-sm font-medium leading-relaxed text-[#202337] outline-none focus:border-[#7082f9] focus:ring-4 focus:ring-[#7082f9]/10"
+              className="h-36 w-full resize-none rounded-xl border border-[#e0e0e0] bg-white p-4 text-sm font-medium leading-relaxed text-ink-strong outline-none focus:border-[#7082f9] focus:ring-4 focus:ring-[#7082f9]/10"
               value={form.bio}
               onChange={onFieldChange("bio")}
               maxLength={200}
@@ -469,9 +469,9 @@ export const StepsCreatorRegister=({
             <FieldError message={fieldErrors.bio} />
           </label>
           <label className="block">
-            <span className="mb-2 block text-xs font-semibold text-[#202337]">About</span>
+            <span className="mb-2 block text-xs font-semibold text-ink-strong">About</span>
             <textarea
-              className="h-32 w-full resize-none rounded-xl border border-[#e0e0e0] bg-white p-4 text-sm font-medium leading-relaxed text-[#202337] outline-none focus:border-[#7082f9] focus:ring-4 focus:ring-[#7082f9]/10"
+              className="h-32 w-full resize-none rounded-xl border border-[#e0e0e0] bg-white p-4 text-sm font-medium leading-relaxed text-ink-strong outline-none focus:border-[#7082f9] focus:ring-4 focus:ring-[#7082f9]/10"
               value={form.about}
               onChange={onFieldChange("about")}
               maxLength={400}
@@ -501,7 +501,7 @@ export const StepsCreatorRegister=({
               />
             ))}
           </div>
-          <span className="mb-3 mt-5 block text-xs font-semibold text-[#202337]">Content language</span>
+          <span className="mb-3 mt-5 block text-xs font-semibold text-ink-strong">Content language</span>
           <FieldError message={fieldErrors.collaboration_preferences} />
           <div className="flex flex-wrap gap-2">
             {languageOptions.map((language) => (

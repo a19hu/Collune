@@ -116,13 +116,13 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
             Social media pricing
           </h2>
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-[#eaf0ff] px-3 py-1 text-xs font-black text-[#173ca8]">
+          <span className="rounded-full bg-[#eaf0ff] px-3 py-1 text-xs font-black text-brand-primary">
             {pricing.filter((item) => item.is_visible).length} public
           </span>
           <button
             type="button"
             onClick={openAdd}
-            className="rounded-[6px] bg-[#2447bd] px-3 py-2 text-xs font-black text-white"
+            className="rounded-[6px] bg-brand-primary px-3 py-2 text-xs font-black text-white"
           >
             Add price
           </button>
@@ -137,7 +137,7 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
         <table 
         className="w-full min-w-[820px] text-left text-sm"
         >
-          <thead className="bg-[#f8faff] text-xs font-black uppercase tracking-wide text-[#63708a]">
+          <thead className="bg-surface-page text-xs font-black uppercase tracking-wide text-ink-muted">
             <tr>
               <th className="px-4 py-3">Platform</th>
               <th className="px-4 py-3">Service</th>
@@ -150,7 +150,7 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
           </thead>
           <tbody className="divide-y divide-[#e5eaf2]">
             {pricing.map((item) => (
-              <tr key={item.id} className="text-[#25304a]">
+              <tr key={item.id} className="text-ink-strong">
                 <td className="px-4 py-3 font-bold">{item.platform}</td>
                 <td className="px-4 py-3">{item.service}</td>
                 <td className="px-4 py-3 font-black">
@@ -160,7 +160,7 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
                 <td className="px-4 py-3">{item.notes || '—'}</td>
                 <td className="px-4 py-3">
                   <span
-                    className={`rounded-full px-2 py-1 text-xs font-black ${item.is_visible ? 'bg-[#ddfbea] text-[#067647]' : 'bg-[#eef1f6] text-[#63708a]'}`}
+                    className={`rounded-full px-2 py-1 text-xs font-black ${item.is_visible ? 'bg-[#ddfbea] text-feedback-success' : 'bg-[#eef1f6] text-ink-muted'}`}
                   >
                     {item.is_visible ? 'Public' : 'Private'}
                   </span>
@@ -171,7 +171,7 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
                       type="button"
                       onClick={() => openEdit(item)}
                       aria-label={`Edit ${item.service}`}
-                      className="grid h-8 w-8 place-items-center rounded-[6px] border border-[#c9d7ff] text-[#173ca8]"
+                      className="grid h-8 w-8 place-items-center rounded-[6px] border border-[#c9d7ff] text-brand-primary"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
@@ -180,7 +180,7 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
                       onClick={() => void remove(item.id)}
                       disabled={saving}
                       aria-label={`Delete ${item.service}`}
-                      className="grid h-8 w-8 place-items-center rounded-[6px] border border-[#f5c2c7] text-[#b42318]"
+                      className="grid h-8 w-8 place-items-center rounded-[6px] border border-[#f5c2c7] text-feedback-danger"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -192,7 +192,7 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
               <tr>
                 <td
                   colSpan={7}
-                  className="px-4 py-10 text-center font-semibold text-[#63708a]"
+                  className="px-4 py-10 text-center font-semibold text-ink-muted"
                 >
                   No pricing entries yet.
                 </td>
@@ -215,7 +215,7 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
               <button
                 type="button"
                 onClick={closeDialog}
-                className="text-sm font-bold text-[#63708a]"
+                className="text-sm font-bold text-ink-muted"
               >
                 Cancel
               </button>
@@ -232,7 +232,7 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
                       service: '',
                     }))
                   }
-                  className="h-11 rounded-[6px] border border-[#d7deea] bg-white px-3 text-sm"
+                  className="h-11 rounded-[6px] border border-border-default bg-white px-3 text-sm"
                 >
                   <option value="">Select platform</option>
                   {platforms.map((platform) => (
@@ -253,7 +253,7 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
                       service: event.target.value,
                     }))
                   }
-                  className="h-11 rounded-[6px] border border-[#d7deea] bg-white px-3 text-sm disabled:bg-slate-100"
+                  className="h-11 rounded-[6px] border border-border-default bg-white px-3 text-sm disabled:bg-slate-100"
                 >
                   <option value="">Select service</option>
                   {services.map((item) => (
@@ -275,7 +275,7 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
                       price: Number(event.target.value),
                     }))
                   }
-                  className="h-11 rounded-[6px] border border-[#d7deea] px-3 text-sm"
+                  className="h-11 rounded-[6px] border border-border-default px-3 text-sm"
                 />
               </label>
               <label className="grid gap-2 text-sm font-bold">
@@ -289,7 +289,7 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
                         .value as PricingForm['pricing_type'],
                     }))
                   }
-                  className="h-11 rounded-[6px] border border-[#d7deea] bg-white px-3 text-sm"
+                  className="h-11 rounded-[6px] border border-border-default bg-white px-3 text-sm"
                 >
                   <option value="FIXED_PRICE">Fixed Price</option>
                   <option value="STARTING_FROM">Starting From</option>
@@ -307,7 +307,7 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
                       notes: event.target.value,
                     }))
                   }
-                  className="h-11 rounded-[6px] border border-[#d7deea] px-3 text-sm"
+                  className="h-11 rounded-[6px] border border-border-default px-3 text-sm"
                 />
               </label>
               <label className="flex items-end gap-2 pb-3 text-sm font-bold">
@@ -328,7 +328,7 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
               <button
                 type="button"
                 onClick={closeDialog}
-                className="h-10 rounded-[6px] border border-[#d7deea] px-4 text-sm font-black"
+                className="h-10 rounded-[6px] border border-border-default px-4 text-sm font-black"
               >
                 Cancel
               </button>
@@ -336,7 +336,7 @@ export function SocialMediaPricing({ pricing, rateCards, onChange }: Props) {
                 type="button"
                 onClick={() => void save()}
                 disabled={saving || !form.platform || !form.service}
-                className="h-10 rounded-[6px] bg-[#2447bd] px-4 text-sm font-black text-white disabled:opacity-60"
+                className="h-10 rounded-[6px] bg-brand-primary px-4 text-sm font-black text-white disabled:opacity-60"
               >
                 {saving ? 'Saving...' : editing ? 'Save changes' : 'Add price'}
               </button>

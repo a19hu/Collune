@@ -22,7 +22,7 @@ type SubmittedWorkItem = {
 };
 
 const statusClasses: Record<SubmittedWorkItem['status'], string> = {
-  Submitted: 'bg-[#eaf0ff] text-[#3048ff]',
+  Submitted: 'bg-[#eaf0ff] text-brand-primary',
   'Under Review': 'bg-[#fff4d6] text-[#a46500]',
   Approved: 'bg-[#cbf8df] text-[#00a875]',
   'Revision Requested': 'bg-[#ffe6e9] text-[#c0354b]',
@@ -76,24 +76,24 @@ export function SubmittedWork() {
 
   return (
     <main className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
-      <div className="rounded-lg border border-[#dfe6f0] bg-white p-5 shadow-[0_2px_4px_rgba(20,30,60,0.02)] sm:p-6">
+      <div className="rounded-lg border border-border-default bg-white p-5 shadow-[0_2px_4px_rgba(20,30,60,0.02)] sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-xl font-black text-[#1d2430]">
+            <h1 className="text-xl font-black text-ink-strong">
               Submitted Work
             </h1>
-            <p className="mt-1 text-sm font-medium text-[#65758f]">
+            <p className="mt-1 text-sm font-medium text-ink-muted">
               Track the content you have submitted for your campaigns.
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="rounded-full bg-[#eaf0ff] px-3 py-1 text-xs font-black text-[#3048ff]">
+            <span className="rounded-full bg-[#eaf0ff] px-3 py-1 text-xs font-black text-brand-primary">
               {submittedWork.length} submissions
             </span>
             <button
               type="button"
               onClick={() => navigate('/creator/submitted-work/add')}
-              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#5168ff] px-3 text-xs font-black text-white hover:bg-[#4056e5]"
+              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-brand-primary px-3 text-xs font-black text-white hover:bg-[#4056e5]"
             >
               <Plus className="h-4 w-4" /> Add submitted work
             </button>
@@ -107,7 +107,7 @@ export function SubmittedWork() {
           className="mt-6 max-w-full overflow-x-auto overscroll-x-contain rounded-lg border border-[#dbe3ee]"
         >
           <table className="w-full min-w-[1180px] text-left text-sm">
-            <thead className="bg-[#f8faff] text-xs font-black uppercase tracking-wide text-[#63708a]">
+            <thead className="bg-surface-page text-xs font-black uppercase tracking-wide text-ink-muted">
               <tr>
                 <th className="px-4 py-3">Campaign Name</th>
                 <th className="px-4 py-3">Brand Name</th>
@@ -123,14 +123,14 @@ export function SubmittedWork() {
               {isLoading ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-10 text-center">
-                    <Loader2 className="mx-auto h-5 w-5 animate-spin text-[#5168ff]" />
+                    <Loader2 className="mx-auto h-5 w-5 animate-spin text-brand-primary" />
                   </td>
                 </tr>
               ) : (
                 submittedWork.map((item) => (
                   <tr
                     key={item.id}
-                    className="text-[#25304a] hover:bg-[#fbfcff]"
+                    className="text-ink-strong hover:bg-[#fbfcff]"
                   >
                     <td className="px-4 py-4 font-bold">
                       <button
@@ -138,7 +138,7 @@ export function SubmittedWork() {
                         onClick={() =>
                           navigate(`/creator/marketplace/${item.campaignId}`)
                         }
-                        className="hover:text-[#3048ff] hover:underline"
+                        className="hover:text-brand-primary hover:underline"
                       >
                         {item.campaignName}
                       </button>
@@ -147,7 +147,7 @@ export function SubmittedWork() {
                       <button
                         type="button"
                         onClick={() => navigate(`/brands/${item.brandId}`)}
-                        className="hover:text-[#3048ff] hover:underline"
+                        className="hover:text-brand-primary hover:underline"
                       >
                         {item.brandName}
                       </button>
@@ -160,7 +160,7 @@ export function SubmittedWork() {
                         target="_blank"
                         rel="noreferrer"
                         aria-label={`View submitted work for ${item.campaignName}`}
-                        className="inline-flex h-8 items-center  font-black text-[#173ca8] "
+                        className="inline-flex h-8 items-center  font-black text-brand-primary "
                       >{item.submittedLink}
                       </a>
                     </td>
@@ -178,7 +178,7 @@ export function SubmittedWork() {
                       <button
                         type="button"
                         onClick={() => setSelectedWork(item)}
-                        className="inline-flex max-w-full items-center gap-1 truncate font-semibold text-[#3048ff] hover:underline"
+                        className="inline-flex max-w-full items-center gap-1 truncate font-semibold text-brand-primary hover:underline"
                       >
                         <Eye className="h-3.5 w-3.5" /> View
                       </button>
@@ -190,7 +190,7 @@ export function SubmittedWork() {
                 <tr>
                   <td
                     colSpan={8}
-                    className="px-4 py-10 text-center font-semibold text-[#65758f]"
+                    className="px-4 py-10 text-center font-semibold text-ink-muted"
                   >
                     No submitted work yet. Add work for an accepted campaign to
                     get started.
@@ -210,10 +210,10 @@ export function SubmittedWork() {
           >
             <div className="flex justify-between gap-4">
               <div>
-                <h2 className="text-xl font-black text-[#1d2430]">
+                <h2 className="text-xl font-black text-ink-strong">
                   Submission details
                 </h2>
-                <p className="mt-1 text-sm text-[#65758f]">
+                <p className="mt-1 text-sm text-ink-muted">
                   {selectedWork.campaignName} · {selectedWork.brandName}
                 </p>
               </div>
@@ -221,7 +221,7 @@ export function SubmittedWork() {
                 type="button"
                 onClick={() => setSelectedWork(null)}
                 aria-label="Close"
-                className="text-[#65758f]"
+                className="text-ink-muted"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -246,7 +246,7 @@ export function SubmittedWork() {
                   {selectedWork.creatorRemarks}
                 </p>
               ) : null}
-              <div className="rounded-lg bg-[#f8faff] p-4">
+              <div className="rounded-lg bg-surface-page p-4">
                 <strong>Brand comment</strong>
                 <p className="mt-1">
                   {selectedWork.brandComment ||
@@ -257,7 +257,7 @@ export function SubmittedWork() {
                 href={selectedWork.submittedLink}
                 target="_blank"
                 rel="noreferrer"
-                className="font-bold text-[#3048ff] hover:underline"
+                className="font-bold text-brand-primary hover:underline"
               >
                 Open published content
               </a>
@@ -266,7 +266,7 @@ export function SubmittedWork() {
                   href={selectedWork.screenshotUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="font-bold text-[#3048ff] hover:underline"
+                  className="font-bold text-brand-primary hover:underline"
                 >
                   View screenshot / proof
                 </a>
@@ -276,7 +276,7 @@ export function SubmittedWork() {
                   href={selectedWork.attachmentUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="font-bold text-[#3048ff] hover:underline"
+                  className="font-bold text-brand-primary hover:underline"
                 >
                   Download attachment
                 </a>

@@ -50,8 +50,8 @@ export default function SavedCreators() {
     return (
       <Panel className="grid min-h-[306px] place-items-center p-8 text-center">
         <div>
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#5168ff]" />
-          <p className="mt-4 text-sm font-black text-[#1d2430]">Loading saved creators...</p>
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-brand-primary" />
+          <p className="mt-4 text-sm font-black text-ink-strong">Loading saved creators...</p>
         </div>
       </Panel>
     );
@@ -62,8 +62,8 @@ export default function SavedCreators() {
       <Panel className="grid min-h-[306px] place-items-center p-8 text-center">
         <div>
           <AlertCircle className="mx-auto h-8 w-8 text-[#d23b3b]" />
-          <h2 className="mt-4 text-xl font-black text-[#1d2430]">Saved creators could not be loaded</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm font-medium text-[#65758f]">{error}</p>
+          <h2 className="mt-4 text-xl font-black text-ink-strong">Saved creators could not be loaded</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm font-medium text-ink-muted">{error}</p>
         </div>
       </Panel>
     );
@@ -73,9 +73,9 @@ export default function SavedCreators() {
     return (
       <Panel className="grid min-h-[306px] place-items-center p-8 text-center">
         <div>
-          <AlertCircle className="mx-auto h-8 w-8 text-[#5168ff]" />
-          <h2 className="mt-4 text-xl font-black text-[#1d2430]">No saved creators yet</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm font-medium text-[#65758f]">
+          <AlertCircle className="mx-auto h-8 w-8 text-brand-primary" />
+          <h2 className="mt-4 text-xl font-black text-ink-strong">No saved creators yet</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm font-medium text-ink-muted">
             Creators you save will appear here.
           </p>
         </div>

@@ -32,10 +32,10 @@ export function CreatorComparison({ creators, onRemove }: { creators: CreatorLis
         <caption className="sr-only">Side-by-side comparison of {creators.length} creators. Scroll horizontally to view all creators.</caption>
         <thead>
           <tr>
-            <th scope="col" className="sticky left-0 top-0 z-30 min-w-40 border-b border-r border-[#d8e2fb] bg-[#eef2ff] p-4">Compare creators</th>
+            <th scope="col" className="sticky left-0 top-0 z-30 min-w-40 border-b border-r border-[#d8e2fb] bg-brand-accent-soft p-4">Compare creators</th>
             {creators.map((creator) => (
-              <th key={creator.creator_id} scope="col" className="sticky top-0 z-20 min-w-52 max-w-64 border-b border-r border-[#d8e2fb] bg-[#eef2ff] p-4 align-top">
-                <Link to={`/creators/${creator.creator_id}`} className="font-black text-[#1438c8] hover:underline">{creator.display_name}</Link>
+              <th key={creator.creator_id} scope="col" className="sticky top-0 z-20 min-w-52 max-w-64 border-b border-r border-[#d8e2fb] bg-brand-accent-soft p-4 align-top">
+                <Link to={`/creators/${creator.creator_id}`} className="font-black text-brand-primary hover:underline">{creator.display_name}</Link>
                 {creator.username ? <p className="mt-1 break-words text-xs font-medium">@{creator.username.replace(/^@/, "")}</p> : null}
                 <button type="button" aria-label={`Remove ${creator.display_name} from comparison`} onClick={() => onRemove(creator.creator_id!)} className="mt-3 rounded border border-[#d8e2fb] bg-white px-2 py-1 text-xs font-bold hover:bg-[#e0e7ff]">Remove</button>
               </th>

@@ -86,7 +86,7 @@ export function ShortlistDetail({
               <h1 className="text-[34px] font-black leading-tight tracking-normal text-[#333b4a]">{shortlist.title}</h1>
               <StatusBadge status={shortlist.status} />
             </div>
-            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[15px] font-medium text-[#657084]">
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[15px] font-medium text-ink-muted">
               <span>{shortlist.creators.length} Creators</span>
               <span>•</span>
               <span>Created on {shortlist.createdAt}</span>
@@ -99,7 +99,7 @@ export function ShortlistDetail({
           <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate(`/brand/shortlists/${shortlist.id}/edit`)}
-                type="button" className="inline-flex h-11 items-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-5 text-sm font-black text-[#303948]">
+                type="button" className="inline-flex h-11 items-center gap-2 rounded-lg border border-border-default bg-white px-5 text-sm font-black text-[#303948]">
                 <Edit3 className="h-4 w-4" />
                 Edit Shortlist
               </button>
@@ -125,20 +125,20 @@ export function ShortlistDetail({
         />
         <ShortlistPanel className="min-h-[220px] p-6">
           <h2 className="text-lg font-black text-[#333b4a]">Status</h2>
-          <p className="mt-5 text-[15px] font-medium leading-relaxed text-[#6d7688]">
+          <p className="mt-5 text-[15px] font-medium leading-relaxed text-ink-muted">
             This shortlist is in {shortlist.status.toLowerCase()} mode. Add creators and submit to Collune when you're ready.
           </p>
           {
             shortlist.status === "Submitted" ?
-            <button type="button" disabled className="mt-5 h-12 w-full rounded-lg bg-[#173ca8] text-sm font-black text-white">
+            <button type="button" disabled className="mt-5 h-12 w-full rounded-lg bg-brand-primary text-sm font-black text-white">
             Submitted
           </button> :
-            <button type="button" onClick={onSubmit} className="mt-5 h-12 w-full rounded-lg bg-[#173ca8] text-sm font-black text-white">
+            <button type="button" onClick={onSubmit} className="mt-5 h-12 w-full rounded-lg bg-brand-primary text-sm font-black text-white">
             Submit to Collune
           </button>
           }
           
-          {/* <button type="button" onClick={onSave} className="mt-4 w-full text-sm font-black text-[#173ca8]">
+          {/* <button type="button" onClick={onSave} className="mt-4 w-full text-sm font-black text-brand-primary">
             Save Changes
           </button> */}
         </ShortlistPanel>
@@ -160,7 +160,7 @@ export function ShortlistDetail({
         <div className="mb-7 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-[26px] font-black tracking-normal text-[#333b4a]">Creators in this Shortlist ({shortlist.creators.length})</h2>
-            <p className="mt-6 text-base font-medium text-[#6d7688]">These are the creators you've added to this shortlist.</p>
+            <p className="mt-6 text-base font-medium text-ink-muted">These are the creators you've added to this shortlist.</p>
           </div>
           <div className="flex flex-wrap items-center gap-4">
             <label className="relative block">
@@ -169,7 +169,7 @@ export function ShortlistDetail({
                 value={search}
                 onChange={(event) => onSearch(event.target.value)}
                 placeholder="Search creators..."
-                className="h-10 w-[260px] rounded-lg border border-[#dfe5ee] pl-11 pr-4 text-sm font-medium outline-none focus:border-[#6a75ff] focus:ring-4 focus:ring-[#6a75ff]/10"
+                className="h-10 w-[260px] rounded-lg border border-[#dfe5ee] pl-11 pr-4 text-sm font-medium outline-none focus:border-brand-primary focus:ring-4 focus:ring-[#6a75ff]/10"
               />
             </label>
           </div>
@@ -182,10 +182,10 @@ export function ShortlistDetail({
           {visibleCreators.length === 0 ? (
             <ShortlistPanel className="grid min-h-[260px] place-items-center p-8 text-center xl:col-span-2">
               <div>
-                <Search className="mx-auto h-8 w-8 text-[#7b83ff]" />
+                <Search className="mx-auto h-8 w-8 text-brand-primary" />
                 <h3 className="mt-4 text-lg font-black text-[#333b4a]">No creators found</h3>
-                <p className="mt-2 text-sm font-medium text-[#6d7688]">Try a different search or discover more creators.</p>
-                <button type="button" onClick={onDiscover} className="mt-5 inline-flex h-10 items-center gap-2 rounded-lg bg-[#173ca8] px-5 text-sm font-black text-white">
+                <p className="mt-2 text-sm font-medium text-ink-muted">Try a different search or discover more creators.</p>
+                <button type="button" onClick={onDiscover} className="mt-5 inline-flex h-10 items-center gap-2 rounded-lg bg-brand-primary px-5 text-sm font-black text-white">
                   <Plus className="h-4 w-4" />
                   Add Creators
                 </button>

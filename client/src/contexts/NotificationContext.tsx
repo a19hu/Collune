@@ -281,7 +281,7 @@ export function NotificationBell() {
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
-        className="relative grid h-12 w-12 place-items-center rounded-2xl border border-[#dce5fb] bg-[#f7f9ff] text-[#214bc0] transition hover:bg-[#eef3ff]"
+        className="relative grid h-12 w-12 place-items-center rounded-2xl border border-[#dce5fb] bg-[#f7f9ff] text-[#214bc0] transition hover:bg-brand-accent-soft"
         aria-label="Notifications"
       >
         <Bell className="h-5 w-5" />
@@ -295,8 +295,8 @@ export function NotificationBell() {
       <div className={`${isOpen ? 'visible opacity-100 translate-y-0' : 'invisible opacity-0 -translate-y-1'} absolute right-0 top-[calc(100%+10px)] z-40 w-[min(92vw,24rem)] rounded-3xl border border-[#dce5fb] bg-white p-3 shadow-[0_18px_40px_rgba(45,66,140,0.14)] transition`}>
         <div className="mb-3 flex items-center justify-between px-2 py-1">
           <div>
-            <p className="text-sm font-black text-[#173ca8]">Notifications</p>
-            <p className="text-xs text-[#667085]">{unreadCount} unread</p>
+            <p className="text-sm font-black text-brand-primary">Notifications</p>
+            <p className="text-xs text-ink-muted">{unreadCount} unread</p>
           </div>
           <button
             type="button"
@@ -308,30 +308,30 @@ export function NotificationBell() {
           </button>
         </div>
 
-        <div className="mb-3 space-y-2 rounded-2xl border border-[#e5eaf6] bg-[#f8faff] p-3">
+        <div className="mb-3 space-y-2 rounded-2xl border border-[#e5eaf6] bg-surface-page p-3">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-black text-[#173ca8]">Sound alerts</p>
-              <p className="text-[11px] text-[#667085]">Play different sounds for chat and other notifications.</p>
+              <p className="text-xs font-black text-brand-primary">Sound alerts</p>
+              <p className="text-[11px] text-ink-muted">Play different sounds for chat and other notifications.</p>
             </div>
             <button
               type="button"
               onClick={toggleMuted}
-              className={`rounded-full px-3 py-1 text-[11px] font-black ${muted ? 'bg-[#fee4e2] text-[#b42318]' : 'bg-[#dcfae6] text-[#067647]'}`}
+              className={`rounded-full px-3 py-1 text-[11px] font-black ${muted ? 'bg-[#fee4e2] text-feedback-danger' : 'bg-[#dcfae6] text-feedback-success'}`}
             >
               {muted ? 'Muted' : 'On'}
             </button>
           </div>
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-black text-[#173ca8]">Desktop popups</p>
-              <p className="text-[11px] text-[#667085]">Show browser notifications when new messages arrive.</p>
+              <p className="text-xs font-black text-brand-primary">Desktop popups</p>
+              <p className="text-[11px] text-ink-muted">Show browser notifications when new messages arrive.</p>
             </div>
             {desktopPermission === 'granted' ? (
               <button
                 type="button"
                 onClick={toggleDesktopEnabled}
-                className={`rounded-full px-3 py-1 text-[11px] font-black ${desktopEnabled ? 'bg-[#dcfae6] text-[#067647]' : 'bg-[#f2f4f7] text-[#344054]'}`}
+                className={`rounded-full px-3 py-1 text-[11px] font-black ${desktopEnabled ? 'bg-[#dcfae6] text-feedback-success' : 'bg-[#f2f4f7] text-[#344054]'}`}
               >
                 {desktopEnabled ? 'Enabled' : 'Off'}
               </button>
@@ -348,9 +348,9 @@ export function NotificationBell() {
         </div>
 
         <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
-          {isLoading ? <p className="px-2 py-8 text-center text-sm text-[#667085]">Loading notifications...</p> : null}
-          {isLoading || isUnreadLoading ? <p className="px-2 py-8 text-center text-sm text-[#667085]">Loading notifications...</p> : null}
-          {!isLoading && !isUnreadLoading && unreadNotifications.length === 0 ? <p className="px-2 py-8 text-center text-sm text-[#667085]">No unread notifications.</p> : null}
+          {isLoading ? <p className="px-2 py-8 text-center text-sm text-ink-muted">Loading notifications...</p> : null}
+          {isLoading || isUnreadLoading ? <p className="px-2 py-8 text-center text-sm text-ink-muted">Loading notifications...</p> : null}
+          {!isLoading && !isUnreadLoading && unreadNotifications.length === 0 ? <p className="px-2 py-8 text-center text-sm text-ink-muted">No unread notifications.</p> : null}
           {!isLoading && !isUnreadLoading
             ? unreadNotifications.map((notification) => (
                 <button
@@ -367,8 +367,8 @@ export function NotificationBell() {
                   className={`block w-full rounded-2xl border px-4 py-3 text-left transition ${notification.is_read ? 'border-[#edf1fb] bg-white' : 'border-[#dbe7ff] bg-[#f5f8ff]'}`}
                 >
                   <div className="mb-1 flex items-start justify-between gap-3">
-                    <p className="text-sm font-black text-[#173ca8]">{notification.title}</p>
-                    <span className="shrink-0 text-[11px] text-[#667085]">{formatTimeLabel(notification.created_at)}</span>
+                    <p className="text-sm font-black text-brand-primary">{notification.title}</p>
+                    <span className="shrink-0 text-[11px] text-ink-muted">{formatTimeLabel(notification.created_at)}</span>
                   </div>
                   <p className="text-sm text-[#475467]">{notification.message}</p>
                 </button>

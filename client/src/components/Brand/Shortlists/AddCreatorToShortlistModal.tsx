@@ -103,12 +103,12 @@ export function AddCreatorToShortlistModal({
       <section className="w-full max-w-xl rounded-xl bg-white shadow-[0_24px_60px_rgba(15,23,42,0.22)]">
         <header className="flex items-start justify-between gap-4 border-b border-[#e5ebf3] p-6">
           <div>
-            <h2 className="text-xl font-black text-[#1d2430]">Add to Shortlist</h2>
-            <p className="mt-2 text-sm font-medium text-[#65758f]">
+            <h2 className="text-xl font-black text-ink-strong">Add to Shortlist</h2>
+            <p className="mt-2 text-sm font-medium text-ink-muted">
               Choose one or multiple shortlists for {creatorName(creator)}.
             </p>
           </div>
-          <button type="button" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg text-[#65758f]" aria-label="Close">
+          <button type="button" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg text-ink-muted" aria-label="Close">
             <X className="h-5 w-5" />
           </button>
         </header>
@@ -118,7 +118,7 @@ export function AddCreatorToShortlistModal({
           {success ? <p className="mb-4 rounded-lg bg-[#e8f8ef] px-4 py-3 text-sm font-semibold text-[#0b9150]">{success}</p> : null}
 
           {isLoading ? (
-            <div className="grid min-h-40 place-items-center text-sm font-semibold text-[#65758f]">
+            <div className="grid min-h-40 place-items-center text-sm font-semibold text-ink-muted">
               <span className="inline-flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Loading shortlists...
@@ -140,17 +140,17 @@ export function AddCreatorToShortlistModal({
                       alreadyAdded
                         ? "border-[#e5ebf3] bg-[#f6f7fa] opacity-70"
                         : isSelected
-                          ? "border-[#4b22ff] bg-[#f7f4ff]"
-                          : "border-[#e5ebf3] bg-white hover:border-[#4b22ff]"
+                          ? "border-brand-primary bg-[#f7f4ff]"
+                          : "border-[#e5ebf3] bg-white hover:border-brand-primary"
                     }`}
                   >
                     <span>
-                      <strong className="block text-sm font-black text-[#1d2430]">{shortlist.title}</strong>
+                      <strong className="block text-sm font-black text-ink-strong">{shortlist.title}</strong>
                       <span className="mt-1 block text-sm font-medium text-[#7d8aa0]">
                         {(shortlist.creators || []).length} creators • {alreadyAdded ? "Already added" : shortlist.status}
                       </span>
                     </span>
-                    <span className={`grid h-6 w-6 place-items-center rounded-md border ${isSelected || alreadyAdded ? "border-[#4b22ff] bg-[#4b22ff] text-white" : "border-[#cbd5e1] text-transparent"}`}>
+                    <span className={`grid h-6 w-6 place-items-center rounded-md border ${isSelected || alreadyAdded ? "border-brand-primary bg-brand-primary text-white" : "border-[#cbd5e1] text-transparent"}`}>
                       <Check className="h-4 w-4" />
                     </span>
                   </button>
@@ -158,25 +158,25 @@ export function AddCreatorToShortlistModal({
               })}
             </div>
           ) : (
-            <p className="rounded-lg bg-[#f6f7fa] px-4 py-5 text-center text-sm font-semibold text-[#65758f]">
+            <p className="rounded-lg bg-[#f6f7fa] px-4 py-5 text-center text-sm font-semibold text-ink-muted">
               No shortlists found. Create a shortlist first, then add creators to it.
             </p>
           )}
         </div>
 
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e5ebf3] p-6">
-          <p className="text-sm font-semibold text-[#65758f]">
+          <p className="text-sm font-semibold text-ink-muted">
             {availableShortlists.length} shortlist{availableShortlists.length === 1 ? "" : "s"} available
           </p>
           <div className="flex items-center gap-3">
-            <button type="button" onClick={onClose} className="h-11 rounded-lg border border-[#d8e2fb] px-5 text-sm font-black text-[#173ca8]">
+            <button type="button" onClick={onClose} className="h-11 rounded-lg border border-[#d8e2fb] px-5 text-sm font-black text-brand-primary">
               Close
             </button>
             <button
               type="button"
               disabled={!selectedIds.length || isSaving}
               onClick={addToSelectedShortlists}
-              className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#173ca8] px-5 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand-primary px-5 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Add to Selected

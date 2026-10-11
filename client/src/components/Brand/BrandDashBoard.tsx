@@ -85,12 +85,12 @@ const BrandDashBoard = () => {
 <>
       <div className="grid gap-6 xl:grid-cols-4">
         {metrics.map((metric) => <Panel className="min-h-[224px] p-7">
-          <span className="grid h-12 w-12 place-items-center rounded-full bg-[#ebe5ff] text-[#6a75ff]">
+          <span className="grid h-12 w-12 place-items-center rounded-full bg-[#ebe5ff] text-brand-primary">
             <metric.icon className="h-6 w-6" />
           </span>
-          <p className="mt-6 text-base font-medium text-[#657084]">{metric.label}</p>
+          <p className="mt-6 text-base font-medium text-ink-muted">{metric.label}</p>
           <strong className="mt-3 block text-[46px] font-black leading-none text-black">{metric.value}</strong>
-          <button type="button" onClick={() => navigate(metric.link)} className="mt-6 inline-flex items-center gap-2 text-base font-black text-[#7b83ff]">
+          <button type="button" onClick={() => navigate(metric.link)} className="mt-6 inline-flex items-center gap-2 text-base font-black text-brand-primary">
             {metric.ctaLabel} <ArrowRight className="h-4 w-4" />
           </button>
         </Panel>)}
@@ -104,7 +104,7 @@ const BrandDashBoard = () => {
               <Panel className="grid min-h-[294px] place-items-center p-8 text-center xl:col-span-3">
                 <div>
                   <h3 className="text-[21px] font-black text-black">No active campaigns</h3>
-                  <p className="mx-auto mt-3 max-w-[320px] text-base font-medium leading-snug text-[#657084]">
+                  <p className="mx-auto mt-3 max-w-[320px] text-base font-medium leading-snug text-ink-muted">
                     Active campaigns from your backend will appear here after you publish one.
                   </p>
                 </div>
@@ -131,7 +131,7 @@ const BrandDashBoard = () => {
               <Panel className="grid min-h-[294px] place-items-center p-8 text-center xl:col-span-3">
                 <div>
                   <h3 className="text-[21px] font-black text-black">No submitted shortlists</h3>
-                  <p className="mx-auto mt-3 max-w-[320px] text-base font-medium leading-snug text-[#657084]">
+                  <p className="mx-auto mt-3 max-w-[320px] text-base font-medium leading-snug text-ink-muted">
                     Submitted shortlists from your backend will appear here.
                   </p>
                 </div>
@@ -177,7 +177,7 @@ function SectionHeader({ title, path }: { title: string; path?: string }) {
   return (
     <div className="mb-7 flex items-center justify-between gap-4">
       <h3 className="text-[26px] font-black tracking-normal text-black font-bold">{title}</h3>
-      {path ? <button type="button" onClick={() => navigate(path)} className="text-base font-black text-[#7b83ff]">View all</button> : null}
+      {path ? <button type="button" onClick={() => navigate(path)} className="text-base font-black text-brand-primary">View all</button> : null}
     </div>
   );
 }

@@ -189,7 +189,7 @@ export function ShortlistCreateForm() {
       }}
     >
       {isLoading ? (
-        <CampaignPanel className="p-8 text-center text-sm font-black text-[#63728a]">Loading shortlist...</CampaignPanel>
+        <CampaignPanel className="p-8 text-center text-sm font-black text-ink-muted">Loading shortlist...</CampaignPanel>
       ) : null}
 
       <CampaignSection index={1} title="Shortlist Title" copy="Give this creator shortlist a clear name.">
@@ -221,7 +221,7 @@ export function ShortlistCreateForm() {
 
       <CampaignSection index={5} title="Shortlist Creators" copy="Choose creators to save in this shortlist now.">
         {isLoadingCreators ? (
-          <p className="text-sm font-black text-[#63728a]">Loading creators...</p>
+          <p className="text-sm font-black text-ink-muted">Loading creators...</p>
         ) : creators.length ? (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {creators.map((creator) => {
@@ -231,13 +231,13 @@ export function ShortlistCreateForm() {
                   key={creator.creator_id}
                   type="button"
                   onClick={() => toggleCreator(creator.creator_id)}
-                  className={`flex min-h-20 items-center gap-3 rounded-lg border p-4 text-left transition ${selected ? "border-[#4b22ff] bg-[#f0eaff]" : "border-[#dce5f2] bg-white"}`}
+                  className={`flex min-h-20 items-center gap-3 rounded-lg border p-4 text-left transition ${selected ? "border-brand-primary bg-[#f0eaff]" : "border-[#dce5f2] bg-white"}`}
                 >
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#173ca8] text-sm font-black text-white">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-primary text-sm font-black text-white">
                     {(creator.display_name || "C").charAt(0).toUpperCase()}
                   </span>
                   <span className="min-w-0">
-                    <strong className="block truncate text-sm font-black text-[#1d2430]">{creator.display_name}</strong>
+                    <strong className="block truncate text-sm font-black text-ink-strong">{creator.display_name}</strong>
                     <span className="mt-1 block truncate text-xs font-semibold text-[#7d8aa0]">
                       {creator.category || "Creator"} • {creator.total_followers || 0} followers
                     </span>
@@ -247,7 +247,7 @@ export function ShortlistCreateForm() {
             })}
           </div>
         ) : (
-          <p className="text-sm font-black text-[#63728a]">No creators found.</p>
+          <p className="text-sm font-black text-ink-muted">No creators found.</p>
         )}
       </CampaignSection>
 
@@ -263,7 +263,7 @@ export function ShortlistCreateForm() {
           />
         </div>
         {error ? <p className="mb-5 rounded-lg bg-[#ffe9e9] px-4 py-3 text-sm font-semibold text-[#d23b3b]">{error}</p> : null}
-        <button type="submit" disabled={isSubmitting || isLoading || isLoadingCreators} className="inline-flex h-12 items-center gap-3 rounded-lg bg-[#4b22ff] px-10 text-sm font-black text-white shadow-[0_12px_20px_rgba(75,34,255,0.18)] disabled:cursor-not-allowed disabled:opacity-70">
+        <button type="submit" disabled={isSubmitting || isLoading || isLoadingCreators} className="inline-flex h-12 items-center gap-3 rounded-lg bg-brand-primary px-10 text-sm font-black text-white shadow-[0_12px_20px_rgba(75,34,255,0.18)] disabled:cursor-not-allowed disabled:opacity-70">
           <Send className="h-5 w-5" />
           {isSubmitting ? (isEditing ? "Saving..." : "Creating...") : (isEditing ? "Save Shortlist" : "Create Shortlist")}
         </button>

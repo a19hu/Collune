@@ -187,7 +187,7 @@ export function BrandShortlists() {
       {error ? <p className="mb-6 rounded-lg bg-[#ffe9e9] px-4 py-3 text-sm font-semibold text-[#d23b3b]">{error}</p> : null}
 
       {isLoading ? (
-        <p className="text-sm font-semibold text-[#657084]">Loading shortlists...</p>
+        <p className="text-sm font-semibold text-ink-muted">Loading shortlists...</p>
       ) : shortlistId && selectedShortlist ? (
         <ShortlistDetail
           shortlist={selectedShortlist}
@@ -248,7 +248,7 @@ function Pagination({ page, totalPages, onPageChange }: { page: number; totalPag
           key={item}
           type="button"
           onClick={() => onPageChange(item)}
-          className={`grid h-10 w-10 place-items-center rounded-lg border text-sm font-semibold ${page === item ? "border-[#4b5dff] bg-[#4b5dff] text-white" : "border-[#dce4ef] text-[#63728a]"}`}
+          className={`grid h-10 w-10 place-items-center rounded-lg border text-sm font-semibold ${page === item ? "border-[#4b5dff] bg-[#4b5dff] text-white" : "border-border-default text-ink-muted"}`}
         >
           {item}
         </button>
@@ -257,7 +257,7 @@ function Pagination({ page, totalPages, onPageChange }: { page: number; totalPag
         type="button"
         onClick={() => onPageChange(Math.min(totalPages, page + 1))}
         disabled={page === totalPages}
-        className="grid h-10 w-10 place-items-center rounded-lg border border-[#dce4ef] text-[#63728a] disabled:opacity-50"
+        className="grid h-10 w-10 place-items-center rounded-lg border border-border-default text-ink-muted disabled:opacity-50"
       >
         <ChevronRight className="h-5 w-5" />
       </button>

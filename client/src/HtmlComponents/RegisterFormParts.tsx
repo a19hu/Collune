@@ -5,7 +5,7 @@ export function RegisterStepHeader({
   title,
   copy,
   centered = false,
-  titleClassName = "text-[28px] font-black tracking-normal text-[#202337]",
+  titleClassName = "text-[28px] font-black tracking-normal text-ink-strong",
   copyClassName = "mt-3 text-[15px] font-medium text-[#707b91]",
 }: {
   title: string;
@@ -46,7 +46,7 @@ export function RegisterSubmitButtons({
   skipLabel = "Skip for now",
   backLabel = "Back",
   className = "mt-6",
-  buttonClassName = "inline-flex h-[52px] flex-1 items-center justify-center gap-3 rounded-xl bg-[#2447bd] text-[15px] font-black text-white shadow-[0_12px_24px_rgba(36,71,189,0.18)] transition hover:bg-[#183aa8] disabled:cursor-not-allowed disabled:opacity-70",
+  buttonClassName = "inline-flex h-[52px] flex-1 items-center justify-center gap-3 rounded-xl bg-brand-primary text-[15px] font-black text-white shadow-[0_12px_24px_rgba(36,71,189,0.18)] transition hover:bg-[#183aa8] disabled:cursor-not-allowed disabled:opacity-70",
 }: {
   isFinalStep: boolean;
   isSubmitting: boolean;
@@ -159,7 +159,7 @@ export function OtpBoxes({
       inputMode="numeric"
       maxLength={6}
       placeholder="000000"
-      className="h-14 w-full max-w-[220px] rounded-xl border border-[#dfe4ed] bg-white text-center text-xl font-black tracking-[0.35em] text-[#202337] outline-none focus:border-[#7082f9] focus:ring-4 focus:ring-[#7082f9]/10"
+      className="h-14 w-full max-w-[220px] rounded-xl border border-[#dfe4ed] bg-white text-center text-xl font-black tracking-[0.35em] text-ink-strong outline-none focus:border-[#7082f9] focus:ring-4 focus:ring-[#7082f9]/10"
     />
   );
 }
@@ -192,7 +192,7 @@ export function VerificationBlock({
           {icon}
         </span>
         <div>
-          <h2 className="font-black text-[#202337]">{title}</h2>
+          <h2 className="font-black text-ink-strong">{title}</h2>
           <p className="text-sm font-medium text-[#707b91]">{target}</p>
         </div>
       </div>
@@ -209,7 +209,7 @@ export function VerificationBlock({
             type="button"
             onClick={onVerify}
             disabled={!otpSent || isVerifying}
-            className="h-11 rounded-lg border border-[#2447bd] px-5 text-sm font-black text-[#2447bd] disabled:opacity-60"
+            className="h-11 rounded-lg border border-brand-primary px-5 text-sm font-black text-brand-primary disabled:opacity-60"
           >
             {isVerifying ? "Verifying..." : "Verify OTP"}
           </button>

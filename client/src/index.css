@@ -7,11 +7,29 @@ html {
 
 body {
   overflow-y: auto;
+  background: var(--color-surface-page);
+  color: var(--color-ink-default);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 @theme {
-  --font-sans: "Inter", "Outfit", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "Inter", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-brand-primary: #1438A8;
+  --color-brand-primary-hover: #102E86;
+  --color-brand-accent: #B8A8FF;
+  --color-brand-accent-soft: #EEEAFE;
+  --color-ink-strong: #182230;
+  --color-ink-default: #344054;
+  --color-ink-muted: #667085;
+  --color-surface-page: #F8FAFC;
+  --color-surface-subtle: #F2F4F7;
+  --color-border-default: #E4E7EC;
+  --color-feedback-success: #067647;
+  --color-feedback-danger: #B42318;
+  --color-feedback-warning: #B54708;
   
   --animate-fade-in: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   --animate-slide-up: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;

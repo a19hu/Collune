@@ -41,8 +41,8 @@ export function HeaderButton({ children, onClick, variant = "solid" }: { childre
       type="button"
       onClick={onClick}
       className={`inline-flex h-12 items-center gap-3 rounded-lg px-7 text-sm font-black ${variant === "solid"
-        ? "bg-[#173ca8] text-white shadow-[0_8px_14px_rgba(23,60,168,0.22)]"
-        : "border-2 border-[#173ca8] bg-white text-[#173ca8]"
+        ? "bg-brand-primary text-white shadow-[0_8px_14px_rgba(23,60,168,0.22)]"
+        : "border-2 border-brand-primary bg-white text-brand-primary"
         }`}
     >
       {children}

@@ -88,13 +88,13 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-[#dfe7f2] bg-white p-6">
+    <section className="rounded-xl border border-border-default bg-white p-6">
       <div className="flex items-start gap-4">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-[#eef3ff] text-[#173ca8]">
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-brand-accent-soft text-brand-primary">
           <Icon className="h-6 w-6" />
         </span>
         <div>
-          <h2 className="mt-1 text-2xl font-black tracking-normal text-[#101828]">{number}.{title}</h2>
+          <h2 className="mt-1 text-2xl font-black tracking-normal text-ink-strong">{number}.{title}</h2>
         </div>
       </div>
       <div className="mt-6">{children}</div>
@@ -117,21 +117,21 @@ function BulletList({ items }: { items: string[] }) {
 
 export default function CreativeServicesTerms() {
   return (
-    <main className="bg-white pt-32 text-[#1d2430]">
+    <main className="bg-white pt-32 text-ink-strong">
       <section className="mx-auto max-w-7xl px-6 pb-14 md:px-10">
         <div className="max-w-4xl">
-          <span className="inline-flex h-10 items-center rounded-lg bg-[#eef3ff] px-4 text-sm font-black text-[#173ca8]">
+          <span className="inline-flex h-10 items-center rounded-lg bg-brand-accent-soft px-4 text-sm font-black text-brand-primary">
             Creative Services Terms & Conditions
           </span>
-          <h1 className="mt-6 text-[40px] font-black leading-tight tracking-normal text-[#101828] md:text-[58px]">
+          <h1 className="mt-6 text-[40px] font-black leading-tight tracking-normal text-ink-strong md:text-[58px]">
             Terms for creators offering services through Collune.
           </h1>
           <p className="mt-6 text-lg font-medium leading-8 text-[#5f6f89]">
             These Creative Services Terms supplement the primary Terms & Conditions and govern how content creators use Collune to offer services, manage collaborations, and fulfill campaigns with brands.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <span className="rounded-lg border border-[#dfe7f2] bg-white px-4 py-2 text-sm font-black text-[#53627a]">Effective Date: To be updated</span>
-            <span className="rounded-lg border border-[#dfe7f2] bg-white px-4 py-2 text-sm font-black text-[#53627a]">Last Updated: To be updated</span>
+            <span className="rounded-lg border border-border-default bg-white px-4 py-2 text-sm font-black text-[#53627a]">Effective Date: To be updated</span>
+            <span className="rounded-lg border border-border-default bg-white px-4 py-2 text-sm font-black text-[#53627a]">Last Updated: To be updated</span>
           </div>
         </div>
       </section>
@@ -148,11 +148,11 @@ export default function CreativeServicesTerms() {
           <Section number="2" title="Campaign Acceptance & Terms" icon={Handshake}>
             <div className="grid gap-5 lg:grid-cols-2">
               <div>
-                <h3 className="mb-3 text-sm font-black text-[#1d2430]">Campaign Workflow</h3>
+                <h3 className="mb-3 text-sm font-black text-ink-strong">Campaign Workflow</h3>
                 <BulletList items={workflow} />
               </div>
               <div>
-                <h3 className="mb-3 text-sm font-black text-[#1d2430]">By accepting a campaign, creator agrees to:</h3>
+                <h3 className="mb-3 text-sm font-black text-ink-strong">By accepting a campaign, creator agrees to:</h3>
                 <BulletList items={acceptanceItems} />
               </div>
             </div>
@@ -165,11 +165,11 @@ export default function CreativeServicesTerms() {
           <Section number="4" title="Payment & Fee Structure" icon={BadgeIndianRupee}>
             <div className="grid gap-5 lg:grid-cols-2">
               <div>
-                <h3 className="mb-3 text-sm font-black text-[#1d2430]">Payment Processing</h3>
+                <h3 className="mb-3 text-sm font-black text-ink-strong">Payment Processing</h3>
                 <BulletList items={paymentItems} />
               </div>
               <div>
-                <h3 className="mb-3 text-sm font-black text-[#1d2430]">Tax Compliance</h3>
+                <h3 className="mb-3 text-sm font-black text-ink-strong">Tax Compliance</h3>
                 <BulletList items={taxItems} />
               </div>
             </div>
@@ -182,11 +182,11 @@ export default function CreativeServicesTerms() {
           <Section number="6" title="Dispute Resolution & Cancellation" icon={Gavel}>
             <div className="grid gap-5 lg:grid-cols-2">
               <div>
-                <h3 className="mb-3 text-sm font-black text-[#1d2430]">Campaign Cancellation</h3>
+                <h3 className="mb-3 text-sm font-black text-ink-strong">Campaign Cancellation</h3>
                 <BulletList items={cancellationItems} />
               </div>
-              <div className="rounded-lg bg-[#eef3ff] p-5">
-                <h3 className="text-sm font-black text-[#1d2430]">Disputes</h3>
+              <div className="rounded-lg bg-brand-accent-soft p-5">
+                <h3 className="text-sm font-black text-ink-strong">Disputes</h3>
                 <p className="mt-3 text-sm font-semibold leading-6 text-[#53627a]">
                   Collune mediates all creator-brand disputes, including content quality, timelines, and payment. Unresolved disputes are escalated to Jaipur jurisdiction courts. Creator may appeal Collune's decision to independent arbitration.
                 </p>
@@ -196,7 +196,7 @@ export default function CreativeServicesTerms() {
 
           <Section number="7" title="Compliance & Regulatory Obligations" icon={Scale}>
             <BulletList items={complianceItems} />
-            <p className="mt-4 text-sm font-black leading-6 text-[#1d2430]">
+            <p className="mt-4 text-sm font-black leading-6 text-ink-strong">
               Collune reserves the right to remove content violating compliance standards. Repeated violations may result in account suspension or permanent ban.
             </p>
           </Section>
@@ -211,7 +211,7 @@ export default function CreativeServicesTerms() {
                 <Ban className="h-6 w-6" />
               </span>
               <div>
-                <h2 className="text-2xl font-black tracking-normal text-[#101828]">Important Notice</h2>
+                <h2 className="text-2xl font-black tracking-normal text-ink-strong">Important Notice</h2>
                 <p className="mt-3 text-sm font-semibold leading-6 text-[#53627a]">
                   These terms apply to all creators registering and operating on the Collune platform.
                 </p>

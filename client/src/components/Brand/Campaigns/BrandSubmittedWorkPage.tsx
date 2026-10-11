@@ -101,16 +101,16 @@ export function BrandSubmittedWorkPage() {
 
   return (
     <main className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
-      <div className="rounded-lg border border-[#dfe6f0] bg-white p-5 shadow-sm sm:p-6">
+      <div className="rounded-lg border border-border-default bg-white p-5 shadow-sm sm:p-6">
         <div>
-          <h1 className="text-xl font-black text-[#1d2430]">Submitted Work</h1>
-          <p className="mt-1 text-sm font-medium text-[#65758f]">
+          <h1 className="text-xl font-black text-ink-strong">Submitted Work</h1>
+          <p className="mt-1 text-sm font-medium text-ink-muted">
             Review creator content submitted for this campaign.
           </p>
         </div>
         <div className="mt-6 overflow-x-auto rounded-lg border border-[#dbe3ee]">
           <table className="w-full min-w-[1050px] text-left text-sm">
-            <thead className="bg-[#f8faff] text-xs font-black uppercase text-[#63708a]">
+            <thead className="bg-surface-page text-xs font-black uppercase text-ink-muted">
               <tr>
                 <th className="px-4 py-3">Creator</th>
                 <th className="px-4 py-3">Platform</th>
@@ -125,12 +125,12 @@ export function BrandSubmittedWorkPage() {
               {isLoading ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center">
-                    <Loader2 className="mx-auto h-5 w-5 animate-spin text-[#4b22ff]" />
+                    <Loader2 className="mx-auto h-5 w-5 animate-spin text-brand-primary" />
                   </td>
                 </tr>
               ) : (
                 items.map((item) => (
-                  <tr key={item.id} className="text-[#25304a]">
+                  <tr key={item.id} className="text-ink-strong">
                     <td className="px-4 py-4 font-bold">
                       {item.creator_name || 'Creator'}
                     </td>
@@ -141,7 +141,7 @@ export function BrandSubmittedWorkPage() {
                         href={item.content_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 font-bold text-[#3048ff] hover:underline"
+                        className="inline-flex items-center gap-1 font-bold text-brand-primary hover:underline"
                       >
                         View <ExternalLink className="h-3.5 w-3.5" />
                       </a>
@@ -166,7 +166,7 @@ export function BrandSubmittedWorkPage() {
                           target="_blank"
                           rel="noreferrer"
                           aria-label="View submission"
-                          className="grid h-8 w-8 place-items-center rounded-md border border-[#c9d7ff] text-[#173ca8]"
+                          className="grid h-8 w-8 place-items-center rounded-md border border-[#c9d7ff] text-brand-primary"
                         >
                           <ExternalLink className="h-4 w-4" />
                         </a>
@@ -205,7 +205,7 @@ export function BrandSubmittedWorkPage() {
                           }}
                           disabled={!!workingId}
                           title="Add comment"
-                          className="grid h-8 w-8 place-items-center rounded-md border border-[#c9d7ff] text-[#173ca8]"
+                          className="grid h-8 w-8 place-items-center rounded-md border border-[#c9d7ff] text-brand-primary"
                         >
                           <MessageSquare className="h-4 w-4" />
                         </button>
@@ -236,7 +236,7 @@ export function BrandSubmittedWorkPage() {
                 <tr>
                   <td
                     colSpan={7}
-                    className="px-4 py-12 text-center font-semibold text-[#65758f]"
+                    className="px-4 py-12 text-center font-semibold text-ink-muted"
                   >
                     No creator submissions yet.
                   </td>
@@ -255,12 +255,12 @@ export function BrandSubmittedWorkPage() {
             }}
             className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl"
           >
-            <h2 className="text-lg font-black text-[#1d2430]">
+            <h2 className="text-lg font-black text-ink-strong">
               {commentFor.action === 'REQUEST_REVISION'
                 ? 'Request revision'
                 : 'Add comment'}
             </h2>
-            <p className="mt-1 text-sm text-[#65758f]">
+            <p className="mt-1 text-sm text-ink-muted">
               {commentFor.action === 'REQUEST_REVISION'
                 ? 'Explain what the creator should update. This comment is required.'
                 : 'The creator will receive your comment.'}
@@ -271,19 +271,19 @@ export function BrandSubmittedWorkPage() {
               onChange={(event) => setComment(event.target.value)}
               rows={4}
               placeholder="Please add the campaign hashtag and update the CTA."
-              className="mt-4 w-full rounded-md border border-[#d7deea] p-3 text-sm"
+              className="mt-4 w-full rounded-md border border-border-default p-3 text-sm"
             />
             <div className="mt-5 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setCommentFor(null)}
-                className="h-10 rounded-md border border-[#d7deea] px-4 text-sm font-bold"
+                className="h-10 rounded-md border border-border-default px-4 text-sm font-bold"
               >
                 Cancel
               </button>
               <button
                 disabled={!!workingId}
-                className="h-10 rounded-md bg-[#4b22ff] px-4 text-sm font-black text-white"
+                className="h-10 rounded-md bg-brand-primary px-4 text-sm font-black text-white"
               >
                 {workingId ? 'Saving...' : 'Send'}
               </button>

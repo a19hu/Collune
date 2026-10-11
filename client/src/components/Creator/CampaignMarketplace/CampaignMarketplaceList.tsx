@@ -28,7 +28,7 @@ function ListPagination({ page, totalPages, onPageChange }: { page: number; tota
           key={item}
           type="button"
           onClick={() => onPageChange(item)}
-          className={`grid h-10 w-10 place-items-center rounded-lg border text-sm font-semibold ${page === item ? "border-[#4b5dff] bg-[#4b5dff] text-white" : "border-[#dce4ef] text-[#63728a]"}`}
+          className={`grid h-10 w-10 place-items-center rounded-lg border text-sm font-semibold ${page === item ? "border-[#4b5dff] bg-[#4b5dff] text-white" : "border-border-default text-ink-muted"}`}
         >
           {item}
         </button>
@@ -140,7 +140,7 @@ export function CampaignMarketplaceList() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <p className="text-sm font-black text-[#65758f]">
+        <p className="text-sm font-black text-ink-muted">
           {isLoading ? "Loading campaigns..." : `${totalCount} active campaigns`}
         </p>
         <div className="flex flex-wrap items-center gap-3">
@@ -150,15 +150,15 @@ export function CampaignMarketplaceList() {
               value={search}
               onChange={(event) => onSearchChange(event.target.value)}
               placeholder="Search campaigns..."
-              className="h-10 w-[240px] rounded-lg border border-[#dfe6f0] bg-white px-9 text-sm font-medium text-[#1d2430] outline-none placeholder:text-[#9aa8bd]"
+              className="h-10 w-[240px] rounded-lg border border-border-default bg-white px-9 text-sm font-medium text-ink-strong outline-none placeholder:text-[#9aa8bd]"
             />
           </label>
-          <label className="inline-flex items-center gap-3 text-sm font-medium text-[#65758f]">
+          <label className="inline-flex items-center gap-3 text-sm font-medium text-ink-muted">
             Sort by
             <select
               value={sort}
               onChange={(event) => onSortChange(event.target.value as SortKey)}
-              className="h-10 rounded-lg border border-[#dfe6f0] bg-white px-4 text-sm font-medium text-[#1d2430] outline-none"
+              className="h-10 rounded-lg border border-border-default bg-white px-4 text-sm font-medium text-ink-strong outline-none"
             >
               {sortOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
@@ -169,24 +169,24 @@ export function CampaignMarketplaceList() {
       {isLoading ? (
         <Panel className="grid min-h-[306px] place-items-center p-8 text-center">
           <div>
-            <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#5168ff]" />
-            <p className="mt-4 text-sm font-black text-[#1d2430]">Loading campaigns...</p>
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-brand-primary" />
+            <p className="mt-4 text-sm font-black text-ink-strong">Loading campaigns...</p>
           </div>
         </Panel>
       ) : error ? (
         <Panel className="grid min-h-[306px] place-items-center p-8 text-center">
           <div>
             <AlertCircle className="mx-auto h-8 w-8 text-[#d23b3b]" />
-            <h2 className="mt-4 text-xl font-black text-[#1d2430]">Campaigns could not be loaded</h2>
-            <p className="mx-auto mt-2 max-w-md text-sm font-medium text-[#65758f]">{error}</p>
+            <h2 className="mt-4 text-xl font-black text-ink-strong">Campaigns could not be loaded</h2>
+            <p className="mx-auto mt-2 max-w-md text-sm font-medium text-ink-muted">{error}</p>
           </div>
         </Panel>
       ) : campaigns.length === 0 ? (
         <Panel className="grid min-h-[306px] place-items-center p-8 text-center">
           <div>
-            <AlertCircle className="mx-auto h-8 w-8 text-[#5168ff]" />
-            <h2 className="mt-4 text-xl font-black text-[#1d2430]">No campaigns available</h2>
-            <p className="mx-auto mt-2 max-w-md text-sm font-medium text-[#65758f]">
+            <AlertCircle className="mx-auto h-8 w-8 text-brand-primary" />
+            <h2 className="mt-4 text-xl font-black text-ink-strong">No campaigns available</h2>
+            <p className="mx-auto mt-2 max-w-md text-sm font-medium text-ink-muted">
               Active brand campaigns from the backend will appear here.
             </p>
           </div>

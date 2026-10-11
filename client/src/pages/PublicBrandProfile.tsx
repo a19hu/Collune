@@ -29,7 +29,7 @@ function Panel({
 }) {
   return (
     <section
-      className={`rounded-[8px] border border-[#dce4f0] bg-white ${className}`}
+      className={`rounded-[8px] border border-border-default bg-white ${className}`}
     >
       {children}
     </section>
@@ -51,7 +51,7 @@ function deadlineLabel(value?: string | null) {
 function CampaignCard({ campaign }: { campaign: PublicBrandCampaignApi }) {
   const open = campaign.status === 'ACTIVE';
   return (
-    <article className="overflow-hidden rounded-[7px] border border-[#dce4f0] bg-white">
+    <article className="overflow-hidden rounded-[7px] border border-border-default bg-white">
       {campaign.cover_image ? (
         <img
           src={campaign.cover_image}
@@ -64,7 +64,7 @@ function CampaignCard({ campaign }: { campaign: PublicBrandCampaignApi }) {
       <div className="p-4">
         <div className="flex items-center justify-between gap-2">
           <span
-            className={`rounded-full px-2.5 py-1 text-[10px] font-black ${open ? 'bg-[#ddfbea] text-[#067647]' : 'bg-[#eef2f8] text-[#65718a]'}`}
+            className={`rounded-full px-2.5 py-1 text-[10px] font-black ${open ? 'bg-[#ddfbea] text-feedback-success' : 'bg-[#eef2f8] text-ink-muted'}`}
           >
             {open ? 'Open applications' : campaign.status}
           </span>
@@ -72,16 +72,16 @@ function CampaignCard({ campaign }: { campaign: PublicBrandCampaignApi }) {
             {deadlineLabel(campaign.deadline)}
           </span>
         </div>
-        <h3 className="mt-3 text-base font-black text-[#25304a]">
+        <h3 className="mt-3 text-base font-black text-ink-strong">
           {campaign.title}
         </h3>
-        <p className="mt-2 line-clamp-3 text-[12px] font-medium leading-relaxed text-[#65718a]">
+        <p className="mt-2 line-clamp-3 text-[12px] font-medium leading-relaxed text-ink-muted">
           {campaign.objective ||
             campaign.brief ||
             'Campaign details will be shared with selected creators.'}
         </p>
         {campaign.platforms.length ? (
-          <p className="mt-3 text-[10px] font-black uppercase tracking-wide text-[#1438c8]">
+          <p className="mt-3 text-[10px] font-black uppercase tracking-wide text-brand-primary">
             {campaign.platforms.join(' · ')}
           </p>
         ) : null}
@@ -149,13 +149,13 @@ export default function PublicBrandProfile() {
   if (isLoading)
     return (
       <main className="grid min-h-[70vh] place-items-center bg-[#f4f7fb]">
-        <Loader2 className="h-9 w-9 animate-spin text-[#1438c8]" />
+        <Loader2 className="h-9 w-9 animate-spin text-brand-primary" />
       </main>
     );
   if (!brand)
     return (
       <main className="min-h-[70vh] bg-[#f4f7fb] px-6 py-16">
-        <Panel className="mx-auto max-w-[760px] p-6 text-sm font-semibold text-[#b42318]">
+        <Panel className="mx-auto max-w-[760px] p-6 text-sm font-semibold text-feedback-danger">
           {error || 'Brand profile not found.'}
         </Panel>
       </main>
@@ -163,14 +163,14 @@ export default function PublicBrandProfile() {
 
   const campaignCount = brand.campaigns?.length || 0;
   return (
-    <main className="min-h-screen bg-[#f4f7fb] px-4 pb-10 pt-28 text-[#25304a] sm:px-6">
+    <main className="min-h-screen bg-[#f4f7fb] px-4 pb-10 pt-28 text-ink-strong sm:px-6">
       <div className="mx-auto max-w-[1200px]">
-        <div className="mb-4 text-[13px] font-black text-[#65718a]">
-          <Link to="/" className="hover:text-[#1438c8]">
+        <div className="mb-4 text-[13px] font-black text-ink-muted">
+          <Link to="/" className="hover:text-brand-primary">
             Home
           </Link>
           <span> &gt; </span>
-          <Link to="/creator/marketplace" className="hover:text-[#1438c8]">
+          <Link to="/creator/marketplace" className="hover:text-brand-primary">
             Campaign Marketplace
           </Link>
           <span> &gt; {brand.company_name}</span>
@@ -187,7 +187,7 @@ export default function PublicBrandProfile() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <Building2 className="h-20 w-20 text-[#1438c8]" />
+                    <Building2 className="h-20 w-20 text-brand-primary" />
                   )}
                   {brand.verification_status === 'VERIFIED' ? (
                     <span className="absolute bottom-4 right-4 grid h-10 w-10 place-items-center rounded-full bg-[#7486ff] text-white ring-4 ring-white">
@@ -197,7 +197,7 @@ export default function PublicBrandProfile() {
                 </div>
                 <div className="pt-2">
                   <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-start">
-                    <h1 className="text-[28px] font-black leading-tight text-[#1438c8]">
+                    <h1 className="text-[28px] font-black leading-tight text-brand-primary">
                       {brand.company_name}
                     </h1>
                     {brand.verification_status === 'VERIFIED' ? (
@@ -227,7 +227,7 @@ export default function PublicBrandProfile() {
                           target="_blank"
                           rel="noreferrer"
                           aria-label={label}
-                          className="grid h-9 w-9 place-items-center rounded-[13px] bg-[#1438c8] text-white transition hover:scale-105"
+                          className="grid h-9 w-9 place-items-center rounded-[13px] bg-brand-primary text-white transition hover:scale-105"
                         >
                           <SocialPlatformIcon platform={platform} className="h-4 w-4" />
                         </a>
@@ -237,7 +237,7 @@ export default function PublicBrandProfile() {
                         href={brand.website}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex h-9 items-center gap-2 rounded-[8px] border border-[#d8e0ec] px-3 text-xs font-black text-[#1438c8]"
+                        className="inline-flex h-9 items-center gap-2 rounded-[8px] border border-[#d8e0ec] px-3 text-xs font-black text-brand-primary"
                       >
                         <Globe2 className="h-4 w-4" />
                         Website <ExternalLink className="h-3.5 w-3.5" />
@@ -245,7 +245,7 @@ export default function PublicBrandProfile() {
                     ) : null}
                   </div>
                   <div className="mt-5 w-full max-w-[210px] rounded-[6px] border border-[#d8e0ec] bg-white px-4 py-2 text-center lg:ml-auto">
-                    <strong className="block text-[24px] font-black leading-none text-[#1438c8]">
+                    <strong className="block text-[24px] font-black leading-none text-brand-primary">
                       {campaignCount}
                     </strong>
                     <span className="text-[11px] font-semibold text-[#6c7790]">
@@ -255,18 +255,18 @@ export default function PublicBrandProfile() {
                 </div>
               </div>
             </Panel>
-            <div className="flex border-b border-[#dce4f0] bg-white px-5">
+            <div className="flex border-b border-border-default bg-white px-5">
               <button
                 type="button"
                 onClick={() => setTab('profile')}
-                className={`px-4 py-3 text-sm font-black ${tab === 'profile' ? 'border-b-2 border-[#1438c8] text-[#1438c8]' : 'text-[#65718a]'}`}
+                className={`px-4 py-3 text-sm font-black ${tab === 'profile' ? 'border-b-2 border-brand-primary text-brand-primary' : 'text-ink-muted'}`}
               >
                 About
               </button>
               <button
                 type="button"
                 onClick={() => setTab('campaigns')}
-                className={`px-4 py-3 text-sm font-black ${tab === 'campaigns' ? 'border-b-2 border-[#1438c8] text-[#1438c8]' : 'text-[#65718a]'}`}
+                className={`px-4 py-3 text-sm font-black ${tab === 'campaigns' ? 'border-b-2 border-brand-primary text-brand-primary' : 'text-ink-muted'}`}
               >
                 Campaigns ({campaignCount})
               </button>
@@ -274,7 +274,7 @@ export default function PublicBrandProfile() {
             {tab === 'profile' ? (
               <>
                 <Panel className="p-5">
-                  <h2 className="inline-flex items-center gap-2 text-lg font-black text-[#65718a]">
+                  <h2 className="inline-flex items-center gap-2 text-lg font-black text-ink-muted">
                     <UserRound className="h-4 w-4 text-[#7386ff]" />
                     About {brand.company_name}
                   </h2>
@@ -284,32 +284,32 @@ export default function PublicBrandProfile() {
                   </p>
                 </Panel>
                 <Panel className="p-5">
-                  <h2 className="inline-flex items-center gap-2 text-lg font-black text-[#65718a]">
+                  <h2 className="inline-flex items-center gap-2 text-lg font-black text-ink-muted">
                     <BriefcaseBusiness className="h-4 w-4 text-[#7386ff]" />
                     Brand Details
                   </h2>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-[6px] bg-[#eef4ff] p-4">
+                    <div className="rounded-[6px] bg-brand-accent-soft p-4">
                       <span className="text-[10px] font-semibold text-[#758198]">
                         Industry
                       </span>
-                      <strong className="mt-1 block text-[15px] font-black text-[#1438c8]">
+                      <strong className="mt-1 block text-[15px] font-black text-brand-primary">
                         {brand.industry || 'Not added'}
                       </strong>
                     </div>
-                    <div className="rounded-[6px] bg-[#eef4ff] p-4">
+                    <div className="rounded-[6px] bg-brand-accent-soft p-4">
                       <span className="text-[10px] font-semibold text-[#758198]">
                         Employees Size
                       </span>
-                      <strong className="mt-1 block text-[15px] font-black text-[#1438c8]">
+                      <strong className="mt-1 block text-[15px] font-black text-brand-primary">
                         {brand.company_size || 'Not added'}
                       </strong>
                     </div>
-                    <div className="rounded-[6px] bg-[#eef4ff] p-4 sm:col-span-2">
+                    <div className="rounded-[6px] bg-brand-accent-soft p-4 sm:col-span-2">
                       <span className="text-[10px] font-semibold text-[#758198]">
                         Account Contact
                       </span>
-                      <strong className="mt-1 block text-[15px] font-black text-[#1438c8]">
+                      <strong className="mt-1 block text-[15px] font-black text-brand-primary">
                         {brand.contact_person_name || 'Not added'}
                       </strong>
                     </div>
@@ -318,7 +318,7 @@ export default function PublicBrandProfile() {
               </>
             ) : (
               <Panel className="p-5">
-                <h2 className="inline-flex items-center gap-2 text-lg font-black text-[#65718a]">
+                <h2 className="inline-flex items-center gap-2 text-lg font-black text-ink-muted">
                   <CalendarDays className="h-4 w-4 text-[#7386ff]" />
                   Campaigns from {brand.company_name}
                 </h2>
@@ -332,7 +332,7 @@ export default function PublicBrandProfile() {
                     ))}
                   </div>
                 ) : (
-                  <p className="mt-4 rounded-[6px] bg-[#f7f9fc] p-6 text-center text-sm font-semibold text-[#65718a]">
+                  <p className="mt-4 rounded-[6px] bg-[#f7f9fc] p-6 text-center text-sm font-semibold text-ink-muted">
                     No published campaigns yet.
                   </p>
                 )}
@@ -341,7 +341,7 @@ export default function PublicBrandProfile() {
           </div>
           <aside className="grid content-start gap-5">
             <Panel className="p-5">
-              <h2 className="text-lg font-black text-[#65718a]">
+              <h2 className="text-lg font-black text-ink-muted">
                 Brand Overview
               </h2>
               <div className="mt-4 grid gap-4 text-[13px]">
@@ -349,7 +349,7 @@ export default function PublicBrandProfile() {
                   location ?
                 <div>
                   <span className="text-[#7b8597]">Headquarters</span>
-                  <p className="mt-1 font-black text-[#25304a]">
+                  <p className="mt-1 font-black text-ink-strong">
                     {location || ''}
                   </p>
                 </div> : null
@@ -361,28 +361,28 @@ export default function PublicBrandProfile() {
                       href={brand.website}
                       target="_blank"
                       rel="noreferrer"
-                      className="mt-1 block break-all font-black text-[#1438c8]"
+                      className="mt-1 block break-all font-black text-brand-primary"
                     >
                       Visit website
                     </a>
                   ) : (
-                    <p className="mt-1 font-black text-[#25304a]">Not added</p>
+                    <p className="mt-1 font-black text-ink-strong">Not added</p>
                   )}
                 </div>
               </div>
               <Link
                 to={`/creator/chat?brandId=${brand.brand_id}`}
-                className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[6px] bg-[#1438c8] text-sm font-black text-white"
+                className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[6px] bg-brand-primary text-sm font-black text-white"
               >
                 <MessageCircle className="h-4 w-4" />
                 Collaborate with Brand
               </Link>
             </Panel>
             <Panel className="p-5 text-center">
-              <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#dce5ff] text-[#7386ff]">
+              <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-brand-accent-soft text-[#7386ff]">
                 <BadgeCheck className="h-6 w-6" />
               </span>
-              <h2 className="mt-3 text-sm font-black text-[#25304a]">
+              <h2 className="mt-3 text-sm font-black text-ink-strong">
                 Collune Brand Profile
               </h2>
               <p className="mt-2 text-[12px] font-semibold leading-tight text-[#64728c]">

@@ -198,7 +198,7 @@ export function SideBar({
             <button
               type="button"
               onClick={onToggleCollapsed}
-              className="absolute right-3 top-3 hidden h-8 w-8 place-items-center rounded-md text-[#657084] transition hover:bg-white hover:text-[#2d30ff] lg:grid"
+              className="absolute right-3 top-3 hidden h-8 w-8 place-items-center rounded-md text-ink-muted transition hover:bg-white hover:text-[#2d30ff] lg:grid"
               aria-label="Collapse sidebar"
               title="Collapse sidebar"
             >
@@ -225,7 +225,7 @@ export function SideBar({
                   className="h-9 w-9 rounded-md object-cover"
                 />
               ) : (
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#4b22ff] text-sm font-black text-white">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-brand-primary text-sm font-black text-white">
                   {brandInitials}
                 </span>
               )}
@@ -235,17 +235,17 @@ export function SideBar({
                 {brandName}
               </span>
               <ChevronDown
-                className={`h-5 w-5 text-[#657084] transition ${isBrandMenuOpen ? 'rotate-180' : ''} ${isCollapsed ? 'lg:hidden' : ''}`}
+                className={`h-5 w-5 text-ink-muted transition ${isBrandMenuOpen ? 'rotate-180' : ''} ${isCollapsed ? 'lg:hidden' : ''}`}
               />
             </button>
 
             {isBrandMenuOpen ? (
               <div className="absolute left-4 right-4 top-[68px] z-40 rounded-lg border border-[#e1e6ef] bg-white p-2 shadow-[0_12px_30px_rgba(20,30,60,0.14)]">
                 <div className="border-b border-[#eef1f6] px-3 py-3">
-                  <p className="truncate text-sm font-black text-[#1d203a]">
+                  <p className="truncate text-sm font-black text-ink-strong">
                     {brandName}
                   </p>
-                  <p className="mt-1 truncate text-xs font-medium text-[#657084]">
+                  <p className="mt-1 truncate text-xs font-medium text-ink-muted">
                     {currentUser?.email || 'Brand account'}
                   </p>
                 </div>
@@ -302,7 +302,7 @@ export function SideBar({
                     `flex h-[46px] items-center gap-3 rounded-lg px-4 text-[15px] font-semibold transition ${isCollapsed ? 'lg:justify-center lg:px-0' : ''} ${
                       isActive
                         ? 'bg-[#dfe7ff] text-[#2d30ff]'
-                        : 'text-[#657084] hover:bg-white hover:text-[#2d30ff]'
+                        : 'text-ink-muted hover:bg-white hover:text-[#2d30ff]'
                     }`
                   }
                 >
@@ -324,7 +324,7 @@ export function SideBar({
             <div className="flex items-start gap-3">
               <CircleHelp className="mt-1 h-4 w-4 text-[#64738e]" />
               <div>
-                <h3 className="text-sm font-black text-[#1d203a]">
+                <h3 className="text-sm font-black text-ink-strong">
                   Need Help?
                 </h3>
                 <p className="mt-2 text-xs font-medium leading-snug text-[#7a8496]">

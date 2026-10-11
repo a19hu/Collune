@@ -178,6 +178,7 @@ export function mapCreatorCampaignDetailToMarketplace(campaign: CreatorCampaignD
     brandName,
     brandType: campaign.brand_type || brand.type,
     brandLogoUrl: campaign.brand_logo || "",
+    coverImage: campaign.cover_image,
     brandInitials: getInitials(brandName),
     brandIcon: brand.icon,
     brandIconClassName: brand.className,

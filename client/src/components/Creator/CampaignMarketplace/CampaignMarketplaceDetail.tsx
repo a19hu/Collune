@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowRight, BriefcaseBusiness, CheckCircle2, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { applyToCampaign, getCampaignApplications, getCreatorCampaignDetail } from "../../../lib/authApi";
 import {
@@ -91,8 +91,8 @@ export function CampaignMarketplaceDetail() {
     return (
       <Panel className="grid min-h-[306px] place-items-center p-8 text-center">
         <div>
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#5168ff]" />
-          <p className="mt-4 text-sm font-black text-[#1d2430]">Loading campaign...</p>
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-brand-primary" />
+          <p className="mt-4 text-sm font-black text-ink-strong">Loading campaign...</p>
         </div>
       </Panel>
     );
@@ -102,9 +102,9 @@ export function CampaignMarketplaceDetail() {
     return (
       <Panel className="grid min-h-[306px] place-items-center p-8 text-center">
         <div>
-          <h2 className="text-xl font-black text-[#1d2430]">Campaign could not be loaded</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm font-medium text-[#65758f]">{error || "Campaign not found."}</p>
-          <button type="button" onClick={() => navigate("/creator/marketplace")} className="mt-6 inline-flex h-11 items-center gap-2 rounded-lg bg-[#5168ff] px-5 text-sm font-black text-white">
+          <h2 className="text-xl font-black text-ink-strong">Campaign could not be loaded</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm font-medium text-ink-muted">{error || "Campaign not found."}</p>
+          <button type="button" onClick={() => navigate("/creator/marketplace")} className="mt-6 inline-flex h-11 items-center gap-2 rounded-lg bg-brand-primary px-5 text-sm font-black text-white">
             <ArrowLeft className="h-4 w-4" />
             Back to campaigns
           </button>
@@ -116,20 +116,31 @@ export function CampaignMarketplaceDetail() {
   return (
     <div className="grid gap-7">
 
+      <Panel className="relative h-64 overflow-hidden bg-brand-accent-soft p-0 md:h-80">
+        {campaign.coverImage ? <img src={campaign.coverImage} alt={`${campaign.title} cover`} className="h-full w-full object-cover" /> : null}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+        <div className="absolute bottom-6 left-7 text-white">
+          <p className="text-sm font-semibold opacity-90">Campaign</p>
+          <h1 className="mt-1 text-3xl font-black leading-tight md:text-4xl">{campaign.title}</h1>
+        </div>
+      </Panel>
+
       <Panel className="p-7">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div className="flex min-w-0 gap-5">
-            <BrandAvatar campaign={campaign} size="h-16 w-16" />
+            <Link to={`/brands/${campaign.brandId}`} className="shrink-0 transition hover:scale-105" aria-label={`View ${campaign.brandName}`}>
+              <BrandAvatar campaign={campaign} size="h-16 w-16" />
+            </Link>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-lg font-black text-[#1d2430]">{campaign.brandName}</h2>
+                <Link to={`/brands/${campaign.brandId}`} className="text-lg font-black text-ink-strong transition hover:text-brand-primary">{campaign.brandName}</Link>
                 <CheckCircle2 className="h-4 w-4 fill-[#5168ff] text-white" />
               </div>
-              <p className="text-sm font-medium text-[#65758f]">{campaign.brandType}</p>
-              <h1 className="mt-6 text-[30px] font-black leading-tight tracking-normal text-[#1d2430]">{campaign.title}</h1>
+              <p className="text-sm font-medium text-ink-muted">{campaign.brandType}</p>
+              <h1 className="mt-6 text-[30px] font-black leading-tight tracking-normal text-ink-strong">{campaign.title}</h1>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <StatusBadge>{hasApplied ? "Application Sent" : campaign.status}</StatusBadge>
-                <span className="inline-flex items-center gap-2 text-sm font-medium text-[#65758f]">
+                <span className="inline-flex items-center gap-2 text-sm font-medium text-ink-muted">
                   <BriefcaseBusiness className="h-4 w-4" />
                   {campaign.applicationsCloseLabel}
                 </span>
@@ -140,7 +151,7 @@ export function CampaignMarketplaceDetail() {
             type="button"
             onClick={applyForCampaign}
             disabled={hasApplied || isApplying}
-            className="inline-flex h-12 items-center gap-3 rounded-lg bg-[#5168ff] px-8 text-base font-black text-white shadow-[0_8px_16px_rgba(81,104,255,0.25)] disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex h-12 items-center gap-3 rounded-lg bg-brand-primary px-8 text-base font-black text-white shadow-[0_8px_16px_rgba(81,104,255,0.25)] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isApplying ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
             {applyLabel} {!isApplying ? <ArrowRight className="h-5 w-5" /> : null}
@@ -152,7 +163,7 @@ export function CampaignMarketplaceDetail() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
         <div className="grid gap-6">
           <DetailSection title="1. Campaign Objective">
-            <p className="text-sm font-medium leading-relaxed text-[#65758f]">{campaign.objective}</p>
+            <p className="text-sm font-medium leading-relaxed text-ink-muted">{campaign.objective}</p>
           </DetailSection>
 
           <DetailSection title="2. Deliverables">
@@ -178,7 +189,7 @@ export function CampaignMarketplaceDetail() {
           <DetailSection title="5. Creative Direction">
             <div className="grid gap-3">
               {campaign.creativeDirection.map((line) => (
-                <p key={line} className="text-sm font-medium leading-relaxed text-[#65758f]">{line}</p>
+                <p key={line} className="text-sm font-medium leading-relaxed text-ink-muted">{line}</p>
               ))}
             </div>
           </DetailSection>

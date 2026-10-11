@@ -94,7 +94,7 @@ function DashboardUserMenu({ currentUser, logout, profilePath }: DashboardUserMe
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
-        className="inline-flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl border border-[#dce5fb] bg-[#f7f9ff] px-3 text-sm font-black text-[#2449bd] transition hover:bg-[#eef3ff] sm:w-auto sm:justify-center sm:rounded-full sm:border-transparent sm:bg-transparent"
+        className="inline-flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl border border-[#dce5fb] bg-[#f7f9ff] px-3 text-sm font-black text-[#2449bd] transition hover:bg-brand-accent-soft sm:w-auto sm:justify-center sm:rounded-full sm:border-transparent sm:bg-transparent"
         aria-haspopup="menu"
         aria-expanded={isOpen}
       >
@@ -112,7 +112,7 @@ function DashboardUserMenu({ currentUser, logout, profilePath }: DashboardUserMe
         <Link
           to={profilePath}
           onClick={() => setIsOpen(false)}
-          className="block rounded-xl px-4 py-3 text-sm font-black text-[#34466d] transition hover:bg-[#eef3ff] hover:text-[#214bc0]"
+          className="block rounded-xl px-4 py-3 text-sm font-black text-[#34466d] transition hover:bg-brand-accent-soft hover:text-[#214bc0]"
         >
           Profile
         </Link>
@@ -122,7 +122,7 @@ function DashboardUserMenu({ currentUser, logout, profilePath }: DashboardUserMe
             setIsOpen(false);
             void logout();
           }}
-          className="block w-full rounded-xl px-4 py-3 text-left text-sm font-black text-[#b42318] transition hover:bg-[#fff0f0]"
+          className="block w-full rounded-xl px-4 py-3 text-left text-sm font-black text-feedback-danger transition hover:bg-[#fff0f0]"
         >
           Sign out
         </button>
@@ -144,7 +144,7 @@ function DashboardTopBar({ title, status, actions, currentUser, logout, profileP
         >
           <Menu className="h-5 w-5" />
         </button>
-        <h1 className="min-w-0 text-[20px] font-black leading-tight tracking-normal text-[#173ca8] sm:text-[22px]">
+        <h1 className="min-w-0 text-[20px] font-black leading-tight tracking-normal text-brand-primary sm:text-[22px]">
           {title}
         </h1>
       </div>
@@ -514,7 +514,7 @@ export const SideBarLayout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white font-sans text-[#1d203a]">
+    <div className="min-h-screen bg-white font-sans text-ink-strong">
       <SideBar
         isVerified={isVerified}
         mode={mode}

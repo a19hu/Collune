@@ -39,7 +39,7 @@ const fallbackImages = [creatorOne, creatorTwo, creatorThree];
 type Accent = "violet" | "orange" | "green" | "blue" | "muted";
 
 const accentClasses: Record<Accent, { icon: string; chip: string }> = {
-  violet: { icon: "bg-[#eee8ff] text-[#4b22ff]", chip: "bg-[#f0eaff] text-[#4b22ff]" },
+  violet: { icon: "bg-[#eee8ff] text-brand-primary", chip: "bg-[#f0eaff] text-brand-primary" },
   orange: { icon: "bg-[#fff3db] text-[#f29a00]", chip: "bg-[#fff5d8] text-[#a66c00]" },
   green: { icon: "bg-[#e2f8ec] text-[#2fbe74]", chip: "bg-[#daf8e8] text-[#0b9150]" },
   blue: { icon: "bg-[#e5f0ff] text-[#2c74d6]", chip: "bg-[#dbeafe] text-[#1f5fbf]" },
@@ -47,7 +47,7 @@ const accentClasses: Record<Accent, { icon: string; chip: string }> = {
 };
 
 const statusClasses: Record<CampaignApplicationApi["status"], string> = {
-  APPLIED: "bg-[#eaf0ff] text-[#173ca8]",
+  APPLIED: "bg-[#eaf0ff] text-brand-primary",
   ACCEPTED: "bg-[#e8f8ef] text-[#12a563]",
   REJECTED: "bg-[#ffe9e9] text-[#d23b3b]",
 };
@@ -153,7 +153,7 @@ function SectionTitle({ title, copy, action }: { title: string; copy?: string; a
   return (
     <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
       <div>
-        <h2 className="text-[22px] font-black tracking-normal text-[#1d2430]">{title}</h2>
+        <h2 className="text-[22px] font-black tracking-normal text-ink-strong">{title}</h2>
         {copy ? <p className="mt-2 text-base font-medium text-[#7a879c]">{copy}</p> : null}
       </div>
       {action}
@@ -180,7 +180,7 @@ function StatusMetric({ label, value, copy, icon, accent }: { label: string; val
         <IconBox icon={icon} accent={accent} className="h-11 w-11" />
         <div>
           <p className="text-sm font-bold text-[#8995a8]">{label}</p>
-          <strong className="block text-3xl font-black leading-tight text-[#1d2430]">{value}</strong>
+          <strong className="block text-3xl font-black leading-tight text-ink-strong">{value}</strong>
         </div>
       </div>
       <p className="mt-3 text-sm font-medium text-[#7d8aa0]">{copy}</p>
@@ -246,7 +246,7 @@ function ApplicationProfileCard({
 
   return (
     <CampaignPanel className="w-[220px] shrink-0 overflow-hidden">
-      <Link to={`/creators/${creatorId}`} className="block transition hover:bg-[#f8faff]">
+      <Link to={`/creators/${creatorId}`} className="block transition hover:bg-surface-page">
         <div className="relative aspect-square bg-[#eef2f7]">
           <img src={image} alt={creator?.display_name || "Creator"} className="h-full w-full object-cover" />
           <span className="absolute left-4 top-4 grid h-9 w-9 place-items-center rounded-lg  p-1 shadow-sm">
@@ -257,7 +257,7 @@ function ApplicationProfileCard({
         <div className="p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
-              <h2 className="text-xl font-black leading-tight text-[#1d2430]">
+              <h2 className="text-xl font-black leading-tight text-ink-strong">
                 {creator?.display_name || creator?.user?.name || "Creator"}
               </h2>
             </div>
@@ -271,7 +271,7 @@ function ApplicationProfileCard({
 function CreatorStat({ value, label }: { value: string; label: string }) {
   return (
     <div className="rounded-lg bg-[#f6f7fa] p-4">
-      <strong className="block text-xl font-black leading-tight text-[#1d2430]">{value}</strong>
+      <strong className="block text-xl font-black leading-tight text-ink-strong">{value}</strong>
       <span className="mt-1 block text-sm font-semibold text-[#8390a5]">{label}</span>
     </div>
   );
@@ -281,11 +281,11 @@ function FeedbackPanel({ title, copy }: { title: string; copy: string }) {
   return (
     <CampaignPanel className="grid min-h-[260px] place-items-center p-8 text-center">
       <div>
-        <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#f0eaff] text-[#4b22ff]">
+        <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#f0eaff] text-brand-primary">
           <Users className="h-6 w-6" />
         </span>
-        <h2 className="mt-5 text-xl font-black text-[#1d2430]">{title}</h2>
-        <p className="mx-auto mt-3 max-w-[420px] text-sm font-medium leading-relaxed text-[#63728a]">{copy}</p>
+        <h2 className="mt-5 text-xl font-black text-ink-strong">{title}</h2>
+        <p className="mx-auto mt-3 max-w-[420px] text-sm font-medium leading-relaxed text-ink-muted">{copy}</p>
       </div>
     </CampaignPanel>
   );
@@ -444,12 +444,12 @@ export function CampaignApplicationsPage() {
         <>
           <header className="flex flex-wrap items-start justify-between gap-5">
             <div className="flex min-w-0 items-start gap-5">
-              <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-[#eee8ff] text-[#4b22ff]">
+              <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-[#eee8ff] text-brand-primary">
                 <Target className="h-8 w-8" />
               </span>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-4">
-                  <h1 className="text-[34px] font-black leading-tight tracking-normal text-[#1d2430]">
+                  <h1 className="text-[34px] font-black leading-tight tracking-normal text-ink-strong">
                     {campaign.title || campaign.name || "Campaign Details"}
                   </h1>
                   <StatusBadge status={campaign.status} />
@@ -464,7 +464,7 @@ export function CampaignApplicationsPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate(`/brand/campaigns/${campaign.campaign_id || campaign.id}/edit`)}
-                type="button" className="inline-flex h-11 items-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-5 text-sm font-black text-[#303948]">
+                type="button" className="inline-flex h-11 items-center gap-2 rounded-lg border border-border-default bg-white px-5 text-sm font-black text-[#303948]">
                 <Edit3 className="h-4 w-4" />
                 Edit Campaign
               </button>
@@ -488,7 +488,7 @@ export function CampaignApplicationsPage() {
                               <span
                                 key={platform}
                                 title={normalized}
-                                className={`grid place-items-center rounded-md p-1 text-[#4b22ff]"}`}
+                                className={`grid place-items-center rounded-md p-1 text-brand-primary"}`}
                               >
                                 <SocialPlatformIcon platform={normalized} className="h-8 w-8" />
                               </span>
@@ -547,7 +547,7 @@ export function CampaignApplicationsPage() {
               <CampaignPanel className="p-7">
                 <div className="mb-7 flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-[22px] font-black tracking-normal text-[#1d2430]">Campaign Status</h2>
+                    <h2 className="text-[22px] font-black tracking-normal text-ink-strong">Campaign Status</h2>
                   </div>
                   <StatusBadge status={campaign.status} />
                 </div>
@@ -567,14 +567,14 @@ export function CampaignApplicationsPage() {
                 <button
                   type="button"
                   onClick={() => navigate(`/brand/campaigns/${campaign.campaign_id || campaign.id}/applications`)}
-                  className="mt-7 h-12 w-full rounded-lg border-2 border-[#4b22ff] bg-white text-base font-black text-[#4b22ff]"
+                  className="mt-7 h-12 w-full rounded-lg border-2 border-brand-primary bg-white text-base font-black text-brand-primary"
                 >
                   View Applications ({allApplications.length})
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate(`/brand/campaigns/${campaign.campaign_id || campaign.id}/submitted-work`)}
-                  className="mt-3 h-12 w-full rounded-lg border-2 border-[#4b22ff] bg-white text-base font-black text-[#4b22ff]"
+                  className="mt-3 h-12 w-full rounded-lg border-2 border-brand-primary bg-white text-base font-black text-brand-primary"
                 >
                   Submitted Work
                 </button>
@@ -597,11 +597,11 @@ export function CampaignApplicationsPage() {
                 <div className="flex gap-5">
                   <IconBox icon={<Megaphone className="h-6 w-6" />} accent="violet" className="h-14 w-14 rounded-full" />
                   <div>
-                    <h2 className="text-xl font-black leading-tight text-[#1d2430]">Need more creators or want to make changes?</h2>
+                    <h2 className="text-xl font-black leading-tight text-ink-strong">Need more creators or want to make changes?</h2>
                     <p className="mt-4 text-base font-medium leading-relaxed text-[#7d8aa0]">You can edit your campaign details or adjust requirements to improve match quality.</p>
                     <button
                       onClick={() => navigate(`/brand/campaigns/${campaign.campaign_id || campaign.id}/edit`)}
-                      type="button" className="mt-5 h-12 rounded-lg bg-[#4b22ff] px-8 text-base font-black text-white">Edit Campaign</button>
+                      type="button" className="mt-5 h-12 rounded-lg bg-brand-primary px-8 text-base font-black text-white">Edit Campaign</button>
                   </div>
                 </div>
               </section>

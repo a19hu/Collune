@@ -79,7 +79,7 @@ export const BrandCard = ({
 
   return (
     <>
-      <Panel className="group min-w-0 w-[450px] overflow-hidden rounded-2xl border border-[#e4e9f2] bg-white p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(24,39,75,0.10)]">
+      <Panel className="group min-w-0 w-[450px] overflow-hidden rounded-2xl border border-border-default bg-white p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(24,39,75,0.10)]">
         {/* Cover Image */}
         <div className="relative h-[170px] w-full overflow-hidden bg-[#f1f4fa]">
           {item?.cover_image ? (
@@ -177,7 +177,7 @@ export const BrandCard = ({
           </h3>
           {objective && (
             <div className="mt-2 mb-2">
-              <p className="line-clamp-3 text-[13px] leading-[21px] text-[#667085]">
+              <p className="line-clamp-3 text-[13px] leading-[21px] text-ink-muted">
                 {displayedObjective}
               </p>
 
@@ -185,7 +185,7 @@ export const BrandCard = ({
                 <button
                   type="button"
                   onClick={() => navigate(`/brand/campaigns/${item.id}`)}
-                  className="mt-1 inline-flex items-center gap-1 text-[13px] font-semibold text-[#5635f5] transition hover:text-[#3213cd]"
+                  className="mt-1 inline-flex items-center gap-1 text-[13px] font-semibold text-brand-primary transition hover:text-[#3213cd]"
                 >
                   See more
                 </button>
@@ -194,8 +194,8 @@ export const BrandCard = ({
           )}
 
           {shortlist ? (
-            <div className="mt-4 flex items-center gap-2 text-[#667085]">
-              <Users className="h-5 w-5 text-[#4b22ff]" />
+            <div className="mt-4 flex items-center gap-2 text-ink-muted">
+              <Users className="h-5 w-5 text-brand-primary" />
               <span className="text-sm font-medium">
                 {item.creators_count} Creators
               </span>
@@ -204,14 +204,14 @@ export const BrandCard = ({
             <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center gap-3 rounded-xl">
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[#eeeaff]">
-                  <Users className="h-5 w-5 text-[#5635f5]" />
+                  <Users className="h-5 w-5 text-brand-primary" />
                 </div>
 
                 <div className="min-w-0">
                   <p className="text-lg font-bold leading-tight text-[#182230]">
                     {item.applications_received_count ?? 0}
                   </p>
-                  <p className="text-xs text-[#667085]">Applications</p>
+                  <p className="text-xs text-ink-muted">Applications</p>
                 </div>
               </div>
 
@@ -224,7 +224,7 @@ export const BrandCard = ({
                   <p className="text-lg font-bold leading-tight text-[#182230]">
                     {item.recommended_creators_count ?? 0}
                   </p>
-                  <p className="text-xs text-[#667085]">Recommended</p>
+                  <p className="text-xs text-ink-muted">Recommended</p>
                 </div>
               </div>
             </div>
@@ -250,7 +250,7 @@ export const BrandCard = ({
                       : `/brand/campaigns/${item.id}`
                   )
                 }
-                className="inline-flex items-center gap-2 text-sm font-semibold text-[#5635f5] transition hover:text-[#3213cd]"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-brand-primary transition hover:text-[#3213cd]"
               >
                 View {shortlist ? 'Shortlist' : 'Campaign'}
                 <ArrowRight className="h-4 w-4" />
@@ -300,7 +300,7 @@ export function CreatorCampaignCard({
   actions?: ReactNode;
 }) {
   return (
-    <Panel className="group min-w-0 overflow-hidden rounded-2xl border border-[#e4e9f2] p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(24,39,75,0.10)]">
+    <Panel className="group min-w-0 overflow-hidden rounded-2xl border border-border-default p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(24,39,75,0.10)]">
       <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-indigo-100 via-blue-50 to-violet-100">
         <button type="button" onClick={onOpen} className="absolute inset-0 h-full w-full text-left">
         {coverImage ? (
@@ -324,7 +324,7 @@ export function CreatorCampaignCard({
             {brand.company_name}
           </span>
         </Link> : <span className="absolute left-4 top-4 inline-flex max-w-[75%] items-center gap-2 rounded-xl border bg-white/95 px-3 py-2 shadow-sm backdrop-blur-md"><span className="truncate text-sm font-semibold text-[#263246]">{brand.company_name}</span></span>}
-        <span className="absolute bottom-4 left-4 inline-flex rounded-lg bg-white/95 px-3 py-1.5 text-xs font-black text-[#3048ff]">
+        <span className="absolute bottom-4 left-4 inline-flex rounded-lg bg-white/95 px-3 py-1.5 text-xs font-black text-brand-primary">
           {status}
         </span>
       </div>
@@ -334,7 +334,7 @@ export function CreatorCampaignCard({
             {title}
           </h3>
         </button>
-        <p className="mt-2 line-clamp-3 text-sm leading-5 text-[#667085]">
+        <p className="mt-2 line-clamp-3 text-sm leading-5 text-ink-muted">
           {objective || 'Campaign details will be available shortly.'}
         </p>
         <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-[#edf0f5] pt-4">
@@ -346,7 +346,7 @@ export function CreatorCampaignCard({
             <button
               type="button"
               onClick={onOpen}
-              className="inline-flex items-center gap-1 text-sm font-semibold text-[#5635f5]"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-brand-primary"
             >
               View <ArrowRight className="h-4 w-4" />
             </button>

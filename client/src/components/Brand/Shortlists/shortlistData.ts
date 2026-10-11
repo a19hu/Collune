@@ -50,7 +50,7 @@ export const statusApiValues: Record<ShortlistStatus, BrandShortlistStatusApi> =
 };
 
 const iconRules: Array<{ match: ShortlistStatus; icon: LucideIcon; className: string }> = [
-  { match: "Draft", icon: FileText, className: "bg-[#ebe5ff] text-[#6a75ff]" },
+  { match: "Draft", icon: FileText, className: "bg-[#ebe5ff] text-brand-primary" },
   { match: "Submitted", icon: Send, className: "bg-[#dbeafe] text-[#2f6df6]" },
 ];
 

@@ -76,7 +76,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f4f6fb] px-4 py-4 text-[#202337] sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+    <main className="min-h-screen bg-[#f4f6fb] px-4 py-4 text-ink-strong sm:px-6 sm:py-6 lg:px-8 lg:py-8">
       <section className="relative mx-auto grid min-h-[calc(100vh-32px)] max-w-[1180px] overflow-hidden rounded-[24px] bg-white shadow-[0_24px_70px_rgba(35,54,120,0.08)] md:min-h-[calc(100vh-48px)] lg:min-h-[calc(100vh-64px)] lg:grid-cols-[0.9fr_1.1fr]">
         <aside className="relative flex flex-col overflow-hidden bg-[#f0edff] px-6 py-7 sm:px-8 sm:py-8 md:min-h-[320px] md:px-10 md:py-10 lg:justify-between lg:px-12 lg:py-11">
           <Link to="/" aria-label="Collune home" className="inline-flex w-max">
@@ -84,14 +84,14 @@ export default function ForgotPasswordPage() {
           </Link>
 
           <div className="relative z-10 mt-8 md:mt-10 lg:mt-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[11px] font-black text-[#2447bd] shadow-sm sm:text-xs">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[11px] font-black text-brand-primary shadow-sm sm:text-xs">
               <ShieldCheck className="h-4 w-4" />
               Secure account recovery
             </div>
-            <h1 className="mt-6 max-w-[16ch] text-[28px] font-black leading-tight tracking-normal text-[#202337] sm:text-[34px] md:text-[40px] lg:mt-8 lg:max-w-md lg:text-[44px]">
+            <h1 className="mt-6 max-w-[16ch] text-[28px] font-black leading-tight tracking-normal text-ink-strong sm:text-[34px] md:text-[40px] lg:mt-8 lg:max-w-md lg:text-[44px]">
               Reset your password and get back in quickly
             </h1>
-            <p className="mt-4 max-w-[34rem] text-sm font-medium leading-relaxed text-[#65758f] sm:text-[15px] md:text-base lg:mt-5 lg:max-w-md">
+            <p className="mt-4 max-w-[34rem] text-sm font-medium leading-relaxed text-ink-muted sm:text-[15px] md:text-base lg:mt-5 lg:max-w-md">
               Enter your account email to receive a one-time reset code, then choose a new secure password.
             </p>
           </div>
@@ -103,7 +103,7 @@ export default function ForgotPasswordPage() {
               <div className="mt-3 h-2 w-28 rounded-full bg-[#dfe4ed]" />
               <div className="mt-3 h-2 w-20 rounded-full bg-[#dfe4ed]" />
             </div>
-            <div className="absolute bottom-2 right-0 w-48 rounded-2xl bg-[#2447bd] p-5 text-white shadow-xl lg:bottom-7 lg:right-6 lg:w-56">
+            <div className="absolute bottom-2 right-0 w-48 rounded-2xl bg-brand-primary p-5 text-white shadow-xl lg:bottom-7 lg:right-6 lg:w-56">
               <p className="text-sm font-black">Fast recovery flow</p>
               <div className="mt-4 grid gap-2">
                 <span className="h-10 rounded-lg bg-white/20" />
@@ -116,13 +116,13 @@ export default function ForgotPasswordPage() {
 
         <section className="flex items-center justify-center px-5 py-8 sm:px-8 sm:py-10 md:px-10 md:py-12 lg:px-12">
           <div className="w-full max-w-[460px]">
-            <Link to="/login" className="inline-flex items-center gap-2 text-sm font-semibold text-[#5870aa] transition hover:text-[#2447bd]">
+            <Link to="/login" className="inline-flex items-center gap-2 text-sm font-semibold text-[#5870aa] transition hover:text-brand-primary">
               <ArrowLeft className="h-4 w-4" />
               Back to login
             </Link>
 
             <div className="mt-6">
-              <h2 className="text-[28px] font-black tracking-normal text-[#202337] sm:text-[30px] md:text-[32px]">
+              <h2 className="text-[28px] font-black tracking-normal text-ink-strong sm:text-[30px] md:text-[32px]">
                 {step === "request" ? "Forgot your password?" : "Create a new password"}
               </h2>
               <p className="mt-3 text-sm font-medium text-[#707b91] sm:text-[15px]">
@@ -155,7 +155,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2447bd] px-5 text-sm font-black text-white transition hover:bg-[#1d3ca3] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand-primary px-5 text-sm font-black text-white transition hover:bg-[#1d3ca3] disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   <Sparkles className="h-4 w-4" />
                   {isSubmitting ? "Sending code..." : "Send reset code"}
@@ -237,7 +237,7 @@ export default function ForgotPasswordPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex h-12 items-center justify-center rounded-xl bg-[#2447bd] px-5 text-sm font-black text-white transition hover:bg-[#1d3ca3] disabled:cursor-not-allowed disabled:opacity-70"
+                    className="inline-flex h-12 items-center justify-center rounded-xl bg-brand-primary px-5 text-sm font-black text-white transition hover:bg-[#1d3ca3] disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     {isSubmitting ? "Updating..." : "Reset password"}
                   </button>

@@ -169,7 +169,7 @@ export function WebsiteTutorial({ role, userEmail }: { role: TutorialRole; userE
     <div className="fixed inset-0 z-[80] bg-[#0d1633]/55">
       {targetRect ? (
         <div
-          className="pointer-events-none fixed rounded-xl border-2 border-[#4b22ff] bg-white/10 shadow-[0_0_0_9999px_rgba(13,22,51,0.48),0_18px_50px_rgba(75,34,255,0.28)]"
+          className="pointer-events-none fixed rounded-xl border-2 border-brand-primary bg-white/10 shadow-[0_0_0_9999px_rgba(13,22,51,0.48),0_18px_50px_rgba(75,34,255,0.28)]"
           style={{
             left: targetRect.left - 8,
             top: targetRect.top - 8,
@@ -182,36 +182,36 @@ export function WebsiteTutorial({ role, userEmail }: { role: TutorialRole; userE
       <section className="fixed rounded-xl bg-white shadow-[0_28px_80px_rgba(13,22,51,0.26)]" style={popoverStyle}>
         <header className="flex items-start justify-between gap-4 border-b border-[#e5ebf3] p-6">
           <div className="flex items-start gap-4">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[#eef3ff] text-[#173ca8]">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-brand-accent-soft text-brand-primary">
               <Icon className="h-6 w-6" />
             </span>
             <div>
-              <p className="text-sm font-black text-[#173ca8]">
+              <p className="text-sm font-black text-brand-primary">
                 {role} Tutorial · Step {stepIndex + 1} of {steps.length}
               </p>
-              <h2 className="mt-1 text-2xl font-black tracking-normal text-[#1d2430]">{step.title}</h2>
+              <h2 className="mt-1 text-2xl font-black tracking-normal text-ink-strong">{step.title}</h2>
             </div>
           </div>
-          <button type="button" onClick={closeTutorial} className="grid h-9 w-9 place-items-center rounded-lg text-[#63728a] hover:bg-[#f3f6fa]" aria-label="Close tutorial">
+          <button type="button" onClick={closeTutorial} className="grid h-9 w-9 place-items-center rounded-lg text-ink-muted hover:bg-[#f3f6fa]" aria-label="Close tutorial">
             <X className="h-5 w-5" />
           </button>
         </header>
 
         <div className="p-6">
-          <p className="text-base font-medium leading-8 text-[#63728a]">{step.copy}</p>
+          <p className="text-base font-medium leading-8 text-ink-muted">{step.copy}</p>
 
           <div className="mt-7 flex gap-2">
             {steps.map((item, index) => (
               <span
                 key={item.title}
-                className={`h-2 flex-1 rounded-full ${index <= stepIndex ? "bg-[#173ca8]" : "bg-[#dfe7f2]"}`}
+                className={`h-2 flex-1 rounded-full ${index <= stepIndex ? "bg-brand-primary" : "bg-[#dfe7f2]"}`}
               />
             ))}
           </div>
         </div>
 
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e5ebf3] p-6">
-          <button type="button" onClick={closeTutorial} className="h-10 rounded-lg px-4 text-sm font-black text-[#63728a] hover:bg-[#f3f6fa]">
+          <button type="button" onClick={closeTutorial} className="h-10 rounded-lg px-4 text-sm font-black text-ink-muted hover:bg-[#f3f6fa]">
             Skip tour
           </button>
           <div className="flex items-center gap-3">
@@ -219,7 +219,7 @@ export function WebsiteTutorial({ role, userEmail }: { role: TutorialRole; userE
               type="button"
               onClick={() => setStepIndex((index) => Math.max(0, index - 1))}
               disabled={stepIndex === 0}
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#dfe7f2] bg-white px-4 text-sm font-black text-[#303948] disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-border-default bg-white px-4 text-sm font-black text-[#303948] disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ArrowLeft className="h-4 w-4" />
               Back
@@ -227,7 +227,7 @@ export function WebsiteTutorial({ role, userEmail }: { role: TutorialRole; userE
             <button
               type="button"
               onClick={() => isLastStep ? closeTutorial() : setStepIndex((index) => index + 1)}
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#173ca8] px-5 text-sm font-black text-white"
+              className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-primary px-5 text-sm font-black text-white"
             >
               {isLastStep ? "Finish" : "Next"}
               {isLastStep ? <Check className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}

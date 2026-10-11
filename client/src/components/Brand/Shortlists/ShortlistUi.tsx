@@ -41,9 +41,9 @@ export function IconTile({ icon: Icon, className, size = "h-12 w-12" }: { icon: 
 
 export function PrimaryButton({ children, onClick, variant = "solid" }: { children: ReactNode; onClick?: () => void; variant?: "solid" | "outline" | "ghost" }) {
   const classes = {
-    solid: "bg-[#173ca8] text-white shadow-[0_8px_14px_rgba(23,60,168,0.18)]",
-    outline: "border-2 border-[#173ca8] bg-white text-[#173ca8]",
-    ghost: "bg-transparent text-[#173ca8]",
+    solid: "bg-brand-primary text-white shadow-[0_8px_14px_rgba(23,60,168,0.18)]",
+    outline: "border-2 border-brand-primary bg-white text-brand-primary",
+    ghost: "bg-transparent text-brand-primary",
   };
 
   return (
@@ -56,16 +56,16 @@ export function PrimaryButton({ children, onClick, variant = "solid" }: { childr
 export function NewShortlistCard({ onCreate }: { onCreate: () => void }) {
   return (
     <button type="button" onClick={onCreate} className="text-left">
-      <ShortlistPanel className="grid min-h-[296px] place-items-center p-8 text-center transition hover:border-[#6a75ff] hover:shadow-sm">
+      <ShortlistPanel className="grid min-h-[296px] place-items-center p-8 text-center transition hover:border-brand-primary hover:shadow-sm">
         <div>
-          <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#ebe5ff] text-[#6a75ff]">
+          <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#ebe5ff] text-brand-primary">
             <Plus className="h-8 w-8" />
           </span>
           <h2 className="mt-6 text-xl font-black text-black">New Shortlist</h2>
-          <p className="mx-auto mt-4 max-w-[290px] text-base font-medium leading-snug text-[#6d7688]">
+          <p className="mx-auto mt-4 max-w-[290px] text-base font-medium leading-snug text-ink-muted">
             Start building a list of creators you'd like Collune to reach out to.
           </p>
-          <span className="mt-7 inline-flex text-base font-black text-[#7b83ff]">Create Shortlist</span>
+          <span className="mt-7 inline-flex text-base font-black text-brand-primary">Create Shortlist</span>
         </div>
       </ShortlistPanel>
     </button>
@@ -74,7 +74,7 @@ export function NewShortlistCard({ onCreate }: { onCreate: () => void }) {
 
 export function ShortlistCard({ item, onOpen }: { key?: string; item: ShortlistItem; onOpen: (item: ShortlistItem) => void }) {
   return (
-    <ShortlistPanel className="min-h-[296px] p-6 transition hover:border-[#6a75ff] hover:shadow-sm">
+    <ShortlistPanel className="min-h-[296px] p-6 transition hover:border-brand-primary hover:shadow-sm">
       <div className="flex items-start justify-between">
         <button type="button" onClick={() => onOpen(item)}>
           <IconTile icon={item.icon} className={item.iconClassName} />
@@ -87,13 +87,13 @@ export function ShortlistCard({ item, onOpen }: { key?: string; item: ShortlistI
       <button type="button" onClick={() => onOpen(item)} className="mt-7 block text-left">
         <h2 className="text-[22px] font-black leading-tight text-black">{item.title}</h2>
       </button>
-      <p className="mt-4 text-base font-medium text-[#6d7688]">{item.creators.length} Creators</p>
+      <p className="mt-4 text-base font-medium text-ink-muted">{item.creators.length} Creators</p>
       <div className="mt-5">
         <StatusBadge status={item.status} />
       </div>
       <div className="mt-8 flex items-center justify-between gap-4">
-        <span className="text-sm font-medium text-[#6d7688]">{item.updatedAt}</span>
-        <button type="button" onClick={() => onOpen(item)} className="inline-flex items-center gap-2 text-sm font-black text-[#7b83ff]">
+        <span className="text-sm font-medium text-ink-muted">{item.updatedAt}</span>
+        <button type="button" onClick={() => onOpen(item)} className="inline-flex items-center gap-2 text-sm font-black text-brand-primary">
           {item.status === "Draft" ? "Continue" : "View Shortlist"} -&gt;
         </button>
       </div>
@@ -127,10 +127,10 @@ export function EditableInfoPanel({
         <textarea
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="mt-4 h-32 w-full resize-none rounded-lg border border-[#dfe5ee] px-4 py-3 text-[15px] font-medium leading-relaxed text-[#333b4a] outline-none focus:border-[#6a75ff] focus:ring-4 focus:ring-[#6a75ff]/10"
+          className="mt-4 h-32 w-full resize-none rounded-lg border border-[#dfe5ee] px-4 py-3 text-[15px] font-medium leading-relaxed text-[#333b4a] outline-none focus:border-brand-primary focus:ring-4 focus:ring-[#6a75ff]/10"
         />
       ) : (
-        <p className="mt-4 text-[15px] font-medium leading-relaxed text-[#6d7688]">{value || "No notes added yet."}</p>
+        <p className="mt-4 text-[15px] font-medium leading-relaxed text-ink-muted">{value || "No notes added yet."}</p>
       )}
     </ShortlistPanel>
   );
@@ -153,7 +153,7 @@ export function CreatorCard({ creator, onRemove }: { key?: string; creator: Shor
           <PlatformIcon platform={creator.platform} />
         </span>
         {
-          onRemove && <button type="button" onClick={() => onRemove(creator.id)} className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white text-[#667085]" aria-label={`Remove ${creator.name}`}>
+          onRemove && <button type="button" onClick={() => onRemove(creator.id)} className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white text-ink-muted" aria-label={`Remove ${creator.name}`}>
           <MoreVertical className="h-5 w-5" />
         </button> 
         }
@@ -161,11 +161,11 @@ export function CreatorCard({ creator, onRemove }: { key?: string; creator: Shor
       </div>
       <div className="p-4">
         <h3 className="text-lg font-black leading-tight text-[#333b4a]">{creator.name}</h3>
-        <p className="mt-1 text-sm font-medium text-[#6d7688]">{creator.category}</p>
-        <p className="mt-4 text-sm font-medium text-[#6d7688]">
+        <p className="mt-1 text-sm font-medium text-ink-muted">{creator.category}</p>
+        <p className="mt-4 text-sm font-medium text-ink-muted">
           {creator.followers} Followers {creator.engagement} Eng. Rate
         </p>
-        {/* <p className="mt-3 text-sm font-black text-[#7b83ff]">{creator.added}</p> */}
+        {/* <p className="mt-3 text-sm font-black text-brand-primary">{creator.added}</p> */}
       </div>
     </ShortlistPanel>
   );

@@ -58,13 +58,13 @@ function PolicySection({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-[#dfe7f2] bg-white p-6">
+    <section className="rounded-xl border border-border-default bg-white p-6">
       <div className="flex items-start gap-4">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-[#eef3ff] text-[#173ca8]">
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-brand-accent-soft text-brand-primary">
           <Icon className="h-6 w-6" />
         </span>
         <div>
-          <h2 className="mt-1 text-2xl font-black tracking-normal text-[#101828]">{number}.{title}</h2>
+          <h2 className="mt-1 text-2xl font-black tracking-normal text-ink-strong">{number}.{title}</h2>
         </div>
       </div>
       <div className="mt-6">{children}</div>
@@ -77,7 +77,7 @@ function BulletList({ items }: { items: string[] }) {
     <div className="grid gap-3">
       {items.map((item) => (
         <div key={item} className="flex gap-3 rounded-lg bg-[#f7f9fc] p-4">
-          <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#173ca8]" />
+          <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-brand-primary" />
           <p className="text-sm font-semibold leading-6 text-[#53627a]">{item}</p>
         </div>
       ))}
@@ -90,7 +90,7 @@ function PairList({ items }: { items: string[][] }) {
     <div className="grid gap-3">
       {items.map(([label, copy]) => (
         <div key={label} className="rounded-lg bg-[#f7f9fc] p-4">
-          <h3 className="text-sm font-black text-[#1d2430]">{label}</h3>
+          <h3 className="text-sm font-black text-ink-strong">{label}</h3>
           <p className="mt-2 text-sm font-semibold leading-6 text-[#53627a]">{copy}</p>
         </div>
       ))}
@@ -100,21 +100,21 @@ function PairList({ items }: { items: string[][] }) {
 
 export default function PrivacyPolicy() {
   return (
-    <main className="bg-white pt-32 text-[#1d2430]">
+    <main className="bg-white pt-32 text-ink-strong">
       <section className="mx-auto max-w-7xl px-6 pb-14 md:px-10">
         <div className="max-w-4xl">
-          <span className="inline-flex h-10 items-center rounded-lg bg-[#eef3ff] px-4 text-sm font-black text-[#173ca8]">
+          <span className="inline-flex h-10 items-center rounded-lg bg-brand-accent-soft px-4 text-sm font-black text-brand-primary">
             Privacy Policy
           </span>
-          <h1 className="mt-6 text-[40px] font-black leading-tight tracking-normal text-[#101828] md:text-[58px]">
+          <h1 className="mt-6 text-[40px] font-black leading-tight tracking-normal text-ink-strong md:text-[58px]">
             How Collune collects, uses, and protects your information.
           </h1>
           <p className="mt-6 text-lg font-medium leading-8 text-[#5f6f89]">
             This Privacy Policy explains how Collune, operated by AIM Information Technology, collects, uses, discloses, and safeguards your information when you use our platform, services, and websites.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <span className="rounded-lg border border-[#dfe7f2] bg-white px-4 py-2 text-sm font-black text-[#53627a]">Effective Date: To be updated</span>
-            <span className="rounded-lg border border-[#dfe7f2] bg-white px-4 py-2 text-sm font-black text-[#53627a]">Last Updated: To be updated</span>
+            <span className="rounded-lg border border-border-default bg-white px-4 py-2 text-sm font-black text-[#53627a]">Effective Date: To be updated</span>
+            <span className="rounded-lg border border-border-default bg-white px-4 py-2 text-sm font-black text-[#53627a]">Last Updated: To be updated</span>
           </div>
         </div>
       </section>
@@ -138,7 +138,7 @@ export default function PrivacyPolicy() {
 
           <PolicySection number="4" title="Data Sharing & Third Parties" icon={Scale}>
             <PairList items={sharingItems} />
-            <p className="mt-4 text-sm font-black leading-6 text-[#1d2430]">
+            <p className="mt-4 text-sm font-black leading-6 text-ink-strong">
               We do not sell user data to third parties. International data transfers comply with DPDP Act 2023 requirements.
             </p>
           </PolicySection>
@@ -162,11 +162,11 @@ export default function PrivacyPolicy() {
           </PolicySection>
 
           <PolicySection number="7" title="Contact for Privacy Concerns" icon={Mail}>
-            <div className="rounded-lg bg-[#eef3ff] p-5">
+            <div className="rounded-lg bg-brand-accent-soft p-5">
               <p className="text-sm font-semibold leading-6 text-[#53627a]">
                 For privacy inquiries or to exercise your rights, contact our Data Protection Officer.
               </p>
-              <p className="mt-3 text-sm font-black text-[#173ca8]">Response timeframe: 30 days for access requests; 45 days for complex requests.</p>
+              <p className="mt-3 text-sm font-black text-brand-primary">Response timeframe: 30 days for access requests; 45 days for complex requests.</p>
               <p className="mt-3 text-sm font-semibold leading-6 text-[#53627a]">
                 You may also file a complaint with the Data Protection Board of India if you believe your rights have been violated.
               </p>

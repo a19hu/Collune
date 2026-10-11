@@ -33,11 +33,11 @@ function LeftPane({ step }: { step: number }) {
     if (step === 2){
         return (
             <>
-            <h1 className="mt-8 max-w-lg text-[32px] font-black leading-tight tracking-normal text-[#202337] sm:mt-12 sm:text-[38px] lg:mt-20 lg:text-[44px]">
+            <h1 className="mt-8 max-w-lg text-[32px] font-black leading-tight tracking-normal text-ink-strong sm:mt-12 sm:text-[38px] lg:mt-20 lg:text-[44px]">
                 Your security is 
                 <span className="block text-[#4965f4]">our priority</span>
             </h1>
-            <p className="mt-5 max-w-lg text-sm font-medium leading-relaxed text-[#65758f] sm:mt-6 sm:text-base lg:mt-7">
+            <p className="mt-5 max-w-lg text-sm font-medium leading-relaxed text-ink-muted sm:mt-6 sm:text-base lg:mt-7">
                 We use email and phone verification to keep your account safe.
             </p>
             <div className="relative mx-auto mt-8 h-[220px] w-full max-w-[520px] sm:mt-10 sm:h-[280px] lg:mt-12 lg:h-[330px]">
@@ -50,10 +50,10 @@ function LeftPane({ step }: { step: number }) {
     if (step === 3) {
         return (
             <>
-                <h1 className="mt-5 max-w-lg text-[32px] font-black leading-tight tracking-normal text-[#202337] sm:mt-6 sm:text-[38px] lg:text-[44px]">
+                <h1 className="mt-5 max-w-lg text-[32px] font-black leading-tight tracking-normal text-ink-strong sm:mt-6 sm:text-[38px] lg:text-[44px]">
                     Tell us about <span className="block text-[#4965f4]">your company</span>
                 </h1>
-                <p className="mt-4 max-w-lg text-sm font-medium leading-relaxed text-[#65758f] sm:mt-5 sm:text-base">
+                <p className="mt-4 max-w-lg text-sm font-medium leading-relaxed text-ink-muted sm:mt-5 sm:text-base">
                     This helps creators learn about your brand and builds trust in every collaboration.
                 </p>
                 <div className="relative mx-auto mt-8 h-[220px] w-full max-w-[520px] sm:mt-10 sm:h-[280px] lg:mt-12 lg:h-[330px]">
@@ -70,7 +70,7 @@ function LeftPane({ step }: { step: number }) {
                     You're all set!
                     <span className="block text-[#4b22f4]">Let's get you started.</span>
                 </h1>
-                <p className="mt-5 max-w-md text-sm font-medium leading-relaxed text-[#65758f] sm:mt-6 sm:text-base lg:mt-7">
+                <p className="mt-5 max-w-md text-sm font-medium leading-relaxed text-ink-muted sm:mt-6 sm:text-base lg:mt-7">
                     Your company profile is ready. You can now create campaigns, build shortlists, and connect with creators.
                 </p>
                 <div className="relative mx-auto mt-8 h-[220px] w-full max-w-[520px] sm:mt-10 sm:h-[280px] lg:mt-12 lg:h-[330px]">
@@ -82,11 +82,11 @@ function LeftPane({ step }: { step: number }) {
 
     return (
         <>
-            <h1 className="mt-8 max-w-lg text-[32px] font-black leading-tight tracking-normal text-[#202337] sm:mt-12 sm:text-[38px] lg:mt-20 lg:text-[44px]">
+            <h1 className="mt-8 max-w-lg text-[32px] font-black leading-tight tracking-normal text-ink-strong sm:mt-12 sm:text-[38px] lg:mt-20 lg:text-[44px]">
                 Start building
                 <span className="block text-[#4965f4]">creator partnerships</span>
             </h1>
-            <p className="mt-5 max-w-lg text-sm font-medium leading-relaxed text-[#65758f] sm:mt-6 sm:text-base lg:mt-7">
+            <p className="mt-5 max-w-lg text-sm font-medium leading-relaxed text-ink-muted sm:mt-6 sm:text-base lg:mt-7">
                 Create your account to discover creators, launch campaigns, and build meaningful collaborations.
             </p>
             <div className="relative mx-auto mt-8 h-[220px] w-full max-w-[520px] sm:mt-10 sm:h-[280px] lg:mt-12 lg:h-[330px]">
@@ -154,7 +154,7 @@ const Register = ({ children, step, totalSteps = 4 }: RegisterProps) => {
 
     if (isFinalStep && !isBrandFlow) {
         return (
-            <main className="min-h-screen bg-[#f4f6fb] p-3 text-[#202337] sm:p-4 lg:p-10">
+            <main className="min-h-screen bg-[#f4f6fb] p-3 text-ink-strong sm:p-4 lg:p-10">
                 <section className="relative mx-auto min-h-[calc(100vh-24px)] max-w-[1342px] overflow-hidden rounded-xl bg-white px-5 py-6 sm:min-h-[calc(100vh-32px)] sm:px-7 sm:py-8 lg:min-h-[calc(100vh-80px)] lg:px-12">
                     <Link to="/" aria-label="Collune home" className="inline-flex w-max lg:absolute lg:left-12 lg:top-8">
                         <img src={logo} alt="Collune" className="h-[40px] w-auto sm:h-[46px] lg:h-[53px]" />
@@ -169,7 +169,7 @@ const Register = ({ children, step, totalSteps = 4 }: RegisterProps) => {
     }
 
     return (
-        <main className="min-h-screen bg-[#f4f6fb] p-3 text-[#202337] sm:p-4 lg:p-[30px]">
+        <main className="min-h-screen bg-[#f4f6fb] p-3 text-ink-strong sm:p-4 lg:p-[30px]">
             <section className={`mx-auto grid min-h-[calc(90vh-24px)] max-w-[1296px] overflow-hidden rounded-[20px] bg-white ${isBrandFlow ? "xl:grid-cols-[0.85fr_1.15fr]" : "xl:grid-cols-[1fr_1fr]"}`}>
                 <aside className="flex flex-col px-5 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-10 xl:px-14 xl:py-11">
                     <Link to="/" aria-label="Collune home" className="inline-flex w-max">

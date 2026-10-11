@@ -221,8 +221,8 @@ export const DiscoverCreatorsPage = ({brandsidebar= false}:{brandsidebar?:boolea
             {
               brandsidebar ? null :
             <div>
-              <h2 className="text-[clamp(30px,1vw,40px)] font-black leading-none text-[#1438c8]">Discover Creators</h2>
-              <p className="mt-3 max-w-md text-base font-bold leading-tight text-[#65718a]">
+              <h2 className="text-[clamp(30px,1vw,40px)] font-black leading-none text-brand-primary">Discover Creators</h2>
+              <p className="mt-3 max-w-md text-base font-bold leading-tight text-ink-muted">
                 Explore verified creators across different categories. Find the perfect match for your brand.
               </p>
             </div>
@@ -240,11 +240,11 @@ export const DiscoverCreatorsPage = ({brandsidebar= false}:{brandsidebar?:boolea
           </div>
         <div>
           <div className="mt-9 flex flex-wrap items-center justify-between gap-4">
-            <p className="text-base font-bold text-[#65718a]">
+            <p className="text-base font-bold text-ink-muted">
               {isBrand ? `${filteredCreators.length} of ${creators.length} creators found.` : `Showing ${visibleCreators.length} of ${filteredCreators.length} creators`}
             </p>
             {isBrand ? (
-              <select aria-label="Sort creators" value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="h-9 rounded-[6px] border border-[#d8e2fb] bg-white px-3 text-sm font-bold text-[#65718a]">
+              <select aria-label="Sort creators" value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="h-9 rounded-[6px] border border-[#d8e2fb] bg-white px-3 text-sm font-bold text-ink-muted">
                 {creatorSortOptions.map(([value, label]) => <option key={value} value={value}>Sort by: {label}</option>)}
               </select>
             ) : null}
@@ -254,13 +254,13 @@ export const DiscoverCreatorsPage = ({brandsidebar= false}:{brandsidebar?:boolea
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p aria-live="polite" className="text-sm font-bold text-[#334260]">Compare creators ({comparedCreators.length}/5) · Select 2–5 creators</p>
                 <div className="flex gap-3">
-                  <button type="button" disabled={!comparisonIds.length} onClick={() => { setComparisonIds([]); setShowComparison(false); }} className="text-sm font-bold text-[#65718a] disabled:opacity-40">Clear selection</button>
-                  <button type="button" aria-expanded={showComparison && comparedCreators.length >= 2} aria-controls="creator-comparison" disabled={comparedCreators.length < 2} onClick={() => setShowComparison((current) => !current)} className="rounded-lg bg-[#1438c8] px-4 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">{showComparison && comparedCreators.length >= 2 ? "Hide comparison" : "Compare selected"}</button>
+                  <button type="button" disabled={!comparisonIds.length} onClick={() => { setComparisonIds([]); setShowComparison(false); }} className="text-sm font-bold text-ink-muted disabled:opacity-40">Clear selection</button>
+                  <button type="button" aria-expanded={showComparison && comparedCreators.length >= 2} aria-controls="creator-comparison" disabled={comparedCreators.length < 2} onClick={() => setShowComparison((current) => !current)} className="rounded-lg bg-brand-primary px-4 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">{showComparison && comparedCreators.length >= 2 ? "Hide comparison" : "Compare selected"}</button>
                 </div>
               </div>
               {comparedCreators.length ? (
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {comparedCreators.map((creator) => <button key={creator.creator_id} type="button" aria-label={`Remove ${creator.display_name} from comparison`} onClick={() => toggleComparison(creator.creator_id!)} className="rounded-full bg-[#eef2ff] px-3 py-1 text-sm font-semibold text-[#334260]">{creator.display_name} ×</button>)}
+                  {comparedCreators.map((creator) => <button key={creator.creator_id} type="button" aria-label={`Remove ${creator.display_name} from comparison`} onClick={() => toggleComparison(creator.creator_id!)} className="rounded-full bg-brand-accent-soft px-3 py-1 text-sm font-semibold text-[#334260]">{creator.display_name} ×</button>)}
                 </div>
               ) : null}
               <div id="creator-comparison">
@@ -270,11 +270,11 @@ export const DiscoverCreatorsPage = ({brandsidebar= false}:{brandsidebar?:boolea
           ) : null}
           <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_minmax(300px,170px)] lg:items-start">
 
-          {error ? <p className="mt-8 rounded-[8px] bg-white p-5 text-sm font-black text-[#b42318]">{error}</p> : null}
+          {error ? <p className="mt-8 rounded-[8px] bg-white p-5 text-sm font-black text-feedback-danger">{error}</p> : null}
           <div className="mt-5 max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
             <div className="grid gap-7 md:grid-cols-2 xl:grid-cols-3">
             {isLoading ? (
-              <p className="col-span-full py-10 text-center text-sm font-black text-[#65718a]">Loading creators...</p>
+              <p className="col-span-full py-10 text-center text-sm font-black text-ink-muted">Loading creators...</p>
             ) : visibleCreators.length ? (
               visibleCreators.map((creator, index) => (
                 <div key={creator.creator_id || creator.username || `${creator.display_name}-${index}`} className="min-w-0">
@@ -293,7 +293,7 @@ export const DiscoverCreatorsPage = ({brandsidebar= false}:{brandsidebar?:boolea
                 </div>
               ))
             ) : (
-              <p className="col-span-full py-10 text-center text-sm font-black text-[#65718a]">No creators match these filters.</p>
+              <p className="col-span-full py-10 text-center text-sm font-black text-ink-muted">No creators match these filters.</p>
             )}
             </div>
           </div>
@@ -307,7 +307,7 @@ export const DiscoverCreatorsPage = ({brandsidebar= false}:{brandsidebar?:boolea
             <div className="mt-7 grid gap-7">
               <div>
                 <h3 className="mb-3 text-sm font-black text-[#334260]">Categories</h3>
-                <label className="mb-3 flex h-9 items-center gap-2 rounded-[6px] border border-[#d8e2fb] px-3 text-xs font-bold text-[#65718a]">
+                <label className="mb-3 flex h-9 items-center gap-2 rounded-[6px] border border-[#d8e2fb] px-3 text-xs font-bold text-ink-muted">
                   <Search className="h-4 w-4" />
                   <input
                     value={categoryQuery}
@@ -316,7 +316,7 @@ export const DiscoverCreatorsPage = ({brandsidebar= false}:{brandsidebar?:boolea
                     className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-[#9aa7c4]"
                   />
                 </label>
-                <div className="grid grid-cols-2 gap-3 text-sm font-semibold text-[#65718a]">
+                <div className="grid grid-cols-2 gap-3 text-sm font-semibold text-ink-muted">
                   {visibleCategoryOptions.map((category) => (
                     <label key={category} className="flex items-center gap-2">
                       <input type="checkbox" checked={selectedCategories.includes(category)} onChange={() => { toggleValue(category, setSelectedCategories, selectedCategories); }} className="accent-[#7288ff]" />
@@ -327,7 +327,7 @@ export const DiscoverCreatorsPage = ({brandsidebar= false}:{brandsidebar?:boolea
               </div>
               <div>
                 <h3 className="mb-3 text-sm font-black text-[#334260]">Platform</h3>
-                <div className="grid grid-cols-2 gap-3 text-sm font-semibold text-[#65718a]">
+                <div className="grid grid-cols-2 gap-3 text-sm font-semibold text-ink-muted">
                   {platformOptions.map((platform) => (
                     <label key={platform} className="flex items-center gap-2">
                       <input type="checkbox" checked={selectedPlatforms.includes(platform)} onChange={() => toggleValue(platform, setSelectedPlatforms, selectedPlatforms)} className="accent-[#7288ff]" />
@@ -339,7 +339,7 @@ export const DiscoverCreatorsPage = ({brandsidebar= false}:{brandsidebar?:boolea
               <div>
                 <h3 className="mb-3 text-sm font-black text-[#334260]">Followers</h3>
                 <input type="range" min="0" max="1000000" step="1000" value={minFollowers} onChange={(event) => setMinFollowers(Number(event.target.value))} className="w-full accent-[#7288ff]" />
-                <div className="mt-2 flex justify-between text-xs font-bold text-[#65718a]">
+                <div className="mt-2 flex justify-between text-xs font-bold text-ink-muted">
                   <span className="rounded border border-[#d8e2fb] px-2 py-1">1K</span>
                   <span className="rounded border border-[#d8e2fb] px-2 py-1">1M+</span>
                 </div>
@@ -371,7 +371,7 @@ function FilterSelect({ label, value, options, onChange }: { label: string; valu
   return (
     <label className="grid gap-2 text-sm font-bold text-[#334260]">
       {label}
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="h-10 w-full rounded-md border border-[#d8e2fb] bg-white px-3 text-[#65718a]">
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="h-10 w-full rounded-md border border-[#d8e2fb] bg-white px-3 text-ink-muted">
         <option value="">All {label.toLowerCase()} options</option>
         {options.map((option) => <option key={option} value={option}>{option}</option>)}
       </select>
@@ -382,17 +382,17 @@ function FilterSelect({ label, value, options, onChange }: { label: string; valu
 function LockedFilters() {
   return (
     <aside className="rounded-[14px] border border-[#d8e2fb] bg-white p-6">
-      <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#dce5ff] text-[#7488ff]">
+      <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-brand-accent-soft text-[#7488ff]">
         <Lock className="h-8 w-8" />
       </div>
-      <h2 className="mt-4 text-center text-base font-black text-[#25304a]">Unlock all filters</h2>
-      <p className="mx-auto mt-2 max-w-[230px] text-center text-sm font-semibold leading-tight text-[#65718a]">
+      <h2 className="mt-4 text-center text-base font-black text-ink-strong">Unlock all filters</h2>
+      <p className="mx-auto mt-2 max-w-[230px] text-center text-sm font-semibold leading-tight text-ink-muted">
         Sign in to access advanced search filters and find the right creators faster.
       </p>
-      <Link to="/login" className="mt-6 grid h-11 place-items-center rounded-[8px] bg-[#1438c8] text-sm font-black text-white">
+      <Link to="/login" className="mt-6 grid h-11 place-items-center rounded-[8px] bg-brand-primary text-sm font-black text-white">
         Sign in to continue
       </Link>
-      <div className="mt-8 grid gap-4 text-sm font-bold text-[#25304a]">
+      <div className="mt-8 grid gap-4 text-sm font-bold text-ink-strong">
         {["Categories", "Platform", "Followers", "Location", "Language"].map((label) => (
           <div key={label} className="flex items-center justify-between">
             <span>{label}</span>
@@ -400,7 +400,7 @@ function LockedFilters() {
           </div>
         ))}
       </div>
-      <p className="mt-16 text-center text-sm font-semibold leading-tight text-[#65718a]">
+      <p className="mt-16 text-center text-sm font-semibold leading-tight text-ink-muted">
         Creating and account is free and only takes a minute.
       </p>
     </aside>

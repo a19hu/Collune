@@ -64,7 +64,7 @@ function Panel({
 }) {
   return (
     <section
-      className={`rounded-[8px] border border-[#dce4f0] bg-white ${className}`}
+      className={`rounded-[8px] border border-border-default bg-white ${className}`}
     >
       {children}
     </section>
@@ -82,7 +82,7 @@ function SectionTitle({
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center gap-2 text-[13px] font-bold text-[#65718a]">
+      <div className="flex items-center gap-2 text-[13px] font-bold text-ink-muted">
         {icon}
         <span>{title}</span>
       </div>
@@ -93,8 +93,8 @@ function SectionTitle({
 
 function MetricTile({ value, label }: { value: string; label: string }) {
   return (
-    <div className="grid min-h-[82px] place-items-center rounded-[6px] bg-[#eef4ff] px-3 text-center">
-      <strong className="text-[24px] font-black leading-none text-[#1438c8]">
+    <div className="grid min-h-[82px] place-items-center rounded-[6px] bg-brand-accent-soft px-3 text-center">
+      <strong className="text-[24px] font-black leading-none text-brand-primary">
         {value}
       </strong>
       <span className="mt-1 text-[11px] font-semibold text-[#6c7790]">
@@ -114,9 +114,9 @@ function LockedMetricTile({
   unlocked: boolean;
 }) {
   return (
-    <div className="relative grid min-h-[82px] place-items-center overflow-hidden rounded-[6px] bg-[#eef4ff] px-3 text-center">
+    <div className="relative grid min-h-[82px] place-items-center overflow-hidden rounded-[6px] bg-brand-accent-soft px-3 text-center">
       <strong
-        className={`text-[24px] font-black leading-none text-[#1438c8] ${unlocked ? '' : 'blur-[5px]'}`}
+        className={`text-[24px] font-black leading-none text-brand-primary ${unlocked ? '' : 'blur-[5px]'}`}
       >
         {value}
       </strong>
@@ -209,11 +209,11 @@ function BrandActions({
     return (
       <>
         <Panel className="p-5">
-          <h2 className="text-lg font-black text-[#65718a]">For Brands</h2>
+          <h2 className="text-lg font-black text-ink-muted">For Brands</h2>
           <div className="mt-4 grid gap-3">
             <Link
               to={`/brand/chat?creatorId=${creator.creator_id}`}
-              className="flex h-12 items-center justify-center gap-2 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]"
+              className="flex h-12 items-center justify-center gap-2 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-brand-primary"
             >
               <MessageCircle className="h-4 w-4" />
               Connect with Creator
@@ -221,7 +221,7 @@ function BrandActions({
             <button
               type="button"
               onClick={() => setIsShortlistModalOpen(true)}
-              className="h-12 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]"
+              className="h-12 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-brand-primary"
             >
               Add to Shortlist
             </button>
@@ -231,7 +231,7 @@ function BrandActions({
               disabled={
                 isTogglingSaved || isCheckingSaved || !creator.creator_id
               }
-              className={`flex h-12 items-center justify-center gap-2 rounded-[6px] text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${isSavedCreator ? 'border border-[#c9d7ff] bg-[#eef3ff] text-[#1438c8]' : 'bg-[#1438c8] text-white'}`}
+              className={`flex h-12 items-center justify-center gap-2 rounded-[6px] text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${isSavedCreator ? 'border border-[#c9d7ff] bg-brand-accent-soft text-brand-primary' : 'bg-brand-primary text-white'}`}
             >
               {isCheckingSaved
                 ? 'Checking...'
@@ -256,10 +256,10 @@ function BrandActions({
 
   return (
     <Panel className="p-6 text-center">
-      <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#dce5ff] text-[#7386ff]">
+      <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-brand-accent-soft text-[#7386ff]">
         <Lock className="h-7 w-7" />
       </span>
-      <h2 className="mt-4 text-sm font-black text-[#25304a]">
+      <h2 className="mt-4 text-sm font-black text-ink-strong">
         Want full access?
       </h2>
       <p className="mx-auto mt-2 max-w-[230px] text-[13px] font-semibold leading-tight text-[#64728c]">
@@ -268,7 +268,7 @@ function BrandActions({
       </p>
       <Link
         to="/login"
-        className="mx-auto mt-4 grid h-11 max-w-[190px] place-items-center rounded-[6px] bg-[#1438c8] text-sm font-black text-white"
+        className="mx-auto mt-4 grid h-11 max-w-[190px] place-items-center rounded-[6px] bg-brand-primary text-sm font-black text-white"
       >
         Login as a Brand
       </Link>
@@ -285,10 +285,10 @@ function BrandActions({
 function VerifiedCard() {
   return (
     <Panel className="flex min-h-[108px] items-center gap-4 p-5">
-      <span className="grid h-14 w-14 place-items-center rounded-full bg-[#dce5ff] text-[#7386ff]">
+      <span className="grid h-14 w-14 place-items-center rounded-full bg-brand-accent-soft text-[#7386ff]">
         <ShieldCheck className="h-8 w-8" />
       </span>
-      <h2 className="text-lg font-black leading-tight text-[#65718a]">
+      <h2 className="text-lg font-black leading-tight text-ink-muted">
         Profile Verified by Collune
       </h2>
     </Panel>
@@ -315,7 +315,7 @@ function BrandLoginPromptModal({
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-xl font-black text-[#25304a]">
+            <h2 className="text-xl font-black text-ink-strong">
               Login Required
             </h2>
             <p className="mt-2 text-sm font-semibold leading-relaxed text-[#64728c]">
@@ -326,7 +326,7 @@ function BrandLoginPromptModal({
           <button
             type="button"
             onClick={onClose}
-            className="grid h-9 w-9 place-items-center rounded-full border border-[#dce4f0] text-[#64728c]"
+            className="grid h-9 w-9 place-items-center rounded-full border border-border-default text-[#64728c]"
             aria-label="Close login prompt"
           >
             <span className="text-lg leading-none">x</span>
@@ -336,13 +336,13 @@ function BrandLoginPromptModal({
         <div className="mt-6 grid gap-3">
           <Link
             to="/login"
-            className="grid h-12 place-items-center rounded-[6px] bg-[#1438c8] text-sm font-black text-white"
+            className="grid h-12 place-items-center rounded-[6px] bg-brand-primary text-sm font-black text-white"
           >
             Login as a Brand
           </Link>
           <Link
             to="/brand-register"
-            className="grid h-12 place-items-center rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]"
+            className="grid h-12 place-items-center rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-brand-primary"
           >
             Create Brand Account
           </Link>
@@ -452,7 +452,7 @@ export function PublicCreatorProfile() {
   if (isLoading) {
     return (
       <main className="grid min-h-[70vh] place-items-center bg-[#f4f7fb]">
-        <Loader2 className="h-9 w-9 animate-spin text-[#1438c8]" />
+        <Loader2 className="h-9 w-9 animate-spin text-brand-primary" />
       </main>
     );
   }
@@ -460,7 +460,7 @@ export function PublicCreatorProfile() {
   if (!profile) {
     return (
       <main className="min-h-[70vh] bg-[#f4f7fb] px-6 py-16">
-        <Panel className="mx-auto max-w-[760px] p-6 text-sm font-semibold text-[#b42318]">
+        <Panel className="mx-auto max-w-[760px] p-6 text-sm font-semibold text-feedback-danger">
           {error || 'Creator profile not found.'}
         </Panel>
       </main>
@@ -468,14 +468,14 @@ export function PublicCreatorProfile() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f4f7fb] px-4 pb-10 pt-28 text-[#25304a] sm:px-6">
+    <main className="min-h-screen bg-[#f4f7fb] px-4 pb-10 pt-28 text-ink-strong sm:px-6">
       <div className="mx-auto max-w-[1200px]">
-        <div className="mb-4 text-[13px] font-black text-[#65718a]">
-          <Link to="/" className="hover:text-[#1438c8]">
+        <div className="mb-4 text-[13px] font-black text-ink-muted">
+          <Link to="/" className="hover:text-brand-primary">
             Home
           </Link>
           <span> &gt; </span>
-          <Link to="/discover-creators" className="hover:text-[#1438c8]">
+          <Link to="/discover-creators" className="hover:text-brand-primary">
             Discover Creators
           </Link>
           <span> &gt; {profile?.display_name}</span>
@@ -493,7 +493,7 @@ export function PublicCreatorProfile() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="grid h-full w-full place-items-center text-[#1438c8]">
+                    <div className="grid h-full w-full place-items-center text-brand-primary">
                       <UserRound className="h-24 w-24" />
                     </div>
                   )}
@@ -504,7 +504,7 @@ export function PublicCreatorProfile() {
 
                 <div className="pt-3">
                   <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-start">
-                    <h1 className="text-[28px] font-black leading-tight text-[#1438c8]">
+                    <h1 className="text-[28px] font-black leading-tight text-brand-primary">
                       {profile?.display_name}
                     </h1>
                     <BadgeCheck className="h-5 w-5 fill-[#6f85ff] text-white" />
@@ -542,7 +542,7 @@ export function PublicCreatorProfile() {
                     </div>
                   </div>
                   <div className="mt-5 w-full max-w-[210px] rounded-[6px] border border-[#d8e0ec] bg-white px-4 py-2 text-center lg:ml-auto">
-                    <strong className="block text-[24px] font-black leading-none text-[#1438c8]">
+                    <strong className="block text-[24px] font-black leading-none text-brand-primary">
                       {(profile?.total_followers || 0).toLocaleString()}
                     </strong>
                     <span className="text-[11px] font-semibold text-[#6c7790]">
@@ -563,7 +563,7 @@ export function PublicCreatorProfile() {
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {/* {chips.map((chip) => (
-                <span key={chip} className="rounded-full bg-[#e9edff] px-3 py-1 text-[11px] font-bold text-[#1438c8]">
+                <span key={chip} className="rounded-full bg-[#e9edff] px-3 py-1 text-[11px] font-bold text-brand-primary">
                   {chip}
                 </span>
               ))} */}
@@ -663,7 +663,7 @@ export function PublicCreatorProfile() {
                       </div>
                       <div className="mt-5 grid grid-cols-2 gap-2">
                         <div>
-                          <strong className="block text-[15px] font-black text-[#1438c8]">
+                          <strong className="block text-[15px] font-black text-brand-primary">
                             {compactNumber(followers)}
                           </strong>
                           <span className="text-[10px] font-semibold text-[#758198]">
@@ -671,7 +671,7 @@ export function PublicCreatorProfile() {
                           </span>
                         </div>
                         <div>
-                          <strong className="block text-[15px] font-black text-[#1438c8]">
+                          <strong className="block text-[15px] font-black text-brand-primary">
                             <span className={isBrand ? '' : 'blur-[5px]'}>
                               {isYouTube
                                 ? compactNumber(account.view_count || 0)
@@ -720,7 +720,7 @@ export function PublicCreatorProfile() {
                           preload="metadata"
                         />
                       ) : (
-                        <div className="grid h-full place-items-center p-3 text-center text-xs font-bold text-[#65718a]">
+                        <div className="grid h-full place-items-center p-3 text-center text-xs font-bold text-ink-muted">
                           {item.title || 'Portfolio item'}
                         </div>
                       )}
@@ -752,7 +752,7 @@ export function PublicCreatorProfile() {
                       <span className="block text-sm font-bold text-[#526079]">
                         {item.service || 'Social media collaboration'}
                       </span>
-                      <strong className="mt-1 block text-xl font-black text-[#1438c8]">
+                      <strong className="mt-1 block text-xl font-black text-brand-primary">
                         {item.pricing_type === 'NEGOTIABLE'
                           ? 'Negotiable'
                           : `₹${Number(item.price || 0).toLocaleString('en-IN')}`}
@@ -795,21 +795,21 @@ export function PublicCreatorProfile() {
             ) : (
               <>
                 <Panel className="p-5">
-                  <h2 className="inline-flex items-center gap-1 text-lg font-black text-[#65718a]">
+                  <h2 className="inline-flex items-center gap-1 text-lg font-black text-ink-muted">
                     For Brands <Lock className="h-4 w-4" />
                   </h2>
                   <div className="mt-4 grid gap-3">
                     <button
                       type="button"
                       onClick={() => setIsBrandLoginPromptOpen(true)}
-                      className="h-12 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-[#1438c8]"
+                      className="h-12 rounded-[6px] border border-[#dbe4ff] bg-white text-sm font-black text-brand-primary"
                     >
                       Add to Shortlist
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsBrandLoginPromptOpen(true)}
-                      className="h-12 rounded-[6px] bg-[#1438c8] text-sm font-black text-white"
+                      className="h-12 rounded-[6px] bg-brand-primary text-sm font-black text-white"
                     >
                       Save Creator
                     </button>

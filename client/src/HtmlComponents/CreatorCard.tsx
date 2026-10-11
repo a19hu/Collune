@@ -39,7 +39,7 @@ export function CreatorCard({
   return (
     <article className="relative overflow-hidden rounded-lg border border-[#e0e7fb] bg-white text-left shadow-[0_14px_32px_rgba(41,64,132,0.09)]">
       {showPrivateToast ? (
-        <div className="absolute left-4 right-4 top-4 z-10 rounded-lg border border-[#ffd8d8] bg-white px-4 py-3 text-center text-xs font-black text-[#b42318] shadow-[0_12px_24px_rgba(41,64,132,0.14)]">
+        <div className="absolute left-4 right-4 top-4 z-10 rounded-lg border border-[#ffd8d8] bg-white px-4 py-3 text-center text-xs font-black text-feedback-danger shadow-[0_12px_24px_rgba(41,64,132,0.14)]">
           This profile is private.
         </div>
       ) : null}

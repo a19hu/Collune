@@ -107,7 +107,7 @@ function ReviewRow({ icon, label, value }: ReviewRowProps) {
         {icon}
       </span>
       <div>
-        <p className="text-sm font-medium text-[#65758f]">{label}</p>
+        <p className="text-sm font-medium text-ink-muted">{label}</p>
         <p className="mt-1 text-base font-black text-black">{value || "Not provided"}</p>
       </div>
     </div>
@@ -164,14 +164,14 @@ function FileUploadField({
   accept: string;
 }) {
   return (
-    <label className="block rounded-[22px] border border-dashed border-[#cfd8f6] bg-[#f8faff] p-5">
+    <label className="block rounded-[22px] border border-dashed border-[#cfd8f6] bg-surface-page p-5">
       <span className={labelClass}>{label}</span>
       <label className="mt-3 flex cursor-pointer items-center gap-4 rounded-[18px] border border-[#dbe3ff] bg-white px-4 py-4 transition hover:border-[#8fa4ff]">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#eaf0ff] text-[#3554d1]">
           <UploadCloud className="h-5 w-5" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-black text-[#1d203a]">{file?.name || `Upload ${label}`}</span>
+          <span className="block truncate text-sm font-black text-ink-strong">{file?.name || `Upload ${label}`}</span>
           <span className="mt-1 block text-xs font-medium text-[#6f7c95]">{helper}</span>
         </span>
         <input type="file" className="hidden" accept={accept} onChange={onChange} />
@@ -218,8 +218,8 @@ function BrandRegisterSteps({
           <RegisterStepHeader
             title="Create your account"
             copy="Let's get your company set up on Collune."
-            titleClassName="text-[30px] font-black tracking-normal text-[#202337]"
-            copyClassName="mt-6 text-base font-medium text-[#65758f]"
+            titleClassName="text-[30px] font-black tracking-normal text-ink-strong"
+            copyClassName="mt-6 text-base font-medium text-ink-muted"
           />
         </div>
         <div className="mt-12 grid gap-6">
@@ -236,11 +236,11 @@ function BrandRegisterSteps({
             placeholder="Minimum 8 characters"
             type={showPassword ? "text" : "password"}
             minLength={8}
-            trailing={<button type="button" onClick={onTogglePassword} className="grid h-8 w-8 place-items-center rounded-md text-[#71809a] hover:bg-[#eef3ff]" aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <Eye className="h-5 w-5" /> : <EyeClosed className="h-5 w-5" />}</button>}
+            trailing={<button type="button" onClick={onTogglePassword} className="grid h-8 w-8 place-items-center rounded-md text-[#71809a] hover:bg-brand-accent-soft" aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <Eye className="h-5 w-5" /> : <EyeClosed className="h-5 w-5" />}</button>}
             required
           />
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Confirm Password" icon={<Lock className="h-5 w-5" />} value={form.confirmPassword} onChange={onFieldChange("confirmPassword")} placeholder="Repeat password" type={showPassword ? "text" : "password"} minLength={8} required />
-          <label className="flex items-center gap-3 text-sm font-medium text-[#65758f]">
+          <label className="flex items-center gap-3 text-sm font-medium text-ink-muted">
             <input type="checkbox" checked={form.acceptedTerms} onChange={onTermsChange} className="h-4 w-4 rounded border-[#9aa7ba]" required />
             I agree to the <Link className="text-[#4462ff]" to="/brand-services-terms">Terms and Conditions</Link> & <Link className="text-[#4462ff]" to="/privacy-policy">Privacy Policy</Link>
           </label>
@@ -256,8 +256,8 @@ function BrandRegisterSteps({
           <RegisterStepHeader
             title="Verify your contact"
             copy="Enter the verification codes sent to your work email and WhatsApp number."
-            titleClassName="text-[30px] font-black tracking-normal text-[#202337]"
-            copyClassName="mt-6 text-base font-medium text-[#65758f]"
+            titleClassName="text-[30px] font-black tracking-normal text-ink-strong"
+            copyClassName="mt-6 text-base font-medium text-ink-muted"
           />
         </div>
         <RegisterError message={verification.error} className="mt-6" />
@@ -276,8 +276,8 @@ function BrandRegisterSteps({
           <RegisterStepHeader
             title="Brand identity"
             copy="Add your brand overview and the core company details creators should know."
-            titleClassName="text-[30px] font-black tracking-normal text-[#202337]"
-            copyClassName="mt-6 text-base font-medium text-[#65758f]"
+            titleClassName="text-[30px] font-black tracking-normal text-ink-strong"
+            copyClassName="mt-6 text-base font-medium text-ink-muted"
           />
         </div>
         <div className="mt-7 grid gap-5">
@@ -310,8 +310,8 @@ function BrandRegisterSteps({
           <RegisterStepHeader
             title="Company & social details"
             copy="Add official business details, headquarters, and optional social links."
-            titleClassName="text-[30px] font-black tracking-normal text-[#202337]"
-            copyClassName="mt-6 text-base font-medium text-[#65758f]"
+            titleClassName="text-[30px] font-black tracking-normal text-ink-strong"
+            copyClassName="mt-6 text-base font-medium text-ink-muted"
           />
         </div>
         <div className="mt-7 grid gap-5">
@@ -337,8 +337,8 @@ function BrandRegisterSteps({
         <RegisterStepHeader
           title="Verification documents"
           copy="Upload your branding and business verification files, then review everything before submitting."
-          titleClassName="text-[30px] font-black tracking-normal text-[#202337]"
-          copyClassName="mt-6 text-base font-medium text-[#65758f]"
+          titleClassName="text-[30px] font-black tracking-normal text-ink-strong"
+          copyClassName="mt-6 text-base font-medium text-ink-muted"
         />
       </div>
       <div className="mt-7 grid gap-5">
@@ -349,7 +349,7 @@ function BrandRegisterSteps({
       </div>
 
       <div className="mt-9 rounded-[28px] border border-[#dbe4ff] bg-[#f8fbff] p-6 shadow-[0_18px_48px_rgba(53,84,188,0.08)]">
-        <h3 className="text-[20px] font-black text-[#202337]">Review your brand details</h3>
+        <h3 className="text-[20px] font-black text-ink-strong">Review your brand details</h3>
         <div className="mt-6 grid gap-5 md:grid-cols-2">
           <ReviewRow icon={<Building2 className="h-5 w-5" />} label="Company Name" value={form.company_name} />
           <ReviewRow icon={<BriefcaseBusiness className="h-5 w-5" />} label="Industry" value={form.industry} />
@@ -365,8 +365,8 @@ function BrandRegisterSteps({
           <p className="mt-3 text-sm font-medium leading-relaxed text-[#47546a]">{form.about_brand || "Not provided"}</p>
         </div>
         <div className="mt-6 rounded-[22px] bg-white p-5">
-          <h3 className="text-lg font-black text-[#202337]">What happens next?</h3>
-          <p className="mt-3 text-sm font-medium leading-relaxed text-[#65758f]">
+          <h3 className="text-lg font-black text-ink-strong">What happens next?</h3>
+          <p className="mt-3 text-sm font-medium leading-relaxed text-ink-muted">
             Our team will review your company details and verification documents. Once verified, you'll be able to create campaigns and connect with creators.
           </p>
         </div>
@@ -696,7 +696,7 @@ const BrandRegister = () => {
           show={step === 1}
           href="/login"
           label="Login"
-          className="mt-6 text-center text-sm font-medium text-[#65758f]"
+          className="mt-6 text-center text-sm font-medium text-ink-muted"
           linkClassName="text-[#4462ff]"
         />
       </form>

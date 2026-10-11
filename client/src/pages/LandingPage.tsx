@@ -393,7 +393,7 @@ const LandingPage = () => {
                   key={tab}
                   type="button"
                   onClick={() => setSelectedCreatorCategory(tab)}
-                  className={`min-h-10 rounded-full text-[13px] font-black transition ${selectedCreatorCategory === tab ? "bg-[#b6a3ff] text-white" : "text-[#2450bf] hover:bg-[#eef3ff]"
+                  className={`min-h-10 rounded-full text-[13px] font-black transition ${selectedCreatorCategory === tab ? "bg-[#b6a3ff] text-white" : "text-[#2450bf] hover:bg-brand-accent-soft"
                     }`}
                 >
                   {tab}
@@ -656,7 +656,7 @@ function BrandLogoCarousel({ logos }: { logos: BrandLogoApi[] }) {
             {logos.map((brand) => (
               <div
                 key={`${groupIndex}-${brand.id}`}
-                className="flex h-24 w-40 shrink-0 items-center justify-center rounded-[20px] border border-[#e1e9ff] bg-[#f8faff] px-1 shadow-[0_10px_24px_rgba(80,105,183,0.06)]"
+                className="flex h-24 w-40 shrink-0 items-center justify-center rounded-[20px] border border-[#e1e9ff] bg-surface-page px-1 shadow-[0_10px_24px_rgba(80,105,183,0.06)]"
               >
                 <img
                   src={brand.logo}
@@ -779,7 +779,7 @@ function PartnerChoiceCard({
     <button
       type="button"
       onClick={onClick}
-      className="group grid min-h-[138px] grid-cols-[56px_1fr_auto] items-center gap-4 rounded-[14px] border border-[#dce5ff] bg-[#f8faff] p-4 text-left transition hover:-translate-y-0.5 hover:border-[#9dadff] hover:bg-white hover:shadow-[0_18px_34px_rgba(72,91,162,0.14)]"
+      className="group grid min-h-[138px] grid-cols-[56px_1fr_auto] items-center gap-4 rounded-[14px] border border-[#dce5ff] bg-surface-page p-4 text-left transition hover:-translate-y-0.5 hover:border-[#9dadff] hover:bg-white hover:shadow-[0_18px_34px_rgba(72,91,162,0.14)]"
     >
       <span className="grid h-14 w-14 place-items-center rounded-[10px] bg-[#e4ebff] text-[#2448bd] transition group-hover:bg-[#2448bd] group-hover:text-white">
         {icon}

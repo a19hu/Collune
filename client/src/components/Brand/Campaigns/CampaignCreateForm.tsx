@@ -112,7 +112,7 @@ export function PlatformSelector({
             key={platform.value}
             type="button"
             onClick={() => onToggle(platform.value)}
-            className={`flex h-14 items-center justify-between rounded-lg border px-4 text-left ${isSelected ? "border-[#4b22ff] bg-[#f8f5ff] ring-2 ring-[#4b22ff]/10" : "border-[#dce5f2] bg-white"}`}
+            className={`flex h-14 items-center justify-between rounded-lg border px-4 text-left ${isSelected ? "border-brand-primary bg-[#f8f5ff] ring-2 ring-[#4b22ff]/10" : "border-[#dce5f2] bg-white"}`}
           >
             <span className="inline-flex items-center gap-3 text-sm font-black text-[#334054]">
               <span className={`grid h-8 w-8 place-items-center rounded-[10px] text-white`}>
@@ -120,7 +120,7 @@ export function PlatformSelector({
               </span>
               {tile.label}
             </span>
-            <span className={`grid h-5 w-5 place-items-center rounded border ${isSelected ? "border-[#4b22ff] bg-[#4b22ff]" : "border-[#dce5f2]"}`}>
+            <span className={`grid h-5 w-5 place-items-center rounded border ${isSelected ? "border-brand-primary bg-brand-primary" : "border-[#dce5f2]"}`}>
               {isSelected ? <span className="h-2 w-2 rounded-sm bg-white" /> : null}
             </span>
           </button>
@@ -192,7 +192,7 @@ function ReviewCard({
           ].map(([label, value]) => (
             <div key={label}>
               <dt className="font-semibold text-[#8a98ad]">{label}</dt>
-              <dd className="mt-1 font-medium text-[#1d2430]">{value}</dd>
+              <dd className="mt-1 font-medium text-ink-strong">{value}</dd>
             </div>
           ))}
         </dl>
@@ -206,7 +206,7 @@ function ReviewCard({
             </span>
             <div>
               <p className="text-sm font-medium text-[#8a98ad]">Estimated Creator Matches</p>
-              <strong className="mt-1 block text-2xl font-black text-[#1d2430]">
+              <strong className="mt-1 block text-2xl font-black text-ink-strong">
                 {isLoadingReview ? "Checking..." : review?.estimated_creator_matches ?? 0}
               </strong>
               <p className="mt-1 text-xs font-medium text-[#8a98ad]">Based on platform, category, location, language and minimum followers.</p>
@@ -220,7 +220,7 @@ function ReviewCard({
             </span>
             <div>
               <p className="text-sm font-medium text-[#8a98ad]">Campaign Visibility</p>
-              <strong className="mt-1 block text-2xl font-black text-[#1d2430]">
+              <strong className="mt-1 block text-2xl font-black text-ink-strong">
                 Public</strong>
               <p className="mt-1 text-xs font-medium text-[#8a98ad]">Visible to all eligible creators on selected platforms.</p>
             </div>
@@ -401,7 +401,7 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
       }}
     >
       {isLoadingCampaign ? (
-        <CampaignPanel className="p-8 text-center text-sm font-black text-[#63728a]">Loading campaign...</CampaignPanel>
+        <CampaignPanel className="p-8 text-center text-sm font-black text-ink-muted">Loading campaign...</CampaignPanel>
       ) : null}
       <CampaignSection index={1} title="Campaign Title" copy="Give your campaign a clear name and internal reference.">
         <div className="grid gap-5 md:grid-cols-2">
@@ -421,7 +421,7 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
             label="Cover Image (PNG or JPG)"
             accept="image/png,image/jpeg"
             fileName={coverImage?.name}
-            helpText="PNG or JPG, maximum 5MB."
+            helpText="Recommended: 1600 × 900 px (16:9). PNG or JPG, maximum 5MB."
             onChange={onCoverImageChange}
           />
           <UploadBox
@@ -482,7 +482,7 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
 
       <CampaignSection index={7} title={isEditing ? "Save Campaign" : "Publish Campaign"} copy={isEditing ? "Save your changes to update this campaign." : "Once you publish, your campaign will be visible to creators and applications will start coming in."}>
         <RegisterError message={error} className="mb-5" />
-        <button type="submit" disabled={isSubmitting} className="inline-flex h-12 items-center gap-3 rounded-lg bg-[#4b22ff] px-10 text-sm font-black text-white shadow-[0_12px_20px_rgba(75,34,255,0.18)] disabled:cursor-not-allowed disabled:opacity-70">
+        <button type="submit" disabled={isSubmitting} className="inline-flex h-12 items-center gap-3 rounded-lg bg-brand-primary px-10 text-sm font-black text-white shadow-[0_12px_20px_rgba(75,34,255,0.18)] disabled:cursor-not-allowed disabled:opacity-70">
           <Megaphone className="h-5 w-5" />
           {isSubmitting ? (isEditing ? "Saving..." : "Publishing...") : (isEditing ? "Save Campaign" : "Publish Campaign")}
         </button>

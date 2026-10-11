@@ -163,7 +163,7 @@ export function Card({
   return (
     <section
       id={id}
-      className={`rounded-[8px] border border-[#dce4f0] bg-white ${className}`}
+      className={`rounded-[8px] border border-border-default bg-white ${className}`}
     >
       {children}
     </section>
@@ -172,7 +172,7 @@ export function Card({
 
 function FieldLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="text-xs font-black uppercase tracking-wide text-[#63708a]">
+    <span className="text-xs font-black uppercase tracking-wide text-ink-muted">
       {children}
     </span>
   );
@@ -196,7 +196,7 @@ function TextInput({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-11 rounded-[6px] border border-[#d7deea] bg-white px-3 text-sm font-semibold text-[#25304a] outline-none focus:border-[#3659d7] focus:ring-4 focus:ring-[#3659d7]/10"
+        className="h-11 rounded-[6px] border border-border-default bg-white px-3 text-sm font-semibold text-ink-strong outline-none focus:border-brand-primary focus:ring-4 focus:ring-[#3659d7]/10"
       />
     </label>
   );
@@ -223,7 +223,7 @@ function TextArea({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="resize-none rounded-[6px] border border-[#d7deea] bg-white px-3 py-2 text-sm font-semibold leading-relaxed text-[#25304a] outline-none focus:border-[#3659d7] focus:ring-4 focus:ring-[#3659d7]/10"
+        className="resize-none rounded-[6px] border border-border-default bg-white px-3 py-2 text-sm font-semibold leading-relaxed text-ink-strong outline-none focus:border-brand-primary focus:ring-4 focus:ring-[#3659d7]/10"
       />
     </label>
   );
@@ -467,26 +467,26 @@ export function CreatorProfile() {
 
   if (isLoading) {
     return (
-      <div className="grid min-h-[420px] place-items-center rounded-[8px] border border-[#dce4f0] bg-white">
-        <Loader2 className="h-9 w-9 animate-spin text-[#2447bd]" />
+      <div className="grid min-h-[420px] place-items-center rounded-[8px] border border-border-default bg-white">
+        <Loader2 className="h-9 w-9 animate-spin text-brand-primary" />
       </div>
     );
   }
 
   if (!profile || !form) {
     return (
-      <Card className="p-6 text-sm font-semibold text-[#b42318]">
+      <Card className="p-6 text-sm font-semibold text-feedback-danger">
         {error || 'No creator profile found.'}
       </Card>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] p-3 text-[#25304a]">
+    <div className="min-h-screen bg-[#f4f7fb] p-3 text-ink-strong">
       <div className="mx-auto grid  gap-4 ">
         <main className="grid gap-4">
           {error ? (
-            <div className="rounded-[6px] border border-[#f3b7b7] bg-[#fff5f5] px-4 py-3 text-sm font-semibold text-[#b42318]">
+            <div className="rounded-[6px] border border-[#f3b7b7] bg-[#fff5f5] px-4 py-3 text-sm font-semibold text-feedback-danger">
               {error}
             </div>
           ) : null}
@@ -503,9 +503,9 @@ export function CreatorProfile() {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <UserRound className="m-5 h-10 w-10 text-[#173ca8]" />
+                      <UserRound className="m-5 h-10 w-10 text-brand-primary" />
                     )}
-                    <span className="absolute bottom-0 right-0 grid h-7 w-7 place-items-center rounded-full bg-white text-[#067647]">
+                    <span className="absolute bottom-0 right-0 grid h-7 w-7 place-items-center rounded-full bg-white text-feedback-success">
                       {profile.verified ? (
                         <BadgeCheck className="h-5 w-5 fill-[#067647] text-white" />
                       ) : (
@@ -529,7 +529,7 @@ export function CreatorProfile() {
                     type="button"
                     onClick={() => void toggleProfileVisibility()}
                     disabled={isUpdatingVisibility}
-                    className={`inline-flex h-10 items-center justify-center rounded-[6px] px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-70 ${form.is_profile_visible ? 'bg-[#ddfbea] text-[#067647]' : 'bg-[#fee4e2] text-[#b42318]'}`}
+                    className={`inline-flex h-10 items-center justify-center rounded-[6px] px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-70 ${form.is_profile_visible ? 'bg-[#ddfbea] text-feedback-success' : 'bg-[#fee4e2] text-feedback-danger'}`}
                   >
                     {isUpdatingVisibility
                       ? 'Updating...'
@@ -541,37 +541,37 @@ export function CreatorProfile() {
               </div>
             </div>
             <div className="grid gap-4 p-5 md:grid-cols-4">
-              <div className="rounded-[8px] bg-[#eef4ff] p-4">
-                <span className="text-xs font-black uppercase text-[#63708a]">
+              <div className="rounded-[8px] bg-brand-accent-soft p-4">
+                <span className="text-xs font-black uppercase text-ink-muted">
                   Visibility
                 </span>
-                <p className="mt-2 text-sm font-semibold text-[#25304a]">
+                <p className="mt-2 text-sm font-semibold text-ink-strong">
                   {form.is_profile_visible
                     ? 'Brands and visitors can discover this profile.'
                     : 'This profile is hidden from public and brand discovery.'}
                 </p>
               </div>
-              <div className="rounded-[8px] bg-[#eef4ff] p-4">
-                <span className="text-xs font-black uppercase text-[#63708a]">
+              <div className="rounded-[8px] bg-brand-accent-soft p-4">
+                <span className="text-xs font-black uppercase text-ink-muted">
                   Followers
                 </span>
-                <strong className="mt-2 block text-2xl font-black text-[#173ca8]">
+                <strong className="mt-2 block text-2xl font-black text-brand-primary">
                   {compactNumber(totalFollowers)}
                 </strong>
               </div>
-              <div className="rounded-[8px] bg-[#eef4ff] p-4">
-                <span className="text-xs font-black uppercase text-[#63708a]">
+              <div className="rounded-[8px] bg-brand-accent-soft p-4">
+                <span className="text-xs font-black uppercase text-ink-muted">
                   Profile State
                 </span>
-                <strong className="mt-2 block text-lg font-black text-[#173ca8]">
+                <strong className="mt-2 block text-lg font-black text-brand-primary">
                   {profile.verified ? 'Verified' : 'Under Review'}
                 </strong>
               </div>
-              <div className="rounded-[8px] bg-[#eef4ff] p-4">
-                <span className="text-xs font-black uppercase text-[#63708a]">
+              <div className="rounded-[8px] bg-brand-accent-soft p-4">
+                <span className="text-xs font-black uppercase text-ink-muted">
                   Posts
                 </span>
-                <strong className="mt-2 block text-lg font-black text-[#173ca8]">
+                <strong className="mt-2 block text-lg font-black text-brand-primary">
                   {compactNumber(profile.total_media_count)}
                 </strong>
               </div>
@@ -579,7 +579,7 @@ export function CreatorProfile() {
           </Card>
 
           <nav
-            className="sticky top-3 z-10 overflow-x-auto rounded-[8px] border border-[#dce4f0] bg-white p-2 shadow-sm"
+            className="sticky top-3 z-10 overflow-x-auto rounded-[8px] border border-border-default bg-white p-2 shadow-sm"
             aria-label="Creator profile sections"
           >
             <div className="flex min-w-max gap-1">
@@ -594,7 +594,7 @@ export function CreatorProfile() {
                   key={id}
                   type="button"
                   onClick={() => goToSection(id)}
-                  className={`rounded-[6px] px-4 py-2 text-sm font-black transition ${activeSection === id ? 'bg-[#173ca8] text-white shadow-sm' : 'text-[#63708a] hover:bg-[#eef4ff] hover:text-[#173ca8]'}`}
+                  className={`rounded-[6px] px-4 py-2 text-sm font-black transition ${activeSection === id ? 'bg-brand-primary text-white shadow-sm' : 'text-ink-muted hover:bg-brand-accent-soft hover:text-brand-primary'}`}
                 >
                   {label}
                 </button>
@@ -615,7 +615,7 @@ export function CreatorProfile() {
               <button
                 type="button"
                 onClick={() => setProfileEditorOpen(true)}
-                className="inline-flex h-10 items-center gap-2 rounded-[6px] border border-[#c9d7ff] bg-white px-3 text-sm font-black text-[#173ca8]"
+                className="inline-flex h-10 items-center gap-2 rounded-[6px] border border-[#c9d7ff] bg-white px-3 text-sm font-black text-brand-primary"
               >
                 <Pencil className="h-4 w-4" />
                 Edit profile
@@ -629,31 +629,31 @@ export function CreatorProfile() {
               ].map(([label, value]) => (
                 <div
                   key={label}
-                  className="rounded-[6px] border border-[#dbe3ee] bg-[#f8faff] p-4"
+                  className="rounded-[6px] border border-[#dbe3ee] bg-surface-page p-4"
                 >
-                  <p className="text-xs font-black uppercase tracking-wide text-[#63708a]">
+                  <p className="text-xs font-black uppercase tracking-wide text-ink-muted">
                     {label}
                   </p>
-                  <p className="mt-2 text-sm font-bold text-[#25304a]">
+                  <p className="mt-2 text-sm font-bold text-ink-strong">
                     {value || 'Not added'}
                   </p>
                 </div>
               ))}
             </div>
             <div className="mt-5 grid gap-4">
-              <div className="rounded-[6px] border border-[#dbe3ee] bg-[#f8faff] p-4">
-                <p className="text-xs font-black uppercase tracking-wide text-[#63708a]">
+              <div className="rounded-[6px] border border-[#dbe3ee] bg-surface-page p-4">
+                <p className="text-xs font-black uppercase tracking-wide text-ink-muted">
                   Bio
                 </p>
-                <p className="mt-2 whitespace-pre-wrap text-sm font-semibold text-[#25304a]">
+                <p className="mt-2 whitespace-pre-wrap text-sm font-semibold text-ink-strong">
                   {form.bio || 'Not added'}
                 </p>
               </div>
-              <div className="rounded-[6px] border border-[#dbe3ee] bg-[#f8faff] p-4">
-                <p className="text-xs font-black uppercase tracking-wide text-[#63708a]">
+              <div className="rounded-[6px] border border-[#dbe3ee] bg-surface-page p-4">
+                <p className="text-xs font-black uppercase tracking-wide text-ink-muted">
                   About
                 </p>
-                <p className="mt-2 whitespace-pre-wrap text-sm font-semibold text-[#25304a]">
+                <p className="mt-2 whitespace-pre-wrap text-sm font-semibold text-ink-strong">
                   {form.about || 'Not added'}
                 </p>
               </div>
@@ -673,7 +673,7 @@ export function CreatorProfile() {
                     <h3 className="text-lg font-black text-[#172554]">
                       Edit profile
                     </h3>
-                    <p className="mt-1 text-sm font-semibold text-[#63708a]">
+                    <p className="mt-1 text-sm font-semibold text-ink-muted">
                       Choose one category and select all applicable languages
                       and preferences.
                     </p>
@@ -681,7 +681,7 @@ export function CreatorProfile() {
                   <button
                     type="button"
                     onClick={() => setProfileEditorOpen(false)}
-                    className="text-sm font-bold text-[#63708a]"
+                    className="text-sm font-bold text-ink-muted"
                   >
                     Cancel
                   </button>
@@ -694,7 +694,7 @@ export function CreatorProfile() {
                       onChange={(event) =>
                         updateField('category', event.target.value)
                       }
-                      className="h-11 rounded-[6px] border border-[#d7deea] bg-white px-3 text-sm"
+                      className="h-11 rounded-[6px] border border-border-default bg-white px-3 text-sm"
                     >
                       <option value="">Select category</option>
                       {CATEGORY_OPTIONS.map((item) => (
@@ -706,7 +706,7 @@ export function CreatorProfile() {
                   </label>
                   <label className="grid gap-2 text-sm font-bold">
                     Profile image (max 5MB)
-                    <span className="inline-flex h-11 items-center rounded-[6px] border border-[#d7deea] bg-white px-3 text-sm font-semibold text-[#173ca8]">
+                    <span className="inline-flex h-11 items-center rounded-[6px] border border-border-default bg-white px-3 text-sm font-semibold text-brand-primary">
                       <Upload className="mr-2 h-4 w-4" />
                       {form.profile_image
                         ? form.profile_image.name
@@ -741,7 +741,7 @@ export function CreatorProfile() {
                           ).join(', ')
                         )
                       }
-                      className="min-h-32 rounded-[6px] border border-[#d7deea] bg-white px-3 py-2 text-sm"
+                      className="min-h-32 rounded-[6px] border border-border-default bg-white px-3 py-2 text-sm"
                     >
                       {LANGUAGE_OPTIONS.map((item) => (
                         <option key={item} value={item}>
@@ -749,7 +749,7 @@ export function CreatorProfile() {
                         </option>
                       ))}
                     </select>
-                    <span className="text-xs font-semibold text-[#63708a]">
+                    <span className="text-xs font-semibold text-ink-muted">
                       Hold Ctrl/Cmd to select more than one.
                     </span>
                   </label>
@@ -767,7 +767,7 @@ export function CreatorProfile() {
                           ).join(', ')
                         )
                       }
-                      className="min-h-32 rounded-[6px] border border-[#d7deea] bg-white px-3 py-2 text-sm"
+                      className="min-h-32 rounded-[6px] border border-border-default bg-white px-3 py-2 text-sm"
                     >
                       {COLLABORATION_OPTIONS.map((item) => (
                         <option key={item} value={item}>
@@ -775,7 +775,7 @@ export function CreatorProfile() {
                         </option>
                       ))}
                     </select>
-                    <span className="text-xs font-semibold text-[#63708a]">
+                    <span className="text-xs font-semibold text-ink-muted">
                       Hold Ctrl/Cmd to select more than one.
                     </span>
                   </label>
@@ -806,7 +806,7 @@ export function CreatorProfile() {
                   <button
                     type="button"
                     onClick={() => setProfileEditorOpen(false)}
-                    className="h-10 rounded-[6px] border border-[#d7deea] px-4 text-sm font-black"
+                    className="h-10 rounded-[6px] border border-border-default px-4 text-sm font-black"
                   >
                     Cancel
                   </button>
@@ -814,7 +814,7 @@ export function CreatorProfile() {
                     type="button"
                     onClick={() => void saveProfile()}
                     disabled={isSaving}
-                    className="inline-flex h-10 items-center gap-2 rounded-[6px] bg-[#2447bd] px-4 text-sm font-black text-white disabled:opacity-60"
+                    className="inline-flex h-10 items-center gap-2 rounded-[6px] bg-brand-primary px-4 text-sm font-black text-white disabled:opacity-60"
                   >
                     {isSaving ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -853,7 +853,7 @@ export function CreatorProfile() {
                         'Email thecollune@gmail.com to change your contact information.'
                       )
                     }
-                    className="min-h-11 rounded-md border border-[#d7deea] bg-[#f8faff] px-3 py-2.5 text-left text-sm font-semibold text-[#25304a] transition-colors hover:bg-[#eef3ff] focus:outline-none focus:ring-2 focus:ring-[#2447bd] focus:ring-offset-2"
+                    className="min-h-11 rounded-md border border-border-default bg-surface-page px-3 py-2.5 text-left text-sm font-semibold text-ink-strong transition-colors hover:bg-brand-accent-soft focus:outline-none focus:ring-2 focus:ring-[#2447bd] focus:ring-offset-2"
                     aria-label={`Request an update to ${label}`}
                   >
                     {value || 'Not provided'}
@@ -910,24 +910,24 @@ export function CreatorProfile() {
                         >
                           <Icon className="h-4 w-4" />
                         </span>
-                        <strong className="text-sm font-black text-[#25304a]">
+                        <strong className="text-sm font-black text-ink-strong">
                           {meta.label}
                         </strong>
                       </div>
                       <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                         <div>
-                          <span className="block text-xs font-bold text-[#63708a]">
+                          <span className="block text-xs font-bold text-ink-muted">
                             Followers
                           </span>
-                          <strong className="text-lg font-black text-[#173ca8]">
+                          <strong className="text-lg font-black text-brand-primary">
                             {compactNumber(item.followers)}
                           </strong>
                         </div>
                         <div>
-                          <span className="block text-xs font-bold text-[#63708a]">
+                          <span className="block text-xs font-bold text-ink-muted">
                             Engagement
                           </span>
-                          <strong className="text-lg font-black text-[#173ca8]">
+                          <strong className="text-lg font-black text-brand-primary">
                             {Number(item.engagement_rate || 0).toFixed(1)}%
                           </strong>
                         </div>
@@ -936,7 +936,7 @@ export function CreatorProfile() {
                   );
                 })
               ) : (
-                <div className="rounded-[6px] border border-dashed border-[#cbd5e1] bg-[#fbfcff] p-5 text-sm font-semibold text-[#63708a] sm:col-span-2 lg:col-span-4">
+                <div className="rounded-[6px] border border-dashed border-[#cbd5e1] bg-[#fbfcff] p-5 text-sm font-semibold text-ink-muted sm:col-span-2 lg:col-span-4">
                   No social accounts connected yet.
                 </div>
               )}
@@ -946,7 +946,7 @@ export function CreatorProfile() {
           {activeSection === 'portfolio' ? (
             loadingSection === 'portfolio' || portfolio === null ? (
               <Card className="grid min-h-48 place-items-center p-5">
-                <Loader2 className="h-6 w-6 animate-spin text-[#2447bd]" />
+                <Loader2 className="h-6 w-6 animate-spin text-brand-primary" />
               </Card>
             ) : (
               <CreatorPortfolio portfolio={portfolio} onChange={setPortfolio} />
@@ -957,7 +957,7 @@ export function CreatorProfile() {
             pricing === null ||
             rateCards === null ? (
               <Card className="grid min-h-48 place-items-center p-5">
-                <Loader2 className="h-6 w-6 animate-spin text-[#2447bd]" />
+                <Loader2 className="h-6 w-6 animate-spin text-brand-primary" />
               </Card>
             ) : (
               <SocialMediaPricing

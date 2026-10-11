@@ -18,7 +18,7 @@ function statusLabel(status: CreatorAppliedCampaignApi["application_status"]) {
 }
 
 function statusClass(status: CreatorAppliedCampaignApi["application_status"]) {
-  return status === "ACCEPTED" ? "bg-[#ddfbea] text-[#189661]" : "bg-[#eef2ff] text-[#5168ff]";
+  return status === "ACCEPTED" ? "bg-[#ddfbea] text-[#189661]" : "bg-brand-accent-soft text-brand-primary";
 }
 
 function AppliedCampaignCard({
@@ -44,7 +44,7 @@ function AppliedCampaignCard({
       status={statusLabel(application.application_status)}
       meta={`Deadline: ${formatDate(campaign.deadline)}`}
       onOpen={() => navigate(`/creator/marketplace/${campaign.id}`)}
-      actions={application.application_status === "ACCEPTED" ? <button type="button" onClick={() => navigate(`/creator/submitted-work/add?campaignId=${campaign.id}`)} className="rounded-lg border border-[#5168ff] px-3 py-2 text-xs font-bold text-[#3048ff]"><Upload className="mr-1 inline h-3 w-3" />Submit work</button> : <button type="button" onClick={() => onRemove(application)} disabled={isRemoving} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-600 disabled:opacity-60">{isRemoving ? "Removing..." : "Remove"}</button>}
+      actions={application.application_status === "ACCEPTED" ? <button type="button" onClick={() => navigate(`/creator/submitted-work/add?campaignId=${campaign.id}`)} className="rounded-lg border border-brand-primary px-3 py-2 text-xs font-bold text-brand-primary"><Upload className="mr-1 inline h-3 w-3" />Submit work</button> : <button type="button" onClick={() => onRemove(application)} disabled={isRemoving} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-600 disabled:opacity-60">{isRemoving ? "Removing..." : "Remove"}</button>}
     />
     {/*
     <Panel className="min-h-[240px] p-6">
@@ -54,31 +54,31 @@ function AppliedCampaignCard({
             <CheckCircle2 className="h-4 w-4" />
             {statusLabel(application.application_status)}
           </span>
-          <h2 className="mt-5 text-xl font-black leading-tight text-[#1d2430]">{campaign.title}</h2>
-          <p className="mt-2 text-sm font-semibold text-[#65758f]">{campaign.brand_name} · {campaign.brand_type || "Brand"}</p>
+          <h2 className="mt-5 text-xl font-black leading-tight text-ink-strong">{campaign.title}</h2>
+          <p className="mt-2 text-sm font-semibold text-ink-muted">{campaign.brand_name} · {campaign.brand_type || "Brand"}</p>
         </div>
         {campaign.brand_logo ? (
           <img src={campaign.brand_logo} alt={campaign.brand_name} className="h-12 w-12 rounded-md object-cover" />
         ) : (
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-md bg-[#eef2ff] text-sm font-black text-[#5168ff]">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-md bg-brand-accent-soft text-sm font-black text-brand-primary">
             {campaign.brand_name.slice(0, 2).toUpperCase()}
           </span>
         )}
       </div>
 
-      <p className="mt-5 min-h-[44px] text-sm font-medium leading-relaxed text-[#65758f]">
+      <p className="mt-5 min-h-[44px] text-sm font-medium leading-relaxed text-ink-muted">
         {campaign.objective || "Campaign objective not provided."}
       </p>
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-[#edf1f6] pt-4">
-        <span className="inline-flex items-center gap-2 text-sm font-medium text-[#65758f]">
+        <span className="inline-flex items-center gap-2 text-sm font-medium text-ink-muted">
           <Calendar className="h-4 w-4" />
           Deadline: {formatDate(campaign.deadline)}
         </span>
         <button
           type="button"
           onClick={() => navigate(`/creator/marketplace/${campaign.id}`)}
-          className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#5168ff] px-4 text-sm font-black text-white"
+          className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-primary px-4 text-sm font-black text-white"
         >
           View Campaign <ArrowRight className="h-4 w-4" />
         </button>
@@ -86,7 +86,7 @@ function AppliedCampaignCard({
           <button
             type="button"
             onClick={() => navigate(`/creator/submitted-work/add?campaignId=${campaign.id}`)}
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#5168ff] px-4 text-sm font-black text-[#3048ff] hover:bg-[#eef2ff]"
+            className="inline-flex h-10 items-center gap-2 rounded-lg border border-brand-primary px-4 text-sm font-black text-brand-primary hover:bg-brand-accent-soft"
           >
             <Upload className="h-4 w-4" /> Add submitted work
           </button>
@@ -95,7 +95,7 @@ function AppliedCampaignCard({
           type="button"
           onClick={() => onRemove(application)}
           disabled={isRemoving}
-          className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#f3b7b7] px-4 text-sm font-black text-[#b42318] disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#f3b7b7] px-4 text-sm font-black text-feedback-danger disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isRemoving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
           Remove
@@ -154,8 +154,8 @@ export function AppliedCampaigns() {
     return (
       <Panel className="grid min-h-[306px] place-items-center p-8 text-center">
         <div>
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#5168ff]" />
-          <p className="mt-4 text-sm font-black text-[#1d2430]">Loading applied campaigns...</p>
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-brand-primary" />
+          <p className="mt-4 text-sm font-black text-ink-strong">Loading applied campaigns...</p>
         </div>
       </Panel>
     );
@@ -166,8 +166,8 @@ export function AppliedCampaigns() {
       <Panel className="grid min-h-[306px] place-items-center p-8 text-center">
         <div>
           <AlertCircle className="mx-auto h-8 w-8 text-[#d23b3b]" />
-          <h2 className="mt-4 text-xl font-black text-[#1d2430]">Applications could not be loaded</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm font-medium text-[#65758f]">{error}</p>
+          <h2 className="mt-4 text-xl font-black text-ink-strong">Applications could not be loaded</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm font-medium text-ink-muted">{error}</p>
         </div>
       </Panel>
     );
@@ -177,9 +177,9 @@ export function AppliedCampaigns() {
     return (
       <Panel className="grid min-h-[306px] place-items-center p-8 text-center">
         <div>
-          <AlertCircle className="mx-auto h-8 w-8 text-[#5168ff]" />
-          <h2 className="mt-4 text-xl font-black text-[#1d2430]">No applied campaigns yet</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm font-medium text-[#65758f]">
+          <AlertCircle className="mx-auto h-8 w-8 text-brand-primary" />
+          <h2 className="mt-4 text-xl font-black text-ink-strong">No applied campaigns yet</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm font-medium text-ink-muted">
             Campaigns you apply to or get accepted for will appear here.
           </p>
         </div>

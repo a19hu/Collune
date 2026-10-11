@@ -88,7 +88,7 @@ export const BrandCampaigns = () => {
           <select
             value={sort}
             onChange={(event) => onSortChange(event.target.value as SortKey)}
-            className="rounded-lg border border-[#dce4ef] bg-white px-3 py-2 font-black text-[#1d2430] outline-none"
+            className="rounded-lg border border-border-default bg-white px-3 py-2 font-black text-ink-strong outline-none"
           >
             {sortOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
@@ -116,7 +116,7 @@ export const BrandCampaigns = () => {
 
       {!isLoading && sortedCampaigns.length > 0 ? <Pagination page={page} totalPages={totalPages} onPageChange={setPage} /> : null}
 
-      <p className="mt-8 text-center text-sm font-medium text-[#63728a]">
+      <p className="mt-8 text-center text-sm font-medium text-ink-muted">
         Campaigns help you attract the right creators and build meaningful collaborations.{" "}
         <Link to="/#how-it-works" className="font-black text-[#2f16ff] transition hover:text-[#173fb5]">Learn how campaigns work</Link>
       </p>
@@ -149,12 +149,12 @@ export function DeleteCampaignModal({
         <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#fff1f1] text-[#d23b3b]">
           <AlertCircle className="h-6 w-6" />
         </span>
-        <h2 className="mt-5 text-center text-xl font-black text-[#1d2430]">Delete campaign?</h2>
-        <p className="mx-auto mt-3 max-w-sm text-center text-sm font-medium leading-relaxed text-[#63728a]">
+        <h2 className="mt-5 text-center text-xl font-black text-ink-strong">Delete campaign?</h2>
+        <p className="mx-auto mt-3 max-w-sm text-center text-sm font-medium leading-relaxed text-ink-muted">
           This will permanently delete <strong>{campaign.name}</strong>. This action cannot be undone.
         </p>
         <div className="mt-6 flex justify-center gap-3">
-          <button type="button" onClick={onCancel} disabled={isDeleting} className="h-10 rounded-lg border border-[#dce4ef] px-5 text-sm font-black text-[#303948] disabled:opacity-60">
+          <button type="button" onClick={onCancel} disabled={isDeleting} className="h-10 rounded-lg border border-border-default px-5 text-sm font-black text-[#303948] disabled:opacity-60">
             Cancel
           </button>
           <button type="button" onClick={onConfirm} disabled={isDeleting} className="h-10 rounded-lg bg-[#d23b3b] px-5 text-sm font-black text-white disabled:opacity-60">
@@ -176,7 +176,7 @@ function Pagination({ page, totalPages, onPageChange }: { page: number; totalPag
           key={item}
           type="button"
           onClick={() => onPageChange(item)}
-          className={`grid h-10 w-10 place-items-center rounded-lg border text-sm font-semibold ${page === item ? "border-[#4b5dff] bg-[#4b5dff] text-white" : "border-[#dce4ef] text-[#63728a]"}`}
+          className={`grid h-10 w-10 place-items-center rounded-lg border text-sm font-semibold ${page === item ? "border-[#4b5dff] bg-[#4b5dff] text-white" : "border-border-default text-ink-muted"}`}
         >
           {item}
         </button>
@@ -185,7 +185,7 @@ function Pagination({ page, totalPages, onPageChange }: { page: number; totalPag
         type="button"
         onClick={() => onPageChange(Math.min(totalPages, page + 1))}
         disabled={page === totalPages}
-        className="grid h-10 w-10 place-items-center rounded-lg border border-[#dce4ef] text-[#63728a] disabled:opacity-50"
+        className="grid h-10 w-10 place-items-center rounded-lg border border-border-default text-ink-muted disabled:opacity-50"
       >
         <ChevronRight className="h-5 w-5" />
       </button>
@@ -206,11 +206,11 @@ function FeedbackPanel({
   return (
     <CampaignPanel className="grid min-h-[286px] place-items-center p-8 text-center xl:col-span-2">
       <div>
-        <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#f0eaff] text-[#4b22ff]">
+        <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#f0eaff] text-brand-primary">
           <AlertCircle className="h-6 w-6" />
         </span>
-        <h2 className="mt-5 text-xl font-black text-[#1d2430]">{title}</h2>
-        <p className="mx-auto mt-3 max-w-[360px] text-sm font-medium leading-relaxed text-[#63728a]">{copy}</p>
+        <h2 className="mt-5 text-xl font-black text-ink-strong">{title}</h2>
+        <p className="mx-auto mt-3 max-w-[360px] text-sm font-medium leading-relaxed text-ink-muted">{copy}</p>
         {action ? <div className="mt-5">{action}</div> : null}
       </div>
     </CampaignPanel>

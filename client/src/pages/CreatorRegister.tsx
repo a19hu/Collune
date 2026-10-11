@@ -403,7 +403,7 @@ const CreatorRegister = () => {
     return (
       <Register totalSteps={totalSteps} step={totalSteps}>
         <section className="w-full max-w-[622px] rounded-2xl border border-[#e0e7fb] bg-white px-7 py-10 shadow-[0_0_0_1px_rgba(95,119,190,0.04),0_12px_34px_rgba(46,64,120,0.08)] md:px-10">
-          <h1 className="text-2xl font-black text-[#173ca8]">Connect your creator accounts</h1>
+          <h1 className="text-2xl font-black text-brand-primary">Connect your creator accounts</h1>
           <p className="mt-3 text-sm font-semibold leading-relaxed text-[#6e7d99]">
             Your account is created. Connect Instagram, YouTube, Facebook, or X now to import public metrics automatically.
           </p>
@@ -419,8 +419,8 @@ const CreatorRegister = () => {
                   onClick={() => void connectOAuth(oauth)}
                   className={`h-12 rounded-xl border px-4 text-sm font-black disabled:opacity-60 ${
                     isConnected
-                      ? "border-[#bdebd9] bg-[#effbf6] text-[#067647]"
-                      : "border-[#d8e2fb] bg-white text-[#173ca8]"
+                      ? "border-[#bdebd9] bg-[#effbf6] text-feedback-success"
+                      : "border-[#d8e2fb] bg-white text-brand-primary"
                   }`}
                 >
                   {isConnected ? "Connected" : isConnecting === oauth ? "Opening..." : `Connect ${label}`}
@@ -431,7 +431,7 @@ const CreatorRegister = () => {
           <button
             type="button"
             onClick={() => navigate("/creator/profile", { replace: true })}
-            className="mt-7 h-12 w-full rounded-xl bg-[#2447bd] text-sm font-black text-white"
+            className="mt-7 h-12 w-full rounded-xl bg-brand-primary text-sm font-black text-white"
           >
             Go to Creator Profile
           </button>
