@@ -180,13 +180,21 @@ export function CampaignMarketplaceDetail() {
             </div>
           </DetailSection>
 
-          <DetailSection title="4. Creator Requirements">
+          <DetailSection title="4. Pricing & Compensation">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="rounded-lg bg-surface-subtle p-4"><p className="text-xs font-semibold text-ink-muted">Total Budget</p><p className="mt-1 text-lg font-black text-ink-strong">{campaign.budget}</p></div>
+              <div className="rounded-lg bg-surface-subtle p-4"><p className="text-xs font-semibold text-ink-muted">Compensation Type</p><p className="mt-1 text-lg font-black text-ink-strong">{campaign.compensationType}</p></div>
+              {Object.entries(campaign.deliverablePricing || {}).filter(([, price]) => price).map(([deliverable, price]) => <div key={deliverable} className="rounded-lg bg-surface-subtle p-4"><p className="text-xs font-semibold text-ink-muted">{deliverable}</p><p className="mt-1 text-lg font-black text-ink-strong">₹{Number(price).toLocaleString("en-IN")}</p></div>)}
+            </div>
+          </DetailSection>
+
+          <DetailSection title="5. Creator Requirements">
             <div className="grid gap-4 md:grid-cols-3">
               {campaign.requirements.map((item) => <RequirementCard key={item.label} item={item} />)}
             </div>
           </DetailSection>
 
-          <DetailSection title="5. Creative Direction">
+          <DetailSection title="6. Creative Direction">
             <div className="grid gap-3">
               {campaign.creativeDirection.map((line) => (
                 <p key={line} className="text-sm font-medium leading-relaxed text-ink-muted">{line}</p>

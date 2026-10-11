@@ -52,6 +52,7 @@ export function TextInput({
   value,
   onChange,
   type = "text",
+  disabled = false,
 }: {
   label: string;
   placeholder: string;
@@ -60,6 +61,7 @@ export function TextInput({
   value?: string;
   onChange?: ChangeEventHandler<HTMLInputElement>;
   type?: string;
+  disabled?: boolean;
 }) {
   return (
     <label className="block">
@@ -71,7 +73,8 @@ export function TextInput({
           onChange={onChange}
           type={type}
           placeholder={placeholder}
-          className={`h-11 w-full rounded-lg border border-[#dce5f2] bg-white ${prefix ? "pl-9" : "px-4"} text-sm font-medium text-[#1c2333] outline-none placeholder:text-[#a8b4c5] focus:border-brand-primary focus:ring-4 focus:ring-[#4b22ff]/10`}
+          disabled={disabled}
+          className={`h-11 w-full rounded-lg border border-[#dce5f2] bg-white ${prefix ? "pl-9" : "px-4"} text-sm font-medium text-[#1c2333] outline-none placeholder:text-[#a8b4c5] focus:border-brand-primary focus:ring-4 focus:ring-[#4b22ff]/10 disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:text-ink-muted`}
         />
       </span>
     </label>

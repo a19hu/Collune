@@ -26,6 +26,7 @@ export type MarketplaceCampaign = {
   platform: string;
   budget: string;
   compensationType: string;
+  deliverablePricing?: Record<string, string>;
   timeline: Array<{ title: string; date: string }>;
   requirements: Array<{ label: string; value: string; icon: LucideIcon }>;
   creativeDirection: string[];
@@ -82,6 +83,7 @@ export function mapCampaignToMarketplace(campaign: CampaignApi): MarketplaceCamp
     platform,
     budget: formatBudget(campaign.total_budget, campaign.budget_range),
     compensationType: campaign.compensation_type || "Not specified",
+    deliverablePricing: campaign.deliverable_pricing,
     timeline: [
       { title: "Applications Close", date: deadline },
       { title: "Creators Selected", date: formatDate(campaign.start_date) || "After review" },
@@ -141,6 +143,7 @@ export function mapCreatorCampaignToMarketplace(campaign: CreatorCampaignListIte
     platform: "Instagram",
     budget: formatBudget(campaign.total_budget, campaign.budget_range),
     compensationType: campaign.compensation_type || "Not specified",
+    deliverablePricing: campaign.deliverable_pricing,
     timeline: [
       { title: "Applications Close", date: deadline },
       { title: "Creators Selected", date: "After review" },
@@ -195,6 +198,7 @@ export function mapCreatorCampaignDetailToMarketplace(campaign: CreatorCampaignD
     platform,
     budget: formatBudget(campaign.total_budget, campaign.budget_range),
     compensationType: campaign.compensation_type || "Not specified",
+    deliverablePricing: campaign.deliverable_pricing,
     timeline: [
       { title: "Applications Close", date: deadline },
       { title: "Creators Selected", date: formatDate(campaign.start_date) || "After review" },

@@ -112,6 +112,13 @@ function formatBudget(campaign: BrandCampaignDetailApi) {
   return total ? `₹${total.toLocaleString()}` : "Budget not set";
 }
 
+function formatDeliverablePricing(campaign: BrandCampaignDetailApi) {
+  return Object.entries(campaign.deliverable_pricing || {})
+    .filter(([, price]) => price)
+    .map(([name, price]) => `${name}: ₹${Number(price).toLocaleString("en-IN")}`)
+    .join(" · ") || "Deliverable pricing not set";
+}
+
 function formatTimeline(campaign: BrandCampaignDetailApi) {
   const start = formatDate(campaign.start_date);
   const end = formatDate(campaign.end_date || campaign.deadline);
@@ -371,6 +378,11 @@ export function CampaignApplicationsPage() {
         label: "Creator Compensation",
         icon: <DollarSign className="h-5 w-5" />,
         value: campaign.compensation_type || "Compensation not set",
+      },
+      {
+        label: "Deliverable Pricing",
+        icon: <DollarSign className="h-5 w-5" />,
+        value: formatDeliverablePricing(campaign),
       },
       {
         label: "Target Audience",

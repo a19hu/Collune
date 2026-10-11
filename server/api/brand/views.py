@@ -684,6 +684,12 @@ class BrandCampaignApplicationViewSet(APIView):
 
         data = request.data
 
+        if "start_date" in data and str(data.get("start_date") or "") != (campaign.start_date.isoformat() if campaign.start_date else ""):
+            return Response(
+                {"start_date": ["The campaign start date cannot be changed after creation."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         cover_image = request.FILES.get("cover_image")
         if cover_image and cover_image.content_type not in {"image/jpeg", "image/png"}:
             return Response(
@@ -729,7 +735,6 @@ class BrandCampaignApplicationViewSet(APIView):
             "total_budget",
             "budget_range",
             "compensation_type",
-            "start_date",
             "end_date",
             "deadline",
         ]:

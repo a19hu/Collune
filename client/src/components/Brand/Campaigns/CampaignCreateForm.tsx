@@ -432,7 +432,10 @@ export function CampaignCreateForm({ onCreated }: { onCreated?: () => void }) {
             onChange={onBrandGuidelinesChange}
           />
           <div className="grid gap-3 sm:grid-cols-2">
-            <TextInput label="Start Date" required placeholder="Start date" type="date" value={form.start_date} onChange={onFieldChange("start_date")} />
+            <div>
+              <TextInput label="Start Date" required placeholder="Start date" type="date" value={form.start_date} onChange={onFieldChange("start_date")} disabled={isEditing} />
+              {isEditing ? <p className="mt-1 text-xs text-ink-muted">Start date is locked after campaign creation.</p> : null}
+            </div>
             <TextInput label="End Date" required placeholder="End date" type="date" value={form.end_date} onChange={onFieldChange("end_date")} />
           </div>
         </div>
