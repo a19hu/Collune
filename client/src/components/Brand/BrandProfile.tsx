@@ -57,17 +57,32 @@ type BrandProfileForm = {
 };
 
 const industryOptions = [
-  'Technology',
-  'Consumer Brand',
-  'Finance',
-  'Education',
+  'Education & Academia',
+  'Finance & Investments',
+  'Business & Entrepreneurship',
+  'Technology & Innovation',
+  'Healthcare & Wellness',
+  'Beauty & Personal Care',
+  'Fashion & Apparel',
+  'Food & Beverages',
+  'Travel & Tourism',
+  'Entertainment & Media',
+  'Marketing & Advertising',
+  'E-commerce & Retail',
 ];
 const companySizeOptions = ['1-2', '2-10', '10-50', '50+'];
+
+const legacyIndustryLabels: Record<string, string> = {
+  Technology: 'Technology & Innovation',
+  'Consumer Brand': 'E-commerce & Retail',
+  Finance: 'Finance & Investments',
+  Education: 'Education & Academia',
+};
 
 function toForm(profile: BrandProfileApi): BrandProfileForm {
   return {
     company_name: profile.company_name || '',
-    industry: profile.industry || '',
+    industry: legacyIndustryLabels[profile.industry] || profile.industry || '',
     about_brand: profile.about_brand || '',
     website: profile.website || '',
     company_size: profile.company_size || '',
@@ -75,7 +90,7 @@ function toForm(profile: BrandProfileApi): BrandProfileForm {
     gst_number: profile.gst_number || '',
     cin_registration_number: profile.cin_registration_number || '',
     year_established: profile.year_established
-      ? String(profile.year_established)
+      ? `${profile.year_established}-01`
       : '',
     headquarters_city: profile.headquarters_city || '',
     headquarters_state: profile.headquarters_state || '',
@@ -140,12 +155,14 @@ function TextField({
   onChange,
   placeholder,
   type = 'text',
+  max,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  type?: 'text' | 'url' | 'email' | 'tel';
+  type?: 'text' | 'url' | 'email' | 'tel' | 'month';
+  max?: string;
 }) {
   return (
     <label className="grid gap-2">
@@ -155,6 +172,7 @@ function TextField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        max={max}
         className="h-12 rounded-[8px] border border-border-default bg-white px-4 text-sm font-semibold text-ink-strong outline-none transition focus:border-brand-primary focus:ring-4 focus:ring-[#3659d7]/10"
       />
     </label>
@@ -417,7 +435,7 @@ export default function BrandProfile() {
     body.append('gst_number', form.gst_number.trim());
     body.append('cin_registration_number', form.cin_registration_number.trim());
     if (form.year_established.trim()) {
-      body.append('year_established', form.year_established.trim());
+      body.append('year_established', form.year_established.slice(0, 4));
     }
     body.append('headquarters_city', form.headquarters_city.trim());
     body.append('headquarters_state', form.headquarters_state.trim());
@@ -646,14 +664,10 @@ export default function BrandProfile() {
                 />
                 <TextField
                   label="Year Established"
+                  type="month"
                   value={form.year_established}
-                  onChange={(value) =>
-                    updateField(
-                      'year_established',
-                      value.replace(/[^0-9]/g, '').slice(0, 4)
-                    )
-                  }
-                  placeholder="e.g. 2018"
+                  onChange={(value) => updateField('year_established', value)}
+                  max={`${new Date().getFullYear()}-12`}
                 />
                 <TextField
                   label="LinkedIn Company Page"

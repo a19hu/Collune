@@ -79,9 +79,9 @@ export const BrandCard = ({
 
   return (
     <>
-      <Panel className="group min-w-0 w-[450px] overflow-hidden rounded-2xl border border-border-default bg-white p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(24,39,75,0.10)]">
+      <Panel className="group min-w-0 w-full overflow-hidden rounded-2xl border border-border-default bg-white p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(24,39,75,0.10)]">
         {/* Cover Image */}
-        <div className="relative h-[170px] w-full overflow-hidden bg-[#f1f4fa]">
+        <div className="relative h-40 w-full overflow-hidden bg-[#f1f4fa] sm:h-[170px]">
           {item?.cover_image ? (
             <img
               src={item.cover_image}
@@ -103,7 +103,7 @@ export const BrandCard = ({
           <div className="absolute inset-x-4 top-4 flex items-start justify-between gap-3">
             <Link
               to={`/brands/${brand?.brand_id}`}
-              className="inline-flex max-w-[75%] items-center gap-2 rounded-xl border bg-white/95 px-3 py-2 shadow-sm backdrop-blur-md"
+              className="inline-flex min-w-0 max-w-[75%] items-center gap-2 rounded-xl border bg-white/95 px-3 py-2 shadow-sm backdrop-blur-md"
             >
               {brand?.logo_url ? (
                 <img
@@ -171,7 +171,7 @@ export const BrandCard = ({
           </div>
         </div>
 
-        <div className="flex min-h-[195px] flex-col p-2">
+        <div className="flex min-h-[195px] flex-col p-4 sm:p-5">
           <h3 className="line-clamp-2 text-[17px] font-bold leading-snug tracking-tight text-[#182230]">
             {item.name}
           </h3>
@@ -201,8 +201,8 @@ export const BrandCard = ({
               </span>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-3 rounded-xl">
+            <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
+              <div className="flex min-w-0 items-center gap-3 rounded-xl">
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[#eeeaff]">
                   <Users className="h-5 w-5 text-brand-primary" />
                 </div>
@@ -215,7 +215,7 @@ export const BrandCard = ({
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 rounded-xl">
+              <div className="flex min-w-0 items-center gap-3 rounded-xl">
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[#fff3dc]">
                   <Star className="h-5 w-5 text-[#f5a000]" />
                 </div>
@@ -232,7 +232,7 @@ export const BrandCard = ({
 
           {/* Footer */}
           <div className="mt-auto pt-5">
-            <div className="flex items-center justify-between gap-2 border-t border-[#edf0f5] pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#edf0f5] pt-4">
               {listvisible ? (
                 <span className="text-xs text-[#98a2b3]">
                   {formatUpdatedAt(item.updated_at)}
@@ -250,7 +250,7 @@ export const BrandCard = ({
                       : `/brand/campaigns/${item.id}`
                   )
                 }
-                className="inline-flex items-center gap-2 text-sm font-semibold text-brand-primary transition hover:text-[#3213cd]"
+                className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-brand-primary transition hover:text-[#3213cd]"
               >
                 View {shortlist ? 'Shortlist' : 'Campaign'}
                 <ArrowRight className="h-4 w-4" />

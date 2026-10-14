@@ -161,6 +161,7 @@ class CreatorSocialAccountSerializer(serializers.ModelSerializer):
 class CreatorPortfolioSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
     video_url = serializers.SerializerMethodField()
+    link = serializers.URLField(required=True, allow_blank=False)
 
     class Meta:
         model = CreatorPortfolio
@@ -179,6 +180,22 @@ class CreatorPortfolioSerializer(serializers.ModelSerializer):
 
     def get_video_url(self, obj):
         return self._file_url(obj, "video")
+
+    def validate(self, attrs):
+        """Portfolio entries must always keep a link and at least one media file."""
+        instance = getattr(self, "instance", None)
+        link = attrs.get("link", instance.link if instance else "")
+        image = attrs.get("image", instance.image if instance else None)
+        video = attrs.get("video", instance.video if instance else None)
+        errors = {}
+
+        if not link or not str(link).strip():
+            errors["link"] = "A portfolio link is required."
+        if not image and not video:
+            errors["non_field_errors"] = "Upload at least one portfolio image or video."
+        if errors:
+            raise serializers.ValidationError(errors)
+        return attrs
 
 
 class CreatorSocialMediaPricingSerializer(serializers.ModelSerializer):

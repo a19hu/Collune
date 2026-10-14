@@ -1,4 +1,5 @@
 import {
+  ArrowLeft,
   CheckCheck,
   Loader2,
   MessageCircle,
@@ -11,7 +12,7 @@ import {
   Video,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 import { showProjectToast } from "../../HtmlComponents/HtmlRoster";
 import { useAuth } from "../../contexts/AuthContext";
@@ -28,7 +29,7 @@ import {
   sendChatMessage,
 } from "../../lib/authApi";
 import { playIncomingMessageSound, showDesktopNotification } from "../../lib/sound";
-import type { ChatConversationApi, ChatMessageApi } from "../../types";
+import type { ChatConversationApi, ChatMessageApi, ChatParticipantApi } from "../../types";
 
 function formatTime(value?: string | null) {
   if (!value) return "";
@@ -91,6 +92,12 @@ function getAvatarFallback(name: string) {
     .join("") || "CH";
 }
 
+function participantProfilePath(participant: ChatParticipantApi) {
+  return participant.role.toUpperCase() === "BRAND"
+    ? `/brands/${participant.id}`
+    : `/creators/${participant.id}`;
+}
+
 function sortConversations(items: ChatConversationApi[]) {
   return [...items].sort((left, right) => {
     const leftTime = new Date(left.latest_message?.created_at || left.updated_at).getTime();
@@ -126,7 +133,9 @@ function ChatAvatar({
 }) {
   const sizeClass = size === "lg" ? "h-12 w-12" : size === "sm" ? "h-10 w-10" : "h-11 w-11";
   const fallback = getAvatarFallback(name);
-  const ringClass = subtitle?.toLowerCase().includes("brand") ? "from-[#0f766e] to-[#14b8a6]" : "from-[#3659d7] to-[#7c8fff]";
+  const ringClass = subtitle?.toLowerCase().includes("brand")
+    ? "from-brand-primary to-brand-accent"
+    : "from-brand-primary to-[#5D72D8]";
 
   const statusDot = isOnline !== undefined ? (
     <span
@@ -177,8 +186,8 @@ function ConversationItem({
       onClick={onClick}
       className={`group flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition ${
         isActive
-          ? "bg-[#e8f2f0] shadow-[0_10px_24px_rgba(15,118,110,0.08)]"
-          : "hover:bg-[#f6faf9]"
+          ? "bg-brand-accent-soft shadow-[0_10px_24px_rgba(20,56,168,0.10)]"
+          : "hover:bg-surface-subtle"
       }`}
     >
       <ChatAvatar
@@ -189,15 +198,15 @@ function ConversationItem({
       />
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-3">
-          <p className="truncate text-[15px] font-black text-[#132238]">{conversation.other_participant.name}</p>
-          <span className={`shrink-0 text-[11px] font-semibold ${conversation.unread_count ? "text-[#0f766e]" : "text-[#7d8ca2]"}`}>
+          <p className="truncate text-[15px] font-black text-ink-strong">{conversation.other_participant.name}</p>
+          <span className={`shrink-0 text-[11px] font-semibold ${conversation.unread_count ? "text-brand-primary" : "text-ink-muted"}`}>
             {formatTime(latestAt)}
           </span>
         </div>
         <div className="mt-1 flex items-center gap-2">
-          <p className="truncate text-[13px] font-medium text-[#617086]">{latestMessage}</p>
+          <p className="truncate text-[13px] font-medium text-ink-muted">{latestMessage}</p>
           {conversation.unread_count ? (
-            <span className="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-[#0f766e] px-1.5 py-0.5 text-[11px] font-black text-white">
+            <span className="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-brand-primary px-1.5 py-0.5 text-[11px] font-black text-white">
               {conversation.unread_count > 99 ? "99+" : conversation.unread_count}
             </span>
           ) : null}
@@ -211,11 +220,11 @@ function EmptyState({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <div className="grid min-h-[280px] place-items-center text-center">
       <div>
-        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#e8f2f0] text-[#0f766e]">
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-brand-accent-soft text-brand-primary">
           <MessageCircle className="h-7 w-7" />
         </div>
-        <p className="mt-5 text-xl font-black text-[#132238]">{title}</p>
-        <p className="mx-auto mt-2 max-w-sm text-sm font-medium leading-relaxed text-[#617086]">{subtitle}</p>
+        <p className="mt-5 text-xl font-black text-ink-strong">{title}</p>
+        <p className="mx-auto mt-2 max-w-sm text-sm font-medium leading-relaxed text-ink-muted">{subtitle}</p>
       </div>
     </div>
   );
@@ -575,10 +584,10 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-[#dce7e4] bg-[#f2f6f5] shadow-[0_24px_60px_rgba(20,30,60,0.08)]">
-      <div className="grid h-[74vh] min-h-[74vh] lg:grid-cols-[360px_minmax(0,1fr)]">
-        <aside className="flex h-full min-h-0 flex-col border-r border-[#dde8e4] bg-[#f8fbfa]">
-          <div className="border-b border-[#dde8e4] bg-[#eef5f3] px-5 py-4">
+    <div className="overflow-hidden rounded-[28px] border border-border-default bg-surface-page shadow-[0_24px_60px_rgba(20,30,60,0.08)]">
+      <div className="grid h-[calc(100dvh-8rem)] min-h-[560px] lg:h-[74vh] lg:min-h-[74vh] lg:grid-cols-[360px_minmax(0,1fr)]">
+        <aside className={`${activeConversation ? "hidden lg:flex" : "flex"} h-full min-h-0 flex-col border-r border-border-default bg-white`}>
+          <div className="border-b border-border-default bg-brand-accent-soft px-5 py-4">
             <div className="flex items-center gap-3">
               <ChatAvatar
                 name={currentUser?.name || currentUser?.email || "You"}
@@ -586,19 +595,19 @@ export default function ChatPage() {
                 size="lg"
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-base font-black text-[#132238]">{currentUser?.name || "Your Inbox"}</p>
-                <p className="truncate text-xs font-semibold uppercase tracking-[0.18em] text-[#0f766e]">
+                <p className="truncate text-base font-black text-ink-strong">{currentUser?.name || "Your Inbox"}</p>
+                <p className="truncate text-xs font-semibold uppercase tracking-[0.18em] text-brand-primary">
                   {currentUser?.role || "Chat"}
                 </p>
               </div>
             </div>
             <div className="relative mt-4">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7b8b8d]" />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search or start a new chat"
-                className="h-11 w-full rounded-full border border-[#d6e3df] bg-white pl-11 pr-4 text-sm font-medium text-[#223248] outline-none focus:border-[#0f766e] focus:ring-4 focus:ring-[#0f766e]/10"
+                className="h-11 w-full rounded-full border border-border-default bg-white pl-11 pr-4 text-sm font-medium text-ink-default outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
               />
             </div>
           </div>
@@ -606,7 +615,7 @@ export default function ChatPage() {
           <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
             {isLoadingConversations ? (
               <div className="grid min-h-[260px] place-items-center">
-                <Loader2 className="h-7 w-7 animate-spin text-[#0f766e]" />
+                <Loader2 className="h-7 w-7 animate-spin text-brand-primary" />
               </div>
             ) : !filteredConversations.length ? (
               <EmptyState
@@ -636,33 +645,54 @@ export default function ChatPage() {
           </div>
         </aside>
 
-        <section className="relative flex h-full min-h-0 flex-col overflow-hidden bg-[#efeae2]">
-          <div className="pointer-events-none absolute inset-0 opacity-40" style={{ backgroundImage: "radial-gradient(#d7d2cb 0.8px, transparent 0.8px)", backgroundSize: "22px 22px" }} />
+        <section className={`${activeConversation ? "flex" : "hidden lg:flex"} relative h-full min-h-0 flex-col overflow-hidden bg-surface-page`}>
+          <div className="pointer-events-none absolute inset-0 opacity-40" style={{ backgroundImage: "radial-gradient(#D9E0FB 0.8px, transparent 0.8px)", backgroundSize: "22px 22px" }} />
 
           {activeConversation ? (
             <>
-              <header className="relative z-10 flex items-center gap-3 border-b border-[#ddd6ce] bg-[#f7f4ef] px-5 py-4 shadow-sm">
-                <ChatAvatar
-                  name={activeConversation.other_participant.name}
-                  subtitle={activeConversation.other_participant.subtitle}
-                  avatar={activeConversation.other_participant.avatar}
-                  size="lg"
-                  isOnline={activePresence?.is_online ?? activeConversation.other_participant.is_online}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px] font-black text-[#132238]">{activeConversation.other_participant.name}</p>
-                  <p className="truncate text-xs font-medium text-[#617086]">
-                    {activePresence?.is_online ?? activeConversation.other_participant.is_online
-                      ? "Online"
-                      : formatLastSeen(activePresence?.last_seen ?? activeConversation.other_participant.last_seen)}
-                  </p>
-                </div>
+              <header className="relative z-10 flex items-center gap-3 border-b border-border-default bg-white px-4 py-4 shadow-sm sm:px-5">
+                <button
+                  type="button"
+                  aria-label="Back to chats"
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-brand-primary transition hover:bg-brand-accent-soft lg:hidden"
+                  onClick={() => {
+                    setActiveConversationId("");
+                    setSearchParams((current) => {
+                      const next = new URLSearchParams(current);
+                      next.delete("conversationId");
+                      return next;
+                    }, { replace: true });
+                  }}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+                <Link
+                  to={participantProfilePath(activeConversation.other_participant)}
+                  className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl px-1 py-1 transition hover:bg-brand-accent-soft focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+                  aria-label={`Open ${activeConversation.other_participant.name}'s profile`}
+                >
+                  <ChatAvatar
+                    name={activeConversation.other_participant.name}
+                    subtitle={activeConversation.other_participant.subtitle}
+                    avatar={activeConversation.other_participant.avatar}
+                    size="lg"
+                    isOnline={activePresence?.is_online ?? activeConversation.other_participant.is_online}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[15px] font-black text-ink-strong">{activeConversation.other_participant.name}</p>
+                    <p className="truncate text-xs font-medium text-ink-muted">
+                      {activePresence?.is_online ?? activeConversation.other_participant.is_online
+                        ? "Online"
+                        : formatLastSeen(activePresence?.last_seen ?? activeConversation.other_participant.last_seen)}
+                    </p>
+                  </div>
+                </Link>
               </header>
 
               <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
                 {isLoadingMessages ? (
                   <div className="grid min-h-[280px] place-items-center">
-                    <Loader2 className="h-7 w-7 animate-spin text-[#0f766e]" />
+                    <Loader2 className="h-7 w-7 animate-spin text-brand-primary" />
                   </div>
                 ) : messages.length ? (
                   <div className="space-y-3">
@@ -675,7 +705,7 @@ export default function ChatPage() {
                         <div key={message.message_id}>
                           {showDate ? (
                             <div className="mb-4 flex justify-center">
-                              <span className="rounded-full bg-white/90 px-4 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#7b8b8d] shadow-sm">
+                              <span className="rounded-full bg-white/90 px-4 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-ink-muted shadow-sm">
                                 {formatDay(message.created_at)}
                               </span>
                             </div>
@@ -684,11 +714,11 @@ export default function ChatPage() {
                             <div
                               className={`max-w-[85%] rounded-[18px] px-4 py-3 shadow-sm sm:max-w-[72%] ${
                                 ownMessage
-                                  ? "rounded-br-[6px] bg-[#d9fdd3] text-[#132238]"
-                                  : "rounded-bl-[6px] bg-white text-[#132238]"
+                                  ? "rounded-br-[6px] bg-brand-accent-soft text-ink-strong"
+                                  : "rounded-bl-[6px] bg-white text-ink-strong"
                               }`}
                             >
-                              <p className={`mb-1 text-[11px] font-black uppercase tracking-[0.14em] ${ownMessage ? "text-[#3a6d41]" : "text-[#0f766e]"}`}>
+                              <p className={`mb-1 text-[11px] font-black uppercase tracking-[0.14em] ${ownMessage ? "text-brand-primary" : "text-ink-muted"}`}>
                                 {ownMessage ? "You" : message.sender.name}
                               </p>
                               {editingMessageId === message.message_id && !message.deleted_at ? (
@@ -702,19 +732,19 @@ export default function ChatPage() {
                                     onKeyDown={(event) => {
                                       if (event.key === "Escape" && !isUpdating) setEditingMessageId(null);
                                     }}
-                                    className="min-h-20 w-full rounded-lg border border-[#9dbab5] bg-white p-2 text-sm"
+                                    className="min-h-20 w-full rounded-lg border border-border-default bg-white p-2 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/15"
                                   />
                                   <div className="mt-2 flex justify-end gap-3 text-xs font-semibold">
                                     <button type="button" disabled={isUpdating} onClick={() => setEditingMessageId(null)}>Cancel</button>
-                                    <button type="submit" disabled={isUpdating || !editDraft.trim()} className="text-[#0f766e] disabled:opacity-50">{isUpdating ? "Saving…" : "Save"}</button>
+                                    <button type="submit" disabled={isUpdating || !editDraft.trim()} className="text-brand-primary disabled:opacity-50">{isUpdating ? "Saving…" : "Save"}</button>
                                   </div>
                                 </form>
                               ) : (
-                                <p className={`whitespace-pre-wrap break-words text-[14px] font-medium leading-relaxed ${message.deleted_at ? "italic text-[#6d7a80]" : ""}`}>
+                                <p className={`whitespace-pre-wrap break-words text-[14px] font-medium leading-relaxed ${message.deleted_at ? "italic text-ink-muted" : ""}`}>
                                   {message.deleted_at ? "This message was deleted" : message.content}
                                 </p>
                               )}
-                              <div className="mt-2 flex items-center justify-end gap-1.5 text-[11px] font-semibold text-[#6d7a80]">
+                              <div className="mt-2 flex items-center justify-end gap-1.5 text-[11px] font-semibold text-ink-muted">
                                 {ownMessage && !message.deleted_at && editingMessageId !== message.message_id ? (
                                   <>
                                     <button type="button" aria-label="Edit message" title="Edit message" disabled={isUpdating} className="rounded p-1.5 hover:bg-black/10" onClick={() => { setEditingMessageId(message.message_id); setEditDraft(message.content); }}><Pencil className="h-3.5 w-3.5" /></button>
@@ -723,7 +753,7 @@ export default function ChatPage() {
                                 ) : null}
                                 {message.edited_at && !message.deleted_at ? <span>Edited</span> : null}
                                 <span>{formatTime(message.created_at)}</span>
-                                {ownMessage ? <CheckCheck className="h-3.5 w-3.5 text-[#0f766e]" /> : null}
+                                {ownMessage ? <CheckCheck className="h-3.5 w-3.5 text-brand-primary" /> : null}
                               </div>
                             </div>
                           </div>
@@ -740,18 +770,18 @@ export default function ChatPage() {
                 )}
               </div>
 
-              <div className="relative z-10 border-t border-[#ddd6ce] bg-[#f7f4ef] px-4 py-4 sm:px-5">
+              <div className="relative z-10 border-t border-border-default bg-white px-4 py-4 sm:px-5">
                 {deleteTarget ? (
-                  <div role="alert" className="mb-3 rounded-xl border border-[#ddd6ce] bg-white p-4 text-sm">
+                  <div role="alert" className="mb-3 rounded-xl border border-border-default bg-white p-4 text-sm">
                     <p className="font-semibold">Delete this message for everyone?</p>
-                    <p className="mt-1 text-[#617086]">Both participants will see “This message was deleted”. This cannot be undone.</p>
+                    <p className="mt-1 text-ink-muted">Both participants will see “This message was deleted”. This cannot be undone.</p>
                     <div className="mt-3 flex justify-end gap-4 font-semibold">
                       <button type="button" disabled={isUpdating} onClick={() => setDeleteTarget(null)}>Cancel</button>
                       <button type="button" disabled={isUpdating} onClick={() => void handleMessageUpdate(deleteTarget, true)} className="text-red-600 disabled:opacity-50">{isUpdating ? "Deleting…" : "Delete for everyone"}</button>
                     </div>
                   </div>
                 ) : null}
-                <div className="flex items-end gap-3 rounded-[24px] bg-white px-3 py-2 shadow-sm ring-1 ring-[#e6ded6]">
+                <div className="flex items-end gap-3 rounded-[24px] bg-white px-3 py-2 shadow-sm ring-1 ring-border-default">
                   <textarea
                     rows={1}
                     value={draft}
@@ -763,13 +793,13 @@ export default function ChatPage() {
                       }
                     }}
                     placeholder="Type a message"
-                    className="max-h-32 min-h-[44px] flex-1 resize-none bg-transparent px-1 py-2 text-sm font-medium text-[#223248] outline-none"
+                    className="max-h-32 min-h-[44px] flex-1 resize-none bg-transparent px-1 py-2 text-sm font-medium text-ink-default outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => void handleSend()}
                     disabled={isSending || !draft.trim()}
-                    className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#0f766e] text-white transition hover:bg-[#0d675f] disabled:cursor-not-allowed disabled:bg-[#9dbab5]"
+                    className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-primary text-white transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:bg-ink-muted"
                   >
                     {isSending ? <Loader2 className="h-5 w-5 animate-spin" /> : <SendHorizonal className="h-5 w-5" />}
                   </button>

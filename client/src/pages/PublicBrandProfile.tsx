@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   BadgeCheck,
   BriefcaseBusiness,
@@ -17,6 +17,7 @@ import {
 import { getPublicBrandProfile } from '../lib/authApi';
 import type { BrandProfileApi, PublicBrandCampaignApi } from '../types';
 import { SocialPlatformIcon } from '../components/Shared/SocialPlatformIcon';
+import { CreatorCampaignCard } from '../HtmlComponents/BrandCard';
 
 type Tab = 'profile' | 'campaigns';
 
@@ -48,45 +49,34 @@ function deadlineLabel(value?: string | null) {
       });
 }
 
-function CampaignCard({ campaign }: { campaign: PublicBrandCampaignApi }) {
-  const open = campaign.status === 'ACTIVE';
+function CampaignCard({
+  campaign,
+  brand,
+}: {
+  campaign: PublicBrandCampaignApi;
+  brand: BrandProfileApi;
+}) {
+  const navigate = useNavigate();
+  const platforms = campaign.platforms?.filter(Boolean).join(' · ');
+
   return (
-    <article className="overflow-hidden rounded-[7px] border border-border-default bg-white">
-      {campaign.cover_image ? (
-        <img
-          src={campaign.cover_image}
-          alt=""
-          className="h-36 w-full object-cover"
-        />
-      ) : (
-        <div className="h-2 bg-[#7386ff]" />
-      )}
-      <div className="p-4">
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className={`rounded-full px-2.5 py-1 text-[10px] font-black ${open ? 'bg-[#ddfbea] text-feedback-success' : 'bg-[#eef2f8] text-ink-muted'}`}
-          >
-            {open ? 'Open applications' : campaign.status}
-          </span>
-          <span className="text-[10px] font-semibold text-[#7b8597]">
-            {deadlineLabel(campaign.deadline)}
-          </span>
-        </div>
-        <h3 className="mt-3 text-base font-black text-ink-strong">
-          {campaign.title}
-        </h3>
-        <p className="mt-2 line-clamp-3 text-[12px] font-medium leading-relaxed text-ink-muted">
-          {campaign.objective ||
-            campaign.brief ||
-            'Campaign details will be shared with selected creators.'}
-        </p>
-        {campaign.platforms.length ? (
-          <p className="mt-3 text-[10px] font-black uppercase tracking-wide text-brand-primary">
-            {campaign.platforms.join(' · ')}
-          </p>
-        ) : null}
-      </div>
-    </article>
+    <CreatorCampaignCard
+      title={campaign.title}
+      objective={
+        campaign.objective ||
+        campaign.brief ||
+        'Campaign details will be shared with selected creators.'
+      }
+      coverImage={campaign.cover_image}
+      brand={{
+        brand_id: brand.brand_id,
+        company_name: brand.company_name,
+        logo_url: brand.logo_url || brand.logo || null,
+      }}
+      status={campaign.status === 'ACTIVE' ? 'Open applications' : campaign.status}
+      meta={`Deadline: ${deadlineLabel(campaign.deadline)}${platforms ? ` · ${platforms}` : ''}`}
+      onOpen={() => navigate(`/creator/marketplace/${campaign.campaign_id}`)}
+    />
   );
 }
 
@@ -305,12 +295,12 @@ export default function PublicBrandProfile() {
                         {brand.company_size || 'Not added'}
                       </strong>
                     </div>
-                    <div className="rounded-[6px] bg-brand-accent-soft p-4 sm:col-span-2">
+                    <div className="rounded-[6px] bg-brand-accent-soft p-4">
                       <span className="text-[10px] font-semibold text-[#758198]">
-                        Account Contact
+                        Established Year
                       </span>
                       <strong className="mt-1 block text-[15px] font-black text-brand-primary">
-                        {brand.contact_person_name || 'Not added'}
+                        {brand.year_established || 'Not added'}
                       </strong>
                     </div>
                   </div>
@@ -328,6 +318,7 @@ export default function PublicBrandProfile() {
                       <CampaignCard
                         key={campaign.campaign_id}
                         campaign={campaign}
+                        brand={brand}
                       />
                     ))}
                   </div>

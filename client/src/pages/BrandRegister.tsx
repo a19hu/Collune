@@ -89,7 +89,20 @@ const initialVerification: VerificationState = {
   error: "",
 };
 
-const industryOptions = ["Technology", "Consumer Brand", "Finance", "Education"];
+const industryOptions = [
+  "Education & Academia",
+  "Finance & Investments",
+  "Business & Entrepreneurship",
+  "Technology & Innovation",
+  "Healthcare & Wellness",
+  "Beauty & Personal Care",
+  "Fashion & Apparel",
+  "Food & Beverages",
+  "Travel & Tourism",
+  "Entertainment & Media",
+  "Marketing & Advertising",
+  "E-commerce & Retail",
+];
 const employeesSizeOptions = ["1-2", "2-10", "10-50", "50+"];
 
 type BrandFieldChangeEvent = ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
@@ -288,7 +301,7 @@ function BrandRegisterSteps({
           <BrandSelect labelClass={labelClass} inputClass={inputClass} label="Employees Size" icon={<Users className="h-5 w-5" />} placeholder="Select size" value={form.company_size} onChange={onFieldChange("company_size")} required>
             {employeesSizeOptions.map((size) => <option key={size}>{size}</option>)}
           </BrandSelect>
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Year Established" icon={<Shield className="h-5 w-5" />} value={form.year_established} onChange={onFieldChange("year_established")} placeholder="2020" type="number" max={new Date().getFullYear()} />
+          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Year Established" icon={<Shield className="h-5 w-5" />} value={form.year_established} onChange={onFieldChange("year_established")} type="month" max={`${new Date().getFullYear()}-12`} />
           <TextAreaField
             label="About Brand"
             value={form.about_brand}
@@ -354,7 +367,7 @@ function BrandRegisterSteps({
           <ReviewRow icon={<Building2 className="h-5 w-5" />} label="Company Name" value={form.company_name} />
           <ReviewRow icon={<BriefcaseBusiness className="h-5 w-5" />} label="Industry" value={form.industry} />
           <ReviewRow icon={<Users className="h-5 w-5" />} label="Company Size" value={form.company_size} />
-          <ReviewRow icon={<Shield className="h-5 w-5" />} label="Year Established" value={form.year_established} />
+          <ReviewRow icon={<Shield className="h-5 w-5" />} label="Year Established" value={form.year_established ? form.year_established.slice(0, 4) : ""} />
           <ReviewRow icon={<Globe className="h-5 w-5" />} label="Website" value={form.website} />
           <ReviewRow icon={<Linkedin className="h-5 w-5" />} label="LinkedIn" value={form.linkedin_url} />
           <ReviewRow icon={<MapPinned className="h-5 w-5" />} label="Headquarters" value={[form.headquarters_city, form.headquarters_state, form.headquarters_country].filter(Boolean).join(", ")} />
@@ -608,7 +621,7 @@ const BrandRegister = () => {
         linkedin_url: form.linkedin_url.trim(),
         gst_number: form.gst_number.trim(),
         cin_registration_number: form.cin_registration_number.trim(),
-        year_established: form.year_established ? Number(form.year_established) : undefined,
+        year_established: form.year_established ? Number(form.year_established.slice(0, 4)) : undefined,
         headquarters_city: form.headquarters_city.trim(),
         headquarters_state: form.headquarters_state.trim(),
         headquarters_country: form.headquarters_country.trim(),
