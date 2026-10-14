@@ -201,6 +201,7 @@ class BrandProfile(models.Model):
     year_established = models.PositiveSmallIntegerField(blank=True, null=True)
     headquarters_city = models.CharField(max_length=120, blank=True, default="")
     headquarters_state = models.CharField(max_length=120, blank=True, default="")
+    headquarters_district = models.CharField(max_length=120, blank=True, default="")
     headquarters_country = models.CharField(max_length=120, blank=True, default="")
     instagram_url = models.URLField(blank=True, default="")
     facebook_url = models.URLField(blank=True, default="")

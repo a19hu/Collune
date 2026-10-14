@@ -2,8 +2,9 @@ import { CalendarDays, Check, ChevronDown, Eye, EyeClosed, Globe, Grid2X2, Insta
 import HtmlInput from "../HtmlComponents/HtmlInput";
 import { RegisterError, RegisterStepHeader, SelectablePill, VerificationBlock } from "../HtmlComponents/RegisterFormParts";
 import { CreatorRegisterForm, SocialAccountForm, VerificationState } from "../types";
-import type { ChangeEvent, ReactNode } from "react";
+import { useEffect, useState, type ChangeEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { getGeoNamesLocations, type GeoNamesLocation } from "../lib/authApi";
 
 
 export const inputClass =
@@ -141,17 +142,86 @@ function AddressField({
   );
 }
 
+function AddressSelectField({
+  label,
+  value,
+  options,
+  placeholder,
+  disabled = false,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: GeoNamesLocation[];
+  placeholder: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-xs font-semibold text-[#4c5880]">{label}</span>
+      <select
+        value={value}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-12 w-full rounded-xl border border-[#d8e2fb] bg-white px-4 text-sm font-semibold text-brand-primary outline-none transition focus:border-[#6d7eff] focus:ring-4 focus:ring-[#6d7eff]/10 disabled:cursor-not-allowed disabled:bg-slate-100"
+      >
+        <option value="">{placeholder}</option>
+        {value && !options.some((option) => option.name === value) ? <option value={value}>{value}</option> : null}
+        {options.map((option) => <option key={option.id || option.code} value={option.name}>{option.name}</option>)}
+      </select>
+    </label>
+  );
+}
+
 export function AddressComposer({
   location,
   onChange,
+  fields = addressFieldOrder,
 }: {
   location: string;
   onChange: (value: string) => void;
+  fields?: AddressFieldKey[];
 }) {
   const parts = parseLocationParts(location);
+  const [countries, setCountries] = useState<GeoNamesLocation[]>([]);
+  const [states, setStates] = useState<GeoNamesLocation[]>([]);
+  const [districts, setDistricts] = useState<GeoNamesLocation[]>([]);
+  const [locationError, setLocationError] = useState("");
+  const selectedCountry = countries.find((item) => item.name === parts.country);
+  const selectedState = states.find((item) => item.name === parts.state);
+
+  useEffect(() => {
+    getGeoNamesLocations("countries")
+      .then((data) => setCountries(data.locations))
+      .catch((error) => setLocationError(error instanceof Error ? error.message : "Location choices are unavailable."));
+  }, []);
+
+  useEffect(() => {
+    setStates([]);
+    setDistricts([]);
+    if (!selectedCountry?.code) return;
+    getGeoNamesLocations("states", { country: selectedCountry.code })
+      .then((data) => setStates(data.locations))
+      .catch((error) => setLocationError(error instanceof Error ? error.message : "State choices are unavailable."));
+  }, [selectedCountry?.code]);
+
+  useEffect(() => {
+    setDistricts([]);
+    if (!selectedCountry?.code || !selectedState?.code) return;
+    getGeoNamesLocations("districts", { country: selectedCountry.code, state: selectedState.code })
+      .then((data) => setDistricts(data.locations))
+      .catch((error) => setLocationError(error instanceof Error ? error.message : "District choices are unavailable."));
+  }, [selectedCountry?.code, selectedState?.code]);
 
   const updatePart = (key: AddressFieldKey, value: string) => {
-    onChange(formatLocationParts({ ...parts, [key]: value }));
+    const next = { ...parts, [key]: value };
+    if (key === "country") {
+      next.state = "";
+      next.district = "";
+    }
+    if (key === "state") next.district = "";
+    onChange(formatLocationParts(next));
   };
 
   return (
@@ -160,7 +230,10 @@ export function AddressComposer({
       <div className="rounded-2xl border border-[#d8e2fb] bg-[#f7f9ff] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
         <div className="mt-3 h-[228px] overflow-y-auto pr-1">
           <div className="grid gap-4 sm:grid-cols-2">
-            {addressFieldMeta.map((field) => (
+            {fields.includes("country") ? <AddressSelectField label="Country" value={parts.country} options={countries} placeholder="Select country" onChange={(value) => updatePart("country", value)} /> : null}
+            {fields.includes("state") ? <AddressSelectField label="State" value={parts.state} options={states} placeholder="Select state" disabled={!selectedCountry} onChange={(value) => updatePart("state", value)} /> : null}
+            {fields.includes("district") ? <AddressSelectField label="District" value={parts.district} options={districts} placeholder="Select district" disabled={!selectedState} onChange={(value) => updatePart("district", value)} /> : null}
+            {addressFieldMeta.filter((field) => fields.includes(field.key) && !["country", "state", "district"].includes(field.key)).map((field) => (
               <AddressField
                 key={field.key}
                 label={field.label}
@@ -171,7 +244,7 @@ export function AddressComposer({
               />
             ))}
           </div>
-          <FieldError message={""} />
+          <FieldError message={locationError} />
         </div>
       </div>
     </section>

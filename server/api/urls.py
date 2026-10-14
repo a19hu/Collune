@@ -47,6 +47,7 @@ from .notification.views import NotificationListView, NotificationReadView
 from .feature_control.views import CreatorRateCardsView, RateCardsView
 from .chat.views import ChatConversationListCreateView, ChatConversationReadView, ChatMessageListCreateView, ChatMessageDetailView
 from .chat_reminders.views import UnreadChatReminderTaskView
+from .geonames import GeoNamesLocationView
 from .creator.views import (
     CampaignApplicationViewSet,
     CampaignWorkSubmissionView,
@@ -76,6 +77,7 @@ router.register("brands", BrandProfileViewSet, basename="brands")
 router.register("campaigns", CampaignViewSet, basename="campaigns")
 
 urlpatterns = [
+    path("locations/geonames/", GeoNamesLocationView.as_view(), name="geonames_locations"),
     path("auth/brands/register/", BrandRegisterView.as_view(), name="brand_register"),
     path("auth/creators/register/", CreatorRegisterView.as_view(), name="creator_register"),
     path("auth/email-availability/", EmailAvailabilityView.as_view(), name="email_availability"),

@@ -26,6 +26,7 @@ class BrandRegisterSerializer(serializers.Serializer):
     year_established = serializers.IntegerField(required=False, allow_null=True)
     headquarters_city = serializers.CharField(max_length=120, required=False, allow_blank=True)
     headquarters_state = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    headquarters_district = serializers.CharField(max_length=120, required=False, allow_blank=True)
     headquarters_country = serializers.CharField(max_length=120, required=False, allow_blank=True)
     instagram_url = serializers.URLField(required=False, allow_blank=True)
     facebook_url = serializers.URLField(required=False, allow_blank=True)
@@ -82,6 +83,7 @@ class BrandProfileSerializer(serializers.ModelSerializer):
             "year_established",
             "headquarters_city",
             "headquarters_state",
+            "headquarters_district",
             "headquarters_country",
             "instagram_url",
             "facebook_url",

@@ -149,6 +149,7 @@ export type BrandRegisterForm = {
   year_established: string;
   headquarters_city: string;
   headquarters_state: string;
+  headquarters_district?: string;
   headquarters_country: string;
   instagram_url: string;
   facebook_url: string;
@@ -708,6 +709,7 @@ export type BrandRegisterPayload = {
   year_established?: number;
   headquarters_city?: string;
   headquarters_state?: string;
+  headquarters_district?: string;
   headquarters_country?: string;
   instagram_url?: string;
   facebook_url?: string;
@@ -742,6 +744,7 @@ export type BrandProfileApi = {
   year_established?: number | null;
   headquarters_city?: string;
   headquarters_state?: string;
+  headquarters_district?: string;
   headquarters_country?: string;
   instagram_url?: string;
   facebook_url?: string;

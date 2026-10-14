@@ -36,7 +36,7 @@ import { checkEmailAvailability, registerBrandFormData, sendOtp, sendWhatsAppOtp
 import { normalizePhoneNumber } from "../lib/function";
 import { capitalizeFirstLetter } from "../lib/nameFormat";
 import type { BrandRegisterForm, VerificationState } from "../types";
-import { inputClass, labelClass } from "./StepsCreatorRegister";
+import { AddressComposer, emptyAddressParts, formatLocationParts, inputClass, labelClass, parseLocationParts } from "./StepsCreatorRegister";
 
 const totalSteps = 5;
 const maxLogoSizeBytes = 2 * 1024 * 1024;
@@ -65,6 +65,7 @@ const initialBrandForm: BrandRegisterForm = {
   year_established: "",
   headquarters_city: "",
   headquarters_state: "",
+  headquarters_district: "",
   headquarters_country: "",
   instagram_url: "",
   facebook_url: "",
@@ -336,9 +337,14 @@ function BrandRegisterSteps({
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="YouTube (Optional)" icon={<Youtube className="h-5 w-5" />} value={form.youtube_url} onChange={onFieldChange("youtube_url")} placeholder="https://youtube.com/@yourbrand" type="url" />
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="GST Number (Optional)" icon={<FileText className="h-5 w-5" />} value={form.gst_number} onChange={onFieldChange("gst_number")} placeholder="22AAAAA0000A1Z5" />
           <HtmlInput labelClass={labelClass} inputClass={inputClass} label="CIN / Registration Number (Optional)" icon={<FileBadge2 className="h-5 w-5" />} value={form.cin_registration_number} onChange={onFieldChange("cin_registration_number")} placeholder="L12345MH2020PLC123456" />
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Headquarters City" icon={<MapPinned className="h-5 w-5" />} value={form.headquarters_city} onChange={onFieldChange("headquarters_city")} placeholder="Mumbai" />
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Headquarters State" icon={<MapPinned className="h-5 w-5" />} value={form.headquarters_state} onChange={onFieldChange("headquarters_state")} placeholder="Maharashtra" />
-          <HtmlInput labelClass={labelClass} inputClass={inputClass} label="Headquarters Country" icon={<MapPinned className="h-5 w-5" />} value={form.headquarters_country} onChange={onFieldChange("headquarters_country")} placeholder="India" />
+          <AddressComposer
+            fields={["country", "state", "district", "city"]}
+            location={formatLocationParts({ ...emptyAddressParts, country: form.headquarters_country, state: form.headquarters_state, district: form.headquarters_district, city: form.headquarters_city })}
+            onChange={(location) => {
+              const address = parseLocationParts(location);
+              setForm((value) => ({ ...value, headquarters_country: address.country, headquarters_state: address.state, headquarters_district: address.district, headquarters_city: address.city }));
+            }}
+          />
         </div>
       </>
     );
@@ -624,6 +630,7 @@ const BrandRegister = () => {
         year_established: form.year_established ? Number(form.year_established.slice(0, 4)) : undefined,
         headquarters_city: form.headquarters_city.trim(),
         headquarters_state: form.headquarters_state.trim(),
+        headquarters_district: form.headquarters_district.trim(),
         headquarters_country: form.headquarters_country.trim(),
         instagram_url: form.instagram_url.trim(),
         facebook_url: form.facebook_url.trim(),

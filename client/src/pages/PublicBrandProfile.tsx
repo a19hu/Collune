@@ -120,6 +120,7 @@ export default function PublicBrandProfile() {
     () =>
       [
         brand?.headquarters_city,
+        brand?.headquarters_district,
         brand?.headquarters_state,
         brand?.headquarters_country,
       ]

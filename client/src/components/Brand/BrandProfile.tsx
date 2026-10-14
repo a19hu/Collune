@@ -31,6 +31,7 @@ import {
   validateFileSize,
 } from '../../lib/fileUpload';
 import { capitalizeFirstLetter } from '../../lib/nameFormat';
+import { AddressComposer, emptyAddressParts, formatLocationParts, parseLocationParts } from '../../pages/StepsCreatorRegister';
 
 type BrandProfileForm = {
   company_name: string;
@@ -44,6 +45,7 @@ type BrandProfileForm = {
   year_established: string;
   headquarters_city: string;
   headquarters_state: string;
+  headquarters_district: string;
   headquarters_country: string;
   instagram_url: string;
   facebook_url: string;
@@ -94,6 +96,7 @@ function toForm(profile: BrandProfileApi): BrandProfileForm {
       : '',
     headquarters_city: profile.headquarters_city || '',
     headquarters_state: profile.headquarters_state || '',
+    headquarters_district: profile.headquarters_district || '',
     headquarters_country: profile.headquarters_country || '',
     instagram_url: profile.instagram_url || '',
     facebook_url: profile.facebook_url || '',
@@ -439,6 +442,7 @@ export default function BrandProfile() {
     }
     body.append('headquarters_city', form.headquarters_city.trim());
     body.append('headquarters_state', form.headquarters_state.trim());
+    body.append('headquarters_district', form.headquarters_district.trim());
     body.append('headquarters_country', form.headquarters_country.trim());
     body.append('instagram_url', normalizeUrl(form.instagram_url));
     body.append('facebook_url', normalizeUrl(form.facebook_url));
@@ -680,28 +684,17 @@ export default function BrandProfile() {
             </SectionCard>
 
             <SectionCard title="Headquarters">
-              <div className="grid gap-5 lg:grid-cols-3">
-                <TextField
-                  label="City"
-                  value={form.headquarters_city}
-                  onChange={(value) => updateField('headquarters_city', value)}
-                  placeholder="City"
-                />
-                <TextField
-                  label="State"
-                  value={form.headquarters_state}
-                  onChange={(value) => updateField('headquarters_state', value)}
-                  placeholder="State or region"
-                />
-                <TextField
-                  label="Country"
-                  value={form.headquarters_country}
-                  onChange={(value) =>
-                    updateField('headquarters_country', value)
-                  }
-                  placeholder="Country"
-                />
-              </div>
+              <AddressComposer
+                fields={['country', 'state', 'district', 'city']}
+                location={formatLocationParts({ ...emptyAddressParts, country: form.headquarters_country, state: form.headquarters_state, district: form.headquarters_district, city: form.headquarters_city })}
+                onChange={(location) => {
+                  const address = parseLocationParts(location);
+                  updateField('headquarters_country', address.country);
+                  updateField('headquarters_state', address.state);
+                  updateField('headquarters_district', address.district);
+                  updateField('headquarters_city', address.city);
+                }}
+              />
             </SectionCard>
 
             <SectionCard title="Social Presence">

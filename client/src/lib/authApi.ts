@@ -66,6 +66,12 @@ function resolveWebSocketBaseUrl() {
 type ApiError = { error?: string; detail?: string; message?: string };
 type ApiRecord = Record<string, unknown>;
 
+export type GeoNamesLocation = {
+  id: string;
+  name: string;
+  code: string;
+};
+
 function getAuthHeader() {
   const access = authStorage.getAccessToken();
   if (access) return `Bearer ${access}`;
@@ -266,6 +272,16 @@ export async function getBrandMe() {
 export async function getPublicBrandProfile(brandId: string) {
   const data = await apiRequest<{ brand: BrandProfileApi }>(`/brand/${encodeURIComponent(brandId)}/`);
   return data.brand;
+}
+
+export function getGeoNamesLocations(
+  level: "countries" | "states" | "districts",
+  params: { country?: string; state?: string } = {}
+) {
+  const query = new URLSearchParams({ level });
+  if (params.country) query.set("country", params.country);
+  if (params.state) query.set("state", params.state);
+  return apiRequest<{ locations: GeoNamesLocation[] }>(`/locations/geonames/?${query.toString()}`);
 }
 
 export async function updateBrandProfile(body: FormData) {
